@@ -20,6 +20,8 @@ export function printSlip(tx) {
   const day   = txDate.getDate();
   const month = txDate.getMonth() + 1;
   const year  = txDate.getFullYear();
+  const hour  = String(txDate.getHours()).padStart(2, '0');
+  const min   = String(txDate.getMinutes()).padStart(2, '0');
 
   const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -139,7 +141,7 @@ export function printSlip(tx) {
 </table>
 
 <div class="footer-date">
-  ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  ${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   ký và ghi đầy đủ họ và tên
 </div>
 <div class="sig-row">
