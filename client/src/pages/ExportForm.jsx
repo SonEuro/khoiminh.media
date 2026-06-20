@@ -69,10 +69,17 @@ export default function ExportForm() {
   // Filter equipment by dept + search term
   const deptCats = DEPTS.find(d => d.value === deptFilter)?.cats ?? null;
 
-  const filteredEquip = (term) => {
+  const filteredEquip = (term, currentIdx) => {
+    const usedIds = new Set(
+      items
+        .filter((_, j) => j !== currentIdx)
+        .map(i => String(i.equipment_id))
+        .filter(Boolean)
+    );
     let list = deptCats
       ? equipment.filter(e => deptCats.includes(e.category_code))
       : equipment;
+    list = list.filter(e => !usedIds.has(String(e.id)));
     if (term) {
       const t = term.toLowerCase();
       list = list.filter(e => e.name.toLowerCase().includes(t) || e.code.toLowerCase().includes(t));
@@ -240,7 +247,7 @@ export default function ExportForm() {
                     />
                     {searchTerms[idx] && !item.equipment_id && (
                       <div className="border rounded-lg bg-white shadow-sm max-h-48 overflow-y-auto">
-                        {filteredEquip(searchTerms[idx]).map(e => (
+                        {filteredEquip(searchTerms[idx], idx).map(e => (
                           <button type="button" key={e.id}
                             className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b last:border-0"
                             onClick={() => {
@@ -257,7 +264,7 @@ export default function ExportForm() {
                             </span>
                           </button>
                         ))}
-                        {filteredEquip(searchTerms[idx]).length === 0 && (
+                        {filteredEquip(searchTerms[idx], idx).length === 0 && (
                           <p className="px-3 py-2 text-sm text-gray-400">Không tìm thấy</p>
                         )}
                       </div>
