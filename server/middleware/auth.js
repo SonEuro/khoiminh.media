@@ -10,7 +10,7 @@ const DEPT_CATS = {
   TECHNICAL:   ['TECH'],
   ATAS:        ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
   STAGE:       ['STAGE'],
-  CSVC:        null,
+  CSVC:        ['CSVC'],
 };
 
 function requireAuth(req, res, next) {

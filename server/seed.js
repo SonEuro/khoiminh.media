@@ -8,6 +8,7 @@ const categories = [
   { name: 'Màn Hình LED',         code: 'LED',    icon: '📺' },
   { name: 'Matrix LED',           code: 'MATRIX', icon: '✨' },
   { name: 'Hạng Mục Sân Khấu',   code: 'STAGE',  icon: '🎭' },
+  { name: 'Cơ Sở Vật Chất',      code: 'CSVC',   icon: '🏢' },
 ];
 
 const equipment = [
@@ -178,6 +179,12 @@ const equipment = [
   { code: 'STAGE-023', name: 'Hộp Đèn 20cm: Khung Sắt + Mica + Nguồn + LED',     cat: 'STAGE', unit: 'M',   price:  410000, qty: 1 },
   { code: 'STAGE-024', name: 'Hộp Đèn 30cm: Khung Sắt + Mica + Nguồn + LED',     cat: 'STAGE', unit: 'M',   price:  520000, qty: 1 },
   { code: 'STAGE-025', name: 'Layer Truss + Gia Cố',                               cat: 'STAGE', unit: 'M3',  price:   70000, qty: 1 },
+
+  // ── CƠ SỞ VẬT CHẤT ────────────────────────────────────────────────
+  { code: 'CSVC-001', name: 'Máy Lạnh Studio S1 – Cục Nóng', cat: 'CSVC', unit: 'Cái', price: 120000, qty: 10 },
+  { code: 'CSVC-002', name: 'Máy Lạnh Studio S1 – Cục Lạnh', cat: 'CSVC', unit: 'Cái', price: 120000, qty: 10 },
+  { code: 'CSVC-003', name: 'Máy Lạnh Studio S2 – Cục Nóng', cat: 'CSVC', unit: 'Cái', price: 120000, qty: 10 },
+  { code: 'CSVC-004', name: 'Máy Lạnh Studio S2 – Cục Lạnh', cat: 'CSVC', unit: 'Cái', price: 120000, qty: 10 },
 ];
 
 function seed() {

@@ -9,7 +9,7 @@ const DEPT_CATS = {
   TECHNICAL:   ['TECH'],
   ATAS:        ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
   STAGE:       ['STAGE'],
-  CSVC:        null,
+  CSVC:        ['CSVC'],
 };
 
 const ROLE_LABELS = {
