@@ -2,8 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { api } from '../api';
 import Modal from '../components/Modal';
+import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_LABELS = { available: 'Có sẵn', in_use: 'Đang dùng', maintenance: 'Sửa chữa', damaged: 'Hỏng', lost: 'Mất' };
+
+const DEPT_CATS = {
+  SUPER_ADMIN: null,
+  PRODUCTION:  null,
+  ACCOUNTING:  null,
+  TECHNICAL:   ['TECH'],
+  ATAS:        ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
+  STAGE:       ['STAGE'],
+  CSVC:        ['CSVC'],
+};
 
 function EquipmentForm({ categories, initial, onSave, onCancel }) {
   const [form, setForm] = useState(
@@ -122,6 +133,9 @@ function HistoryModal({ equipment, onClose }) {
 }
 
 export default function Equipment() {
+  const { user, can } = useAuth();
+  const allowedCats = DEPT_CATS[user?.role] ?? null;
+
   const [equipment, setEquipment] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
@@ -139,6 +153,14 @@ export default function Equipment() {
 
   useEffect(() => { api.getCategories().then(setCategories); }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Filter by dept restriction
+  const visibleEquipment = allowedCats
+    ? equipment.filter(e => allowedCats.includes(e.category_code))
+    : equipment;
+  const visibleCats = allowedCats
+    ? categories.filter(c => allowedCats.includes(c.code))
+    : categories;
 
   const handleSave = async (form) => {
     try {
@@ -169,11 +191,13 @@ export default function Equipment() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Thiết Bị</h1>
-          <p className="text-gray-500 text-sm">{equipment.length} thiết bị</p>
+          <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
-        <button className="btn-primary" onClick={() => { setSelected(null); setModal('add'); }}>
-          + Thêm thiết bị
-        </button>
+        {can('editEquipment') && (
+          <button className="btn-primary" onClick={() => { setSelected(null); setModal('add'); }}>
+            + Thêm thiết bị
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -186,7 +210,7 @@ export default function Equipment() {
         />
         <select className="input max-w-xs" value={catFilter} onChange={e => setCatFilter(e.target.value)}>
           <option value="">Tất cả danh mục</option>
-          {categories.map(c => <option key={c.code} value={c.code}>{c.icon} {c.name}</option>)}
+          {visibleCats.map(c => <option key={c.code} value={c.code}>{c.icon} {c.name}</option>)}
         </select>
       </div>
 
@@ -210,10 +234,10 @@ export default function Equipment() {
             {loading && (
               <tr><td colSpan={9} className="text-center py-8 text-gray-400">Đang tải...</td></tr>
             )}
-            {!loading && equipment.length === 0 && (
+            {!loading && visibleEquipment.length === 0 && (
               <tr><td colSpan={9} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
             )}
-            {equipment.map(eq => (
+            {visibleEquipment.map(eq => (
               <tr key={eq.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono text-xs font-medium text-gray-700">{eq.code}</td>
                 <td className="px-4 py-3">
@@ -236,10 +260,14 @@ export default function Equipment() {
                       onClick={() => { setSelected(eq); setModal('qr'); }}>QR</button>
                     <button className="btn-secondary btn-sm" title="Lịch sử"
                       onClick={() => { setSelected(eq); setModal('history'); }}>📋</button>
-                    <button className="btn-secondary btn-sm"
-                      onClick={() => { setSelected(eq); setModal('edit'); }}>✏️</button>
-                    <button className="btn-danger btn-sm"
-                      onClick={() => handleDelete(eq)}>🗑</button>
+                    {can('editEquipment') && (
+                      <button className="btn-secondary btn-sm"
+                        onClick={() => { setSelected(eq); setModal('edit'); }}>✏️</button>
+                    )}
+                    {can('deleteEquipment') && (
+                      <button className="btn-danger btn-sm"
+                        onClick={() => handleDelete(eq)}>🗑</button>
+                    )}
                   </div>
                 </td>
               </tr>
