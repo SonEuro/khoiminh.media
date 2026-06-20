@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import Modal from '../components/Modal';
+import { printSlip } from '../utils/printSlip';
 
 const TYPE_CONFIG = {
   OUT:    { label: 'Xuất kho',   icon: '⬆️', cls: 'bg-red-100 text-red-800' },
@@ -16,7 +17,14 @@ function TxDetailModal({ txId, onClose }) {
 
   const cfg = TYPE_CONFIG[tx.type] || { label: tx.type, icon: '📋', cls: '' };
   return (
-    <Modal title={`${cfg.icon} ${tx.code}`} onClose={onClose} size="lg">
+    <Modal title={`${cfg.icon} ${tx.code}`} onClose={onClose} size="lg"
+      extra={
+        <button onClick={() => printSlip(tx)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-lg">
+          🖨️ In Phiếu
+        </button>
+      }
+    >
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div><span className="text-gray-500">Loại: </span><span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>{cfg.label}</span></div>
@@ -124,7 +132,17 @@ export default function Transactions() {
                   <td className="px-4 py-3 text-center font-medium">{tx.item_count} loại</td>
                   <td className="px-4 py-3 text-gray-400">{tx.transaction_date?.slice(0, 16)}</td>
                   <td className="px-4 py-3">
-                    <button className="btn-secondary btn-sm" onClick={() => setSelectedTx(tx.id)}>Chi tiết</button>
+                    <div className="flex gap-2">
+                      <button className="btn-secondary btn-sm" onClick={() => setSelectedTx(tx.id)}>Chi tiết</button>
+                      <button className="btn-sm border border-gray-300 text-gray-600 hover:bg-gray-50 rounded px-2"
+                        title="In phiếu"
+                        onClick={async () => {
+                          const full = await api.getTransactionById(tx.id);
+                          printSlip(full);
+                        }}>
+                        🖨️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

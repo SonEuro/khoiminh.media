@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export default function Modal({ title, onClose, children, size = 'md' }) {
+export default function Modal({ title, onClose, children, size = 'md', extra }) {
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', esc);
@@ -17,7 +17,10 @@ export default function Modal({ title, onClose, children, size = 'md' }) {
       >
         <div className="flex items-center justify-between p-5 border-b">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <div className="flex items-center gap-2">
+            {extra}
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          </div>
         </div>
         <div className="overflow-y-auto flex-1 p-5">{children}</div>
       </div>
