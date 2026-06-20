@@ -67,6 +67,16 @@ db.exec(`
     condition      TEXT DEFAULT 'good',
     notes          TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    full_name     TEXT NOT NULL,
+    role          TEXT NOT NULL DEFAULT 'ATAS',
+    is_active     INTEGER DEFAULT 1,
+    created_at    TEXT DEFAULT (datetime('now','localtime'))
+  );
 `);
 
 module.exports = db;

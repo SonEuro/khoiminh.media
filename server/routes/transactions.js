@@ -1,5 +1,22 @@
 const router = require('express').Router();
 const db = require('../database');
+const { requireRole } = require('../middleware/auth');
+
+const canTransact = requireRole('SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+
+function checkDept(user, equipmentIds) {
+  const cats = user.deptCats;
+  if (!cats) return null;
+  for (const id of equipmentIds) {
+    const row = db.prepare(
+      'SELECT c.code FROM equipment e JOIN categories c ON c.id = e.category_id WHERE e.id = ?'
+    ).get(id);
+    if (row && !cats.includes(row.code)) {
+      return `Bộ phận bạn không có quyền xuất/nhập thiết bị danh mục "${row.code}"`;
+    }
+  }
+  return null;
+}
 
 function nextCode(type) {
   const prefix = type === 'OUT' ? 'XUAT' : type === 'RETURN' ? 'NHAP' : 'TX';
@@ -46,9 +63,11 @@ router.get('/:id', (req, res) => {
 });
 
 // Xuất kho (OUT)
-router.post('/out', (req, res) => {
+router.post('/out', canTransact, (req, res) => {
   const { event_id, responsible_person, expected_return_date, notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
+  if (deptErr) return res.status(403).json({ error: deptErr });
 
   const doOut = db.transaction(() => {
     const code = nextCode('OUT');
@@ -80,9 +99,11 @@ router.post('/out', (req, res) => {
 });
 
 // Nhập kho / trả kho (RETURN)
-router.post('/return', (req, res) => {
+router.post('/return', canTransact, (req, res) => {
   const { event_id, responsible_person, notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
+  if (deptErr) return res.status(403).json({ error: deptErr });
 
   const doReturn = db.transaction(() => {
     const code = nextCode('RETURN');
@@ -121,7 +142,7 @@ router.post('/return', (req, res) => {
 });
 
 // Nhập bảo trì → trả lại kho
-router.post('/fix', (req, res) => {
+router.post('/fix', canTransact, (req, res) => {
   const { notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 

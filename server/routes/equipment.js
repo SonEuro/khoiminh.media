@@ -1,6 +1,10 @@
 const router = require('express').Router();
 const db = require('../database');
 const QRCode = require('qrcode');
+const { requireRole } = require('../middleware/auth');
+
+const canEdit   = requireRole('SUPER_ADMIN', 'PRODUCTION');
+const adminOnly = requireRole('SUPER_ADMIN');
 
 router.get('/', (req, res) => {
   const { category, search, status } = req.query;
@@ -50,7 +54,7 @@ router.get('/:id/history', (req, res) => {
   res.json(rows);
 });
 
-router.post('/', (req, res) => {
+router.post('/', canEdit, (req, res) => {
   const { code, name, category_id, unit, unit_price, qty_total, notes } = req.body;
   if (!code || !name) return res.status(400).json({ error: 'code và name là bắt buộc' });
   try {
@@ -65,7 +69,7 @@ router.post('/', (req, res) => {
   }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', canEdit, (req, res) => {
   const { name, category_id, unit, unit_price, notes } = req.body;
   db.prepare(`
     UPDATE equipment SET name=?, category_id=?, unit=?, unit_price=?, notes=? WHERE id=?
@@ -73,7 +77,7 @@ router.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', adminOnly, (req, res) => {
   const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(req.params.id);
   if (!eq) return res.status(404).json({ error: 'Không tìm thấy' });
   if (eq.qty_in_use > 0) return res.status(400).json({ error: 'Thiết bị đang được sử dụng, không thể xóa' });

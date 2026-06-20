@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Equipment from './pages/Equipment';
 import ExportForm from './pages/ExportForm';
@@ -7,21 +9,40 @@ import ReturnForm from './pages/ReturnForm';
 import Events from './pages/Events';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
+import Users from './pages/Users';
+
+function ProtectedRoute({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function AppRoutes() {
+  const { user, can } = useAuth();
+  return (
+    <Routes>
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route index element={<Dashboard />} />
+        <Route path="equipment" element={<Equipment />} />
+        <Route path="export"   element={can('transact') ? <ExportForm /> : <Navigate to="/" replace />} />
+        <Route path="return"   element={can('transact') ? <ReturnForm /> : <Navigate to="/" replace />} />
+        <Route path="events"   element={<Events />} />
+        <Route path="transactions" element={<Transactions />} />
+        <Route path="reports"  element={<Reports />} />
+        <Route path="users"    element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="equipment" element={<Equipment />} />
-          <Route path="export" element={<ExportForm />} />
-          <Route path="return" element={<ReturnForm />} />
-          <Route path="events" element={<Events />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="reports" element={<Reports />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

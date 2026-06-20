@@ -1,17 +1,44 @@
 const BASE = '/api';
 
+function getToken() {
+  return localStorage.getItem('km_token');
+}
+
 async function request(path, options = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem('km_token');
+    localStorage.removeItem('km_user');
+    window.location.href = '/login';
+    throw new Error('Phiên đăng nhập hết hạn');
+  }
+
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Lỗi server');
   return data;
 }
 
 export const api = {
+  // Auth
+  login: (data) => request('/auth/login', { method: 'POST', body: data }),
+  getMe: () => request('/auth/me'),
+  changePassword: (data) => request('/auth/change-password', { method: 'POST', body: data }),
+
+  // Users (SUPER_ADMIN only)
+  getUsers: () => request('/users'),
+  createUser: (data) => request('/users', { method: 'POST', body: data }),
+  updateUser: (id, data) => request(`/users/${id}`, { method: 'PUT', body: data }),
+  deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+
   // Categories
   getCategories: () => request('/categories'),
 

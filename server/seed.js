@@ -1,4 +1,5 @@
 const db = require('./database');
+const bcrypt = require('bcryptjs');
 
 const categories = [
   { name: 'Thiết Bị Kỹ Thuật',   code: 'TECH',   icon: '🎥' },
@@ -208,3 +209,13 @@ function seed() {
 }
 
 seed();
+
+function seedAdmin() {
+  const count = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+  if (count > 0) return;
+  const hash = bcrypt.hashSync('admin123', 10);
+  db.prepare('INSERT INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)')
+    .run('admin', hash, 'Giám Đốc Sản Xuất', 'SUPER_ADMIN');
+  console.log('Default admin created — username: admin / password: admin123');
+}
+seedAdmin();

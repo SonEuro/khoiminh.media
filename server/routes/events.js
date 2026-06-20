@@ -1,5 +1,9 @@
 const router = require('express').Router();
 const db = require('../database');
+const { requireRole } = require('../middleware/auth');
+
+const canWrite  = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const adminOnly = requireRole('SUPER_ADMIN');
 
 function nextCode() {
   const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
@@ -39,7 +43,7 @@ router.get('/:id', (req, res) => {
   res.json({ ...ev, items });
 });
 
-router.post('/', (req, res) => {
+router.post('/', canWrite, (req, res) => {
   const { name, client, location, start_date, end_date, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
   const code = nextCode();
@@ -50,7 +54,7 @@ router.post('/', (req, res) => {
   res.json({ id: r.lastInsertRowid, code });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', canWrite, (req, res) => {
   const { name, client, location, start_date, end_date, status, notes } = req.body;
   db.prepare(`
     UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, status=?, notes=? WHERE id=?
@@ -58,7 +62,7 @@ router.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', adminOnly, (req, res) => {
   const txCount = db.prepare('SELECT COUNT(*) as c FROM transactions WHERE event_id = ?').get(req.params.id);
   if (txCount.c > 0) return res.status(400).json({ error: 'Sự kiện đã có phiếu xuất/nhập, không thể xóa' });
   db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
