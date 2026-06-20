@@ -8,8 +8,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_PATH
-        value: /opt/render/project/src/server/kho.db
+        value: /opt/render/data/kho.db
     disk:
       name: kho-data
-      mountPath: /opt/render/project/src/server
+      mountPath: /opt/render/data
       sizeGB: 1
