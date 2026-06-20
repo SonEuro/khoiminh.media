@@ -1,0 +1,15 @@
+.DS_Store
+*.db-shm
+*.db-wal
+node_modules/
+client/node_modules/
+server/node_modules/
+client/dist/
+server/public/
+server/kho.db
+*.db
+.env
+deploy/
+php-backend/
+ecosystem.config.cjs
+start.sh
