@@ -54,8 +54,8 @@ export default function ExportForm() {
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const addItem = () => {
-    setItems(i => [...i, { equipment_id: '', quantity: 1, notes: '' }]);
-    setSearchTerms(s => [...s, '']);
+    setItems(i => [...i, ...emptyRows(5)]);
+    setSearchTerms(s => [...s, ...Array(5).fill('')]);
   };
 
   const removeItem = (idx) => {
@@ -189,7 +189,7 @@ export default function ExportForm() {
         <div className="card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-700">Danh sách thiết bị xuất</h2>
-            <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm dòng</button>
+            <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm 5 dòng</button>
           </div>
 
           {/* Department filter */}
