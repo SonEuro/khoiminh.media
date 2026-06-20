@@ -15,9 +15,9 @@ export default function Layout() {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <aside className="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-gray-700">
-          <p className="text-xs text-gray-400 uppercase tracking-wider">Khôi Minh</p>
-          <h1 className="text-base font-bold text-white leading-tight">Quản Lý Kho</h1>
+        <div className="px-4 py-3 border-b border-gray-700">
+          <img src="/logo.png" alt="Khôi Minh" className="w-full max-w-[160px]" />
+          <p className="text-xs text-gray-400 mt-1">Quản Lý Kho</p>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto">
           {nav.map(item => (
