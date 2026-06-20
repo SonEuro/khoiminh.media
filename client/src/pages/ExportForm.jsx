@@ -23,6 +23,8 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
+const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ equipment_id: '', quantity: 1, notes: '' }));
+
 export default function ExportForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -39,8 +41,8 @@ export default function ExportForm() {
     expected_return_date: '',
     notes: '',
   });
-  const [items, setItems]           = useState([{ equipment_id: '', quantity: 1, notes: '' }]);
-  const [searchTerms, setSearchTerms] = useState(['']);
+  const [items, setItems]           = useState(emptyRows(10));
+  const [searchTerms, setSearchTerms] = useState(Array(10).fill(''));
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
 
@@ -122,8 +124,8 @@ export default function ExportForm() {
             onClick={() => {
               setDoneSlip(null);
               setForm({ event_id: '', responsible_person: '', expected_return_date: '', notes: '' });
-              setItems([{ equipment_id: '', quantity: 1, notes: '' }]);
-              setSearchTerms(['']);
+              setItems(emptyRows(10));
+              setSearchTerms(Array(10).fill(''));
             }}
             className="text-sm text-blue-600 hover:underline">
             + Tạo phiếu mới
@@ -195,9 +197,8 @@ export default function ExportForm() {
                   onClick={() => {
                     if (!isLocked) {
                       setDeptFilter(d.value);
-                      // Clear all selected items when dept changes
-                      setItems([{ equipment_id: '', quantity: 1, notes: '' }]);
-                      setSearchTerms(['']);
+                      setItems(emptyRows(10));
+                      setSearchTerms(Array(10).fill(''));
                     }
                   }}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
