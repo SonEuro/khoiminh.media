@@ -10,7 +10,7 @@ services:
       - key: DATABASE_PATH
         value: /opt/render/data/kho.db
       - key: JWT_SECRET
-        generateValue: true
+        sync: false
     disk:
       name: kho-data
       mountPath: /opt/render/data
