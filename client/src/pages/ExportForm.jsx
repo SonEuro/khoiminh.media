@@ -1,20 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../contexts/AuthContext';
+import { printSlip } from '../utils/printSlip';
+
+const DEPTS = [
+  { value: '',       label: 'Tất cả bộ phận',          cats: null },
+  { value: 'TECH',   label: '🛠️ Kỹ Thuật',             cats: ['TECH'] },
+  { value: 'ATAS',   label: '💡 ATAS – Âm Thanh / Ánh Sáng / LED', cats: ['AUDIO', 'LIGHT', 'LED', 'MATRIX'] },
+  { value: 'STAGE',  label: '🎭 Sân Khấu',              cats: ['STAGE'] },
+  { value: 'CSVC',   label: '🏢 Cơ Sở Vật Chất',       cats: ['CSVC'] },
+];
+
+// Map role → default dept value
+const ROLE_DEPT = {
+  TECHNICAL: 'TECH',
+  ATAS:      'ATAS',
+  STAGE:     'STAGE',
+  CSVC:      'CSVC',
+};
+
+// Roles that cannot change the dept selector
+const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 export default function ExportForm() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const defaultDept = ROLE_DEPT[user?.role] || '';
+  const isLocked = LOCKED_ROLES.includes(user?.role);
+
   const [equipment, setEquipment] = useState([]);
-  const [events, setEvents] = useState([]);
+  const [events, setEvents]       = useState([]);
+  const [deptFilter, setDeptFilter] = useState(defaultDept);
   const [form, setForm] = useState({
     event_id: '',
     responsible_person: '',
     expected_return_date: '',
     notes: '',
   });
-  const [items, setItems] = useState([{ equipment_id: '', quantity: 1, notes: '' }]);
-  const [submitting, setSubmitting] = useState(false);
+  const [items, setItems]           = useState([{ equipment_id: '', quantity: 1, notes: '' }]);
   const [searchTerms, setSearchTerms] = useState(['']);
+  const [submitting, setSubmitting] = useState(false);
+  const [doneSlip, setDoneSlip]     = useState(null);
 
   useEffect(() => {
     api.getEquipment().then(setEquipment);
@@ -36,10 +64,18 @@ export default function ExportForm() {
   const setItem = (idx, key, val) =>
     setItems(items.map((it, j) => j === idx ? { ...it, [key]: val } : it));
 
+  // Filter equipment by dept + search term
+  const deptCats = DEPTS.find(d => d.value === deptFilter)?.cats ?? null;
+
   const filteredEquip = (term) => {
-    if (!term) return equipment.slice(0, 20);
-    const t = term.toLowerCase();
-    return equipment.filter(e => e.name.toLowerCase().includes(t) || e.code.toLowerCase().includes(t)).slice(0, 15);
+    let list = deptCats
+      ? equipment.filter(e => deptCats.includes(e.category_code))
+      : equipment;
+    if (term) {
+      const t = term.toLowerCase();
+      list = list.filter(e => e.name.toLowerCase().includes(t) || e.code.toLowerCase().includes(t));
+    }
+    return list.slice(0, 20);
   };
 
   const submit = async (e) => {
@@ -49,14 +85,53 @@ export default function ExportForm() {
     setSubmitting(true);
     try {
       const res = await api.createOut({ ...form, items: validItems });
-      alert(`Xuất kho thành công! Phiếu: ${res.code}`);
-      navigate('/transactions');
-    } catch (e) {
-      alert(e.message);
+      // Load full transaction for printing
+      const full = await api.getTransactionById(res.id);
+      setDoneSlip(full);
+    } catch (err) {
+      alert(err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  // After success — show confirmation with print option
+  if (doneSlip) {
+    return (
+      <div className="p-6 max-w-lg">
+        <div className="card text-center space-y-4">
+          <div className="text-5xl">✅</div>
+          <h2 className="text-xl font-bold text-green-700">Xuất kho thành công!</h2>
+          <p className="text-gray-600">
+            Phiếu <strong className="font-mono">{doneSlip.code}</strong> đã được tạo
+            với <strong>{doneSlip.items?.length}</strong> loại thiết bị.
+          </p>
+          <div className="flex gap-3 justify-center pt-2">
+            <button
+              onClick={() => printSlip(doneSlip)}
+              className="btn-primary flex items-center gap-2">
+              🖨️ In Phiếu Xuất Kho
+            </button>
+            <button
+              onClick={() => navigate('/transactions')}
+              className="btn-secondary">
+              Xem lịch sử
+            </button>
+          </div>
+          <button
+            onClick={() => {
+              setDoneSlip(null);
+              setForm({ event_id: '', responsible_person: '', expected_return_date: '', notes: '' });
+              setItems([{ equipment_id: '', quantity: 1, notes: '' }]);
+              setSearchTerms(['']);
+            }}
+            className="text-sm text-blue-600 hover:underline">
+            + Tạo phiếu mới
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-3xl">
@@ -101,11 +176,46 @@ export default function ExportForm() {
           </div>
         </div>
 
-        {/* Items */}
+        {/* Equipment items */}
         <div className="card space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-700">Danh sách thiết bị xuất</h2>
             <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm dòng</button>
+          </div>
+
+          {/* Department filter */}
+          <div>
+            <label className="label">Lọc theo bộ phận</label>
+            <div className="flex flex-wrap gap-2">
+              {DEPTS.map(d => (
+                <button
+                  key={d.value}
+                  type="button"
+                  disabled={isLocked && d.value !== deptFilter}
+                  onClick={() => {
+                    if (!isLocked) {
+                      setDeptFilter(d.value);
+                      // Clear all selected items when dept changes
+                      setItems([{ equipment_id: '', quantity: 1, notes: '' }]);
+                      setSearchTerms(['']);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
+                    ${deptFilter === d.value
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600'}
+                    ${isLocked && d.value !== deptFilter ? 'opacity-30 cursor-not-allowed' : ''}
+                  `}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            {deptCats && (
+              <p className="text-xs text-blue-600 mt-1">
+                Đang hiển thị thiết bị: <strong>{deptCats.join(', ')}</strong>
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -116,7 +226,9 @@ export default function ExportForm() {
                   <div className="flex-1">
                     <input
                       className="input mb-1 text-sm"
-                      placeholder="Tìm thiết bị theo tên hoặc mã..."
+                      placeholder={deptCats
+                        ? `Tìm trong ${DEPTS.find(d=>d.value===deptFilter)?.label}...`
+                        : 'Tìm thiết bị theo tên hoặc mã...'}
                       value={searchTerms[idx]}
                       onChange={e => {
                         const newTerms = [...searchTerms];
@@ -126,7 +238,7 @@ export default function ExportForm() {
                       }}
                     />
                     {searchTerms[idx] && !item.equipment_id && (
-                      <div className="border rounded-lg bg-white shadow-sm max-h-40 overflow-y-auto">
+                      <div className="border rounded-lg bg-white shadow-sm max-h-48 overflow-y-auto">
                         {filteredEquip(searchTerms[idx]).map(e => (
                           <button type="button" key={e.id}
                             className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b last:border-0"
@@ -136,10 +248,11 @@ export default function ExportForm() {
                               newTerms[idx] = `${e.code} · ${e.name}`;
                               setSearchTerms(newTerms);
                             }}>
-                            <span className="font-mono text-xs text-gray-500 mr-2">{e.code}</span>
-                            {e.name}
-                            <span className={`ml-2 text-xs font-medium ${e.qty_available === 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              ({e.qty_available} {e.unit} có sẵn)
+                            <span className="font-mono text-xs text-gray-400 mr-1">{e.code}</span>
+                            <span className="mr-1">{e.name}</span>
+                            <span className="text-xs text-gray-400">[{e.category_code}]</span>
+                            <span className={`ml-2 text-xs font-semibold ${e.qty_available === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                              · {e.qty_available} {e.unit} có sẵn
                             </span>
                           </button>
                         ))}
@@ -150,7 +263,7 @@ export default function ExportForm() {
                     )}
                     {eq && (
                       <p className="text-xs text-green-700 mt-1">
-                        ✅ {eq.name} · Có sẵn: <strong>{eq.qty_available}</strong> {eq.unit}
+                        ✅ {eq.name} · <span className="text-gray-500">[{eq.category_code}]</span> · Có sẵn: <strong>{eq.qty_available}</strong> {eq.unit}
                       </p>
                     )}
                   </div>
