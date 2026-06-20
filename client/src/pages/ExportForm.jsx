@@ -231,6 +231,9 @@ export default function ExportForm() {
               const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
               return (
                 <div key={idx} className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-shrink-0 w-7 h-8 flex items-center justify-center text-sm font-bold text-gray-400 mt-1">
+                    {idx + 1}
+                  </div>
                   <div className="flex-1">
                     <input
                       className="input mb-1 text-sm"
