@@ -18,12 +18,23 @@ function checkDept(user, equipmentIds) {
   return null;
 }
 
-function nextCode(type) {
-  const prefix = type === 'OUT' ? 'XUAT' : type === 'RETURN' ? 'NHAP' : 'TX';
-  const last = db.prepare(`SELECT code FROM transactions WHERE type = ? ORDER BY id DESC LIMIT 1`).get(type);
-  if (!last) return `${prefix}-001`;
-  const num = parseInt(last.code.split('-')[1]) + 1;
-  return `${prefix}-${String(num).padStart(3, '0')}`;
+function nextCode(type, eventId) {
+  if (type === 'OUT') {
+    let prefix = 'XUAT NOI BO';
+    let row;
+    if (eventId) {
+      const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
+      if (ev) prefix = ev.name.toUpperCase();
+      row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'OUT' AND event_id = ?`).get(eventId);
+    } else {
+      row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'OUT' AND event_id IS NULL`).get();
+    }
+    const seq = (row?.c ?? 0) + 1;
+    return `${prefix}-${String(seq).padStart(3, '0')}`;
+  }
+  const prefix = type === 'RETURN' ? 'NHAP' : 'FIX';
+  const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ?`).get(type);
+  return `${prefix}-${String(c + 1).padStart(3, '0')}`;
 }
 
 router.get('/', (req, res) => {
@@ -70,7 +81,7 @@ router.post('/out', canTransact, (req, res) => {
   if (deptErr) return res.status(403).json({ error: deptErr });
 
   const doOut = db.transaction(() => {
-    const code = nextCode('OUT');
+    const code = nextCode('OUT', event_id || null);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, event_id, responsible_person, expected_return_date, notes)
       VALUES (?, 'OUT', ?, ?, ?, ?)
@@ -147,9 +158,7 @@ router.post('/fix', canTransact, (req, res) => {
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
   const doFix = db.transaction(() => {
-    const last = db.prepare("SELECT code FROM transactions WHERE type='FIX' ORDER BY id DESC LIMIT 1").get();
-    const num = last ? parseInt(last.code.split('-')[1]) + 1 : 1;
-    const code = `FIX-${String(num).padStart(3, '0')}`;
+    const code = nextCode('FIX');
 
     const txR = db.prepare(`INSERT INTO transactions (code, type, notes) VALUES (?, 'FIX', ?)`).run(code, notes);
     const txId = txR.lastInsertRowid;
