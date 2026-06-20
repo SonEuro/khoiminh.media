@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kho-khoiminh
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /opt/render/project/src/server/kho.db
+    disk:
+      name: kho-data
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1
