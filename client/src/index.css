@@ -177,7 +177,13 @@
     color: #f0d98a !important;
   }
 
-  /* ── Equipment search input ──────────────────────── */
+  /* ── Bold red input (typed text) ────────────────── */
+  .bold-input {
+    color: #f87171 !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+  }
+  .bold-input::placeholder,
   .eq-search::placeholder {
     color: var(--text-muted);
     font-size: 0.875rem;

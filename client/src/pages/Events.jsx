@@ -28,8 +28,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
       <div style={{ position: 'relative' }}>
         <label className="label">Tên sự kiện *</label>
         <input
-          className="input eq-search"
-          style={{ color: '#f87171', fontSize: '1.4rem', fontWeight: 700 }}
+          className="input eq-search bold-input"
           required
           value={form.name}
           placeholder="VD: Gala Dinner Công Ty ABC 2025"
@@ -73,21 +72,21 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Khách hàng</label>
-          <input className="input" value={form.client || ''} onChange={e => set('client', e.target.value)} />
+          <input className="input bold-input" value={form.client || ''} onChange={e => set('client', e.target.value)} />
         </div>
         <div>
           <label className="label">Địa điểm</label>
-          <input className="input" value={form.location || ''} onChange={e => set('location', e.target.value)} />
+          <input className="input bold-input" value={form.location || ''} onChange={e => set('location', e.target.value)} />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
-          <input className="input" type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} />
+          <input className="input bold-input" type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
-          <input className="input" type="date" value={form.end_date || ''} onChange={e => set('end_date', e.target.value)} />
+          <input className="input bold-input" type="date" value={form.end_date || ''} onChange={e => set('end_date', e.target.value)} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
@@ -98,7 +97,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
       </div>
       <div>
         <label className="label">Ghi chú</label>
-        <textarea className="input" rows={2} value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
+        <textarea className="input bold-input" rows={2} value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
       </div>
       <div className="flex gap-3 pt-2">
         <button type="submit" className="btn-primary flex-1">{initial ? 'Cập nhật' : 'Tạo sự kiện'}</button>
