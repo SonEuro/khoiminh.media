@@ -44,6 +44,7 @@ export default function ExportForm() {
   });
   const [items, setItems]           = useState(emptyRows(10));
   const [searchTerms, setSearchTerms] = useState(Array(10).fill(''));
+  const [expandedRows, setExpandedRows] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
 
@@ -62,6 +63,19 @@ export default function ExportForm() {
   const removeItem = (idx) => {
     setItems(i => i.filter((_, j) => j !== idx));
     setSearchTerms(s => s.filter((_, j) => j !== idx));
+    setExpandedRows(prev => {
+      const next = new Set();
+      prev.forEach(r => { if (r < idx) next.add(r); else if (r > idx) next.add(r - 1); });
+      return next;
+    });
+  };
+
+  const toggleExpand = (idx) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      next.has(idx) ? next.delete(idx) : next.add(idx);
+      return next;
+    });
   };
 
   const setItem = (idx, key, val) =>
@@ -171,7 +185,7 @@ export default function ExportForm() {
       <form onSubmit={submit} className="space-y-6">
         {/* Header info */}
         <div className="card space-y-4">
-          <h2 className="font-semibold text-gray-700">Thông tin phiếu</h2>
+          <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Thông tin phiếu</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Sự kiện / Dự án</label>
@@ -207,7 +221,7 @@ export default function ExportForm() {
         {/* Equipment items */}
         <div className="card space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-700">Danh sách thiết bị xuất</h2>
+            <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Danh sách thiết bị xuất</h2>
             <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm 5 dòng</button>
           </div>
 
@@ -248,82 +262,147 @@ export default function ExportForm() {
             )}
           </div>
 
-          <div className="space-y-3">
+          <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
             {items.map((item, idx) => {
               const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
+              const isOpen = expandedRows.has(idx);
+              const filled = !!item.equipment_id;
+              const H = 38; // uniform input height px
+
               return (
-                <div key={idx} className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-shrink-0 w-7 h-8 flex items-center justify-center text-sm font-bold text-gray-400 mt-1">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      className="input mb-1 eq-search"
-                      style={{ color: '#f87171', fontSize: '1.4rem', fontWeight: 700 }}
-                      placeholder={deptCats
-                        ? `Tìm trong ${DEPTS.find(d=>d.value===deptFilter)?.label}...`
-                        : 'Tìm thiết bị theo tên hoặc mã...'}
-                      value={searchTerms[idx]}
-                      onChange={e => {
-                        const newTerms = [...searchTerms];
-                        newTerms[idx] = e.target.value;
-                        setSearchTerms(newTerms);
-                        setItem(idx, 'equipment_id', '');
-                      }}
-                    />
-                    {searchTerms[idx] && !item.equipment_id && (
-                      <div className="max-h-48 overflow-y-auto" style={{ background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'0.5rem', boxShadow:'0 8px 24px rgba(0,0,0,0.6)' }}>
-                        {filteredEquip(searchTerms[idx], idx).map(e => (
-                          <button type="button" key={e.id}
-                            className="w-full text-left px-3 py-2 text-sm border-b last:border-0"
-                            style={{ borderColor:'rgba(201,168,76,0.15)' }}
-                            onMouseEnter={e2 => e2.currentTarget.style.background='rgba(201,168,76,0.08)'}
-                            onMouseLeave={e2 => e2.currentTarget.style.background='transparent'}
-                            onClick={() => {
-                              setItem(idx, 'equipment_id', e.id);
-                              const newTerms = [...searchTerms];
-                              newTerms[idx] = e.name;
-                              setSearchTerms(newTerms);
-                            }}>
-                            <span style={{ color:'#c9a84c', fontWeight:600, marginRight:'6px' }}>{e.name}</span>
-                            <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#7878a0', marginRight:'4px' }}>{e.code}</span>
-                            <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>[{e.category_code}]</span>
-                            <span className={`ml-2 text-xs font-semibold ${e.qty_available === 0 ? 'text-red-500' : 'text-green-600'}`}>
-                              · {e.qty_available} {e.unit} có sẵn
-                            </span>
-                          </button>
-                        ))}
-                        {filteredEquip(searchTerms[idx], idx).length === 0 && (
-                          <p className="px-3 py-2 text-sm" style={{ color:'#7878a0' }}>Không tìm thấy</p>
-                        )}
-                      </div>
-                    )}
-                    {eq && (
-                      <p className="text-xs text-green-700 mt-1">
-                        ✅ {eq.name} · <span className="text-gray-500">[{eq.category_code}]</span> · Có sẵn: <strong>{eq.qty_available}</strong> {eq.unit}
-                      </p>
-                    )}
-                  </div>
-                  <div className="w-24 flex-shrink-0">
-                    <label className="label text-xs">Số lượng</label>
+                <div key={idx} style={{
+                  backgroundColor:'#10101a',
+                  border:`1px solid ${filled ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                  borderLeft:`3px solid ${filled ? '#c9a84c' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius:'8px',
+                }}>
+                  {/* ── Main row ── */}
+                  <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
+
+                    {/* STT */}
+                    <span style={{ textAlign:'center', fontSize:'0.72rem', fontWeight:700, color: filled ? 'var(--gold)' : 'var(--text-muted)', lineHeight:`${H}px` }}>
+                      {idx + 1}
+                    </span>
+
+                    {/* Search */}
+                    <div style={{ position:'relative' }}>
+                      <input
+                        style={{
+                          display:'block', width:'100%', height:`${H}px`, padding:'0 10px',
+                          background: filled ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.04)',
+                          border:`1px solid ${filled ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                          borderRadius:'7px',
+                          color: filled ? '#f5c842' : 'var(--text-muted)',
+                          fontWeight: filled ? 700 : 400,
+                          fontSize:'0.875rem',
+                          outline:'none',
+                          boxSizing:'border-box',
+                        }}
+                        placeholder="Tìm thiết bị..."
+                        value={searchTerms[idx]}
+                        onChange={e => {
+                          const t = [...searchTerms]; t[idx] = e.target.value; setSearchTerms(t);
+                          setItem(idx, 'equipment_id', '');
+                        }}
+                      />
+                      {searchTerms[idx] && !item.equipment_id && (
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                          {filteredEquip(searchTerms[idx], idx).map(e => (
+                            <button type="button" key={e.id}
+                              style={{ width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px' }}
+                              onMouseEnter={ev => ev.currentTarget.style.background='rgba(201,168,76,0.1)'}
+                              onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                              onClick={() => {
+                                setItem(idx, 'equipment_id', e.id);
+                                const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
+                              }}>
+                              <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.83rem', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</span>
+                              <span style={{ fontSize:'0.7rem', fontWeight:700, color: e.qty_available === 0 ? '#f87171' : '#4ade80', flexShrink:0 }}>
+                                {e.qty_available} {e.unit}
+                              </span>
+                            </button>
+                          ))}
+                          {filteredEquip(searchTerms[idx], idx).length === 0 && (
+                            <p style={{ padding:'10px 12px', fontSize:'0.8rem', color:'#7878a0' }}>Không tìm thấy</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quantity */}
                     <input type="number" min="1"
                       value={item.quantity}
                       onChange={e => setItem(idx, 'quantity', +e.target.value)}
                       style={{
-                        width:'100%', padding:'6px 8px',
-                        background:'rgba(255,255,255,0.04)',
-                        border:'1px solid rgba(201,168,76,0.3)',
-                        borderRadius:'0.5rem',
-                        color:'#4ade80',
-                        fontSize:'1.4rem',
-                        fontWeight:700,
-                        textAlign:'center',
+                        display:'block', width:'100%', height:`${H}px`, padding:'0',
+                        textAlign:'center', boxSizing:'border-box',
+                        background:'rgba(74,222,128,0.08)',
+                        border:'1px solid rgba(74,222,128,0.35)',
+                        borderRadius:'7px',
+                        color:'#4ade80', fontSize:'1rem', fontWeight:800,
                         outline:'none',
                       }}
                     />
+
+                    {/* Edit toggle */}
+                    <button type="button" onClick={() => toggleExpand(idx)}
+                      style={{
+                        width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
+                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                        background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
+                        color: isOpen ? '#e8c97a' : '#5a5a7a',
+                        fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center',
+                        transition:'all 0.15s',
+                      }}>
+                      ✏️
+                    </button>
+
+                    {/* Delete */}
+                    <button type="button" onClick={() => removeItem(idx)}
+                      style={{
+                        width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
+                        border:'1px solid rgba(248,113,113,0.25)',
+                        background:'transparent',
+                        color:'rgba(248,113,113,0.6)', fontSize:'0.9rem',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        transition:'all 0.15s',
+                      }}
+                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(248,113,113,0.12)'; ev.currentTarget.style.color='#f87171'; }}
+                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(248,113,113,0.6)'; }}>
+                      ✕
+                    </button>
                   </div>
-                  <button type="button" className="btn-danger btn-sm mt-5 flex-shrink-0"
-                    onClick={() => removeItem(idx)}>✕</button>
+
+                  {/* ── Info strip when item selected ── */}
+                  {eq && !isOpen && (
+                    <div style={{ padding:'0 8px 6px 44px', display:'flex', alignItems:'center', gap:'6px' }}>
+                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.code}</span>
+                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)' }}>·</span>
+                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
+                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)', marginLeft:'auto' }}>còn</span>
+                      <span style={{ fontSize:'0.72rem', fontWeight:700, color: eq.qty_available === 0 ? '#f87171' : '#4ade80' }}>{eq.qty_available} {eq.unit}</span>
+                    </div>
+                  )}
+
+                  {/* ── Expanded edit panel ── */}
+                  {isOpen && (
+                    <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'10px 10px 10px 44px', background:'rgba(201,168,76,0.04)', borderRadius:'0 0 8px 8px' }}>
+                      {eq && (
+                        <div style={{ display:'flex', gap:'12px', marginBottom:'8px', fontSize:'0.7rem' }}>
+                          <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:'monospace' }}>{eq.code}</span></span>
+                          <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
+                          <span style={{ color:'var(--text-muted)' }}>Có sẵn: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
+                          <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
+                        </div>
+                      )}
+                      <input
+                        style={{ width:'100%', height:'34px', padding:'0 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'7px', color:'var(--text-primary)', fontSize:'0.82rem', outline:'none', boxSizing:'border-box' }}
+                        placeholder="Ghi chú cho dòng này..."
+                        value={item.notes || ''}
+                        onChange={e => setItem(idx, 'notes', e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
