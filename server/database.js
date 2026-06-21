@@ -73,10 +73,17 @@ db.exec(`
     username      TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     full_name     TEXT NOT NULL,
+    position      TEXT DEFAULT '',
     role          TEXT NOT NULL DEFAULT 'ATAS',
     is_active     INTEGER DEFAULT 1,
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   );
 `);
+
+// Migrate: add position column if not exists
+try {
+  db.prepare("ALTER TABLE users ADD COLUMN position TEXT DEFAULT ''").run();
+} catch (_) {}
+
 
 module.exports = db;

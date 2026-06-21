@@ -23,7 +23,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', role: 'ATAS', is_active: true };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true };
 
 export default function Users() {
   const { ROLE_LABELS } = useAuth();
@@ -45,7 +45,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, role: u.role, is_active: !!u.is_active });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -90,8 +90,9 @@ export default function Users() {
             <thead>
               <tr>
                 <th className="text-left px-4 py-3">Họ tên</th>
+                <th className="text-left px-4 py-3">Chức vụ</th>
                 <th className="text-left px-4 py-3">Tên đăng nhập</th>
-                <th className="text-left px-4 py-3">Vai trò</th>
+                <th className="text-left px-4 py-3">Phòng ban</th>
                 <th className="text-left px-4 py-3">Trạng thái</th>
                 <th className="text-left px-4 py-3">Ngày tạo</th>
                 <th className="px-4 py-3"></th>
@@ -103,6 +104,7 @@ export default function Users() {
                 return (
                   <tr key={u.id}>
                     <td className="px-4 py-3" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{u.full_name}</td>
+                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
                     <td className="px-4 py-3" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
                     <td className="px-4 py-3">
                       <span style={{
@@ -119,7 +121,7 @@ export default function Users() {
                     </td>
                     <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{u.created_at?.slice(0, 10)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
                         <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
                         <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
                       </div>
@@ -128,7 +130,7 @@ export default function Users() {
                 );
               })}
               {users.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chưa có tài khoản nào</td></tr>
+                <tr><td colSpan={7} className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chưa có tài khoản nào</td></tr>
               )}
             </tbody>
           </table>
@@ -144,6 +146,13 @@ export default function Users() {
               <input className="input bold-input" value={form.full_name}
                 onChange={e => set('full_name', e.target.value)}
                 placeholder="Nguyễn Văn A" />
+            </div>
+
+            <div>
+              <label className="label">Chức vụ</label>
+              <input className="input bold-input" value={form.position}
+                onChange={e => set('position', e.target.value)}
+                placeholder="Trưởng phòng, Nhân viên..." />
             </div>
 
             <div>
@@ -181,7 +190,7 @@ export default function Users() {
             </div>
 
             <div>
-              <label className="label">Vai trò *</label>
+              <label className="label">Phòng ban *</label>
               <select className="input" value={form.role} onChange={e => set('role', e.target.value)}
                 style={{ color: '#f87171', fontWeight: 700 }}>
                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
