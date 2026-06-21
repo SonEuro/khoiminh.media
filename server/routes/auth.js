@@ -14,7 +14,7 @@ router.post('/login', (req, res) => {
   }
 
   const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
   res.json({ token, user: payload });
 });
 

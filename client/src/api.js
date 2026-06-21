@@ -15,14 +15,20 @@ async function request(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
+  const data = await res.json();
+
   if (res.status === 401) {
+    // Auth endpoints return 401 for wrong credentials — show actual error, don't redirect
+    if (path.startsWith('/auth/')) {
+      throw new Error(data.error || 'Sai tên đăng nhập hoặc mật khẩu');
+    }
+    // All other 401s = session expired
     localStorage.removeItem('km_token');
     localStorage.removeItem('km_user');
     window.location.href = '/login';
     throw new Error('Phiên đăng nhập hết hạn');
   }
 
-  const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Lỗi server');
   return data;
 }
