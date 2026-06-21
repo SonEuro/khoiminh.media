@@ -237,7 +237,7 @@ export default function ExportForm() {
                   <div className="flex-1">
                     <input
                       className="input mb-1 text-sm"
-                      style={{ color: '#f87171' }}
+                      style={{ color: '#f87171', fontSize: '1.4rem', fontWeight: 700 }}
                       placeholder={deptCats
                         ? `Tìm trong ${DEPTS.find(d=>d.value===deptFilter)?.label}...`
                         : 'Tìm thiết bị theo tên hoặc mã...'}
