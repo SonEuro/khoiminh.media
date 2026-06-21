@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
-import { printSlip } from '../utils/printSlip';
+import { printSlip, previewSlip } from '../utils/printSlip';
 
 const DEPTS = [
   { value: '',       label: 'Tất cả bộ phận',          cats: null },
@@ -108,25 +108,43 @@ export default function ExportForm() {
   if (doneSlip) {
     return (
       <div className="p-6 max-w-lg">
-        <div className="card text-center space-y-4">
+        <div className="card text-center space-y-5">
           <div className="text-5xl">✅</div>
-          <h2 className="text-xl font-bold text-green-700">Xuất kho thành công!</h2>
-          <p className="text-gray-600">
-            Phiếu <strong className="font-mono">{doneSlip.code}</strong> đã được tạo
-            với <strong>{doneSlip.items?.length}</strong> loại thiết bị.
+          <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
+          <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
+            Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
+            với <strong style={{ color:'var(--text-primary)' }}>{doneSlip.items?.length}</strong> loại thiết bị.
           </p>
-          <div className="flex gap-3 justify-center pt-2">
-            <button
-              onClick={() => printSlip(doneSlip)}
-              className="btn-primary flex items-center gap-2">
-              🖨️ In Phiếu Xuất Kho
+
+          {/* Row 1: Preview + Print */}
+          <div className="flex gap-3 justify-center">
+            <button onClick={() => previewSlip(doneSlip)} className="btn-secondary flex items-center gap-2">
+              👁 Xem trước
             </button>
+            <button onClick={() => printSlip(doneSlip)} className="btn-primary flex items-center gap-2">
+              🖨️ In phiếu
+            </button>
+          </div>
+
+          {/* Row 2: Back to edit + History */}
+          <div className="flex gap-3 justify-center">
             <button
-              onClick={() => navigate('/transactions')}
-              className="btn-secondary">
+              onClick={() => setDoneSlip(null)}
+              style={{
+                display:'flex', alignItems:'center', gap:'6px',
+                padding:'8px 16px', borderRadius:'8px', fontSize:'0.875rem',
+                background:'rgba(201,168,76,0.1)',
+                border:'1px solid rgba(201,168,76,0.35)',
+                color:'#e8c97a', cursor:'pointer',
+              }}>
+              ← Quay lại chỉnh sửa
+            </button>
+            <button onClick={() => navigate('/transactions')} className="btn-secondary">
               Xem lịch sử
             </button>
           </div>
+
+          {/* New slip */}
           <button
             onClick={() => {
               setDoneSlip(null);
@@ -134,7 +152,7 @@ export default function ExportForm() {
               setItems(emptyRows(10));
               setSearchTerms(Array(10).fill(''));
             }}
-            className="text-sm text-blue-600 hover:underline">
+            style={{ color:'var(--text-muted)', fontSize:'0.8rem', background:'none', border:'none', cursor:'pointer' }}>
             + Tạo phiếu mới
           </button>
         </div>
