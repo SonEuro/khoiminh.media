@@ -16,15 +16,36 @@ export default function ReturnForm() {
   const [events, setEvents] = useState([]);
   const [form, setForm] = useState({ event_id: '', responsible_person: '', notes: '' });
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
-  const [submitting, setSubmitting] = useState(false);
-  const [searchTerms, setSearchTerms] = useState(['']);
+  const [submitting, setSubmitting]     = useState(false);
+  const [searchTerms, setSearchTerms]   = useState(['']);
+  const [loadingEvent, setLoadingEvent] = useState(false);
 
   useEffect(() => {
     api.getEquipment().then(setEquipment);
     api.getEvents().then(setEvents);
   }, []);
 
-  const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const setField = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    // Auto-load outstanding equipment when event is selected
+    if (k === 'event_id') {
+      if (!v) {
+        setItems([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
+        setSearchTerms(['']);
+        return;
+      }
+      setLoadingEvent(true);
+      api.getOutstanding(v).then(rows => {
+        if (rows.length > 0) {
+          setItems(rows.map(r => ({ equipment_id: r.equipment_id, quantity: r.qty_pending, condition: 'good', notes: '' })));
+          setSearchTerms(rows.map(r => r.eq_name));
+        } else {
+          setItems([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
+          setSearchTerms(['']);
+        }
+      }).finally(() => setLoadingEvent(false));
+    }
+  };
   const addItem = () => { setItems(i => [...i, { equipment_id: '', quantity: 1, condition: 'good', notes: '' }]); setSearchTerms(s => [...s, '']); };
   const removeItem = (idx) => { setItems(i => i.filter((_, j) => j !== idx)); setSearchTerms(s => s.filter((_, j) => j !== idx)); };
   const setItem = (idx, key, val) => setItems(items.map((it, j) => j === idx ? { ...it, [key]: val } : it));
@@ -89,10 +110,18 @@ export default function ReturnForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Sự kiện</label>
-                <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}>
+                <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}
+                  style={{ color: form.event_id ? '#f87171' : 'var(--text-muted)', fontWeight: form.event_id ? 700 : 400 }}>
                   <option value="">-- Chọn sự kiện --</option>
                   {events.map(ev => <option key={ev.id} value={ev.id}>{ev.code} · {ev.name}</option>)}
                 </select>
+                {loadingEvent && <p style={{ fontSize:'0.75rem', color:'var(--gold)', marginTop:'4px' }}>Đang tải thiết bị...</p>}
+                {!loadingEvent && form.event_id && items.some(i => i.equipment_id) && (
+                  <p style={{ fontSize:'0.75rem', color:'#4ade80', marginTop:'4px' }}>✅ Đã load {items.filter(i => i.equipment_id).length} thiết bị chưa trả</p>
+                )}
+                {!loadingEvent && form.event_id && !items.some(i => i.equipment_id) && (
+                  <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginTop:'4px' }}>Tất cả thiết bị đã được trả</p>
+                )}
               </div>
               <div>
                 <label className="label">Người bàn giao</label>
