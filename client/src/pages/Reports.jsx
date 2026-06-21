@@ -52,16 +52,21 @@ export default function Reports() {
       {/* Summary row */}
       <div className="grid grid-cols-6 gap-3">
         {[
-          { label: 'Tổng', val: totals.total, cls: 'bg-gray-50 border-gray-200' },
-          { label: 'Có sẵn', val: totals.available, cls: 'bg-green-50 border-green-200 text-green-800' },
-          { label: 'Đang dùng', val: totals.in_use, cls: 'bg-blue-50 border-blue-200 text-blue-800' },
-          { label: 'Đang sửa', val: totals.maintenance, cls: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-          { label: 'Hỏng', val: totals.damaged, cls: 'bg-red-50 border-red-200 text-red-800' },
-          { label: 'Mất', val: totals.lost, cls: 'bg-gray-50 border-gray-300' },
+          { label: 'Tổng',      val: totals.total,       labelColor: '#c9a84c', valColor: '#eeeef5',  border: 'rgba(201,168,76,0.3)' },
+          { label: 'Có sẵn',   val: totals.available,   labelColor: '#4ade80', valColor: '#4ade80',  border: 'rgba(74,222,128,0.3)' },
+          { label: 'Đang dùng',val: totals.in_use,      labelColor: '#60a5fa', valColor: '#60a5fa',  border: 'rgba(96,165,250,0.3)' },
+          { label: 'Đang sửa', val: totals.maintenance, labelColor: '#fbbf24', valColor: '#fbbf24',  border: 'rgba(251,191,36,0.3)' },
+          { label: 'Hỏng',     val: totals.damaged,     labelColor: '#f87171', valColor: '#f87171',  border: 'rgba(248,113,113,0.3)' },
+          { label: 'Mất',      val: totals.lost,        labelColor: '#a78bfa', valColor: '#a78bfa',  border: 'rgba(167,139,250,0.3)' },
         ].map(s => (
-          <div key={s.label} className={`rounded-xl border p-4 ${s.cls}`}>
-            <p className="text-xs opacity-70 uppercase tracking-wider font-medium">{s.label}</p>
-            <p className="text-2xl font-bold mt-1">{s.val}</p>
+          <div key={s.label} style={{
+            background: 'var(--bg-card)',
+            border: `1px solid ${s.border}`,
+            borderRadius: '12px',
+            padding: '16px',
+          }}>
+            <p style={{ fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color: s.labelColor, opacity:0.85, margin:0 }}>{s.label}</p>
+            <p style={{ fontSize:'1.7rem', fontWeight:800, color: s.valColor, margin:'4px 0 0' }}>{s.val}</p>
           </div>
         ))}
       </div>
