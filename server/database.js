@@ -1,8 +1,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs   = require('fs');
 
-// Railway volume tại /data, local dùng thư mục server/
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'kho.db');
+
+// Tạo thư mục nếu chưa có (cần thiết khi disk mới mount)
+const dbDir = path.dirname(DB_PATH);
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+
 console.log(`[DB] Sử dụng database tại: ${DB_PATH}`);
 const db = new Database(DB_PATH);
 
