@@ -14,7 +14,7 @@ async function uploadBackupToDrive(db) {
   const credentials = JSON.parse(saJson);
   const auth = new google.auth.GoogleAuth({
     credentials,
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
+    scopes: ['https://www.googleapis.com/auth/drive'],
   });
   const drive = google.drive({ version: 'v3', auth });
 
