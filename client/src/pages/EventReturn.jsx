@@ -78,8 +78,12 @@ export default function EventReturn() {
     ? outstanding.filter(r => deptCats.includes(r.category_code))
     : outstanding;
 
-  const eventSuggestions = eventSearch.trim().length >= 1
-    ? events.filter(e => e.name.toLowerCase().includes(eventSearch.toLowerCase())).slice(0, 6)
+  // Show all events when focused, filter when typing
+  const eventSuggestions = showEvSuggest
+    ? (eventSearch.trim().length >= 1
+        ? events.filter(e => e.name.toLowerCase().includes(eventSearch.toLowerCase()))
+        : events
+      ).slice(0, 8)
     : [];
 
   const canSubmit = eventId && person && visibleItems.some(r => (quantities[r.equipment_id] || 0) > 0);
@@ -137,10 +141,10 @@ export default function EventReturn() {
       </div>
 
       {/* ── Filter card ─────────────────────────────────── */}
-      <div className="card space-y-4 mb-5">
+      <div className="card space-y-4 mb-5" style={{ overflow: 'visible' }}>
 
         {/* Event search */}
-        <div style={{ position:'relative' }}>
+        <div style={{ position:'relative', zIndex: 100 }}>
           <label className="label">Tên sự kiện *</label>
           <input
             className="input eq-search bold-input"
@@ -158,7 +162,7 @@ export default function EventReturn() {
           )}
           {showEvSuggest && eventSuggestions.length > 0 && (
             <div style={{
-              position:'absolute', top:'100%', left:0, right:0, zIndex:50,
+              position:'absolute', top:'100%', left:0, right:0, zIndex:200,
               background:'#13131d', border:'1px solid rgba(201,168,76,0.3)',
               borderRadius:'0.5rem', boxShadow:'0 8px 24px rgba(0,0,0,0.6)', marginTop:'4px',
             }}>
