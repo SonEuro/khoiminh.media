@@ -82,11 +82,11 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
-          <input className="input bold-input" type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} />
+          <input className={`input ${form.start_date ? 'bold-input' : ''}`} type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
-          <input className="input bold-input" type="date" value={form.end_date || ''} onChange={e => set('end_date', e.target.value)} />
+          <input className={`input ${form.end_date ? 'bold-input' : ''}`} type="date" value={form.end_date || ''} onChange={e => set('end_date', e.target.value)} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
