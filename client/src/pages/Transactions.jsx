@@ -100,7 +100,8 @@ export default function Transactions() {
       </div>
 
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="table-wrap">
+        <table className="w-full text-sm" style={{ minWidth:'600px' }}>
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="text-left px-4 py-3 text-gray-600">Phiếu</th>
@@ -149,6 +150,7 @@ export default function Transactions() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {selectedTx && <TxDetailModal txId={selectedTx} onClose={() => setSelectedTx(null)} />}

@@ -151,6 +151,9 @@
     border-bottom: none !important;
   }
 
+  /* ── Mobile table wrapper ───────────────────────── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
   /* ── Gold divider ────────────────────────────────── */
   .gold-line {
     height: 1px;

@@ -216,7 +216,8 @@ export default function Equipment() {
 
       {/* Table */}
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="table-wrap">
+        <table className="w-full text-sm" style={{ minWidth:'700px' }}>
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="text-left px-4 py-3 text-gray-600 font-medium">Mã</th>
@@ -274,6 +275,7 @@ export default function Equipment() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {(modal === 'add' || modal === 'edit') && (
