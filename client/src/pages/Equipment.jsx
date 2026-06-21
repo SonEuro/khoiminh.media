@@ -225,18 +225,19 @@ export default function Equipment() {
               <th className="text-left px-4 py-3 text-gray-600 font-medium">Danh mục</th>
               <th className="text-center px-3 py-3 text-gray-600 font-medium">Có sẵn</th>
               <th className="text-center px-3 py-3 text-gray-600 font-medium">Đang dùng</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Sửa</th>
+              <th className="text-center px-3 py-3 text-gray-600 font-medium">Cần sửa</th>
               <th className="text-center px-3 py-3 text-gray-600 font-medium">Hỏng</th>
+              <th className="text-center px-3 py-3 text-gray-600 font-medium">Mất</th>
               <th className="text-center px-3 py-3 text-gray-600 font-medium">Tổng</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={9} className="text-center py-8 text-gray-400">Đang tải...</td></tr>
+              <tr><td colSpan={10} className="text-center py-8 text-gray-400">Đang tải...</td></tr>
             )}
             {!loading && visibleEquipment.length === 0 && (
-              <tr><td colSpan={9} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
+              <tr><td colSpan={10} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
             )}
             {visibleEquipment.map(eq => (
               <tr key={eq.id} className="border-b last:border-0 hover:bg-gray-50">
@@ -253,7 +254,8 @@ export default function Equipment() {
                 </td>
                 <td className="px-3 py-3 text-center text-blue-600 font-medium">{eq.qty_in_use || 0}</td>
                 <td className="px-3 py-3 text-center text-yellow-600">{eq.qty_maintenance || 0}</td>
-                <td className="px-3 py-3 text-center text-red-600">{(eq.qty_damaged || 0) + (eq.qty_lost || 0)}</td>
+                <td className="px-3 py-3 text-center text-red-600">{eq.qty_damaged || 0}</td>
+                <td className="px-3 py-3 text-center text-gray-400">{eq.qty_lost || 0}</td>
                 <td className="px-3 py-3 text-center font-medium">{eq.qty_total}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
