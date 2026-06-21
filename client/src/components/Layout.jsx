@@ -200,7 +200,10 @@ export default function Layout() {
           className="lg:hidden"
           style={{
             display:'flex', alignItems:'center', gap:'12px',
-            padding:'10px 16px',
+            paddingTop:`calc(env(safe-area-inset-top, 0px) + 10px)`,
+            paddingBottom:'10px',
+            paddingLeft:'16px',
+            paddingRight:'16px',
             background: BG_SIDEBAR,
             borderBottom:`1px solid ${GOLD_DIM}`,
             flexShrink:0,
@@ -236,7 +239,10 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main style={{ flex:1, overflowY:'auto' }}>
+        <main style={{
+          flex:1, overflowY:'auto',
+          paddingBottom:'env(safe-area-inset-bottom, 0px)',
+        }}>
           <Outlet />
         </main>
       </div>
@@ -246,13 +252,18 @@ export default function Layout() {
           from { transform: translateX(-100%); }
           to   { transform: translateX(0); }
         }
+        /* Tablet / medium phone */
         @media (max-width: 1023px) {
           .card { padding: 1rem !important; }
-          table { font-size: 0.78rem !important; }
+          table { font-size: 0.8rem !important; }
           table th, table td { padding: 8px 10px !important; }
           h1 { font-size: 1.3rem !important; }
           .p-6 { padding: 1rem !important; }
         }
+        /* Remove tap highlight on mobile */
+        * { -webkit-tap-highlight-color: transparent; }
+        /* Smooth scrolling */
+        main { -webkit-overflow-scrolling: touch; }
       `}</style>
     </div>
   );

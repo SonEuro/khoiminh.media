@@ -154,6 +154,10 @@
   /* ── Mobile table wrapper ───────────────────────── */
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+  /* ── iPhone safe area ───────────────────────────── */
+  .safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
   /* ── Gold divider ────────────────────────────────── */
   .gold-line {
     height: 1px;
@@ -172,4 +176,40 @@
     background: var(--gold-glow) !important;
     color: #f0d98a !important;
   }
+}
+
+/* ── iPhone / small phone (≤ 430px) ──────────────── */
+@media (max-width: 430px) {
+  /* Prevent iOS zoom on input focus — keep font ≥ 16px */
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Tighter page padding */
+  .p-6  { padding: 14px !important; }
+  .p-5  { padding: 12px !important; }
+  .p-4  { padding: 10px !important; }
+
+  /* Cards */
+  .card { padding: 14px !important; border-radius: 10px !important; }
+
+  /* Heading */
+  h1 { font-size: 1.15rem !important; }
+  h2 { font-size: 1rem    !important; }
+
+  /* Collapse 2-col grids to 1 col on iPhone */
+  .grid.grid-cols-2,
+  .grid.grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Buttons */
+  .btn    { padding: 10px 14px !important; font-size: 0.82rem !important; }
+  .btn-sm { padding: 6px 10px  !important; font-size: 0.75rem !important; }
+
+  /* Smaller table text */
+  table         { font-size: 0.75rem !important; }
+  table th,
+  table td      { padding: 6px 8px !important; }
+
+  /* Label uppercase smaller */
+  .label { font-size: 0.7rem !important; }
 }
