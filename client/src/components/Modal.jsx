@@ -12,17 +12,31 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
       <div
-        className={`bg-white rounded-2xl shadow-2xl w-full ${widths[size]} max-h-[90vh] flex flex-col`}
+        className={`w-full ${widths[size]} max-h-[90vh] flex flex-col`}
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--gold-dim)',
+          borderRadius: '1rem',
+          boxShadow: '0 0 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.08) inset',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <div className="flex items-center gap-2">
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '18px 20px',
+          borderBottom: '1px solid var(--gold-dim)',
+        }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', margin: 0 }}>{title}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {extra}
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            <button onClick={onClose}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.4rem', lineHeight: 1, padding: '2px 6px' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            >&times;</button>
           </div>
         </div>
-        <div className="overflow-y-auto flex-1 p-5">{children}</div>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '20px' }}>{children}</div>
       </div>
     </div>
   );
