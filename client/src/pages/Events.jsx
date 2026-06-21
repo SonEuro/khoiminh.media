@@ -90,7 +90,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
         </div>
         <div>
           <label className="label">Trạng thái</label>
-          <select className="input bold-input" value={form.status} onChange={e => set('status', e.target.value)}>
+          <select className="input" value={form.status} onChange={e => set('status', e.target.value)}>
             {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
           </select>
         </div>
