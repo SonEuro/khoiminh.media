@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { printSlip } from '../utils/printSlip';
+import DateInput from '../components/DateInput';
 
 const DEPT_CATS = {
   SUPER_ADMIN: null, PRODUCTION: null, ACCOUNTING: null,
@@ -196,9 +197,7 @@ export default function EventReturn() {
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
-            <input className="input" type="date"
-              value={returnDate} onChange={e => setReturnDate(e.target.value)}
-              style={{ fontWeight: 600, fontSize: '0.95rem' }} />
+            <DateInput value={returnDate} onChange={setReturnDate} />
           </div>
         </div>
 

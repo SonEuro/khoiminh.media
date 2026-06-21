@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
+import DateInput from '../components/DateInput';
 
 const DEPTS = [
   { value: '',       label: 'Tất cả',     cats: null },
@@ -191,8 +192,8 @@ export default function ExportForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Ngày dự kiến trả</label>
-              <input className="input" type="date" value={form.expected_return_date}
-                onChange={e => setField('expected_return_date', e.target.value)} />
+              <DateInput value={form.expected_return_date}
+                onChange={v => setField('expected_return_date', v)} />
             </div>
             <div>
               <label className="label">Ghi chú</label>

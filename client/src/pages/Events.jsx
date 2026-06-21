@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import Modal from '../components/Modal';
+import DateInput from '../components/DateInput';
 
 const STATUS_MAP = {
   planned:   { label: 'Lên kế hoạch', cls: 'badge-maintenance' },
@@ -82,11 +83,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
-          <input className={`input ${form.start_date ? 'bold-input' : ''}`} type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} />
+          <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)}
+            style={form.start_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
-          <input className={`input ${form.end_date ? 'bold-input' : ''}`} type="date" value={form.end_date || ''} onChange={e => set('end_date', e.target.value)} />
+          <DateInput value={form.end_date || ''} onChange={v => set('end_date', v)}
+            style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
