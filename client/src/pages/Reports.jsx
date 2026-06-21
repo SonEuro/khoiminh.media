@@ -49,8 +49,14 @@ export default function Reports() {
         <button className="btn-secondary" onClick={exportCSV}>📥 Xuất CSV</button>
       </div>
 
-      {/* Summary row */}
-      <div className="grid grid-cols-6 gap-3">
+      {/* Summary row — 3 cols on mobile, 6 on desktop */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '10px',
+      }}
+        className="sm-grid-6"
+      >
         {[
           { label: 'Tổng',      val: totals.total,       labelColor: '#c9a84c', valColor: '#eeeef5',  border: 'rgba(201,168,76,0.3)' },
           { label: 'Có sẵn',   val: totals.available,   labelColor: '#4ade80', valColor: '#4ade80',  border: 'rgba(74,222,128,0.3)' },
@@ -63,10 +69,10 @@ export default function Reports() {
             background: 'var(--bg-card)',
             border: `1px solid ${s.border}`,
             borderRadius: '12px',
-            padding: '16px',
+            padding: '12px',
           }}>
-            <p style={{ fontSize:'0.7rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color: s.labelColor, opacity:0.85, margin:0 }}>{s.label}</p>
-            <p style={{ fontSize:'1.7rem', fontWeight:800, color: s.valColor, margin:'4px 0 0' }}>{s.val}</p>
+            <p style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color: s.labelColor, opacity:0.85, margin:0, whiteSpace:'nowrap' }}>{s.label}</p>
+            <p style={{ fontSize:'1.5rem', fontWeight:800, color: s.valColor, margin:'4px 0 0', lineHeight:1 }}>{s.val}</p>
           </div>
         ))}
       </div>

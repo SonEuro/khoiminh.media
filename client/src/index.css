@@ -226,6 +226,11 @@
   }
 }
 
+/* ── Desktop: 6-col summary grid ─────────────────── */
+@media (min-width: 768px) {
+  .sm-grid-6 { grid-template-columns: repeat(6, 1fr) !important; }
+}
+
 /* ── iPhone / small phone (≤ 430px) ──────────────── */
 @media (max-width: 430px) {
   /* Prevent iOS zoom on input focus — keep font ≥ 16px */
