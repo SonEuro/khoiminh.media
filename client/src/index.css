@@ -125,6 +125,22 @@
     border-color: var(--gold);
     box-shadow: 0 0 0 3px var(--gold-glow);
   }
+  /* Override browser autofill blue/gray background */
+  .input:-webkit-autofill,
+  .input:-webkit-autofill:hover,
+  .input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #13131d inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary);
+    border-color: var(--gold-dim) !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  .bold-input:-webkit-autofill,
+  .bold-input:-webkit-autofill:hover,
+  .bold-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #13131d inset !important;
+    -webkit-text-fill-color: #f87171 !important;
+  }
   .input option {
     background: #13131d;
     color: var(--text-primary);

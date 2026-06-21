@@ -150,9 +150,12 @@ export default function Users() {
 
             <div>
               <label className="label">Chức vụ</label>
-              <input className="input bold-input" value={form.position}
-                onChange={e => set('position', e.target.value)}
-                placeholder="Trưởng phòng, Nhân viên..." />
+              <select className="input" value={form.position} onChange={e => set('position', e.target.value)}
+                style={{ color: form.position ? '#f87171' : 'var(--text-muted)', fontWeight: form.position ? 700 : 400 }}>
+                <option value="">-- Chọn chức vụ --</option>
+                <option value="Trưởng phòng">Trưởng phòng</option>
+                <option value="Nhân viên">Nhân viên</option>
+              </select>
             </div>
 
             <div>
