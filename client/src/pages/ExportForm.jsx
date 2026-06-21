@@ -249,26 +249,29 @@ export default function ExportForm() {
                       }}
                     />
                     {searchTerms[idx] && !item.equipment_id && (
-                      <div className="border rounded-lg bg-white shadow-sm max-h-48 overflow-y-auto">
+                      <div className="max-h-48 overflow-y-auto" style={{ background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'0.5rem', boxShadow:'0 8px 24px rgba(0,0,0,0.6)' }}>
                         {filteredEquip(searchTerms[idx], idx).map(e => (
                           <button type="button" key={e.id}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b last:border-0"
+                            className="w-full text-left px-3 py-2 text-sm border-b last:border-0"
+                            style={{ borderColor:'rgba(201,168,76,0.15)' }}
+                            onMouseEnter={e2 => e2.currentTarget.style.background='rgba(201,168,76,0.08)'}
+                            onMouseLeave={e2 => e2.currentTarget.style.background='transparent'}
                             onClick={() => {
                               setItem(idx, 'equipment_id', e.id);
                               const newTerms = [...searchTerms];
                               newTerms[idx] = `${e.code} · ${e.name}`;
                               setSearchTerms(newTerms);
                             }}>
-                            <span className="font-mono text-xs text-gray-400 mr-1">{e.code}</span>
-                            <span className="mr-1">{e.name}</span>
-                            <span className="text-xs text-gray-400">[{e.category_code}]</span>
+                            <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#7878a0', marginRight:'6px' }}>{e.code}</span>
+                            <span style={{ color:'#c9a84c', fontWeight:600 }}>{e.name}</span>
+                            <span style={{ fontSize:'0.72rem', color:'#7878a0', marginLeft:'4px' }}>[{e.category_code}]</span>
                             <span className={`ml-2 text-xs font-semibold ${e.qty_available === 0 ? 'text-red-500' : 'text-green-600'}`}>
                               · {e.qty_available} {e.unit} có sẵn
                             </span>
                           </button>
                         ))}
                         {filteredEquip(searchTerms[idx], idx).length === 0 && (
-                          <p className="px-3 py-2 text-sm text-gray-400">Không tìm thấy</p>
+                          <p className="px-3 py-2 text-sm" style={{ color:'#7878a0' }}>Không tìm thấy</p>
                         )}
                       </div>
                     )}
