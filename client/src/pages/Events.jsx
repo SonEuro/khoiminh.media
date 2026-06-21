@@ -146,7 +146,22 @@ function EventDetailModal({ eventId, onClose }) {
           <div><span className="text-gray-500">Từ: </span><strong>{ev.start_date || '—'}</strong></div>
           <div><span className="text-gray-500">Đến: </span><strong>{ev.end_date || '—'}</strong></div>
         </div>
-        {ev.notes && <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{ev.notes}</p>}
+        {ev.notes && (
+          <div style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(201,168,76,0.15)',
+            borderRadius: '0.5rem',
+            padding: '12px 14px',
+            minHeight: '80px',
+            maxHeight: '260px',
+            overflowY: 'auto',
+            fontSize: '0.85rem',
+            lineHeight: '1.65',
+            color: 'var(--text-main)',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}>{ev.notes}</div>
+        )}
 
         <div>
           <h3 className="font-semibold mb-2">Thiết bị xuất cho sự kiện này</h3>
