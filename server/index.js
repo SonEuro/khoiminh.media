@@ -64,3 +64,15 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   scheduleAutoBackup(db);
 });
+
+// Backup lên Google Drive trước khi Render tắt server (SIGTERM)
+process.on('SIGTERM', async () => {
+  console.log('[Shutdown] Nhận SIGTERM — đang backup lên Google Drive...');
+  try {
+    const result = await uploadBackupToDrive(db);
+    console.log(`[Shutdown] ✅ Backup xong: ${result.name}`);
+  } catch (err) {
+    console.error('[Shutdown] ❌ Backup thất bại:', err.message);
+  }
+  process.exit(0);
+});
