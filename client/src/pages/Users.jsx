@@ -93,22 +93,36 @@ export default function Users() {
         </div>
         <div style={{ display:'flex', gap:'8px' }}>
           {isSuperAdmin && (
-            <a
-              href="/api/backup"
-              download
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const token = localStorage.getItem('km_token');
+                  const res = await fetch('/api/backup', { headers: { Authorization: `Bearer ${token}` } });
+                  if (!res.ok) { alert('Backup thất bại: ' + (await res.json()).error); return; }
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `kho-khoiminh-backup-${new Date().toISOString().slice(0,10)}.db`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  alert('Lỗi: ' + err.message);
+                }
+              }}
               style={{
                 display:'inline-flex', alignItems:'center', gap:'6px',
                 padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600,
                 border:'1px solid rgba(74,222,128,0.35)',
                 background:'rgba(74,222,128,0.08)',
-                color:'#4ade80', textDecoration:'none', cursor:'pointer',
-                transition:'all 0.15s',
+                color:'#4ade80', cursor:'pointer', transition:'all 0.15s',
               }}
               onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.18)'; }}
               onMouseLeave={e => { e.currentTarget.style.background='rgba(74,222,128,0.08)'; }}
             >
               💾 Backup DB
-            </a>
+            </button>
           )}
           <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
         </div>
