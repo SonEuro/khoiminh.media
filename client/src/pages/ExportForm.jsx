@@ -200,7 +200,9 @@ export default function ExportForm() {
               <label className="label">Người phụ trách *</label>
               <input className="input" required value={form.responsible_person}
                 onChange={e => setField('responsible_person', e.target.value)}
-                placeholder="Tên người nhận thiết bị" />
+                placeholder="Tên người nhận thiết bị"
+                readOnly={user?.role !== 'SUPER_ADMIN'}
+                style={user?.role !== 'SUPER_ADMIN' ? { opacity: 0.6, cursor: 'default' } : {}} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

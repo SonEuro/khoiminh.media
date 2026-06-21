@@ -129,7 +129,9 @@ export default function ReturnForm() {
                 <label className="label">Người bàn giao</label>
                 <input className="input" value={form.responsible_person}
                   onChange={e => setField('responsible_person', e.target.value)}
-                  placeholder="Người trả thiết bị" />
+                  placeholder="Người trả thiết bị"
+                  readOnly={user?.role !== 'SUPER_ADMIN'}
+                  style={user?.role !== 'SUPER_ADMIN' ? { opacity: 0.6, cursor: 'default' } : {}} />
               </div>
             </div>
             <div>

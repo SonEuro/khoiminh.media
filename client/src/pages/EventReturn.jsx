@@ -193,7 +193,9 @@ export default function EventReturn() {
           <div>
             <label className="label">Người nhập kho *</label>
             <input className="input bold-input" placeholder="Tên người nhập..."
-              value={person} onChange={e => setPerson(e.target.value)} />
+              value={person} onChange={e => setPerson(e.target.value)}
+              readOnly={user?.role !== 'SUPER_ADMIN'}
+              style={user?.role !== 'SUPER_ADMIN' ? { opacity: 0.6, cursor: 'default' } : {}} />
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
