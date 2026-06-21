@@ -91,7 +91,27 @@ export default function Users() {
           <h1 className="text-2xl font-bold">Người Dùng</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{users.length} tài khoản</p>
         </div>
-        <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
+        <div style={{ display:'flex', gap:'8px' }}>
+          {isSuperAdmin && (
+            <a
+              href="/api/backup"
+              download
+              style={{
+                display:'inline-flex', alignItems:'center', gap:'6px',
+                padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600,
+                border:'1px solid rgba(74,222,128,0.35)',
+                background:'rgba(74,222,128,0.08)',
+                color:'#4ade80', textDecoration:'none', cursor:'pointer',
+                transition:'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(74,222,128,0.08)'; }}
+            >
+              💾 Backup DB
+            </a>
+          )}
+          <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
+        </div>
       </div>
 
       <div className="card p-0 overflow-hidden">
