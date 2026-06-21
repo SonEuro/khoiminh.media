@@ -8,6 +8,7 @@ require('./seed');
 
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
+const { uploadBackupToDrive, scheduleAutoBackup } = require('./utils/gdriveBackup');
 
 const app = express();
 app.use(cors());
@@ -23,7 +24,17 @@ app.use('/api/reports',      requireAuth, require('./routes/reports'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-// Backup endpoint — SUPER_ADMIN only
+// Backup to Google Drive — SUPER_ADMIN only
+app.post('/api/backup/gdrive', requireAuth, requireRole('SUPER_ADMIN'), async (req, res) => {
+  try {
+    const result = await uploadBackupToDrive(db);
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Download backup locally — SUPER_ADMIN only
 app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res) => {
   const date = new Date().toISOString().slice(0, 10);
   const tmpFile = path.join(os.tmpdir(), `kho-backup-${date}.db`);
@@ -49,4 +60,7 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  scheduleAutoBackup(db);
+});

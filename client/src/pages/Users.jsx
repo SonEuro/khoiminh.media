@@ -93,36 +93,54 @@ export default function Users() {
         </div>
         <div style={{ display:'flex', gap:'8px' }}>
           {isSuperAdmin && (
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  const token = localStorage.getItem('km_token');
-                  const res = await fetch('/api/backup', { headers: { Authorization: `Bearer ${token}` } });
-                  if (!res.ok) { alert('Backup thất bại: ' + (await res.json()).error); return; }
-                  const blob = await res.blob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `kho-khoiminh-backup-${new Date().toISOString().slice(0,10)}.db`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                } catch (err) {
-                  alert('Lỗi: ' + err.message);
-                }
-              }}
-              style={{
-                display:'inline-flex', alignItems:'center', gap:'6px',
-                padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600,
-                border:'1px solid rgba(74,222,128,0.35)',
-                background:'rgba(74,222,128,0.08)',
-                color:'#4ade80', cursor:'pointer', transition:'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.18)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='rgba(74,222,128,0.08)'; }}
-            >
-              💾 Backup DB
-            </button>
+            <>
+              {/* Download local */}
+              <button type="button"
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('km_token');
+                    const res = await fetch('/api/backup', { headers: { Authorization: `Bearer ${token}` } });
+                    if (!res.ok) { alert('Backup thất bại: ' + (await res.json()).error); return; }
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `kho-khoiminh-backup-${new Date().toISOString().slice(0,10)}.db`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (err) { alert('Lỗi: ' + err.message); }
+                }}
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600, border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', cursor:'pointer' }}
+              >
+                💾 Backup
+              </button>
+
+              {/* Google Drive */}
+              <button type="button"
+                onClick={async (e) => {
+                  const btn = e.currentTarget;
+                  btn.disabled = true;
+                  btn.textContent = '⏳ Đang upload...';
+                  try {
+                    const token = localStorage.getItem('km_token');
+                    const res = await fetch('/api/backup/gdrive', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    if (confirm(`✅ Backup thành công!\n\nFile: ${data.name}\n\nMở Google Drive?`)) {
+                      window.open(data.link, '_blank');
+                    }
+                  } catch (err) {
+                    alert('❌ ' + err.message);
+                  } finally {
+                    btn.disabled = false;
+                    btn.textContent = '☁️ Google Drive';
+                  }
+                }}
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600, border:'1px solid rgba(96,165,250,0.35)', background:'rgba(96,165,250,0.08)', color:'#60a5fa', cursor:'pointer' }}
+              >
+                ☁️ Google Drive
+              </button>
+            </>
           )}
           <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
         </div>
