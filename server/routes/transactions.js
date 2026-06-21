@@ -37,6 +37,32 @@ function nextCode(type, eventId) {
   return `${prefix}-${String(c + 1).padStart(3, '0')}`;
 }
 
+// Outstanding items for an event (OUT qty - RETURN qty > 0)
+router.get('/outstanding', (req, res) => {
+  const { event_id } = req.query;
+  if (!event_id) return res.json([]);
+  const rows = db.prepare(`
+    SELECT
+      e.id   AS equipment_id,
+      e.code AS eq_code,
+      e.name AS eq_name,
+      e.unit,
+      c.code AS category_code,
+      c.name AS category_name,
+      COALESCE(SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END),0) AS qty_out,
+      COALESCE(SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END),0) AS qty_returned
+    FROM transaction_items ti
+    JOIN transactions t ON t.id = ti.transaction_id
+    JOIN equipment    e ON e.id = ti.equipment_id
+    LEFT JOIN categories c ON c.id = e.category_id
+    WHERE t.event_id = ?
+    GROUP BY e.id
+    HAVING qty_out > qty_returned
+    ORDER BY c.code, e.name
+  `).all(event_id);
+  res.json(rows.map(r => ({ ...r, qty_pending: r.qty_out - r.qty_returned })));
+});
+
 router.get('/', (req, res) => {
   const { type, event_id, limit = 50 } = req.query;
   let sql = `

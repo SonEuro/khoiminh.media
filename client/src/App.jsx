@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Equipment from './pages/Equipment';
 import ExportForm from './pages/ExportForm';
 import ReturnForm from './pages/ReturnForm';
+import EventReturn from './pages/EventReturn';
 import Events from './pages/Events';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
@@ -26,7 +27,8 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="equipment" element={<Equipment />} />
         <Route path="export"   element={can('transact') ? <ExportForm /> : <Navigate to="/" replace />} />
-        <Route path="return"   element={can('transact') ? <ReturnForm /> : <Navigate to="/" replace />} />
+        <Route path="return"        element={can('transact') ? <ReturnForm />   : <Navigate to="/" replace />} />
+        <Route path="event-return"  element={can('transact') ? <EventReturn /> : <Navigate to="/" replace />} />
         <Route path="events"   element={<Events />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="reports"  element={<Reports />} />

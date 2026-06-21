@@ -70,6 +70,7 @@ export const api = {
     return request(`/transactions${q ? '?' + q : ''}`);
   },
   getTransactionById: (id) => request(`/transactions/${id}`),
+  getOutstanding: (event_id) => request(`/transactions/outstanding?event_id=${event_id}`),
   createOut: (data) => request('/transactions/out', { method: 'POST', body: data }),
   createReturn: (data) => request('/transactions/return', { method: 'POST', body: data }),
   createFix: (data) => request('/transactions/fix', { method: 'POST', body: data }),
