@@ -196,8 +196,9 @@ export default function EventReturn() {
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
-            <input className={`input ${returnDate ? 'bold-input' : ''}`} type="date"
-              value={returnDate} onChange={e => setReturnDate(e.target.value)} />
+            <input className="input" type="date"
+              value={returnDate} onChange={e => setReturnDate(e.target.value)}
+              style={{ fontWeight: 600, fontSize: '0.95rem' }} />
           </div>
         </div>
 

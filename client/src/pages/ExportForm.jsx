@@ -5,11 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
 
 const DEPTS = [
-  { value: '',       label: 'Tất cả bộ phận',          cats: null },
-  { value: 'TECH',   label: '🛠️ Kỹ Thuật',             cats: ['TECH'] },
-  { value: 'ATAS',   label: '💡 ATAS – Âm Thanh / Ánh Sáng / LED', cats: ['AUDIO', 'LIGHT', 'LED', 'MATRIX'] },
-  { value: 'STAGE',  label: '🎭 Sân Khấu',              cats: ['STAGE'] },
-  { value: 'CSVC',   label: '🏢 Cơ Sở Vật Chất',       cats: ['CSVC'] },
+  { value: '',       label: 'Tất cả',     cats: null },
+  { value: 'TECH',   label: '🛠️ Kỹ Thuật', cats: ['TECH'] },
+  { value: 'ATAS',   label: '💡 ATAS',     cats: ['AUDIO', 'LIGHT', 'LED', 'MATRIX'] },
+  { value: 'STAGE',  label: '🎭 Sân Khấu', cats: ['STAGE'] },
+  { value: 'CSVC',   label: '🏢 CSVC',     cats: ['CSVC'] },
 ];
 
 // Map role → default dept value
@@ -226,20 +226,23 @@ export default function ExportForm() {
                       setSearchTerms(Array(10).fill(''));
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
-                    ${deptFilter === d.value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600'}
-                    ${isLocked && d.value !== deptFilter ? 'opacity-30 cursor-not-allowed' : ''}
-                  `}
+                  style={{
+                    padding: '6px 14px', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 600,
+                    border: deptFilter === d.value ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.25)',
+                    background: deptFilter === d.value ? '#c9a84c' : 'transparent',
+                    color: deptFilter === d.value ? '#08080e' : '#c9a84c',
+                    cursor: (isLocked && d.value !== deptFilter) ? 'not-allowed' : 'pointer',
+                    opacity: (isLocked && d.value !== deptFilter) ? 0.3 : 1,
+                    transition: 'all 0.15s',
+                  }}
                 >
                   {d.label}
                 </button>
               ))}
             </div>
             {deptCats && (
-              <p className="text-xs text-blue-600 mt-1">
-                Đang hiển thị thiết bị: <strong>{deptCats.join(', ')}</strong>
+              <p style={{ fontSize:'0.72rem', color:'var(--text-muted)', marginTop:'4px' }}>
+                Đang hiển thị: <strong style={{ color:'var(--gold)' }}>{deptCats.join(', ')}</strong>
               </p>
             )}
           </div>
