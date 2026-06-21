@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
+import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_MAP = {
   planned:   { label: 'Lên kế hoạch', cls: 'badge-maintenance' },
@@ -10,7 +11,7 @@ const STATUS_MAP = {
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
 
-function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
+function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false }) {
   const [form, setForm] = useState(initial || {
     name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: ''
   });
@@ -23,6 +24,22 @@ function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
         ev.name.toLowerCase().includes(form.name.toLowerCase())
       ).slice(0, 6)
     : [];
+
+  if (statusOnly) return (
+    <form onSubmit={async e => { e.preventDefault(); await onSave(form); }} className="space-y-4">
+      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Bạn chỉ có quyền cập nhật trạng thái sự kiện.</p>
+      <div>
+        <label className="label">Trạng thái</label>
+        <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
+          {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button type="submit" className="btn-primary flex-1">Cập nhật trạng thái</button>
+        <button type="button" className="btn-secondary" onClick={onCancel}>Hủy</button>
+      </div>
+    </form>
+  );
 
   return (
     <form onSubmit={async e => { e.preventDefault(); await onSave(form); }} className="space-y-4">
@@ -163,6 +180,8 @@ function EventDetailModal({ eventId, onClose }) {
 }
 
 export default function Events() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [modal, setModal] = useState(null);
@@ -244,7 +263,9 @@ export default function Events() {
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
                     ✏️
                   </button>
-                  <button className="btn-danger btn-sm" onClick={() => handleDelete(ev)}>🗑</button>
+                  {isSuperAdmin && (
+                    <button className="btn-danger btn-sm" onClick={() => handleDelete(ev)}>🗑</button>
+                  )}
                 </div>
               </div>
             </div>
@@ -254,7 +275,13 @@ export default function Events() {
 
       {modal === 'form' && (
         <Modal title={selected ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'} onClose={() => setModal(null)} size="lg">
-          <EventForm initial={selected} onSave={handleSave} onCancel={() => setModal(null)} allEvents={events} />
+          <EventForm
+            initial={selected}
+            onSave={handleSave}
+            onCancel={() => setModal(null)}
+            allEvents={events}
+            statusOnly={!isSuperAdmin && !!selected}
+          />
         </Modal>
       )}
 
