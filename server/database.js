@@ -3,6 +3,7 @@ const path = require('path');
 
 // Railway volume tại /data, local dùng thư mục server/
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'kho.db');
+console.log(`[DB] Sử dụng database tại: ${DB_PATH}`);
 const db = new Database(DB_PATH);
 
 db.pragma('journal_mode = WAL');
