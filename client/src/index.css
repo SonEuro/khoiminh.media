@@ -50,14 +50,14 @@
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .btn-secondary {
-    background: transparent;
-    border: 1px solid var(--gold-dim);
-    color: var(--gold-light);
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: #e0e0f0;
   }
   .btn-secondary:hover {
-    border-color: var(--gold);
-    background: var(--gold-glow);
-    color: #f0d98a;
+    background: rgba(255,255,255,0.13);
+    border-color: rgba(255,255,255,0.45);
+    color: #ffffff;
   }
 
   .btn-danger {
