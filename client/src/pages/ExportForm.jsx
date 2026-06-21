@@ -283,9 +283,21 @@ export default function ExportForm() {
                   </div>
                   <div className="w-24 flex-shrink-0">
                     <label className="label text-xs">Số lượng</label>
-                    <input className="input text-sm" type="number" min="1"
+                    <input type="number" min="1"
                       value={item.quantity}
-                      onChange={e => setItem(idx, 'quantity', +e.target.value)} />
+                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                      style={{
+                        width:'100%', padding:'6px 8px',
+                        background:'rgba(255,255,255,0.04)',
+                        border:'1px solid rgba(201,168,76,0.3)',
+                        borderRadius:'0.5rem',
+                        color:'#4ade80',
+                        fontSize:'1.4rem',
+                        fontWeight:700,
+                        textAlign:'center',
+                        outline:'none',
+                      }}
+                    />
                   </div>
                   <button type="button" className="btn-danger btn-sm mt-5 flex-shrink-0"
                     onClick={() => removeItem(idx)}>✕</button>
