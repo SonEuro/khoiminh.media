@@ -23,6 +23,20 @@
 
   h1, h2, h3 { color: var(--text-primary); }
 
+  /* iOS Safari: date inputs need color-scheme:dark so native picker uses light text */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    color-scheme: dark;
+    color: var(--text-primary);
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value {
+    color: var(--text-primary);
+    text-align: left;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
