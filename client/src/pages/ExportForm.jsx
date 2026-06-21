@@ -260,7 +260,7 @@ export default function ExportForm() {
                             onClick={() => {
                               setItem(idx, 'equipment_id', e.id);
                               const newTerms = [...searchTerms];
-                              newTerms[idx] = `${e.code} · ${e.name}`;
+                              newTerms[idx] = e.name;
                               setSearchTerms(newTerms);
                             }}>
                             <span style={{ color:'#c9a84c', fontWeight:600, marginRight:'6px' }}>{e.name}</span>
