@@ -176,6 +176,14 @@
     background: var(--gold-glow) !important;
     color: #f0d98a !important;
   }
+
+  /* ── Equipment search input ──────────────────────── */
+  .eq-search::placeholder {
+    color: #f87171 !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    opacity: 0.6;
+  }
 }
 
 /* ── iPhone / small phone (≤ 430px) ──────────────── */
