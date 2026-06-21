@@ -85,4 +85,9 @@ export const api = {
   // Reports
   getSummary: () => request('/reports/summary'),
   getInventoryReport: () => request('/reports/inventory'),
+
+  // Violations
+  getViolations: () => request('/violations'),
+  createViolation: (data) => request('/violations', { method: 'POST', body: data }),
+  deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
 };

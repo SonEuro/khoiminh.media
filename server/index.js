@@ -12,7 +12,7 @@ const { uploadBackupToDrive, scheduleAutoBackup } = require('./utils/gdriveBacku
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 app.use('/api/auth',         require('./routes/auth'));
 app.use('/api/users',        require('./routes/users'));
@@ -21,6 +21,7 @@ app.use('/api/equipment',    requireAuth, require('./routes/equipment'));
 app.use('/api/events',       requireAuth, require('./routes/events'));
 app.use('/api/transactions', requireAuth, require('./routes/transactions'));
 app.use('/api/reports',      requireAuth, require('./routes/reports'));
+app.use('/api/violations',   requireAuth, require('./routes/violations'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 

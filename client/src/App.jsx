@@ -11,6 +11,7 @@ import Events from './pages/Events';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
+import ViolationReport from './pages/ViolationReport';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -31,8 +32,9 @@ function AppRoutes() {
         <Route path="event-return"  element={can('transact') ? <EventReturn /> : <Navigate to="/" replace />} />
         <Route path="events"   element={<Events />} />
         <Route path="transactions" element={<Transactions />} />
-        <Route path="reports"  element={<Reports />} />
-        <Route path="users"    element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
+        <Route path="reports"    element={<Reports />} />
+        <Route path="violations" element={<ViolationReport />} />
+        <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

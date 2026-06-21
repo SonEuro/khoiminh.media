@@ -91,5 +91,18 @@ try {
   db.prepare("ALTER TABLE users ADD COLUMN position TEXT DEFAULT ''").run();
 } catch (_) {}
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS violations (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id       INTEGER REFERENCES events(id),
+    event_label    TEXT DEFAULT 'Nội bộ',
+    reporter_name  TEXT NOT NULL,
+    violator       TEXT NOT NULL,
+    violation_type TEXT,
+    description    TEXT,
+    images         TEXT DEFAULT '[]',
+    created_at     TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
 
 module.exports = db;
