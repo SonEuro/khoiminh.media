@@ -50,13 +50,13 @@
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .btn-secondary {
-    background: rgba(255,255,255,0.07);
-    border: 1.5px solid rgba(255,255,255,0.25);
+    background: #3a3a50;
+    border: 1.5px solid #5a5a78;
     color: #e0e0f0;
   }
   .btn-secondary:hover {
-    background: rgba(255,255,255,0.13);
-    border-color: rgba(255,255,255,0.45);
+    background: #4a4a65;
+    border-color: #7a7a98;
     color: #ffffff;
   }
 
