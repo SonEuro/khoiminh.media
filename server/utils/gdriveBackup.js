@@ -3,32 +3,37 @@ const fs   = require('fs');
 const os   = require('os');
 const path = require('path');
 
-async function uploadBackupToDrive(db) {
-  const saJson  = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const rawId   = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
+function getOAuth2Client() {
+  const clientId     = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
 
-  if (!saJson || !rawId) {
-    throw new Error('Chưa cấu hình GOOGLE_SERVICE_ACCOUNT_JSON hoặc GOOGLE_DRIVE_FOLDER_ID');
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('Chưa cấu hình GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET hoặc GOOGLE_REFRESH_TOKEN');
   }
 
-  // Chấp nhận cả URL đầy đủ lẫn chỉ ID
+  const oauth2 = new google.auth.OAuth2(clientId, clientSecret, 'urn:ietf:wg:oauth:2.0:oob');
+  oauth2.setCredentials({ refresh_token: refreshToken });
+  return oauth2;
+}
+
+async function uploadBackupToDrive(db) {
+  const rawId = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
+  if (!rawId) throw new Error('Chưa cấu hình GOOGLE_DRIVE_FOLDER_ID');
+
   const folderId = rawId.includes('drive.google.com')
     ? rawId.split('/folders/')[1]?.split(/[?&]/)[0]?.trim()
     : rawId;
 
-  const credentials = JSON.parse(saJson);
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+  const auth  = getOAuth2Client();
   const drive = google.drive({ version: 'v3', auth });
 
-  // 1. Tạo bản sao DB nhất quán
+  // Tạo bản sao DB nhất quán
   const date    = new Date().toISOString().slice(0, 10);
   const tmpFile = path.join(os.tmpdir(), `kho-backup-${Date.now()}.db`);
   await db.backup(tmpFile);
 
-  // 2. Upload lên Google Drive
+  // Upload
   const filename = `kho-khoiminh-backup-${date}.db`;
   const uploaded = await drive.files.create({
     requestBody: { name: filename, parents: [folderId] },
@@ -39,30 +44,27 @@ async function uploadBackupToDrive(db) {
     fields: 'id,name,webViewLink',
   });
 
-  // 3. Xóa file tạm
   try { fs.unlinkSync(tmpFile); } catch (_) {}
 
-  // 4. Giữ tối đa 10 bản backup gần nhất, xóa cũ hơn
+  // Giữ 10 bản gần nhất, xóa cũ hơn
   const list = await drive.files.list({
     q: `'${folderId}' in parents and name contains 'kho-khoiminh-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
-  const old = (list.data.files || []).slice(10);
-  for (const f of old) {
+  for (const f of (list.data.files || []).slice(10)) {
     await drive.files.delete({ fileId: f.id }).catch(() => {});
   }
 
-  return {
-    name: uploaded.data.name,
-    link: uploaded.data.webViewLink,
-    id:   uploaded.data.id,
-  };
+  return { name: uploaded.data.name, link: uploaded.data.webViewLink };
 }
 
-// Tự động backup mỗi 24 giờ nếu đã cấu hình
 function scheduleAutoBackup(db) {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON || !process.env.GOOGLE_DRIVE_FOLDER_ID) return;
+  const ready = process.env.GOOGLE_CLIENT_ID &&
+                process.env.GOOGLE_CLIENT_SECRET &&
+                process.env.GOOGLE_REFRESH_TOKEN &&
+                process.env.GOOGLE_DRIVE_FOLDER_ID;
+  if (!ready) return;
 
   const run = () => {
     uploadBackupToDrive(db)
@@ -70,13 +72,8 @@ function scheduleAutoBackup(db) {
       .catch(e => console.error('[AutoBackup] ❌', e.message));
   };
 
-  // Chạy lần đầu sau 1 phút (cho server khởi động xong)
-  setTimeout(() => {
-    run();
-    setInterval(run, 24 * 60 * 60 * 1000); // mỗi 24h
-  }, 60 * 1000);
-
-  console.log('[AutoBackup] Đã lên lịch tự động backup Google Drive mỗi 24h');
+  setTimeout(() => { run(); setInterval(run, 24 * 60 * 60 * 1000); }, 60 * 1000);
+  console.log('[AutoBackup] Lên lịch tự động backup Google Drive mỗi 24h');
 }
 
 module.exports = { uploadBackupToDrive, scheduleAutoBackup };
