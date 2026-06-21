@@ -13,182 +13,201 @@ const ROLES = [
   { value: 'CSVC',        label: '🏢 Cơ Sở Vật Chất' },
 ];
 
+const ROLE_COLORS = {
+  SUPER_ADMIN: { bg: 'rgba(168,85,247,0.15)', color: '#c084fc', border: 'rgba(168,85,247,0.35)' },
+  PRODUCTION:  { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.35)' },
+  ACCOUNTING:  { bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24', border: 'rgba(251,191,36,0.35)' },
+  TECHNICAL:   { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c', border: 'rgba(251,146,60,0.35)' },
+  ATAS:        { bg: 'rgba(74,222,128,0.15)',  color: '#4ade80', border: 'rgba(74,222,128,0.35)' },
+  STAGE:       { bg: 'rgba(244,114,182,0.15)', color: '#f472b6', border: 'rgba(244,114,182,0.35)' },
+  CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
+};
+
 const EMPTY = { username: '', password: '', full_name: '', role: 'ATAS', is_active: true };
 
 export default function Users() {
   const { ROLE_LABELS } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [modal, setModal] = useState(null); // null | 'create' | 'edit'
-  const [form, setForm] = useState(EMPTY);
+  const [users, setUsers]   = useState([]);
+  const [modal, setModal]   = useState(null);
+  const [form, setForm]     = useState(EMPTY);
   const [editId, setEditId] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError]   = useState('');
   const [saving, setSaving] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   async function load() {
     const data = await api.getUsers();
     setUsers(data);
   }
-
   useEffect(() => { load(); }, []);
 
   function openCreate() {
-    setForm(EMPTY);
-    setEditId(null);
-    setError('');
-    setModal('edit');
+    setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
-
   function openEdit(u) {
     setForm({ username: u.username, password: '', full_name: u.full_name, role: u.role, is_active: !!u.is_active });
-    setEditId(u.id);
-    setError('');
-    setModal('edit');
+    setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
   async function handleSave() {
-    setError('');
-    setSaving(true);
+    setError(''); setSaving(true);
     try {
       if (editId) {
         await api.updateUser(editId, form);
       } else {
-        if (!form.password) { setError('Mật khẩu là bắt buộc'); setSaving(false); return; }
+        if (!form.username) { setError('Vui lòng nhập tên đăng nhập'); setSaving(false); return; }
+        if (!form.password) { setError('Vui lòng nhập mật khẩu');      setSaving(false); return; }
+        if (!form.full_name){ setError('Vui lòng nhập họ tên');         setSaving(false); return; }
         await api.createUser(form);
       }
-      setModal(null);
-      load();
+      setModal(null); load();
     } catch (err) {
       setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   async function handleDelete(u) {
     if (!confirm(`Xóa tài khoản "${u.full_name}" (${u.username})?`)) return;
-    try {
-      await api.deleteUser(u.id);
-      load();
-    } catch (err) {
-      alert(err.message);
-    }
+    try { await api.deleteUser(u.id); load(); }
+    catch (err) { alert(err.message); }
   }
 
-  const roleBadge = {
-    SUPER_ADMIN: 'bg-purple-100 text-purple-700',
-    PRODUCTION:  'bg-blue-100 text-blue-700',
-    ACCOUNTING:  'bg-yellow-100 text-yellow-700',
-    TECHNICAL:   'bg-orange-100 text-orange-700',
-    ATAS:        'bg-green-100 text-green-700',
-    STAGE:       'bg-pink-100 text-pink-700',
-    CSVC:        'bg-gray-100 text-gray-700',
-  };
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản Lý Người Dùng</h1>
-          <p className="text-sm text-gray-500 mt-1">{users.length} tài khoản</p>
+          <h1 className="text-2xl font-bold">Người Dùng</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{users.length} tài khoản</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-        >
-          + Thêm Người Dùng
-        </button>
+        <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Họ Tên</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Tên Đăng Nhập</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Vai Trò</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Trạng Thái</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Ngày Tạo</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {users.map(u => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{u.full_name}</td>
-                <td className="px-4 py-3 text-gray-600 font-mono">{u.username}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadge[u.role] || 'bg-gray-100'}`}>
-                    {ROLE_LABELS[u.role] || u.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  {u.is_active
-                    ? <span className="text-green-600 font-medium">Hoạt động</span>
-                    : <span className="text-red-500">Vô hiệu</span>}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{u.created_at?.slice(0, 10)}</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(u)} className="text-blue-600 hover:underline text-xs">Sửa</button>
-                    <button onClick={() => handleDelete(u)} className="text-red-500 hover:underline text-xs">Xóa</button>
-                  </div>
-                </td>
+      <div className="card p-0 overflow-hidden">
+        <div className="table-wrap">
+          <table className="w-full text-sm" style={{ minWidth: '600px' }}>
+            <thead>
+              <tr>
+                <th className="text-left px-4 py-3">Họ tên</th>
+                <th className="text-left px-4 py-3">Tên đăng nhập</th>
+                <th className="text-left px-4 py-3">Vai trò</th>
+                <th className="text-left px-4 py-3">Trạng thái</th>
+                <th className="text-left px-4 py-3">Ngày tạo</th>
+                <th className="px-4 py-3"></th>
               </tr>
-            ))}
-            {users.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-10 text-gray-400">Chưa có người dùng nào</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map(u => {
+                const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
+                return (
+                  <tr key={u.id}>
+                    <td className="px-4 py-3" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{u.full_name}</td>
+                    <td className="px-4 py-3" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
+                    <td className="px-4 py-3">
+                      <span style={{
+                        padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
+                        background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
+                      }}>
+                        {ROLE_LABELS[u.role] || u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.is_active
+                        ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
+                        : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
+                    </td>
+                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{u.created_at?.slice(0, 10)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2 justify-end">
+                        <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
+                        <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {users.length === 0 && (
+                <tr><td colSpan={6} className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chưa có tài khoản nào</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {modal === 'edit' && (
-        <Modal title={editId ? 'Chỉnh Sửa Người Dùng' : 'Thêm Người Dùng'} onClose={() => setModal(null)}>
+        <Modal title={editId ? 'Chỉnh Sửa Tài Khoản' : 'Thêm Tài Khoản'} onClose={() => setModal(null)}>
           <div className="space-y-4">
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên *</label>
-              <input value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <label className="label">Họ và tên *</label>
+              <input className="input bold-input" value={form.full_name}
+                onChange={e => set('full_name', e.target.value)}
                 placeholder="Nguyễn Văn A" />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập *</label>
-              <input value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-                className="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="username" />
+              <label className="label">Tên đăng nhập *</label>
+              <input className="input bold-input" value={form.username}
+                onChange={e => set('username', e.target.value)}
+                placeholder="username"
+                style={{ fontFamily: 'monospace' }}
+                autoCapitalize="none" autoCorrect="off" spellCheck={false} />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mật khẩu {editId ? '(bỏ trống = giữ nguyên)' : '*'}
+              <label className="label">
+                Mật khẩu {editId ? <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>(bỏ trống = giữ nguyên)</span> : '*'}
               </label>
-              <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="••••••••" />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  className="input bold-input"
+                  value={form.password}
+                  onChange={e => set('password', e.target.value)}
+                  placeholder="••••••••"
+                  autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  style={{ paddingRight: '44px' }}
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  style={{
+                    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--text-muted)', fontSize: '1rem',
+                  }}>
+                  {showPw ? '🙈' : '👁'}
+                </button>
+              </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò *</label>
-              <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="label">Vai trò *</label>
+              <select className="input" value={form.role} onChange={e => set('role', e.target.value)}
+                style={{ color: '#f87171', fontWeight: 700 }}>
                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
             </div>
+
             {editId && (
-              <label className="flex items-center gap-2 text-sm">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={form.is_active}
-                  onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} />
-                <span>Tài khoản hoạt động</span>
+                  onChange={e => set('is_active', e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: 'var(--gold)' }} />
+                <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>Tài khoản đang hoạt động</span>
               </label>
             )}
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+
+            {error && (
+              <p style={{ color: '#f87171', fontSize: '0.85rem', background: 'rgba(248,113,113,0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.3)' }}>
+                ⚠️ {error}
+              </p>
+            )}
+
             <div className="flex gap-3 pt-2">
-              <button onClick={handleSave} disabled={saving}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2 rounded-lg text-sm font-medium">
-                {saving ? 'Đang lưu...' : 'Lưu'}
+              <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+                {saving ? 'Đang lưu...' : (editId ? '💾 Cập nhật' : '+ Tạo tài khoản')}
               </button>
-              <button onClick={() => setModal(null)}
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm">
-                Hủy
-              </button>
+              <button onClick={() => setModal(null)} className="btn-secondary">Hủy</button>
             </div>
           </div>
         </Modal>
