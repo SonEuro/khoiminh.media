@@ -9,17 +9,66 @@ const STATUS_MAP = {
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
 
-function EventForm({ initial, onSave, onCancel }) {
+function EventForm({ initial, onSave, onCancel, allEvents = [] }) {
   const [form, setForm] = useState(initial || {
     name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: ''
   });
+  const [showSuggest, setShowSuggest] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const suggestions = form.name.trim().length >= 1
+    ? allEvents.filter(ev =>
+        (!initial || ev.id !== initial.id) &&
+        ev.name.toLowerCase().includes(form.name.toLowerCase())
+      ).slice(0, 6)
+    : [];
 
   return (
     <form onSubmit={async e => { e.preventDefault(); await onSave(form); }} className="space-y-4">
-      <div>
+      <div style={{ position: 'relative' }}>
         <label className="label">Tên sự kiện *</label>
-        <input className="input" required value={form.name} onChange={e => set('name', e.target.value)} placeholder="VD: Gala Dinner Công Ty ABC 2025" />
+        <input
+          className="input eq-search"
+          style={{ color: '#f87171', fontSize: '1.4rem', fontWeight: 700 }}
+          required
+          value={form.name}
+          placeholder="VD: Gala Dinner Công Ty ABC 2025"
+          onChange={e => { set('name', e.target.value); setShowSuggest(true); }}
+          onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+          onFocus={() => setShowSuggest(true)}
+          autoComplete="off"
+        />
+        {showSuggest && suggestions.length > 0 && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+            background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
+            borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+            marginTop: '4px', overflow: 'hidden',
+          }}>
+            <p style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#7878a0', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+              Sự kiện đã có — click để dùng tên này
+            </p>
+            {suggestions.map(ev => (
+              <button
+                key={ev.id}
+                type="button"
+                onMouseDown={() => { set('name', ev.name); setShowSuggest(false); }}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '9px 12px',
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  borderBottom: '1px solid rgba(201,168,76,0.08)',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
+                <span style={{ color: '#c9a84c', fontWeight: 600, fontSize: '0.9rem' }}>{ev.name}</span>
+                {ev.start_date && <span style={{ fontSize: '0.72rem', color: '#7878a0', marginLeft: 'auto' }}>{ev.start_date}</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -203,7 +252,7 @@ export default function Events() {
 
       {modal === 'form' && (
         <Modal title={selected ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'} onClose={() => setModal(null)} size="lg">
-          <EventForm initial={selected} onSave={handleSave} onCancel={() => setModal(null)} />
+          <EventForm initial={selected} onSave={handleSave} onCancel={() => setModal(null)} allEvents={events} />
         </Modal>
       )}
 
