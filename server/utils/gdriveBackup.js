@@ -4,12 +4,17 @@ const os   = require('os');
 const path = require('path');
 
 async function uploadBackupToDrive(db) {
-  const saJson   = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  const saJson  = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const rawId   = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
 
-  if (!saJson || !folderId) {
+  if (!saJson || !rawId) {
     throw new Error('Chưa cấu hình GOOGLE_SERVICE_ACCOUNT_JSON hoặc GOOGLE_DRIVE_FOLDER_ID');
   }
+
+  // Chấp nhận cả URL đầy đủ lẫn chỉ ID
+  const folderId = rawId.includes('drive.google.com')
+    ? rawId.split('/folders/')[1]?.split(/[?&]/)[0]?.trim()
+    : rawId;
 
   const credentials = JSON.parse(saJson);
   const auth = new google.auth.GoogleAuth({
