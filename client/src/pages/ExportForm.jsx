@@ -38,7 +38,7 @@ export default function ExportForm() {
   const [deptFilter, setDeptFilter] = useState(defaultDept);
   const [form, setForm] = useState({
     event_id: '',
-    responsible_person: '',
+    responsible_person: user?.full_name || '',
     expected_return_date: '',
     notes: '',
   });
@@ -163,7 +163,7 @@ export default function ExportForm() {
           <button
             onClick={() => {
               setDoneSlip(null);
-              setForm({ event_id: '', responsible_person: '', expected_return_date: '', notes: '' });
+              setForm({ event_id: '', responsible_person: user?.full_name || '', expected_return_date: '', notes: '' });
               setItems(emptyRows(10));
               setSearchTerms(Array(10).fill(''));
             }}

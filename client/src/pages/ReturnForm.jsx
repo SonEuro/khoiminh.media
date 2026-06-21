@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../contexts/AuthContext';
 
 const CONDITIONS = [
   { value: 'good', label: 'Tốt - Nhập kho', color: 'text-green-700' },
@@ -11,10 +12,11 @@ const CONDITIONS = [
 
 export default function ReturnForm() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [mode, setMode] = useState('return'); // 'return' | 'fix'
   const [equipment, setEquipment] = useState([]);
   const [events, setEvents] = useState([]);
-  const [form, setForm] = useState({ event_id: '', responsible_person: '', notes: '' });
+  const [form, setForm] = useState({ event_id: '', responsible_person: user?.full_name || '', notes: '' });
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
   const [submitting, setSubmitting]     = useState(false);
   const [searchTerms, setSearchTerms]   = useState(['']);

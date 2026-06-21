@@ -44,7 +44,7 @@ export default function EventReturn() {
   const [eventName,     setEventName]    = useState('');
   const [showEvSuggest, setShowEvSuggest] = useState(false);
   const [deptFilter,    setDeptFilter]   = useState(defaultDept);
-  const [person,        setPerson]       = useState('');
+  const [person,        setPerson]       = useState(user?.full_name || '');
   const [returnDate,    setReturnDate]   = useState(new Date().toISOString().slice(0,10));
 
   // Outstanding items
