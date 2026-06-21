@@ -262,9 +262,9 @@ export default function ExportForm() {
                               newTerms[idx] = `${e.code} · ${e.name}`;
                               setSearchTerms(newTerms);
                             }}>
-                            <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#7878a0', marginRight:'6px' }}>{e.code}</span>
-                            <span style={{ color:'#c9a84c', fontWeight:600 }}>{e.name}</span>
-                            <span style={{ fontSize:'0.72rem', color:'#7878a0', marginLeft:'4px' }}>[{e.category_code}]</span>
+                            <span style={{ color:'#c9a84c', fontWeight:600, marginRight:'6px' }}>{e.name}</span>
+                            <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#7878a0', marginRight:'4px' }}>{e.code}</span>
+                            <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>[{e.category_code}]</span>
                             <span className={`ml-2 text-xs font-semibold ${e.qty_available === 0 ? 'text-red-500' : 'text-green-600'}`}>
                               · {e.qty_available} {e.unit} có sẵn
                             </span>
