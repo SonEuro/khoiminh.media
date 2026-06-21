@@ -21,7 +21,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
         <img src="/logo.png" alt="Khôi Minh" style={{ width:'100%', maxWidth:'150px' }} />
         <div style={{ marginTop:'8px', display:'flex', alignItems:'center', gap:'8px' }}>
           <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${GOLD},transparent)` }} />
-          <span style={{ color: GOLD, fontSize:'0.55rem', letterSpacing:'0.15em', fontWeight:700 }}>QUẢN LÝ KHO</span>
+          <span style={{ color: GOLD, fontSize:'0.55rem', letterSpacing:'0.15em', fontWeight:700 }}>QUẢN LÝ NỘI BỘ</span>
           <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${GOLD},transparent)` }} />
         </div>
       </div>
