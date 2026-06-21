@@ -90,46 +90,46 @@ export default function Reports() {
 
         return (
           <div key={cat} className="card p-0 overflow-hidden">
-            <div className="px-4 py-3 bg-gray-800 text-white flex items-center justify-between">
-              <h2 className="font-semibold">{items[0]?.icon || ''} {cat}</h2>
-              <span className="text-sm text-gray-300">{items.length} loại · tổng {catTotal.qty_total}</span>
+            <div style={{ padding:'10px 16px', background:'rgba(201,168,76,0.08)', borderBottom:'1px solid rgba(201,168,76,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.95rem' }}>{items[0]?.icon || ''} {cat}</h2>
+              <span style={{ fontSize:'0.78rem', color:'var(--text-muted)' }}>{items.length} loại · tổng {catTotal.qty_total}</span>
             </div>
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead>
                 <tr>
-                  <th className="text-left px-4 py-2 text-gray-500">Mã</th>
-                  <th className="text-left px-4 py-2 text-gray-500">Tên thiết bị</th>
-                  <th className="text-left px-4 py-2 text-gray-500">ĐVT</th>
-                  <th className="text-right px-4 py-2 text-gray-500">Tổng</th>
-                  <th className="text-right px-4 py-2 text-green-600">Có sẵn</th>
-                  <th className="text-right px-4 py-2 text-blue-600">Đang dùng</th>
-                  <th className="text-right px-4 py-2 text-yellow-600">Sửa chữa</th>
-                  <th className="text-right px-4 py-2 text-red-600">Hỏng</th>
-                  <th className="text-right px-4 py-2 text-gray-400">Mất</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px' }}>Mã</th>
+                  <th style={{ textAlign:'left',   padding:'8px 12px' }}>Tên thiết bị</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px' }}>ĐVT</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px' }}>Tổng</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px', color:'#4ade80' }}>Có sẵn</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px', color:'#60a5fa' }}>Đang dùng</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px', color:'#fbbf24' }}>Sửa chữa</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px', color:'#f87171' }}>Hỏng</th>
+                  <th style={{ textAlign:'center', padding:'8px 12px', color:'#a78bfa' }}>Mất</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map(r => (
-                  <tr key={r.code} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-2.5 font-mono text-xs text-gray-500">{r.code}</td>
-                    <td className="px-4 py-2.5 font-medium">{r.name}</td>
-                    <td className="px-4 py-2.5 text-gray-400 text-xs">{r.unit}</td>
-                    <td className="px-4 py-2.5 text-right font-bold">{r.qty_total}</td>
-                    <td className={`px-4 py-2.5 text-right font-bold ${r.qty_available === 0 ? 'text-red-600' : 'text-green-600'}`}>{r.qty_available}</td>
-                    <td className="px-4 py-2.5 text-right text-blue-600">{r.qty_in_use || 0}</td>
-                    <td className="px-4 py-2.5 text-right text-yellow-600">{r.qty_maintenance || 0}</td>
-                    <td className="px-4 py-2.5 text-right text-red-600">{r.qty_damaged || 0}</td>
-                    <td className="px-4 py-2.5 text-right text-gray-400">{r.qty_lost || 0}</td>
+                  <tr key={r.code}>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontFamily:'monospace', fontSize:'0.75rem', color:'var(--text-muted)' }}>{r.code}</td>
+                    <td style={{ textAlign:'left',   padding:'9px 12px', fontWeight:600, color:'var(--text-primary)' }}>{r.name}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontSize:'0.78rem', color:'var(--text-muted)' }}>{r.unit}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontWeight:700, color:'var(--text-primary)' }}>{r.qty_total}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontWeight:700, color: r.qty_available === 0 ? '#f87171' : '#4ade80' }}>{r.qty_available}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', color:'#60a5fa' }}>{r.qty_in_use || 0}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', color:'#fbbf24' }}>{r.qty_maintenance || 0}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', color:'#f87171' }}>{r.qty_damaged || 0}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', color:'#a78bfa' }}>{r.qty_lost || 0}</td>
                   </tr>
                 ))}
-                <tr className="bg-gray-50 border-t-2 font-semibold text-sm">
-                  <td colSpan={3} className="px-4 py-2 text-gray-700">Tổng cộng</td>
-                  <td className="px-4 py-2 text-right">{catTotal.qty_total}</td>
-                  <td className="px-4 py-2 text-right text-green-600">{catTotal.qty_available}</td>
-                  <td className="px-4 py-2 text-right text-blue-600">{catTotal.qty_in_use}</td>
-                  <td className="px-4 py-2 text-right text-yellow-600">{catTotal.qty_maintenance}</td>
-                  <td className="px-4 py-2 text-right text-red-600">{catTotal.qty_damaged}</td>
-                  <td className="px-4 py-2 text-right text-gray-400">{catTotal.qty_lost}</td>
+                <tr style={{ borderTop:'1px solid rgba(201,168,76,0.25)', background:'rgba(201,168,76,0.05)' }}>
+                  <td colSpan={3} style={{ padding:'8px 12px', fontWeight:700, color:'var(--gold)', fontSize:'0.8rem', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tổng cộng</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:800, color:'var(--text-primary)' }}>{catTotal.qty_total}</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#4ade80' }}>{catTotal.qty_available}</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#60a5fa' }}>{catTotal.qty_in_use}</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#fbbf24' }}>{catTotal.qty_maintenance}</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#f87171' }}>{catTotal.qty_damaged}</td>
+                  <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#a78bfa' }}>{catTotal.qty_lost}</td>
                 </tr>
               </tbody>
             </table>
