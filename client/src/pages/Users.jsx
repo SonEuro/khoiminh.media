@@ -26,14 +26,16 @@ const ROLE_COLORS = {
 const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true };
 
 export default function Users() {
-  const { ROLE_LABELS } = useAuth();
-  const [users, setUsers]   = useState([]);
-  const [modal, setModal]   = useState(null);
-  const [form, setForm]     = useState(EMPTY);
-  const [editId, setEditId] = useState(null);
-  const [error, setError]   = useState('');
-  const [saving, setSaving] = useState(false);
-  const [showPw, setShowPw] = useState(false);
+  const { ROLE_LABELS, user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+  const [users, setUsers]       = useState([]);
+  const [modal, setModal]       = useState(null);
+  const [form, setForm]         = useState(EMPTY);
+  const [editId, setEditId]     = useState(null);
+  const [error, setError]       = useState('');
+  const [saving, setSaving]     = useState(false);
+  const [showPw, setShowPw]     = useState(false);
+  const [resetInfo, setResetInfo] = useState(null); // { name, username, password }
 
   async function load() {
     const data = await api.getUsers();
@@ -70,6 +72,14 @@ export default function Users() {
     if (!confirm(`Xóa tài khoản "${u.full_name}" (${u.username})?`)) return;
     try { await api.deleteUser(u.id); load(); }
     catch (err) { alert(err.message); }
+  }
+
+  async function handleReset(u) {
+    if (!confirm(`Reset mật khẩu "${u.full_name}" về mặc định?`)) return;
+    try {
+      const res = await api.resetUserPassword(u.id);
+      setResetInfo({ name: u.full_name, username: u.username, password: res.default_password });
+    } catch (err) { alert(err.message); }
   }
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -123,6 +133,13 @@ export default function Users() {
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
                         <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
+                        {isSuperAdmin && (
+                          <button className="btn-sm" onClick={() => handleReset(u)}
+                            style={{ padding:'7px 12px', borderRadius:'7px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
+                            title="Reset mật khẩu về mặc định">
+                            🔑
+                          </button>
+                        )}
                         <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
                       </div>
                     </td>
@@ -221,6 +238,31 @@ export default function Users() {
               </button>
               <button onClick={() => setModal(null)} className="btn-secondary">Hủy</button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Reset password result modal */}
+      {resetInfo && (
+        <Modal title="Reset mật khẩu thành công" onClose={() => setResetInfo(null)} size="sm">
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🔑</div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
+              Mật khẩu của <strong style={{ color: 'var(--text-primary)' }}>{resetInfo.name}</strong> đã được reset về mặc định.
+            </p>
+            <div style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid var(--gold-dim)', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Thông tin đăng nhập</p>
+              <p style={{ color: 'var(--gold)', fontFamily: 'monospace', fontSize: '1rem', marginBottom: '4px' }}>
+                👤 {resetInfo.username}
+              </p>
+              <p style={{ color: '#4ade80', fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 700 }}>
+                🔒 {resetInfo.password}
+              </p>
+            </div>
+            <p style={{ color: '#fbbf24', fontSize: '0.78rem' }}>⚠️ Vui lòng thông báo cho người dùng đổi mật khẩu sau khi đăng nhập.</p>
+            <button onClick={() => setResetInfo(null)} className="btn-primary" style={{ marginTop: '16px', width: '100%' }}>
+              Đã hiểu
+            </button>
           </div>
         </Modal>
       )}

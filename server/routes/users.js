@@ -41,6 +41,13 @@ router.put('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+router.post('/:id/reset-password', (req, res) => {
+  const DEFAULT_PASSWORD = '123456';
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+    .run(bcrypt.hashSync(DEFAULT_PASSWORD, 10), req.params.id);
+  res.json({ ok: true, default_password: DEFAULT_PASSWORD });
+});
+
 router.delete('/:id', (req, res) => {
   if (String(req.params.id) === String(req.user.id)) {
     return res.status(400).json({ error: 'Không thể xóa tài khoản đang đăng nhập' });

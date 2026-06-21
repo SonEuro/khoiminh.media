@@ -43,6 +43,7 @@ export const api = {
   getUsers: () => request('/users'),
   createUser: (data) => request('/users', { method: 'POST', body: data }),
   updateUser: (id, data) => request(`/users/${id}`, { method: 'PUT', body: data }),
+  resetUserPassword: (id) => request(`/users/${id}/reset-password`, { method: 'POST' }),
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
 
   // Categories
