@@ -96,15 +96,23 @@ router.get('/:id', (req, res) => {
     WHERE ti.transaction_id = ?
   `).all(req.params.id);
 
-  res.json({ ...tx, items });
+  const external_items = db.prepare(
+    'SELECT * FROM external_items WHERE transaction_id = ?'
+  ).all(req.params.id);
+
+  res.json({ ...tx, items, external_items });
 });
 
 // Xuất kho (OUT)
 router.post('/out', canTransact, (req, res) => {
-  const { event_id, responsible_person, expected_return_date, notes, items } = req.body;
-  if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
-  const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
-  if (deptErr) return res.status(403).json({ error: deptErr });
+  const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
+  const validExt = (external_items || []).filter(i => i.name?.trim());
+  if ((!items || items.length === 0) && validExt.length === 0)
+    return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  if (items?.length) {
+    const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
+    if (deptErr) return res.status(403).json({ error: deptErr });
+  }
 
   const doOut = db.transaction(() => {
     const code = nextCode('OUT', event_id || null);
@@ -117,12 +125,17 @@ router.post('/out', canTransact, (req, res) => {
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
     const updateEq = db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ? AND qty_available >= ?`);
 
-    for (const item of items) {
+    for (const item of (items || [])) {
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
       if (eq.qty_available < item.quantity) throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}`);
       insertItem.run(txId, item.equipment_id, item.quantity, item.notes || null);
       updateEq.run(item.quantity, item.quantity, item.equipment_id, item.quantity);
+    }
+
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes) VALUES (?, ?, ?, ?, ?)`);
+    for (const ext of validExt) {
+      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null);
     }
 
     return { id: txId, code };
@@ -137,10 +150,14 @@ router.post('/out', canTransact, (req, res) => {
 
 // Nhập kho / trả kho (RETURN)
 router.post('/return', canTransact, (req, res) => {
-  const { event_id, responsible_person, notes, items } = req.body;
-  if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
-  const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
-  if (deptErr) return res.status(403).json({ error: deptErr });
+  const { event_id, responsible_person, notes, items, external_items } = req.body;
+  const validExt = (external_items || []).filter(i => i.name?.trim());
+  if ((!items || items.length === 0) && validExt.length === 0)
+    return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  if (items?.length) {
+    const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
+    if (deptErr) return res.status(403).json({ error: deptErr });
+  }
 
   const doReturn = db.transaction(() => {
     const code = nextCode('RETURN');
@@ -152,11 +169,10 @@ router.post('/return', canTransact, (req, res) => {
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)`);
 
-    for (const item of items) {
+    for (const item of (items || [])) {
       const cond = item.condition || 'good';
       insertItem.run(txId, item.equipment_id, item.quantity, cond, item.notes || null);
 
-      // Update quantities based on condition
       if (cond === 'good') {
         db.prepare(`UPDATE equipment SET qty_in_use = qty_in_use - ?, qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
       } else if (cond === 'damaged') {
@@ -166,6 +182,11 @@ router.post('/return', canTransact, (req, res) => {
       } else if (cond === 'lost') {
         db.prepare(`UPDATE equipment SET qty_in_use = qty_in_use - ?, qty_lost = qty_lost + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
       }
+    }
+
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes) VALUES (?, ?, ?, ?, ?)`);
+    for (const ext of validExt) {
+      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null);
     }
 
     return { id: txId, code };

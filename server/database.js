@@ -91,6 +91,17 @@ try { db.prepare("ALTER TABLE users ADD COLUMN position TEXT DEFAULT ''").run();
 try { db.prepare("ALTER TABLE events ADD COLUMN created_by TEXT DEFAULT ''").run(); } catch (_) {}
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS external_items (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
+    supplier       TEXT NOT NULL,
+    name           TEXT NOT NULL,
+    quantity       INTEGER DEFAULT 1,
+    notes          TEXT
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS violations (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id       INTEGER REFERENCES events(id),

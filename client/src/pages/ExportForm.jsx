@@ -26,6 +26,10 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ equipment_id: '', quantity: 1, notes: '' }));
 
+// ── Danh sách nhà cung cấp (thêm tên vào đây) ─────────────────────────────
+const SUPPLIERS = [];
+const emptyExtRow = () => ({ name: '', quantity: 1, notes: '' });
+
 export default function ExportForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -47,6 +51,12 @@ export default function ExportForm() {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
+
+  // Thiết bị ngoài
+  const [extOpen,     setExtOpen]     = useState(false);
+  const [extSupplier, setExtSupplier] = useState('');
+  const [extCustom,   setExtCustom]   = useState('');
+  const [extItems,    setExtItems]    = useState([emptyExtRow()]);
 
   useEffect(() => {
     api.getEquipment().then(setEquipment);
@@ -105,10 +115,14 @@ export default function ExportForm() {
   const submit = async (e) => {
     e.preventDefault();
     const validItems = items.filter(it => it.equipment_id && it.quantity > 0);
-    if (validItems.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
+    const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
+    const validExt = extOpen
+      ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier }))
+      : [];
+    if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
     setSubmitting(true);
     try {
-      const res = await api.createOut({ ...form, items: validItems });
+      const res = await api.createOut({ ...form, items: validItems, external_items: validExt });
       // Load full transaction for printing
       const full = await api.getTransactionById(res.id);
       setDoneSlip(full);
@@ -409,6 +423,71 @@ export default function ExportForm() {
               );
             })}
           </div>
+        </div>
+
+        {/* Thiết bị ngoài */}
+        <div style={{ border: '1px solid rgba(201,168,76,0.2)', borderRadius: '10px', overflow: 'hidden' }}>
+          <button type="button"
+            onClick={() => setExtOpen(v => !v)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 16px', background: extOpen ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.04)',
+              border: 'none', cursor: 'pointer', transition: 'background 0.2s',
+            }}>
+            <span style={{ color: '#c9a84c', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🏪 Thiết bị ngoài
+            </span>
+            <span style={{ color: '#c9a84c', fontSize: '0.75rem' }}>{extOpen ? '▲ Thu lại' : '▼ Mở rộng'}</span>
+          </button>
+
+          {extOpen && (
+            <div style={{ padding: '14px 16px', background: 'rgba(0,0,0,0.15)', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
+              {/* Nhà cung cấp */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>
+                  Nhà cung cấp
+                </label>
+                {SUPPLIERS.length > 0 ? (
+                  <>
+                    <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
+                      <option value="">— Chọn nhà cung cấp —</option>
+                      {SUPPLIERS.map(s => <option key={s} value={s}>{s}</option>)}
+                      <option value="__custom__">✏️ Nhập thủ công...</option>
+                    </select>
+                    {extSupplier === '__custom__' && (
+                      <input className="input mt-2" placeholder="Tên nhà cung cấp..."
+                        value={extCustom} onChange={e => setExtCustom(e.target.value)} />
+                    )}
+                  </>
+                ) : (
+                  <input className="input" placeholder="Tên nhà cung cấp..."
+                    value={extSupplier} onChange={e => setExtSupplier(e.target.value)} />
+                )}
+              </div>
+
+              {/* Danh sách thiết bị ngoài */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {extItems.map((row, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 28px', gap: '6px', alignItems: 'center' }}>
+                    <input className="input" placeholder="Tên thiết bị..."
+                      value={row.name} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))} />
+                    <input className="input" type="number" min="1" placeholder="SL"
+                      value={row.quantity} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
+                      style={{ textAlign: 'center' }} />
+                    <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
+                      style={{ width: '28px', height: '38px', background: 'rgba(229,62,62,0.12)', border: '1px solid rgba(229,62,62,0.25)', borderRadius: '6px', color: '#fc8181', cursor: 'pointer', fontSize: '0.75rem' }}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button type="button" onClick={() => setExtItems(prev => [...prev, emptyExtRow()])}
+                style={{ marginTop: '8px', fontSize: '0.8rem', color: '#c9a84c', background: 'none', border: '1px dashed rgba(201,168,76,0.3)', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', width: '100%' }}>
+                + Thêm thiết bị ngoài
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3">
