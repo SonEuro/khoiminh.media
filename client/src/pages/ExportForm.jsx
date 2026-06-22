@@ -206,7 +206,7 @@ export default function ExportForm() {
               <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}>
                 <option value="">-- Nội bộ (không có sự kiện) --</option>
                 {events.map(ev => (
-                  <option key={ev.id} value={ev.id}>{ev.code} · {ev.name}</option>
+                  <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>
                 ))}
               </select>
             </div>

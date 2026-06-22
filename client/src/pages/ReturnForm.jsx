@@ -129,7 +129,7 @@ export default function ReturnForm() {
                 <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}
                   style={{ color: form.event_id ? '#f87171' : 'var(--text-muted)', fontWeight: form.event_id ? 700 : 400 }}>
                   <option value="">-- Chọn sự kiện --</option>
-                  {events.map(ev => <option key={ev.id} value={ev.id}>{ev.code} · {ev.name}</option>)}
+                  {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>)}
                 </select>
                 {loadingEvent && <p style={{ fontSize:'0.75rem', color:'var(--gold)', marginTop:'4px' }}>Đang tải thiết bị...</p>}
                 {!loadingEvent && form.event_id && items.some(i => i.equipment_id) && (
