@@ -160,19 +160,36 @@ function EventDetailModal({ eventId, onClose }) {
         </div>
         {ev.notes && (
           <div style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(201,168,76,0.15)',
-            borderRadius: '0.5rem',
-            padding: '12px 14px',
+            background: 'linear-gradient(135deg, rgba(201,168,76,0.07) 0%, rgba(201,168,76,0.03) 100%)',
+            border: '1px solid rgba(201,168,76,0.3)',
+            borderLeft: '3px solid #c9a84c',
+            borderRadius: '0 8px 8px 0',
+            padding: '14px 16px',
             minHeight: '80px',
-            maxHeight: '260px',
+            maxHeight: '280px',
             overflowY: 'auto',
-            fontSize: '0.85rem',
-            lineHeight: '1.65',
-            color: 'var(--text-main)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}>{ev.notes}</div>
+            position: 'relative',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              marginBottom: '10px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid rgba(201,168,76,0.15)',
+            }}>
+              <span style={{ fontSize: '0.9rem' }}>📋</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Ghi chú
+              </span>
+            </div>
+            <p style={{
+              fontSize: '0.87rem',
+              lineHeight: '1.75',
+              color: 'var(--text-main)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              margin: 0,
+            }}>{ev.notes}</p>
+          </div>
         )}
 
         <div>
