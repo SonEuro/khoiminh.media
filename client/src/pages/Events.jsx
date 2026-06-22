@@ -11,7 +11,7 @@ const STATUS_MAP = {
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
 
-function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false }) {
+function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
   const [form, setForm] = useState(initial || {
     name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: ''
   });
@@ -87,6 +87,15 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           </div>
         )}
       </div>
+
+      {!initial && creatorName && (
+        <div>
+          <label className="label">Người tạo sự kiện</label>
+          <input className="input" value={creatorName} readOnly
+            style={{ opacity: 0.6, cursor: 'default' }} />
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Khách hàng</label>
@@ -145,6 +154,9 @@ function EventDetailModal({ eventId, onClose }) {
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
           <div><span className="text-gray-500">Từ: </span><strong>{ev.start_date || '—'}</strong></div>
           <div><span className="text-gray-500">Đến: </span><strong>{ev.end_date || '—'}</strong></div>
+          {ev.created_by && (
+            <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
+          )}
         </div>
         {ev.notes && (
           <div style={{
@@ -296,6 +308,7 @@ export default function Events() {
             onCancel={() => setModal(null)}
             allEvents={events}
             statusOnly={!isSuperAdmin && !!selected}
+            creatorName={user?.full_name || ''}
           />
         </Modal>
       )}

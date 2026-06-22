@@ -48,9 +48,9 @@ router.post('/', canWrite, (req, res) => {
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
   const code = nextCode();
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(code, name, client, location, start_date, end_date, notes);
+    INSERT INTO events (code, name, client, location, start_date, end_date, notes, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, name, client, location, start_date, end_date, notes, req.user?.full_name || '');
   res.json({ id: r.lastInsertRowid, code });
 });
 

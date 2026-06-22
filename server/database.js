@@ -86,10 +86,9 @@ db.exec(`
   );
 `);
 
-// Migrate: add position column if not exists
-try {
-  db.prepare("ALTER TABLE users ADD COLUMN position TEXT DEFAULT ''").run();
-} catch (_) {}
+// Migrations
+try { db.prepare("ALTER TABLE users ADD COLUMN position TEXT DEFAULT ''").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE events ADD COLUMN created_by TEXT DEFAULT ''").run(); } catch (_) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS violations (
