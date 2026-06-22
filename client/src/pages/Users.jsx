@@ -142,7 +142,9 @@ export default function Users() {
               </button>
             </>
           )}
-          <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
+          {isSuperAdmin && (
+            <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
+          )}
         </div>
       </div>
 
@@ -219,9 +221,18 @@ export default function Users() {
 
             <div>
               <label className="label">Chức vụ</label>
-              <select className="input" value={form.position} onChange={e => set('position', e.target.value)}
+              <select className="input" value={form.position}
+                onChange={e => {
+                  const pos = e.target.value;
+                  setForm(f => ({
+                    ...f,
+                    position: pos,
+                    role: pos === 'Giám đốc' ? 'SUPER_ADMIN' : (f.role === 'SUPER_ADMIN' ? 'ATAS' : f.role),
+                  }));
+                }}
                 style={{ color: form.position ? '#f87171' : 'var(--text-muted)', fontWeight: form.position ? 700 : 400 }}>
                 <option value="">-- Chọn chức vụ --</option>
+                <option value="Giám đốc">👑 Giám đốc</option>
                 <option value="Trưởng phòng">Trưởng phòng</option>
                 <option value="Nhân viên">Nhân viên</option>
               </select>
@@ -261,13 +272,22 @@ export default function Users() {
               </div>
             </div>
 
-            <div>
-              <label className="label">Phòng ban *</label>
-              <select className="input" value={form.role} onChange={e => set('role', e.target.value)}
-                style={{ color: '#f87171', fontWeight: 700 }}>
-                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
-            </div>
+            {form.position === 'Giám đốc' ? (
+              <div style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.85rem' }}>
+                <span style={{ color: '#c084fc', fontWeight: 700 }}>👑 Giám Đốc Sản Xuất</span>
+                <span style={{ color: 'var(--text-muted)', marginLeft: '8px', fontSize: '0.78rem' }}>— quyền cao nhất</span>
+              </div>
+            ) : (
+              <div>
+                <label className="label">Phòng ban *</label>
+                <select className="input" value={form.role} onChange={e => set('role', e.target.value)}
+                  style={{ color: '#f87171', fontWeight: 700 }}>
+                  {ROLES.filter(r => r.value !== 'SUPER_ADMIN').map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {editId && (
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
