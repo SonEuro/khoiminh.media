@@ -176,6 +176,18 @@ export default function Equipment() {
     }
   };
 
+  const handleImportEquipment = async () => {
+    if (!window.confirm('⚠️ Thao tác này sẽ XÓA TOÀN BỘ thiết bị và phiếu xuất/nhập hiện tại, sau đó import danh sách mới từ Kho Khôi Minh.\n\nBạn có chắc muốn tiếp tục?')) return;
+    try {
+      const result = await api.importEquipment();
+      alert(result.message || 'Import thành công!');
+      load();
+      api.getCategories().then(setCategories);
+    } catch (e) {
+      alert('Import thất bại: ' + e.message);
+    }
+  };
+
   const handleDelete = async (eq) => {
     if (!confirm(`Xóa "${eq.name}"?`)) return;
     try {
@@ -193,11 +205,22 @@ export default function Equipment() {
           <h1 className="text-2xl font-bold">Thiết Bị</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
-        {can('editEquipment') && (
-          <button className="btn-primary" onClick={() => { setSelected(null); setModal('add'); }}>
-            + Thêm thiết bị
-          </button>
-        )}
+        <div className="flex gap-2">
+          {user?.role === 'SUPER_ADMIN' && (
+            <button
+              className="btn-secondary"
+              title="Import danh sách thiết bị mới từ file Excel Kho Khôi Minh"
+              onClick={handleImportEquipment}
+            >
+              📥 Import Danh Sách Mới
+            </button>
+          )}
+          {can('editEquipment') && (
+            <button className="btn-primary" onClick={() => { setSelected(null); setModal('add'); }}>
+              + Thêm thiết bị
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

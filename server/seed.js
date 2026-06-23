@@ -9,6 +9,7 @@ const categories = [
   { name: 'Matrix LED',           code: 'MATRIX', icon: '✨' },
   { name: 'Hạng Mục Sân Khấu',   code: 'STAGE',  icon: '🎭' },
   { name: 'Cơ Sở Vật Chất',      code: 'CSVC',   icon: '🏢' },
+  { name: 'Phim Trường Ghi Hình', code: 'STUDIO', icon: '🎬' },
 ];
 
 const equipment = [

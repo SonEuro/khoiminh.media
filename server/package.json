@@ -6,7 +6,8 @@
     "prestart": "node restore.js",
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "import-equipment": "node import-equipment.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
