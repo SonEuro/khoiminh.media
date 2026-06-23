@@ -3,6 +3,11 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { printSlip } from '../utils/printSlip';
+import {
+  CalendarDays, ArrowUpFromLine, ArrowDownToLine,
+  ClipboardList, ShieldAlert, ChevronUp, ChevronDown,
+  Printer, MapPin, User,
+} from 'lucide-react';
 
 const GOLD = '#c9a84c';
 const ALLOWED_ROLES = ['SUPER_ADMIN', 'PRODUCTION'];
@@ -49,7 +54,7 @@ function TxDetailModal({ txId, onClose }) {
   const cfg = TX_CFG[tx.type] || { label: tx.type, color: GOLD, bg: 'rgba(201,168,76,0.12)', border: 'rgba(201,168,76,0.3)' };
   return (
     <Modal title={tx.code} onClose={onClose} size="lg"
-      extra={<button onClick={() => printSlip(tx)} className="btn-secondary btn-sm">🖨️ In phiếu</button>}
+      extra={<button onClick={() => printSlip(tx)} className="btn-secondary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}><Printer size={13} /> In phiếu</button>}
     >
       <div className="space-y-4">
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', fontSize:'0.85rem' }}>
@@ -96,7 +101,7 @@ function TxDetailModal({ txId, onClose }) {
 }
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
-function Section({ icon, title, color, border, count, children }) {
+function Section({ Icon, title, color, border, count, children }) {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
@@ -108,14 +113,17 @@ function Section({ icon, title, color, border, count, children }) {
           borderBottom: open ? `1px solid ${border}` : 'none',
         }}
       >
-        <span style={{ fontSize: '1rem' }}>{icon}</span>
+        <Icon size={16} strokeWidth={1.75} style={{ color, flexShrink: 0 }} />
         <span style={{ fontWeight: 700, color, fontSize: '0.88rem', flex: 1 }}>{title}</span>
         {count != null && (
           <span style={{ fontSize: '0.7rem', fontWeight: 800, color, background: border, borderRadius: '9999px', padding: '2px 8px' }}>
             {count}
           </span>
         )}
-        <span style={{ color, fontSize: '0.7rem', marginLeft: '4px' }}>{open ? '▲' : '▼'}</span>
+        {open
+          ? <ChevronUp size={14} style={{ color, flexShrink: 0 }} />
+          : <ChevronDown size={14} style={{ color, flexShrink: 0 }} />
+        }
       </button>
       {open && <div style={{ padding: '12px 14px' }}>{children}</div>}
     </div>
@@ -176,8 +184,8 @@ function TxRows({ txs, onSelect }) {
             </span>
             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
-              <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', fontSize:'0.78rem' }}
-                onClick={async () => { const full = await api.getTransactionById(tx.id); printSlip(full); }}>🖨️</button>
+              <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', display:'flex', alignItems:'center' }}
+                onClick={async () => { const full = await api.getTransactionById(tx.id); printSlip(full); }}><Printer size={14} /></button>
             </div>
           </div>
         );
@@ -195,8 +203,8 @@ function ReportRows({ reports }) {
           <div style={{ flex:1, minWidth:0 }}>
             <p style={{ fontWeight:600, color:'#e0e0ee', margin:'0 0 2px', fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.event_label || 'Sự kiện'}</p>
             <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0 }}>
-              {r.location && <span style={{ marginRight:'8px' }}>📍 {r.location}</span>}
-              {r.reporter_name && <span>👤 {r.reporter_name}</span>}
+              {r.location && <span style={{ marginRight:'8px', display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {r.location}</span>}
+              {r.reporter_name && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><User size={11} /> {r.reporter_name}</span>}
             </p>
           </div>
           <div style={{ textAlign:'right', fontSize:'0.7rem', flexShrink:0 }}>
@@ -222,7 +230,7 @@ function ViolationRows({ violations }) {
             </p>
           </div>
           <div style={{ textAlign:'right', fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>
-            <div>👤 {v.reporter_name}</div>
+            <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
             <div>{v.created_at?.slice(8,10)}/{v.created_at?.slice(5,7)}</div>
           </div>
         </div>
@@ -276,23 +284,23 @@ export default function Transactions() {
         <div style={{ textAlign:'center', padding:'60px', color:'#7878a0' }}>Đang tải...</div>
       ) : (
         <>
-          <Section icon="◉" title="Trạng thái sự kiện" color="#60a5fa" border="rgba(96,165,250,0.25)" count={events.length}>
+          <Section Icon={CalendarDays} title="Trạng thái sự kiện" color="#60a5fa" border="rgba(96,165,250,0.25)" count={events.length}>
             <EventRows events={events} />
           </Section>
 
-          <Section icon="↑" title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
+          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
             <TxRows txs={outTxs} onSelect={setSelectedTx} />
           </Section>
 
-          <Section icon="↓" title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
+          <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
             <TxRows txs={returnTxs} onSelect={setSelectedTx} />
           </Section>
 
-          <Section icon="📋" title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
+          <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
             <ReportRows reports={reports} />
           </Section>
 
-          <Section icon="⚠" title="Vi phạm nội quy" color="#f87171" border="rgba(248,113,113,0.25)" count={violations.length}>
+          <Section Icon={ShieldAlert} title="Vi phạm nội quy" color="#f87171" border="rgba(248,113,113,0.25)" count={violations.length}>
             <ViolationRows violations={violations} />
           </Section>
         </>
