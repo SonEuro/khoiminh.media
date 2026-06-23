@@ -271,8 +271,8 @@ export default function Equipment() {
 
                   {/* Progress bar + total */}
                   <div>
-                    <div style={{ width: '100%', background: 'rgba(255,255,255,0.06)', borderRadius: '9999px', height: '4px', marginBottom: '4px' }}>
-                      <div style={{ height: '4px', borderRadius: '9999px', width: `${pct}%`, background: barColor, transition: 'width 0.6s ease' }} />
+                    <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '9999px', height: '6px', marginBottom: '4px' }}>
+                      <div style={{ height: '6px', borderRadius: '9999px', width: `${pct}%`, background: 'linear-gradient(90deg, #c9a84c, #f0d080)', boxShadow: '0 0 8px rgba(201,168,76,0.6)', transition: 'width 0.6s ease' }} />
                     </div>
                     <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: 0, textAlign: 'right' }}>
                       Tổng: <strong style={{ color: '#a0a0b8' }}>{cat.total}</strong>
