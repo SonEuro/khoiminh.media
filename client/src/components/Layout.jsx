@@ -54,7 +54,11 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
             })}
           >
             <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-            <span style={{ letterSpacing:'0.02em' }}>{item.label}</span>
+            <span style={{ letterSpacing:'0.02em', lineHeight: 1.35 }}>
+              {item.label.split('\n').map((line, i, arr) => (
+                i < arr.length - 1 ? <>{line}<br /></> : line
+              ))}
+            </span>
           </NavLink>
         ))}
       </nav>
@@ -135,8 +139,8 @@ export default function Layout() {
 
   const nav = [
     { to: '/events',       Icon: CalendarDays,     label: 'Sự Kiện',              always: true },
-    { to: '/export',       Icon: ArrowUpFromLine,  label: 'Xuất Thiết Bị Sự Kiện',  show: can('transact') },
-    { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị Sự Kiện',  show: can('transact') },
+    { to: '/export',       Icon: ArrowUpFromLine,  label: 'Xuất Thiết Bị\nSự Kiện',  show: can('transact') },
+    { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị\nSự Kiện',  show: can('transact') },
     { to: '/event-report', Icon: ClipboardList,    label: 'Báo Cáo Sự Kiện',       always: true },
     { to: '/violations',   Icon: ShieldAlert,      label: 'Vi Phạm Nội Quy',        always: true },
     { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', show: ['SUPER_ADMIN','PRODUCTION'].includes(user?.role) },
