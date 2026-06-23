@@ -14,8 +14,34 @@ const VIOLATION_TYPES = [
   'Thái độ không chuyên nghiệp',
 ];
 
-// ── Danh sách nhân sự (thêm tên vào đây) ──────────────────────────────────
-const VIOLATOR_LIST = [];
+// ── Danh sách nhân sự theo bộ phận ────────────────────────────────────────
+const VIOLATOR_GROUPS = [
+  { dept: 'Cơ Sở Vật Chất', members: [
+    'Đào Chí Hải', 'Ngô Văn Hào',
+  ]},
+  { dept: 'Âm Thanh Ánh Sáng', members: [
+    'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
+    'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
+  ]},
+  { dept: 'Sân Khấu', members: [
+    'Trần Duy Hùng', 'Nguyễn Trường Chinh', 'Hứa Khắc Cần',
+    'Phạm Đăng Sinh', 'Nguyễn Ngọc Ly', 'Phạm Hữu Phúc Khang',
+  ]},
+  { dept: 'Kỹ Thuật', members: [
+    'Nguyễn Văn Linh', 'Nguyễn Trí Tài', 'Võ Chí Thiện',
+    'Lê Anh Kiệt', 'Nguyễn Thanh Sang', 'Phan Khắc Luyện',
+    'Vũ Đức Tài', 'Đỗ Quý Vượng', 'Nguyễn Thành Trung',
+    'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
+    'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
+  ]},
+  { dept: 'Kế Toán', members: [
+    'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
+    'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',
+  ]},
+  { dept: 'Kinh Doanh', members: [
+    'Nguyễn Thế Sơn', 'Lâm Tấn Nhân', 'Đào Nguyên Sơn',
+  ]},
+];
 
 // ── Resize ảnh về max 1000px để giảm dung lượng ───────────────────────────
 function resizeImage(file, maxPx = 1000) {
@@ -169,24 +195,23 @@ export default function ViolationReport() {
           {/* Người vi phạm */}
           <div>
             <label style={labelStyle}>Người vi phạm *</label>
-            {VIOLATOR_LIST.length > 0 ? (
-              <>
-                <select className="input" value={form.violator}
-                  onChange={e => set('violator', e.target.value)}>
-                  <option value="">— Chọn người vi phạm —</option>
-                  {VIOLATOR_LIST.map(n => <option key={n} value={n}>{n}</option>)}
-                  <option value="__custom__">✏️ Nhập thủ công...</option>
-                </select>
-                {form.violator === '__custom__' && (
-                  <input className="input mt-2" placeholder="Nhập tên người vi phạm..."
-                    value={form.violatorCustom}
-                    onChange={e => set('violatorCustom', e.target.value)} />
-                )}
-              </>
-            ) : (
-              <input className="input" placeholder="Nhập tên người vi phạm..."
-                value={form.violator} onChange={e => set('violator', e.target.value)} />
-            )}
+            <>
+              <select className="input" value={form.violator}
+                onChange={e => set('violator', e.target.value)}>
+                <option value="">— Chọn người vi phạm —</option>
+                {VIOLATOR_GROUPS.map(g => (
+                  <optgroup key={g.dept} label={`── ${g.dept} ──`}>
+                    {g.members.map(n => <option key={n} value={n}>{n}</option>)}
+                  </optgroup>
+                ))}
+                <option value="__custom__">✏️ Nhập thủ công...</option>
+              </select>
+              {form.violator === '__custom__' && (
+                <input className="input mt-2" placeholder="Nhập tên người vi phạm..."
+                  value={form.violatorCustom}
+                  onChange={e => set('violatorCustom', e.target.value)} />
+              )}
+            </>
           </div>
 
           {/* Nội dung vi phạm */}
