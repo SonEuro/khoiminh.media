@@ -21,7 +21,8 @@ app.use('/api/equipment',    requireAuth, require('./routes/equipment'));
 app.use('/api/events',       requireAuth, require('./routes/events'));
 app.use('/api/transactions', requireAuth, require('./routes/transactions'));
 app.use('/api/reports',      requireAuth, require('./routes/reports'));
-app.use('/api/violations',   requireAuth, require('./routes/violations'));
+app.use('/api/violations',     requireAuth, require('./routes/violations'));
+app.use('/api/event-reports', requireAuth, require('./routes/eventReports'));
 app.use('/api/admin',        requireAuth, require('./routes/admin'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));

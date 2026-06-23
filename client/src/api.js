@@ -91,6 +91,14 @@ export const api = {
   createViolation: (data) => request('/violations', { method: 'POST', body: data }),
   deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
   importEquipment: () => request('/admin/import-equipment', { method: 'POST' }),
+
+  // Event Reports
+  getEventReports: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/event-reports${q ? '?' + q : ''}`);
+  },
+  createEventReport: (data) => request('/event-reports', { method: 'POST', body: data }),
+  deleteEventReport: (id) => request(`/event-reports/${id}`, { method: 'DELETE' }),
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),

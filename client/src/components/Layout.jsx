@@ -133,6 +133,7 @@ export default function Layout() {
     { to: '/transactions', icon: '≡', label: 'Lịch Sử',           always: true },
     { to: '/reports',      icon: '↗', label: 'Báo Cáo',           always: true },
     { to: '/violations',   icon: '⚠', label: 'Vi Phạm Nội Quy',   always: true },
+    { to: '/event-report', icon: '📋', label: 'Báo Cáo Sự Kiện',   always: true },
     { to: '/users',        icon: '◎', label: 'Người Dùng',         show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 

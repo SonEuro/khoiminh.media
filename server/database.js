@@ -92,6 +92,30 @@ try { db.prepare("ALTER TABLE events ADD COLUMN created_by TEXT DEFAULT ''").run
 try { db.prepare("ALTER TABLE events ADD COLUMN deleted_at TEXT DEFAULT NULL").run(); } catch (_) {}
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS event_reports (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id         INTEGER REFERENCES events(id),
+    event_label      TEXT,
+    location         TEXT,
+    report_date      TEXT,
+    km_staff         TEXT DEFAULT '[]',
+    freelancer_staff TEXT,
+    time_present     TEXT,
+    time_onset       TEXT,
+    time_off         TEXT,
+    time_end         TEXT,
+    incomplete       TEXT,
+    incidents        TEXT,
+    progress         TEXT,
+    completed_work   TEXT,
+    service_quality  TEXT,
+    images           TEXT DEFAULT '[]',
+    reporter_name    TEXT,
+    created_at       TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS external_items (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
