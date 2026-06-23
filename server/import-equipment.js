@@ -5224,11 +5224,9 @@ const EQUIPMENT = [
 ];
 
 function clearAndInsert() {
+  // Chỉ xóa equipment & categories, GIỮ LẠI toàn bộ lịch sử phiếu xuất/nhập
   db.pragma('foreign_keys = OFF');
   try {
-    db.prepare('DELETE FROM external_items').run();
-    db.prepare('DELETE FROM transaction_items').run();
-    db.prepare('DELETE FROM transactions').run();
     db.prepare('DELETE FROM equipment').run();
     db.prepare('DELETE FROM categories').run();
   } finally {

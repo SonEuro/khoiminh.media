@@ -238,7 +238,18 @@ export default function EventReturn() {
         <div className="card text-center py-8" style={{ color:'var(--text-muted)' }}>Đang tải...</div>
       )}
 
-      {eventId && !loading && visibleItems.length === 0 && (
+      {eventId && !loading && outstanding.length === 0 && (
+        <div className="card text-center py-10">
+          <p className="text-3xl mb-2">📭</p>
+          <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
+            Chưa có thiết bị nào được xuất cho sự kiện này.
+          </p>
+          <p style={{ color:'var(--text-muted)', fontSize:'0.8rem' }}>
+            Hãy tạo phiếu xuất kho (ExportForm) trước, sau đó quay lại đây để nhập kho.
+          </p>
+        </div>
+      )}
+      {eventId && !loading && outstanding.length > 0 && visibleItems.length === 0 && (
         <div className="card text-center py-10">
           <p className="text-3xl mb-2">✅</p>
           <p style={{ color:'#4ade80', fontWeight:600 }}>Tất cả thiết bị đã được nhập kho!</p>
