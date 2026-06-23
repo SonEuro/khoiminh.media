@@ -55,9 +55,11 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
           >
             <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
             <span style={{ letterSpacing:'0.02em', lineHeight: 1.35 }}>
-              {item.label.split('\n').map((line, i, arr) => (
-                i < arr.length - 1 ? <>{line}<br /></> : line
-              ))}
+              {item.label.includes('\n')
+                ? item.label.split('\n').map((line, i) => (
+                    <span key={i} style={{ display:'block' }}>{line}</span>
+                  ))
+                : item.label}
             </span>
           </NavLink>
         ))}
