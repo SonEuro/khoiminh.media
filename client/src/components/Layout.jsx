@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -18,7 +18,9 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
 
       {/* Logo */}
       <div style={{ padding:'16px 20px', borderBottom:`1px solid ${GOLD_DIM}` }}>
-        <img src="/logo.png" alt="Khôi Minh" style={{ width:'100%', maxWidth:'150px' }} />
+        <Link to="/" onClick={onNavClick}>
+          <img src="/logo.png" alt="Khôi Minh" style={{ width:'100%', maxWidth:'150px', display:'block' }} />
+        </Link>
         <div style={{ marginTop:'8px', display:'flex', alignItems:'center', gap:'8px' }}>
           <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${GOLD},transparent)` }} />
           <span style={{ color: GOLD, fontSize:'0.55rem', letterSpacing:'0.15em', fontWeight:700 }}>QUẢN LÝ NỘI BỘ</span>
@@ -225,7 +227,7 @@ export default function Layout() {
           </button>
 
           {/* Logo */}
-          <img src="/logo.png" alt="Khôi Minh" style={{ height:'28px' }} />
+          <Link to="/"><img src="/logo.png" alt="Khôi Minh" style={{ height:'28px', display:'block' }} /></Link>
 
           {/* User avatar right */}
           <div style={{ marginLeft:'auto' }}>
