@@ -71,7 +71,17 @@ async function restore() {
   console.log(`[Restore] ✅ Đã khôi phục từ ${latest.name}`);
 }
 
-restore().catch(err => {
-  console.error('[Restore] ❌ Lỗi:', err.message);
-  // Không crash — server vẫn khởi động với DB trống
-});
+restore()
+  .then(() => {
+    // Sau khi restore xong, tự động import thiết bị nếu chưa làm
+    const { runOnce } = require('./import-equipment');
+    runOnce();
+  })
+  .catch(err => {
+    console.error('[Restore] ❌ Lỗi:', err.message);
+    // Vẫn thử import nếu restore thất bại
+    try {
+      const { runOnce } = require('./import-equipment');
+      runOnce();
+    } catch (_) {}
+  });

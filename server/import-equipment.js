@@ -5223,8 +5223,7 @@ const EQUIPMENT = [
   }
 ];
 
-function doImport() {
-  // Tắt FK tạm thời để xóa sạch (phải làm ngoài transaction)
+function clearAndInsert() {
   db.pragma('foreign_keys = OFF');
   try {
     db.prepare('DELETE FROM external_items').run();
@@ -5236,7 +5235,6 @@ function doImport() {
     db.pragma('foreign_keys = ON');
   }
 
-  // Insert trong transaction để đảm bảo atomic
   const insert = db.transaction(() => {
     const insertCat = db.prepare(
       'INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)'
@@ -5266,10 +5264,32 @@ function doImport() {
   });
 
   insert();
+}
+
+// Chạy auto 1 lần khi khởi động nếu chưa import
+function runOnce() {
+  db.exec(`CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, ran_at TEXT)`);
+  const done = db.prepare("SELECT name FROM _migrations WHERE name = 'equipment_v2'").get();
+  if (done) {
+    console.log('[Import] Đã import thiết bị trước đó, bỏ qua.');
+    return false;
+  }
+  console.log('[Import] Bắt đầu import danh sách thiết bị mới...');
+  clearAndInsert();
+  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v2', datetime('now','localtime'))").run();
+  console.log(`[Import] Hoàn tất: ${EQUIPMENT.length} thiết bị.`);
+  return true;
+}
+
+// Gọi từ admin endpoint (bỏ qua flag, luôn chạy lại)
+function doImport() {
+  clearAndInsert();
+  db.exec(`CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, ran_at TEXT)`);
+  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v2', datetime('now','localtime'))").run();
   return { count: EQUIPMENT.length, categories: CATEGORIES.length };
 }
 
-module.exports = { doImport, EQUIPMENT, CATEGORIES };
+module.exports = { doImport, runOnce, EQUIPMENT, CATEGORIES };
 
 // Run directly if invoked as main script
 if (require.main === module) {
