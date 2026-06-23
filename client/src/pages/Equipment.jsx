@@ -224,6 +224,23 @@ export default function Equipment() {
           <h1 className="text-2xl font-bold">Tổng Thiết Bị Khôi Minh</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
+        {user?.role === 'SUPER_ADMIN' && (
+          <button
+            className="btn-danger btn-sm"
+            onClick={async () => {
+              if (!confirm('⚠️ Xóa TOÀN BỘ phiếu xuất kho và reset "Đang dùng" về 0?\n\nThao tác này không thể hoàn tác!')) return;
+              try {
+                const r = await api.resetOutTransactions();
+                alert(`✅ Hoàn tất!\n• Thiết bị cập nhật: ${r.equipment_updated}\n• Phiếu xuất đã xóa: ${r.transactions_deleted}`);
+                load();
+              } catch (e) {
+                alert('Lỗi: ' + e.message);
+              }
+            }}
+          >
+            🔄 Reset phiếu xuất
+          </button>
+        )}
       </div>
 
       {/* ── Báo cáo tồn kho thời gian thực ── */}
