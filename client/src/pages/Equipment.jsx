@@ -297,18 +297,26 @@ export default function Equipment() {
       <div className="card p-0 overflow-hidden">
         <div className="table-wrap">
         <table className="w-full text-sm" style={{ minWidth:'700px' }}>
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Mã</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Tên thiết bị</th>
-              <th className="text-left px-4 py-3 text-gray-600 font-medium">Danh mục</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Có sẵn</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Đang dùng</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Cần sửa</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Hỏng</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Mất</th>
-              <th className="text-center px-3 py-3 text-gray-600 font-medium">Tổng</th>
-              <th className="px-4 py-3"></th>
+          <thead>
+            <tr style={{ background: 'rgba(201,168,76,0.08)', borderBottom: '1px solid rgba(201,168,76,0.2)' }}>
+              {[
+                ['Mã',         'left',   'px-4'],
+                ['Tên thiết bị','left',  'px-4'],
+                ['Danh mục',   'left',   'px-3'],
+                ['Có sẵn',     'center', 'px-3'],
+                ['Đang dùng',  'center', 'px-3'],
+                ['Cần sửa',    'center', 'px-3'],
+                ['Hỏng',       'center', 'px-3'],
+                ['Mất',        'center', 'px-3'],
+                ['Tổng',       'center', 'px-3'],
+              ].map(([label, align, px]) => (
+                <th key={label} style={{
+                  textAlign: align, padding: '11px 12px',
+                  fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.08em',
+                  color: '#c9a84c', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                }}>{label}</th>
+              ))}
+              <th style={{ padding: '11px 16px' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -319,23 +327,24 @@ export default function Equipment() {
               <tr><td colSpan={10} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
             )}
             {visibleEquipment.map(eq => (
-              <tr key={eq.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs font-medium text-gray-700">{eq.code}</td>
-                <td className="px-4 py-3">
-                  <p className="font-medium">{eq.name}</p>
-                  {eq.notes && <p className="text-xs text-gray-400 truncate max-w-[200px]">{eq.notes}</p>}
+              <tr key={eq.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+              >
+                <td style={{ padding:'10px 16px', fontFamily:'monospace', fontSize:'0.72rem', fontWeight:700, color:'#c9a84c' }}>{eq.code}</td>
+                <td style={{ padding:'10px 16px' }}>
+                  <p style={{ fontWeight:600, color:'#e0e0ee', margin:0, fontSize:'0.85rem' }}>{eq.name}</p>
+                  {eq.notes && <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'200px', whiteSpace:'nowrap' }}>{eq.notes}</p>}
                 </td>
-                <td className="px-4 py-3 text-gray-500">{eq.category_icon} {eq.category_name}</td>
-                <td className="px-3 py-3 text-center">
-                  <span className={`font-bold ${eq.qty_available === 0 ? 'text-red-600' : eq.qty_available <= 2 ? 'text-yellow-600' : 'text-green-600'}`}>
-                    {eq.qty_available}
-                  </span>
+                <td style={{ padding:'10px 12px', color:'#a0a0b8', fontSize:'0.8rem' }}>{eq.category_icon} {eq.category_name}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', fontWeight:700, color: eq.qty_available === 0 ? '#f87171' : eq.qty_available <= 2 ? '#fbbf24' : '#4ade80' }}>
+                  {eq.qty_available}
                 </td>
-                <td className="px-3 py-3 text-center text-blue-600 font-medium">{eq.qty_in_use || 0}</td>
-                <td className="px-3 py-3 text-center text-yellow-600">{eq.qty_maintenance || 0}</td>
-                <td className="px-3 py-3 text-center text-red-600">{eq.qty_damaged || 0}</td>
-                <td className="px-3 py-3 text-center text-gray-400">{eq.qty_lost || 0}</td>
-                <td className="px-3 py-3 text-center font-medium">{eq.qty_total}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', fontWeight:600, color:'#60a5fa' }}>{eq.qty_in_use || 0}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', color: (eq.qty_maintenance||0) > 0 ? '#fbbf24' : '#4a4a60' }}>{eq.qty_maintenance || 0}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', color: (eq.qty_damaged||0) > 0 ? '#f87171' : '#4a4a60' }}>{eq.qty_damaged || 0}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', color: (eq.qty_lost||0) > 0 ? '#f87171' : '#4a4a60' }}>{eq.qty_lost || 0}</td>
+                <td style={{ padding:'10px 12px', textAlign:'center', fontWeight:700, color:'#a0a0b8' }}>{eq.qty_total}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
                     <button className="btn-secondary btn-sm" title="QR Code"
