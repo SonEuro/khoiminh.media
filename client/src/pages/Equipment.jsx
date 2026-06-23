@@ -226,7 +226,7 @@ export default function Equipment() {
           <p style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c9a84c', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
             Báo cáo tồn kho theo thời gian thực
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {catSummary.map(cat => {
               const pct = cat.total > 0 ? Math.round((cat.available / cat.total) * 100) : 0;
               const barColor = pct > 60 ? '#4ade80' : pct > 30 ? '#fbbf24' : '#f87171';
@@ -248,17 +248,17 @@ export default function Equipment() {
                     </span>
                   </div>
 
-                  {/* Stat grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {/* Stat row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
                     {[
                       { label: 'Có sẵn',   value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)'  },
                       { label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
                       { label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
                       { label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)' },
                     ].map(s => (
-                      <div key={s.label} style={{ background: s.bg, borderRadius: '7px', padding: '6px 8px' }}>
-                        <p style={{ fontSize: '0.62rem', color: '#7878a0', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
-                        <p style={{ fontSize: '1rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
+                      <div key={s.label} style={{ background: s.bg, borderRadius: '7px', padding: '7px 10px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
+                        <p style={{ fontSize: '1.05rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
                       </div>
                     ))}
                   </div>
