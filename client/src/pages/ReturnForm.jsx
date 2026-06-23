@@ -213,7 +213,8 @@ export default function ReturnForm() {
                     <div className="w-24 flex-shrink-0">
                       <label className="label text-xs">Số lượng</label>
                       <input className="input text-sm" type="number" min="1"
-                        value={item.quantity} onChange={e => setItem(idx, 'quantity', +e.target.value)} />
+                        value={item.quantity} onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                        style={{ color: 'var(--text-primary)', fontWeight: 700 }} />
                     </div>
                     <button type="button" className="btn-danger btn-sm mt-5 flex-shrink-0" onClick={() => removeItem(idx)}>✕</button>
                   </div>
