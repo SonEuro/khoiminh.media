@@ -5224,35 +5224,36 @@ const EQUIPMENT = [
 ];
 
 function clearAndInsert() {
-  // Chỉ xóa equipment & categories, GIỮ LẠI toàn bộ lịch sử phiếu xuất/nhập
-  db.pragma('foreign_keys = OFF');
-  try {
-    db.prepare('DELETE FROM equipment').run();
-    db.prepare('DELETE FROM categories').run();
-  } finally {
-    db.pragma('foreign_keys = ON');
-  }
-
-  const insert = db.transaction(() => {
-    const insertCat = db.prepare(
-      'INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)'
-    );
-    for (const c of CATEGORIES) insertCat.run(c.name, c.code, c.icon);
+  // UPSERT: giữ nguyên ID cho thiết bị đã có (code trùng → update, code mới → insert)
+  // KHÔNG xóa gì cả → lịch sử phiếu xuất/nhập & equipment_id trong transactions vẫn hợp lệ
+  const upsert = db.transaction(() => {
+    const upsertCat = db.prepare(`
+      INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)
+      ON CONFLICT(code) DO UPDATE SET name=excluded.name, icon=excluded.icon
+    `);
+    for (const c of CATEGORIES) upsertCat.run(c.name, c.code, c.icon);
 
     const catMap = {};
     for (const c of db.prepare('SELECT id, code FROM categories').all()) {
       catMap[c.code] = c.id;
     }
 
-    const insertEq = db.prepare(`
+    const upsertEq = db.prepare(`
       INSERT INTO equipment
         (code, name, category_id, unit, unit_price,
          qty_total, qty_available, qty_in_use,
          qty_maintenance, qty_damaged, qty_lost, notes)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(code) DO UPDATE SET
+        name=excluded.name, category_id=excluded.category_id,
+        unit=excluded.unit, unit_price=excluded.unit_price,
+        qty_total=excluded.qty_total, qty_available=excluded.qty_available,
+        qty_in_use=excluded.qty_in_use, qty_maintenance=excluded.qty_maintenance,
+        qty_damaged=excluded.qty_damaged, qty_lost=excluded.qty_lost,
+        notes=excluded.notes
     `);
     for (const e of EQUIPMENT) {
-      insertEq.run(
+      upsertEq.run(
         e.code, e.name, catMap[e.cat] ?? null, e.unit, e.price,
         e.qty_total, e.qty_available, e.qty_in_use,
         e.qty_maintenance, e.qty_damaged, e.qty_lost,
@@ -5261,7 +5262,7 @@ function clearAndInsert() {
     }
   });
 
-  insert();
+  upsert();
 }
 
 // Chạy auto 1 lần khi khởi động nếu chưa import
@@ -5276,6 +5277,16 @@ function runOnce() {
   clearAndInsert();
   db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v2', datetime('now','localtime'))").run();
   console.log(`[Import] Hoàn tất: ${EQUIPMENT.length} thiết bị.`);
+  // Tự động backup lên Google Drive sau khi import để lần restart sau không chạy lại
+  setTimeout(async () => {
+    try {
+      const { uploadBackupToDrive } = require('./utils/gdriveBackup');
+      await uploadBackupToDrive(db);
+      console.log('[Import] Auto-backup sau import thành công.');
+    } catch (e) {
+      console.warn('[Import] Auto-backup thất bại:', e.message);
+    }
+  }, 3000);
   return true;
 }
 
