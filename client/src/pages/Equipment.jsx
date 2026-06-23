@@ -198,11 +198,24 @@ export default function Equipment() {
     }
   };
 
+  // ── Real-time inventory summary by category ──────────────────────────────
+  const catSummary = visibleCats.map(cat => {
+    const items = visibleEquipment.filter(e => e.category_code === cat.code);
+    return {
+      ...cat,
+      total:       items.reduce((s, e) => s + (e.qty_total || 0), 0),
+      available:   items.reduce((s, e) => s + (e.qty_available || 0), 0),
+      in_use:      items.reduce((s, e) => s + (e.qty_in_use || 0), 0),
+      maintenance: items.reduce((s, e) => s + (e.qty_maintenance || 0), 0),
+      damaged:     items.reduce((s, e) => s + ((e.qty_damaged || 0) + (e.qty_lost || 0)), 0),
+    };
+  }).filter(c => c.total > 0);
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Thiết Bị</h1>
+          <h1 className="text-2xl font-bold">Tổng Thiết Bị Khôi Minh</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
         <div className="flex gap-2">
@@ -222,6 +235,37 @@ export default function Equipment() {
           )}
         </div>
       </div>
+
+      {/* ── Báo cáo tồn kho thời gian thực ── */}
+      {catSummary.length > 0 && (
+        <div style={{ marginBottom: '20px', background: '#13131d', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '12px', padding: '16px 20px' }}>
+          <p style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c9a84c', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            Báo cáo tồn kho theo thời gian thực
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {catSummary.map(cat => {
+              const pct = cat.total > 0 ? Math.round((cat.available / cat.total) * 100) : 0;
+              return (
+                <div key={cat.code}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 600, color: '#c0c0d4' }}>{cat.icon} {cat.name}</span>
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '0.72rem' }}>
+                      <span style={{ color: '#4ade80' }}>✅ {cat.available}</span>
+                      <span style={{ color: '#60a5fa' }}>🚀 {cat.in_use}</span>
+                      {cat.maintenance > 0 && <span style={{ color: '#fbbf24' }}>🔧 {cat.maintenance}</span>}
+                      {cat.damaged > 0 && <span style={{ color: '#f87171' }}>❌ {cat.damaged}</span>}
+                      <span style={{ color: '#7878a0' }}>/ {cat.total}</span>
+                    </div>
+                  </div>
+                  <div style={{ width: '100%', background: 'rgba(255,255,255,0.06)', borderRadius: '9999px', height: '5px' }}>
+                    <div style={{ height: '5px', borderRadius: '9999px', width: `${pct}%`, background: pct > 50 ? '#4ade80' : pct > 20 ? '#fbbf24' : '#f87171', transition: 'width 0.5s' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-3 mb-4">
