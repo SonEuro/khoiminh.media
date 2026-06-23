@@ -81,87 +81,74 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
   );
 }
 
-// ── Staff multi-select dropdown ───────────────────────────────────────────────
+// ── Staff inline list ─────────────────────────────────────────────────────────
 function StaffSelect({ selected, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    function close(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, []);
-
   function toggle(name) {
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
   }
 
   return (
-    <div ref={ref} style={{ position:'relative' }}>
-      <label style={labelStyle}>Nhân Sự Khôi Minh</label>
-      <button type="button" onClick={() => setOpen(v => !v)}
-        style={{
-          width:'100%', textAlign:'left', padding:'9px 12px',
-          background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)',
-          borderRadius:'8px', color: selected.length ? '#e8c97a' : '#7878a0',
-          fontSize:'0.875rem', cursor:'pointer', display:'flex', justifyContent:'space-between',
-        }}
-      >
-        <span>
-          {selected.length === 0
-            ? 'Chọn nhân sự...'
-            : `Đã chọn ${selected.length} người`}
-        </span>
-        <span style={{ color: GOLD }}>{open ? '▲' : '▼'}</span>
-      </button>
-
-      {/* Selected pills */}
-      {selected.length > 0 && (
-        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'6px' }}>
-          {selected.map(s => (
-            <span key={s} style={{
-              display:'inline-flex', alignItems:'center', gap:'5px',
-              padding:'3px 8px', borderRadius:'9999px',
-              background:'rgba(201,168,76,0.15)', border:`1px solid rgba(201,168,76,0.4)`,
-              color: GOLD, fontSize:'0.72rem', fontWeight:600,
+    <div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }}>
+        <label style={labelStyle}>Nhân Sự Khôi Minh</label>
+        {selected.length > 0 && (
+          <button type="button" onClick={() => onChange([])}
+            style={{ fontSize:'0.7rem', color:'#f87171', background:'none', border:'none', cursor:'pointer' }}>
+            Bỏ chọn tất cả
+          </button>
+        )}
+      </div>
+      <div style={{
+        border:'1px solid rgba(201,168,76,0.25)', borderRadius:'10px', overflow:'hidden',
+      }}>
+        {KM_STAFF_GROUPS.map((g, gi) => (
+          <div key={g.dept} style={{ borderBottom: gi < KM_STAFF_GROUPS.length - 1 ? '1px solid rgba(201,168,76,0.1)' : 'none' }}>
+            {/* Dept header */}
+            <div style={{
+              padding:'7px 14px', fontSize:'0.65rem', fontWeight:800, letterSpacing:'0.1em',
+              color: GOLD, background:'rgba(201,168,76,0.05)',
+              display:'flex', alignItems:'center', justifyContent:'space-between',
             }}>
-              {s}
-              <button type="button" onClick={() => toggle(s)}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.75rem', lineHeight:1, padding:0 }}>
-                ×
+              <span>{g.dept.toUpperCase()}</span>
+              <button type="button"
+                onClick={() => {
+                  const allIn = g.members.every(m => selected.includes(m));
+                  if (allIn) onChange(selected.filter(s => !g.members.includes(s)));
+                  else onChange([...new Set([...selected, ...g.members])]);
+                }}
+                style={{ fontSize:'0.65rem', color:'#7878a0', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
+                {g.members.every(m => selected.includes(m)) ? 'Bỏ tất cả' : 'Chọn tất cả'}
               </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {open && (
-        <div style={{
-          position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:200,
-          background:'#13131d', border:'1px solid rgba(201,168,76,0.3)',
-          borderRadius:'8px', boxShadow:'0 8px 24px rgba(0,0,0,0.6)',
-          maxHeight:'260px', overflowY:'auto',
-        }}>
-          {KM_STAFF_GROUPS.map(g => (
-            <div key={g.dept}>
-              <div style={{ padding:'6px 12px', fontSize:'0.65rem', fontWeight:800, color:GOLD, letterSpacing:'0.08em', borderBottom:'1px solid rgba(201,168,76,0.12)', background:'rgba(201,168,76,0.04)' }}>
-                {g.dept.toUpperCase()}
-              </div>
-              {g.members.map(m => (
-                <label key={m} style={{
-                  display:'flex', alignItems:'center', gap:'10px',
-                  padding:'8px 14px', cursor:'pointer',
-                  background: selected.includes(m) ? 'rgba(201,168,76,0.08)' : 'transparent',
-                  transition:'background 0.12s',
-                }}>
-                  <input type="checkbox" checked={selected.includes(m)} onChange={() => toggle(m)}
-                    style={{ accentColor: GOLD, width:'15px', height:'15px' }} />
-                  <span style={{ fontSize:'0.82rem', color: selected.includes(m) ? '#e8c97a' : '#c0c0d4' }}>{m}</span>
-                </label>
-              ))}
             </div>
-          ))}
-        </div>
+            {/* Members grid */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(160px,1fr))' }}>
+              {g.members.map(m => {
+                const active = selected.includes(m);
+                return (
+                  <label key={m} style={{
+                    display:'flex', alignItems:'center', gap:'9px',
+                    padding:'9px 14px', cursor:'pointer',
+                    background: active ? 'rgba(201,168,76,0.1)' : 'transparent',
+                    borderRight:'1px solid rgba(201,168,76,0.06)',
+                    transition:'background 0.12s',
+                  }}>
+                    <input type="checkbox" checked={active} onChange={() => toggle(m)}
+                      style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0 }} />
+                    <span style={{ fontSize:'0.82rem', color: active ? '#e8c97a' : '#a0a0b8', fontWeight: active ? 600 : 400 }}>
+                      {m}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      {selected.length > 0 && (
+        <p style={{ fontSize:'0.72rem', color:'#7878a0', marginTop:'6px' }}>
+          Đã chọn: <span style={{ color: GOLD, fontWeight:700 }}>{selected.length} người</span>
+          {' — '}{selected.join(', ')}
+        </p>
       )}
     </div>
   );
