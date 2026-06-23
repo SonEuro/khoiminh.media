@@ -218,22 +218,6 @@ export default function Equipment() {
           <h1 className="text-2xl font-bold">Tổng Thiết Bị Khôi Minh</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
-        <div className="flex gap-2">
-          {user?.role === 'SUPER_ADMIN' && (
-            <button
-              className="btn-secondary"
-              title="Import danh sách thiết bị mới từ file Excel Kho Khôi Minh"
-              onClick={handleImportEquipment}
-            >
-              📥 Import Danh Sách Mới
-            </button>
-          )}
-          {can('editEquipment') && (
-            <button className="btn-primary" onClick={() => { setSelected(null); setModal('add'); }}>
-              + Thêm thiết bị
-            </button>
-          )}
-        </div>
       </div>
 
       {/* ── Báo cáo tồn kho thời gian thực ── */}
