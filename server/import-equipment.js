@@ -5210,46 +5210,49 @@ const EQUIPMENT =
   }
 ];
 
-const run = db.transaction(() => {
-  // Clear existing equipment data
-  db.prepare('DELETE FROM transaction_items').run();
-  db.prepare('DELETE FROM transactions').run();
-  db.prepare('DELETE FROM equipment').run();
-  db.prepare('DELETE FROM categories').run();
-
-  // Insert categories
-  const insertCat = db.prepare(
-    'INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)'
-  );
-  for (const c of CATEGORIES) insertCat.run(c.name, c.code, c.icon);
-
-  // Build cat code → id map
-  const catMap = {};
-  for (const c of db.prepare('SELECT id, code FROM categories').all()) {
-    catMap[c.code] = c.id;
-  }
-
-  // Insert equipment
-  const insertEq = db.prepare(`
-    INSERT INTO equipment
-      (code, name, category_id, unit, unit_price,
-       qty_total, qty_available, qty_in_use,
-       qty_maintenance, qty_damaged, qty_lost, notes)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-  `);
-  for (const e of EQUIPMENT) {
-    insertEq.run(
-      e.code, e.name, catMap[e.cat], e.unit, e.price,
-      e.qty_total, e.qty_available, e.qty_in_use,
-      e.qty_maintenance, e.qty_damaged, e.qty_lost,
-      e.notes || null
-    );
-  }
-  console.log(`Đã import ${EQUIPMENT.length} thiết bị vào ${CATEGORIES.length} danh mục.`);
-});
-
 function doImport() {
-  run();
+  // Tắt FK tạm thời để xóa sạch (phải làm ngoài transaction)
+  db.pragma('foreign_keys = OFF');
+  try {
+    db.prepare('DELETE FROM external_items').run();
+    db.prepare('DELETE FROM transaction_items').run();
+    db.prepare('DELETE FROM transactions').run();
+    db.prepare('DELETE FROM equipment').run();
+    db.prepare('DELETE FROM categories').run();
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+
+  // Insert trong transaction để đảm bảo atomic
+  const insert = db.transaction(() => {
+    const insertCat = db.prepare(
+      'INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)'
+    );
+    for (const c of CATEGORIES) insertCat.run(c.name, c.code, c.icon);
+
+    const catMap = {};
+    for (const c of db.prepare('SELECT id, code FROM categories').all()) {
+      catMap[c.code] = c.id;
+    }
+
+    const insertEq = db.prepare(`
+      INSERT INTO equipment
+        (code, name, category_id, unit, unit_price,
+         qty_total, qty_available, qty_in_use,
+         qty_maintenance, qty_damaged, qty_lost, notes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+    `);
+    for (const e of EQUIPMENT) {
+      insertEq.run(
+        e.code, e.name, catMap[e.cat] ?? null, e.unit, e.price,
+        e.qty_total, e.qty_available, e.qty_in_use,
+        e.qty_maintenance, e.qty_damaged, e.qty_lost,
+        e.notes || null
+      );
+    }
+  });
+
+  insert();
   return { count: EQUIPMENT.length, categories: CATEGORIES.length };
 }
 
