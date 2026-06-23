@@ -167,7 +167,7 @@ export default function Users() {
                 const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
                 return (
                   <tr key={u.id}>
-                    <td className="px-4 py-3" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{u.full_name}</td>
+                    <td className="px-4 py-3" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
                     <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
                     <td className="px-4 py-3" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
                     <td className="px-4 py-3">
