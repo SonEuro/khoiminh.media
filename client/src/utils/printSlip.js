@@ -59,7 +59,7 @@ function buildSlipHTML(tx, preview = false) {
 <style>
   @page { size: A4 portrait; margin: 10mm 15mm; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Times New Roman', Times, serif; font-size:12pt; color:#000; }
+  body { font-family:'Times New Roman', Times, serif; font-size:12pt; color:#000; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
   /* ── Header ── */
   .slip-header {
@@ -84,7 +84,9 @@ function buildSlipHTML(tx, preview = false) {
     font-weight: bold;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: #c00;
+    color: #c00 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
     margin-bottom: 2px;
   }
   .slip-title {
