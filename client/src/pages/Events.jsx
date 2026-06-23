@@ -364,7 +364,7 @@ export default function Events() {
                 <div className="flex gap-4 text-sm text-gray-500 mt-1">
                   {ev.client && <span>👤 {ev.client}</span>}
                   {ev.location && <span>📍 {ev.location}</span>}
-                  {ev.start_date && <span>📅 {ev.start_date}{ev.end_date ? ` → ${ev.end_date}` : ''}</span>}
+                  {ev.start_date && <span>📅 {ev.start_date.slice(8,10)}/{ev.start_date.slice(5,7)}{ev.end_date ? ` → ${ev.end_date.slice(8,10)}/${ev.end_date.slice(5,7)}` : ''}</span>}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
