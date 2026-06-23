@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { printSlip } from '../utils/printSlip';
 import DateInput from '../components/DateInput';
+import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
 
 const DEPT_CATS = {
   SUPER_ADMIN: null, PRODUCTION: null, ACCOUNTING: null,
@@ -13,11 +14,11 @@ const DEPT_CATS = {
   CSVC:      ['CSVC'],
 };
 const DEPT_OPTIONS = [
-  { value: '',      label: 'Tất cả',        cats: null },
-  { value: 'TECH',  label: '🛠️ Kỹ Thuật',   cats: ['TECH'] },
-  { value: 'ATAS',  label: '💡 ATAS',        cats: ['AUDIO','LIGHT','LED','MATRIX'] },
-  { value: 'STAGE', label: '🎭 Sân Khấu',    cats: ['STAGE'] },
-  { value: 'CSVC',  label: '🏢 CSVC',        cats: ['CSVC'] },
+  { value: '',      Icon: LayoutGrid,   label: 'Tất cả',   cats: null },
+  { value: 'TECH',  Icon: Clapperboard, label: 'Kỹ Thuật', cats: ['TECH'] },
+  { value: 'ATAS',  Icon: Headphones,   label: 'ATAS',     cats: ['AUDIO','LIGHT','LED','MATRIX'] },
+  { value: 'STAGE', Icon: Theater,      label: 'Sân Khấu', cats: ['STAGE'] },
+  { value: 'CSVC',  Icon: Package,      label: 'CSVC',     cats: ['CSVC'] },
 ];
 
 const COND_OPTS = [
@@ -213,6 +214,7 @@ export default function EventReturn() {
                 onClick={() => { if (!isLocked) setDeptFilter(d.value); }}
                 style={{
                   padding:'6px 14px', borderRadius:'9999px', fontSize:'0.8rem', fontWeight:600,
+                  display:'inline-flex', alignItems:'center', gap:'6px',
                   border: deptFilter === d.value ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.25)',
                   background: deptFilter === d.value ? '#c9a84c' : 'transparent',
                   color: deptFilter === d.value ? '#08080e' : '#c9a84c',
@@ -220,7 +222,7 @@ export default function EventReturn() {
                   opacity: (isLocked && d.value !== deptFilter) ? 0.3 : 1,
                   transition:'all 0.15s',
                 }}
-              >{d.label}</button>
+              ><d.Icon size={13} strokeWidth={1.75} />{d.label}</button>
             ))}
           </div>
         </div>
