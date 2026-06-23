@@ -193,7 +193,7 @@ export default function ExportForm() {
     <div className="p-6 max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Phiếu Xuất Kho</h1>
-        <p className="text-gray-500 text-sm">Thiết bị đi sự kiện hoặc sử dụng nội bộ</p>
+        <p className="text-gray-500 text-sm">Phải chọn sự kiện trước khi xuất thiết bị</p>
       </div>
 
       <form onSubmit={submit} className="space-y-6">
@@ -202,9 +202,9 @@ export default function ExportForm() {
           <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Thông tin phiếu</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Sự kiện / Dự án</label>
-              <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}>
-                <option value="">-- Nội bộ (không có sự kiện) --</option>
+              <label className="label">Sự kiện / Dự án *</label>
+              <select className="input" required value={form.event_id} onChange={e => setField('event_id', e.target.value)}>
+                <option value="">-- Chọn sự kiện --</option>
                 {events.map(ev => (
                   <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>
                 ))}

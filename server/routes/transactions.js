@@ -106,6 +106,7 @@ router.get('/:id', (req, res) => {
 // Xuất kho (OUT)
 router.post('/out', canTransact, (req, res) => {
   const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
+  if (!event_id) return res.status(400).json({ error: 'Phải chọn sự kiện trước khi xuất thiết bị' });
   const validExt = (external_items || []).filter(i => i.name?.trim());
   if ((!items || items.length === 0) && validExt.length === 0)
     return res.status(400).json({ error: 'Chưa có thiết bị nào' });
