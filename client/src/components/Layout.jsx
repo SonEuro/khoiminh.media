@@ -1,6 +1,11 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  CalendarDays, ArrowUpFromLine, ArrowDownToLine,
+  ClipboardList, ShieldAlert, History,
+  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu,
+} from 'lucide-react';
 
 const GOLD         = '#c9a84c';
 const GOLD_DIM     = 'rgba(201,168,76,0.3)';
@@ -48,7 +53,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
               textDecoration:'none',
             })}
           >
-            <span style={{ fontSize:'1.05rem', minWidth:'18px', textAlign:'center' }}>{item.icon}</span>
+            <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
             <span style={{ letterSpacing:'0.02em' }}>{item.label}</span>
           </NavLink>
         ))}
@@ -88,7 +93,10 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
               {ROLE_LABELS[user?.role] || user?.role}
             </p>
           </div>
-          <span style={{ color: GOLD, fontSize:'0.6rem' }}>{showUserMenu ? '▲' : '▼'}</span>
+          {showUserMenu
+            ? <ChevronUp size={13} style={{ color: GOLD, flexShrink: 0 }} />
+            : <ChevronDown size={13} style={{ color: GOLD, flexShrink: 0 }} />
+          }
         </button>
 
         {showUserMenu && (
@@ -110,7 +118,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
               onMouseEnter={e => e.currentTarget.style.background='rgba(220,50,50,0.12)'}
               onMouseLeave={e => e.currentTarget.style.background='transparent'}
             >
-              <span>⎋</span>
+              <LogOut size={15} />
               <span>Đăng xuất</span>
             </button>
           </div>
@@ -126,15 +134,15 @@ export default function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const nav = [
-    { to: '/events',       icon: '◉', label: 'Sự Kiện',              always: true },
-    { to: '/export',       icon: '↑', label: 'Xuất Thiết Bị Sự Kiện',  show: can('transact') },
-    { to: '/event-return', icon: '↓', label: 'Nhập Thiết Bị Sự Kiện',  show: can('transact') },
-    { to: '/event-report', icon: '📋', label: 'Báo Cáo Sự Kiện',       always: true },
-    { to: '/violations',   icon: '⚠', label: 'Vi Phạm Nội Quy',        always: true },
-    { to: '/transactions', icon: '≡', label: 'Lịch Sử Vận Hành', show: ['SUPER_ADMIN','PRODUCTION'].includes(user?.role) },
-    { to: '/equipment',    icon: '◧', label: 'Tổng Kho Khôi Minh', always: true },
-    { to: '/return',       icon: '⟳', label: 'Nhập Kho Thiết Bị',      show: can('transact') },
-    { to: '/users',        icon: '◎', label: 'Người Dùng',           show: can('manageUsers') },
+    { to: '/events',       Icon: CalendarDays,     label: 'Sự Kiện',              always: true },
+    { to: '/export',       Icon: ArrowUpFromLine,  label: 'Xuất Thiết Bị Sự Kiện',  show: can('transact') },
+    { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị Sự Kiện',  show: can('transact') },
+    { to: '/event-report', Icon: ClipboardList,    label: 'Báo Cáo Sự Kiện',       always: true },
+    { to: '/violations',   Icon: ShieldAlert,      label: 'Vi Phạm Nội Quy',        always: true },
+    { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', show: ['SUPER_ADMIN','PRODUCTION'].includes(user?.role) },
+    { to: '/equipment',    Icon: Warehouse,        label: 'Tổng Kho Khôi Minh', always: true },
+    { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('transact') },
+    { to: '/users',        Icon: Users,            label: 'Người Dùng',           show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 
   // Close drawer on resize to desktop
@@ -218,10 +226,10 @@ export default function Layout() {
             style={{
               background:'transparent', border:`1px solid ${GOLD_DIM}`,
               borderRadius:'6px', padding:'6px 10px', cursor:'pointer',
-              color: GOLD, fontSize:'1rem', lineHeight:1,
+              color: GOLD, lineHeight:1, display:'flex', alignItems:'center',
             }}
           >
-            ☰
+            <Menu size={18} />
           </button>
 
           {/* Logo */}
