@@ -362,7 +362,7 @@ export default function Equipment() {
               <tr><td colSpan={10} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
             )}
             {visibleEquipment.map(eq => (
-              <tr key={eq.id} style={{ borderBottom: '1px solid rgba(201,168,76,0.25)' }}
+              <tr key={eq.id} style={{ borderBottom: '1px solid rgba(201,168,76,0.10)' }}
                 onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.04)'}
                 onMouseLeave={e => e.currentTarget.style.background='transparent'}
               >
