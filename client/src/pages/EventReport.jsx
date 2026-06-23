@@ -69,9 +69,9 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
             onClick={() => onChange(c)}
             style={{
               padding:'4px 10px', borderRadius:'9999px', fontSize:'0.72rem', fontWeight:600,
-              border: value === c ? `1px solid ${GOLD}` : '1px solid rgba(201,168,76,0.3)',
-              background: value === c ? GOLD : 'transparent',
-              color: value === c ? '#08080e' : GOLD,
+              border: value === c ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
+              background: value === c ? GOLD : 'rgba(255,255,255,0.05)',
+              color: value === c ? '#08080e' : '#a0a0b8',
               cursor:'pointer', transition:'all 0.15s',
             }}
           >{c}</button>
