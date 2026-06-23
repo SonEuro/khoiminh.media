@@ -126,17 +126,16 @@ export default function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const nav = [
-    { to: '/',             icon: '◈', label: 'Dashboard',   always: true },
-    { to: '/equipment',    icon: '◧', label: 'Thiết Bị',    always: true },
-    { to: '/export',       icon: '↑', label: 'Xuất Thiết Bị',    show: can('transact') },
-    { to: '/return',       icon: '↓', label: 'Nhập Thiết Bị',         show: can('transact') },
-    { to: '/event-return', icon: '⟳', label: 'Nhập Thiết Bị Sự Kiện', show: can('transact') },
-    { to: '/events',       icon: '◉', label: 'Sự Kiện',     always: true },
-    { to: '/transactions', icon: '≡', label: 'Lịch Sử',           always: true },
-    { to: '/reports',      icon: '↗', label: 'Báo Cáo',           always: true },
-    { to: '/violations',   icon: '⚠', label: 'Vi Phạm Nội Quy',   always: true },
-    { to: '/event-report', icon: '📋', label: 'Báo Cáo Sự Kiện',   always: true },
-    { to: '/users',        icon: '◎', label: 'Người Dùng',         show: can('manageUsers') },
+    { to: '/events',       icon: '◉', label: 'Sự Kiện',              always: true },
+    { to: '/export',       icon: '↑', label: 'Xuất Thiết Bị',        show: can('transact') },
+    { to: '/event-return', icon: '↓', label: 'Nhập Thiết Bị Sự Kiện', show: can('transact') },
+    { to: '/event-report', icon: '📋', label: 'Báo Cáo Sự Kiện',     always: true },
+    { to: '/violations',   icon: '⚠', label: 'Vi Phạm Nội Quy',      always: true },
+    { to: '/transactions', icon: '≡', label: 'Lịch Sử',              always: true },
+    { to: '/reports',      icon: '↗', label: 'Báo Cáo',              always: true },
+    { to: '/equipment',    icon: '◧', label: 'Thiết Bị',             always: true },
+    { to: '/return',       icon: '⟳', label: 'Nhập Thiết Bị',        show: can('transact') },
+    { to: '/users',        icon: '◎', label: 'Người Dùng',           show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 
   // Close drawer on resize to desktop
