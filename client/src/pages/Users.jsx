@@ -174,6 +174,7 @@ export default function Users() {
                       <span style={{
                         padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
                         background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
+                        whiteSpace: 'nowrap', display: 'inline-block',
                       }}>
                         {ROLE_LABELS[u.role] || u.role}
                       </span>
