@@ -10,70 +10,75 @@ const STATUS_CFG = {
   completed: { label: 'Đã hoàn thành',     icon: '✅', color: GOLD,      border: 'rgba(201,168,76,0.3)', bg: 'rgba(201,168,76,0.06)' },
 };
 
-function EventColumn({ status, events }) {
+function EventGroup({ status, events }) {
   const cfg = STATUS_CFG[status];
   const list = events.filter(e => e.status === status);
 
   return (
     <div style={{
-      flex: 1, minWidth: 0,
       background: '#13131d',
-      border: `1px solid ${cfg.border}`,
+      border: `1px solid rgba(255,255,255,0.07)`,
       borderRadius: '12px',
       overflow: 'hidden',
     }}>
-      {/* Column header */}
+      {/* Group header */}
       <div style={{
-        padding: '12px 16px',
+        padding: '10px 16px',
         background: cfg.bg,
         borderBottom: `1px solid ${cfg.border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', gap: '8px',
       }}>
-        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: cfg.color, letterSpacing: '0.03em' }}>
           {cfg.icon} {cfg.label}
         </span>
         <span style={{
-          fontSize: '0.7rem', fontWeight: 800,
-          background: cfg.bg, border: `1px solid ${cfg.border}`,
-          color: cfg.color, borderRadius: '9999px', padding: '2px 8px',
+          fontSize: '0.68rem', fontWeight: 800,
+          background: cfg.border, color: cfg.color,
+          borderRadius: '9999px', padding: '1px 7px', marginLeft: 'auto',
         }}>{list.length}</span>
       </div>
 
-      {/* Event cards */}
-      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px', minHeight: '80px' }}>
-        {list.length === 0 && (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', textAlign: 'center', padding: '20px 0' }}>
-            Không có sự kiện
-          </p>
-        )}
-        {list.map(ev => (
+      {/* List rows */}
+      {list.length === 0 ? (
+        <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 16px', margin: 0 }}>
+          Không có sự kiện
+        </p>
+      ) : (
+        list.map((ev, i) => (
           <Link key={ev.id} to="/events"
             style={{
-              display: 'block', padding: '10px 12px', textDecoration: 'none',
-              background: 'rgba(255,255,255,0.02)', borderRadius: '8px',
-              border: '1px solid rgba(255,255,255,0.05)',
-              transition: 'background 0.15s',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '11px 16px', textDecoration: 'none',
+              borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              transition: 'background 0.13s',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = cfg.bg}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <p style={{ fontWeight: 600, color: '#e8e8f0', fontSize: '0.85rem', margin: '0 0 3px', lineHeight: 1.3 }}>
-              {ev.name}
-            </p>
-            {ev.client && (
-              <p style={{ fontSize: '0.72rem', color: '#7878a0', margin: '0 0 2px' }}>👤 {ev.client}</p>
-            )}
-            {ev.location && (
-              <p style={{ fontSize: '0.72rem', color: '#7878a0', margin: 0 }}>📍 {ev.location}</p>
-            )}
-            {ev.start_date && (
-              <p style={{ fontSize: '0.7rem', color: cfg.color, margin: '4px 0 0', fontWeight: 600 }}>
-                📅 {ev.start_date.slice(8,10)}/{ev.start_date.slice(5,7)}/{ev.start_date.slice(0,4)}
+            {/* Color dot */}
+            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: cfg.color, flexShrink: 0 }} />
+
+            {/* Name + meta */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ev.name}
               </p>
+              <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {[ev.client, ev.location].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+
+            {/* Date */}
+            {ev.start_date && (
+              <span style={{ fontSize: '0.72rem', color: cfg.color, fontWeight: 600, flexShrink: 0 }}>
+                {ev.start_date.slice(8,10)}/{ev.start_date.slice(5,7)}
+              </span>
             )}
           </Link>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 }
@@ -109,9 +114,9 @@ export default function Dashboard() {
         {loadingEvents ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</div>
         ) : (
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {['active', 'planned', 'completed'].map(s => (
-              <EventColumn key={s} status={s} events={events} />
+              <EventGroup key={s} status={s} events={events} />
             ))}
           </div>
         )}
