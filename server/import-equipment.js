@@ -7183,9 +7183,11 @@ const EQUIPMENT = [
   }
 ];
 function clearAndInsert() {
-  // UPSERT: giữ nguyên ID cho thiết bị đã có (code trùng → update, code mới → insert)
-  // KHÔNG xóa gì cả → lịch sử phiếu xuất/nhập & equipment_id trong transactions vẫn hợp lệ
-  const upsert = db.transaction(() => {
+  const newCodes = EQUIPMENT.map(e => e.code);
+  const newCatCodes = CATEGORIES.map(c => c.code);
+
+  const run = db.transaction(() => {
+    // 1. Upsert categories
     const upsertCat = db.prepare(`
       INSERT INTO categories (name, code, icon) VALUES (?, ?, ?)
       ON CONFLICT(code) DO UPDATE SET name=excluded.name, icon=excluded.icon
@@ -7197,6 +7199,7 @@ function clearAndInsert() {
       catMap[c.code] = c.id;
     }
 
+    // 2. Upsert equipment (giữ ID cũ cho code trùng, thêm mới cho code mới)
     const upsertEq = db.prepare(`
       INSERT INTO equipment
         (code, name, category_id, unit, unit_price,
@@ -7219,9 +7222,17 @@ function clearAndInsert() {
         e.notes || null
       );
     }
+
+    // 3. Xóa thiết bị cũ không còn trong danh sách mới
+    const placeholders = newCodes.map(() => '?').join(',');
+    db.prepare(`DELETE FROM equipment WHERE code NOT IN (${placeholders})`).run(...newCodes);
+
+    // 4. Xóa category cũ không còn dùng (không có thiết bị nào thuộc)
+    const catPlaceholders = newCatCodes.map(() => '?').join(',');
+    db.prepare(`DELETE FROM categories WHERE code NOT IN (${catPlaceholders})`).run(...newCatCodes);
   });
 
-  upsert();
+  run();
 }
 
 // Chạy auto 1 lần khi khởi động nếu chưa import
