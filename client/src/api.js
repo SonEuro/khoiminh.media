@@ -91,4 +91,7 @@ export const api = {
   createViolation: (data) => request('/violations', { method: 'POST', body: data }),
   deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
   importEquipment: () => request('/admin/import-equipment', { method: 'POST' }),
+  getTrashEvents: () => request('/events/trash'),
+  restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
+  permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),
 };

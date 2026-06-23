@@ -223,6 +223,67 @@ function EventDetailModal({ eventId, onClose }) {
   );
 }
 
+function TrashView({ onClose }) {
+  const [trash, setTrash] = useState([]);
+  const load = () => api.getTrashEvents().then(setTrash);
+  useEffect(() => { load(); }, []);
+
+  const handleRestore = async (ev) => {
+    if (!confirm(`Khôi phục sự kiện "${ev.name}"?`)) return;
+    try { await api.restoreEvent(ev.id); load(); }
+    catch (e) { alert(e.message); }
+  };
+
+  const handlePermanent = async (ev) => {
+    if (!confirm(`Xóa VĨNH VIỄN "${ev.name}"? Không thể khôi phục!`)) return;
+    try { await api.permanentDeleteEvent(ev.id); load(); }
+    catch (e) { alert(e.message); }
+  };
+
+  return (
+    <Modal title="🗑 Thùng Rác Sự Kiện" onClose={onClose} size="lg">
+      {trash.length === 0 ? (
+        <p style={{ textAlign:'center', color:'var(--text-muted)', padding:'32px' }}>Thùng rác trống</p>
+      ) : (
+        <div className="space-y-3">
+          <p style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginBottom:'8px' }}>
+            Sự kiện bị xóa sẽ tự động xóa vĩnh viễn sau 30 ngày.
+          </p>
+          {trash.map(ev => (
+            <div key={ev.id} style={{
+              background:'var(--bg-card)', border:'1px solid rgba(248,113,113,0.25)',
+              borderRadius:'10px', padding:'14px 16px',
+              display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'
+            }}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
+                  <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'var(--text-muted)' }}>{ev.code}</span>
+                  <span style={{
+                    fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
+                    background: ev.days_left <= 5 ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)',
+                    color: ev.days_left <= 5 ? '#f87171' : '#fbbf24',
+                    border: `1px solid ${ev.days_left <= 5 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)'}`,
+                  }}>
+                    còn {ev.days_left} ngày
+                  </span>
+                </div>
+                <p style={{ fontWeight:600, color:'var(--text-primary)', marginBottom:'2px' }}>{ev.name}</p>
+                <p style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>
+                  Xóa lúc: {ev.deleted_at?.slice(0, 16)}
+                </p>
+              </div>
+              <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
+                <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
+                <button className="btn-danger btn-sm" onClick={() => handlePermanent(ev)}>🗑 Xóa vĩnh viễn</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 export default function Events() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
@@ -230,6 +291,7 @@ export default function Events() {
   const [statusFilter, setStatusFilter] = useState('');
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [showTrash, setShowTrash] = useState(false);
 
   const load = useCallback(() => {
     const params = statusFilter ? { status: statusFilter } : {};
@@ -248,21 +310,28 @@ export default function Events() {
   };
 
   const handleDelete = async (ev) => {
-    if (!confirm(`Xóa sự kiện "${ev.name}"?`)) return;
+    if (ev.status !== 'cancelled') { alert('Chỉ có thể xóa sự kiện đã hủy.'); return; }
+    if (!confirm(`Chuyển "${ev.name}" vào thùng rác?\nSẽ tự động xóa vĩnh viễn sau 30 ngày.`)) return;
     try { await api.deleteEvent(ev.id); load(); }
     catch (e) { alert(e.message); }
   };
 
   return (
     <div className="p-6">
+      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} />}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
           <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
         </div>
-        <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
-          + Tạo sự kiện
-        </button>
+        <div className="flex gap-2">
+          {isSuperAdmin && (
+            <button className="btn-secondary" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
+          )}
+          <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
+            + Tạo sự kiện
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4">
@@ -307,8 +376,8 @@ export default function Events() {
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
                     ✏️
                   </button>
-                  {isSuperAdmin && (
-                    <button className="btn-danger btn-sm" onClick={() => handleDelete(ev)}>🗑</button>
+                  {isSuperAdmin && ev.status === 'cancelled' && (
+                    <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
                   )}
                 </div>
               </div>
