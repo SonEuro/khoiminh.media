@@ -4,13 +4,14 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
 import DateInput from '../components/DateInput';
+import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
 
 const DEPTS = [
-  { value: '',       label: 'Tất cả',     cats: null },
-  { value: 'TECH',   label: '🛠️ Kỹ Thuật', cats: ['TECH'] },
-  { value: 'ATAS',   label: '💡 ATAS',     cats: ['AUDIO', 'LIGHT', 'LED', 'MATRIX'] },
-  { value: 'STAGE',  label: '🎭 Sân Khấu', cats: ['STAGE'] },
-  { value: 'CSVC',   label: '🏢 CSVC',     cats: ['CSVC'] },
+  { value: '',       Icon: LayoutGrid,   label: 'Tất cả',   cats: null },
+  { value: 'TECH',   Icon: Clapperboard, label: 'Kỹ Thuật', cats: ['TECH'] },
+  { value: 'ATAS',   Icon: Headphones,   label: 'ATAS',     cats: ['AUDIO', 'LIGHT', 'LED', 'MATRIX'] },
+  { value: 'STAGE',  Icon: Theater,      label: 'Sân Khấu', cats: ['STAGE'] },
+  { value: 'CSVC',   Icon: Package,      label: 'CSVC',     cats: ['CSVC'] },
 ];
 
 // Map role → default dept value
@@ -259,6 +260,7 @@ export default function ExportForm() {
                   }}
                   style={{
                     padding: '6px 14px', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 600,
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
                     border: deptFilter === d.value ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.25)',
                     background: deptFilter === d.value ? '#c9a84c' : 'transparent',
                     color: deptFilter === d.value ? '#08080e' : '#c9a84c',
@@ -267,6 +269,7 @@ export default function ExportForm() {
                     transition: 'all 0.15s',
                   }}
                 >
+                  <d.Icon size={13} strokeWidth={1.75} />
                   {d.label}
                 </button>
               ))}
