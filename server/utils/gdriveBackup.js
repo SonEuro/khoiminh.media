@@ -72,8 +72,8 @@ function scheduleAutoBackup(db) {
       .catch(e => console.error('[AutoBackup] ❌', e.message));
   };
 
-  setTimeout(() => { run(); setInterval(run, 12 * 60 * 60 * 1000); }, 60 * 1000);
-  console.log('[AutoBackup] Lên lịch tự động backup Google Drive mỗi 12h');
+  setTimeout(() => { run(); setInterval(run, 2 * 60 * 1000); }, 60 * 1000);
+  console.log('[AutoBackup] Lên lịch tự động backup Google Drive mỗi 2 phút');
 }
 
 module.exports = { uploadBackupToDrive, scheduleAutoBackup };
