@@ -6,6 +6,12 @@ import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_LABELS = { available: 'Có sẵn', in_use: 'Đang dùng', maintenance: 'Sửa chữa', damaged: 'Hỏng', lost: 'Mất' };
 
+const CAT_ORDER = ['TECH', 'AUDIO', 'LIGHT', 'LED', 'MATRIX', 'STAGE', 'CSVC'];
+const sortCats = (cats) => [...cats].sort((a, b) => {
+  const ai = CAT_ORDER.indexOf(a.code), bi = CAT_ORDER.indexOf(b.code);
+  return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+});
+
 const DEPT_CATS = {
   SUPER_ADMIN: null,
   PRODUCTION:  null,
@@ -158,9 +164,9 @@ export default function Equipment() {
   const visibleEquipment = allowedCats
     ? equipment.filter(e => allowedCats.includes(e.category_code))
     : equipment;
-  const visibleCats = allowedCats
-    ? categories.filter(c => allowedCats.includes(c.code))
-    : categories;
+  const visibleCats = sortCats(
+    allowedCats ? categories.filter(c => allowedCats.includes(c.code)) : categories
+  );
 
   const handleSave = async (form) => {
     try {
