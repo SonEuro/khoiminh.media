@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { useAuth } from '../contexts/AuthContext';
-import StatCard from '../components/StatCard';
 
 const GOLD = '#c9a84c';
 
@@ -81,20 +79,12 @@ function EventColumn({ status, events }) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
-
   const [events, setEvents] = useState([]);
-  const [summary, setSummary] = useState(null);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [loadingSummary, setLoadingSummary] = useState(isSuperAdmin);
 
   useEffect(() => {
     api.getEvents().then(setEvents).finally(() => setLoadingEvents(false));
-    if (isSuperAdmin) {
-      api.getSummary().then(setSummary).finally(() => setLoadingSummary(false));
-    }
-  }, [isSuperAdmin]);
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -126,112 +116,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
-      {/* ── Super Admin: Stats ── */}
-      {isSuperAdmin && (
-        <div>
-          <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a0a0b8', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Tổng quan kho
-          </h2>
-
-          {loadingSummary ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: '#7878a0' }}>Đang tải...</div>
-          ) : summary && (
-            <>
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" style={{ marginBottom: '20px' }}>
-                <StatCard icon="📦" label="Tổng tồn kho" value={summary.totals.total_items} color="blue" />
-                <StatCard icon="✅" label="Có sẵn"        value={summary.totals.available}   color="green" />
-                <StatCard icon="🚀" label="Đang dùng"     value={summary.totals.in_use}      color="blue" />
-                <StatCard icon="🔧" label="Đang sửa"      value={summary.totals.maintenance} color="yellow" />
-                <StatCard icon="❌" label="Hư / Mất"      value={(summary.totals.damaged || 0) + (summary.totals.lost || 0)} color="red" />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* By Category */}
-                <div className="card lg:col-span-2">
-                  <h3 style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem', margin: '0 0 14px' }}>Tồn kho theo danh mục</h3>
-                  <div className="space-y-3">
-                    {summary.by_category.map(cat => {
-                      const pct = cat.total > 0 ? Math.round((cat.available / cat.total) * 100) : 0;
-                      return (
-                        <div key={cat.code}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
-                            <span style={{ fontWeight: 600, color: '#c0c0d4' }}>{cat.icon} {cat.name}</span>
-                            <span style={{ color: '#7878a0' }}>{cat.available}/{cat.total}</span>
-                          </div>
-                          <div style={{ width: '100%', background: 'rgba(255,255,255,0.06)', borderRadius: '9999px', height: '6px' }}>
-                            <div style={{
-                              height: '6px', borderRadius: '9999px', width: `${pct}%`,
-                              background: pct > 50 ? '#4ade80' : pct > 20 ? '#fbbf24' : '#f87171',
-                              transition: 'width 0.5s ease',
-                            }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Recent Transactions */}
-                <div className="card">
-                  <h3 style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem', margin: '0 0 14px' }}>Giao dịch gần đây</h3>
-                  <div className="space-y-3">
-                    {summary.recent_tx.length === 0 && <p style={{ fontSize: '0.8rem', color: '#7878a0' }}>Chưa có giao dịch</p>}
-                    {summary.recent_tx.map(tx => (
-                      <div key={tx.code} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                        <div>
-                          <p style={{ fontWeight: 600, color: tx.type === 'OUT' ? '#f87171' : tx.type === 'RETURN' ? '#4ade80' : '#60a5fa', margin: '0 0 2px' }}>
-                            {tx.type === 'OUT' ? '↑ Xuất' : tx.type === 'RETURN' ? '↓ Nhập' : '🔧 Sửa'} · {tx.code}
-                          </p>
-                          <p style={{ color: '#7878a0', fontSize: '0.7rem', margin: 0 }}>{tx.event_name || 'Nội bộ'} · {tx.item_count} loại</p>
-                        </div>
-                        <span style={{ color: '#7878a0', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-                          {tx.transaction_date?.slice(8,10)}/{tx.transaction_date?.slice(5,7)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Alerts */}
-              {(summary.low_stock.length > 0 || summary.damaged_list.length > 0) && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ marginTop: '20px' }}>
-                  {summary.low_stock.length > 0 && (
-                    <div className="card" style={{ borderColor: 'rgba(251,191,36,0.3)', background: 'rgba(251,191,36,0.04)' }}>
-                      <h3 style={{ fontWeight: 700, color: '#fbbf24', fontSize: '0.85rem', margin: '0 0 12px' }}>⚠️ Tồn kho thấp</h3>
-                      <div className="space-y-1">
-                        {summary.low_stock.map(eq => (
-                          <div key={eq.code} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#d0b060' }}>
-                            <span>{eq.name}</span>
-                            <span style={{ fontWeight: 700 }}>{eq.qty_available} {eq.unit}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {summary.damaged_list.length > 0 && (
-                    <div className="card" style={{ borderColor: 'rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.04)' }}>
-                      <h3 style={{ fontWeight: 700, color: '#f87171', fontSize: '0.85rem', margin: '0 0 12px' }}>❌ Thiết bị hư / mất</h3>
-                      <div className="space-y-1">
-                        {summary.damaged_list.map(eq => (
-                          <div key={eq.code} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#e07070' }}>
-                            <span>{eq.name}</span>
-                            <span>
-                              {eq.qty_damaged > 0 && <span style={{ fontWeight: 700 }}>{eq.qty_damaged} hư </span>}
-                              {eq.qty_lost   > 0 && <span style={{ fontWeight: 700 }}>{eq.qty_lost} mất</span>}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
 
     </div>
   );
