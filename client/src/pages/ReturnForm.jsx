@@ -3,313 +3,381 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
-const CONDITIONS = [
-  { value: 'good', label: 'Tốt - Nhập kho', color: 'text-green-700' },
-  { value: 'damaged', label: 'Hỏng - Chờ xử lý', color: 'text-red-700' },
-  { value: 'maintenance', label: 'Cần sửa', color: 'text-yellow-700' },
-  { value: 'lost', label: 'Mất', color: 'text-gray-700' },
+const GOLD = '#c9a84c';
+
+const DEPARTMENTS = [
+  'Âm Thanh Ánh Sáng',
+  'Sân Khấu',
+  'Kỹ Thuật',
+  'Cơ Sở Vật Chất',
+  'Kế Toán',
+  'Kinh Doanh',
 ];
 
-// ── Danh sách nhà cung cấp (thêm tên vào đây) ─────────────────────────────
-const SUPPLIERS = [];
-const emptyExtRow = () => ({ name: '', quantity: 1, notes: '' });
+const KM_STAFF_GROUPS = [
+  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hào'] },
+  { dept: 'Âm Thanh Ánh Sáng', members: [
+    'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
+    'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
+  ]},
+  { dept: 'Sân Khấu', members: [
+    'Trần Duy Hùng', 'Nguyễn Trường Chinh', 'Hứa Khắc Cần',
+    'Phạm Đăng Sinh', 'Nguyễn Ngọc Ly', 'Phạm Hữu Phúc Khang',
+  ]},
+  { dept: 'Kỹ Thuật', members: [
+    'Nguyễn Văn Linh', 'Nguyễn Trí Tài', 'Võ Chí Thiện',
+    'Lê Anh Kiệt', 'Nguyễn Thanh Sang', 'Phan Khắc Luyện',
+    'Vũ Đức Tài', 'Đỗ Quý Vượng', 'Nguyễn Thành Trung',
+    'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
+    'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
+  ]},
+  { dept: 'Kế Toán', members: [
+    'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
+    'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',
+  ]},
+  { dept: 'Kinh Doanh', members: ['Nguyễn Thế Sơn', 'Lâm Tấn Nhân', 'Đào Nguyên Sơn'] },
+];
 
-export default function ReturnForm() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [mode, setMode] = useState('return'); // 'return' | 'fix'
-  const [equipment, setEquipment] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [form, setForm] = useState({ event_id: '', responsible_person: user?.full_name || '', notes: '' });
-  const [items, setItems] = useState([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
-  const [submitting, setSubmitting]     = useState(false);
-  const [searchTerms, setSearchTerms]   = useState(['']);
-  const [loadingEvent, setLoadingEvent] = useState(false);
+const ALL_STAFF = KM_STAFF_GROUPS.flatMap(g => g.members);
 
-  // Thiết bị ngoài
-  const [extOpen,     setExtOpen]     = useState(false);
-  const [extSupplier, setExtSupplier] = useState('');
-  const [extCustom,   setExtCustom]   = useState('');
-  const [extItems,    setExtItems]    = useState([emptyExtRow()]);
+const labelStyle = {
+  display: 'block', fontSize: '0.72rem', fontWeight: 700,
+  color: GOLD, letterSpacing: '0.06em', marginBottom: '5px',
+  textTransform: 'uppercase',
+};
 
-  useEffect(() => {
-    api.getEquipment().then(setEquipment);
-    api.getEvents().then(setEvents);
-  }, []);
+const sectionStyle = {
+  background: '#13131d', border: '1px solid rgba(201,168,76,0.15)',
+  borderRadius: '12px', padding: '20px', marginBottom: '14px',
+};
 
-  const setField = (k, v) => {
-    setForm(f => ({ ...f, [k]: v }));
-    // Auto-load outstanding equipment when event is selected
-    if (k === 'event_id') {
-      if (!v) {
-        setItems([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
-        setSearchTerms(['']);
-        return;
-      }
-      setLoadingEvent(true);
-      api.getOutstanding(v).then(rows => {
-        if (rows.length > 0) {
-          setItems(rows.map(r => ({ equipment_id: r.equipment_id, quantity: r.qty_pending, condition: 'good', notes: '' })));
-          setSearchTerms(rows.map(r => r.eq_name));
-        } else {
-          setItems([{ equipment_id: '', quantity: 1, condition: 'good', notes: '' }]);
-          setSearchTerms(['']);
-        }
-      }).finally(() => setLoadingEvent(false));
-    }
-  };
-  const addItem = () => { setItems(i => [...i, { equipment_id: '', quantity: 1, condition: 'good', notes: '' }]); setSearchTerms(s => [...s, '']); };
-  const removeItem = (idx) => { setItems(i => i.filter((_, j) => j !== idx)); setSearchTerms(s => s.filter((_, j) => j !== idx)); };
-  const setItem = (idx, key, val) => setItems(items.map((it, j) => j === idx ? { ...it, [key]: val } : it));
+// ── Equipment search row ──────────────────────────────────────────────────────
+function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
+  const [search, setSearch] = useState('');
+  const [show, setShow] = useState(false);
 
-  const filteredEquip = (term) => {
-    const pool = mode === 'fix'
-      ? equipment.filter(e => e.qty_maintenance > 0)
-      : equipment.filter(e => e.qty_in_use > 0);
-    if (!term) return pool.slice(0, 20);
-    const t = term.toLowerCase();
-    return pool.filter(e => e.name.toLowerCase().includes(t) || e.code.toLowerCase().includes(t)).slice(0, 15);
-  };
-
-  const submit = async (e) => {
-    e.preventDefault();
-    const validItems = items.filter(it => it.equipment_id && it.quantity > 0);
-    const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
-    const validExt = extOpen
-      ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier }))
-      : [];
-    if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
-    setSubmitting(true);
-    try {
-      let res;
-      if (mode === 'fix') {
-        res = await api.createFix({ notes: form.notes, items: validItems });
-      } else {
-        res = await api.createReturn({ ...form, items: validItems, external_items: validExt });
-      }
-      alert(`Nhập kho thành công! Phiếu: ${res.code}`);
-      navigate('/transactions');
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const suggestions = show
+    ? equipment
+        .filter(e => filterFn ? filterFn(e) : true)
+        .filter(e => !search.trim() || e.name.toLowerCase().includes(search.toLowerCase()) || e.code.toLowerCase().includes(search.toLowerCase()))
+        .slice(0, 8)
+    : [];
 
   return (
-    <div className="p-6 max-w-3xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Phiếu Nhập Kho</h1>
-        <p className="text-gray-500 text-sm">Trả thiết bị từ sự kiện hoặc nhập sau sửa chữa</p>
-      </div>
-
-      {/* Mode toggle */}
-      <div className="flex gap-2 mb-6">
-        <button
-          type="button"
-          className={`btn ${mode === 'return' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setMode('return')}>
-          ⬇️ Trả từ sự kiện
-        </button>
-        <button
-          type="button"
-          className={`btn ${mode === 'fix' ? 'btn-success' : 'btn-secondary'}`}
-          onClick={() => setMode('fix')}>
-          🔧 Sửa xong - nhập kho
-        </button>
-      </div>
-
-      <form onSubmit={submit} className="space-y-6">
-        {mode === 'return' && (
-          <div className="card space-y-4">
-            <h2 className="font-semibold text-gray-700">Thông tin phiếu</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="label">Sự kiện</label>
-                <select className="input" value={form.event_id} onChange={e => setField('event_id', e.target.value)}
-                  style={{ color: form.event_id ? '#f87171' : 'var(--text-muted)', fontWeight: form.event_id ? 700 : 400 }}>
-                  <option value="">-- Chọn sự kiện --</option>
-                  {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>)}
-                </select>
-                {loadingEvent && <p style={{ fontSize:'0.75rem', color:'var(--gold)', marginTop:'4px' }}>Đang tải thiết bị...</p>}
-                {!loadingEvent && form.event_id && items.some(i => i.equipment_id) && (
-                  <p style={{ fontSize:'0.75rem', color:'#4ade80', marginTop:'4px' }}>✅ Đã load {items.filter(i => i.equipment_id).length} thiết bị chưa trả</p>
-                )}
-                {!loadingEvent && form.event_id && !items.some(i => i.equipment_id) && (
-                  <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginTop:'4px' }}>Tất cả thiết bị đã được trả</p>
-                )}
-              </div>
-              <div>
-                <label className="label">Người bàn giao</label>
-                <input className="input" value={form.responsible_person}
-                  onChange={e => setField('responsible_person', e.target.value)}
-                  placeholder="Người trả thiết bị"
-                  readOnly={user?.role !== 'SUPER_ADMIN'}
-                  style={user?.role !== 'SUPER_ADMIN' ? { opacity: 0.6, cursor: 'default' } : {}} />
-              </div>
-            </div>
-            <div>
-              <label className="label">Ghi chú</label>
-              <input className="input" value={form.notes} onChange={e => setField('notes', e.target.value)} />
-            </div>
-          </div>
-        )}
-
-        {mode === 'fix' && (
-          <div className="card">
-            <p className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
-              🔧 Chỉ hiển thị thiết bị đang trong tình trạng <strong>đang sửa chữa</strong>.
-              Nhập kho sẽ chuyển về tình trạng <strong>có sẵn</strong>.
+    <div style={{
+      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: '10px', padding: '12px', position: 'relative',
+    }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+        {/* Equipment search */}
+        <div style={{ flex: 1, position: 'relative', zIndex: 10 }}>
+          <input
+            className="input"
+            placeholder={placeholder || 'Tìm thiết bị...'}
+            value={row.equipment_id ? (equipment.find(e => e.id === row.equipment_id)?.name || search) : search}
+            autoComplete="off"
+            onChange={e => { setSearch(e.target.value); onChange({ ...row, equipment_id: '' }); setShow(true); }}
+            onFocus={() => setShow(true)}
+            onBlur={() => setTimeout(() => setShow(false), 150)}
+            style={{ fontSize: '0.85rem' }}
+          />
+          {row.equipment_id && (
+            <p style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '3px' }}>
+              ✅ {equipment.find(e => e.id === row.equipment_id)?.code}
+              {filterFn && ` · Đang bảo trì: ${equipment.find(e => e.id === row.equipment_id)?.qty_maintenance ?? 0}`}
             </p>
-          </div>
-        )}
-
-        {/* Items */}
-        <div className="card space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-700">Danh sách thiết bị nhập</h2>
-            <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm dòng</button>
-          </div>
-
-          <div className="space-y-3">
-            {items.map((item, idx) => {
-              const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
-              return (
-                <div key={idx} className="p-3 bg-gray-50 rounded-lg space-y-2">
-                  <div className="flex gap-3 items-start">
-                    <div className="flex-1">
-                      <input
-                        className="input text-sm"
-                        placeholder={mode === 'fix' ? 'Tìm thiết bị đang sửa...' : 'Tìm thiết bị đang sử dụng...'}
-                        value={searchTerms[idx]}
-                        onChange={e => {
-                          const t = [...searchTerms]; t[idx] = e.target.value; setSearchTerms(t);
-                          setItem(idx, 'equipment_id', '');
-                        }}
-                      />
-                      {searchTerms[idx] && !item.equipment_id && (
-                        <div className="border rounded-lg bg-white shadow-sm max-h-40 overflow-y-auto mt-1">
-                          {filteredEquip(searchTerms[idx]).map(e => (
-                            <button type="button" key={e.id}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b last:border-0"
-                              onClick={() => {
-                                setItem(idx, 'equipment_id', e.id);
-                                const t = [...searchTerms]; t[idx] = `${e.code} · ${e.name}`; setSearchTerms(t);
-                              }}>
-                              <span className="font-mono text-xs text-gray-500 mr-2">{e.code}</span>
-                              {e.name}
-                              <span className="ml-2 text-xs text-blue-600">
-                                ({mode === 'fix' ? e.qty_maintenance : e.qty_in_use} {e.unit} {mode === 'fix' ? 'đang sửa' : 'đang dùng'})
-                              </span>
-                            </button>
-                          ))}
-                          {filteredEquip(searchTerms[idx]).length === 0 && (
-                            <p className="px-3 py-2 text-sm text-gray-400">Không tìm thấy thiết bị phù hợp</p>
-                          )}
-                        </div>
-                      )}
-                      {eq && <p className="text-xs text-blue-700 mt-1">✅ {eq.name}</p>}
-                    </div>
-                    <div className="w-24 flex-shrink-0">
-                      <label className="label text-xs">Số lượng</label>
-                      <input className="input text-sm" type="number" min="1"
-                        value={item.quantity} onChange={e => setItem(idx, 'quantity', +e.target.value)}
-                        style={{ color: 'var(--text-primary)', fontWeight: 700 }} />
-                    </div>
-                    <button type="button" className="btn-danger btn-sm mt-5 flex-shrink-0" onClick={() => removeItem(idx)}>✕</button>
-                  </div>
-
-                  {mode === 'return' && (
-                    <div>
-                      <label className="label text-xs">Tình trạng khi nhận lại</label>
-                      <div className="flex gap-2 flex-wrap">
-                        {CONDITIONS.map(c => (
-                          <label key={c.value} className="flex items-center gap-1 text-sm cursor-pointer">
-                            <input type="radio" name={`cond-${idx}`} value={c.value}
-                              checked={item.condition === c.value}
-                              onChange={() => setItem(idx, 'condition', c.value)} />
-                            <span className={c.color}>{c.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Thiết bị ngoài */}
-        <div style={{ border: '1px solid rgba(201,168,76,0.2)', borderRadius: '10px', overflow: 'hidden' }}>
-          <button type="button"
-            onClick={() => setExtOpen(v => !v)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 16px', background: extOpen ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.04)',
-              border: 'none', cursor: 'pointer', transition: 'background 0.2s',
+          )}
+          {show && suggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, marginTop: '3px',
+              background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
+              borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: '200px', overflowY: 'auto',
             }}>
-            <span style={{ color: '#c9a84c', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              🏪 Thiết bị ngoài
-            </span>
-            <span style={{ color: '#c9a84c', fontSize: '0.75rem' }}>{extOpen ? '▲ Thu lại' : '▼ Mở rộng'}</span>
-          </button>
-
-          {extOpen && (
-            <div style={{ padding: '14px 16px', background: 'rgba(0,0,0,0.15)', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>
-                  Nhà cung cấp
-                </label>
-                {SUPPLIERS.length > 0 ? (
-                  <>
-                    <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
-                      <option value="">— Chọn nhà cung cấp —</option>
-                      {SUPPLIERS.map(s => <option key={s} value={s}>{s}</option>)}
-                      <option value="__custom__">✏️ Nhập thủ công...</option>
-                    </select>
-                    {extSupplier === '__custom__' && (
-                      <input className="input mt-2" placeholder="Tên nhà cung cấp..."
-                        value={extCustom} onChange={e => setExtCustom(e.target.value)} />
-                    )}
-                  </>
-                ) : (
-                  <input className="input" placeholder="Tên nhà cung cấp..."
-                    value={extSupplier} onChange={e => setExtSupplier(e.target.value)} />
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {extItems.map((row, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 28px', gap: '6px', alignItems: 'center' }}>
-                    <input className="input" placeholder="Tên thiết bị..."
-                      value={row.name} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))} />
-                    <input className="input" type="number" min="1" placeholder="SL"
-                      value={row.quantity} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
-                      style={{ textAlign: 'center' }} />
-                    <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
-                      style={{ width: '28px', height: '38px', background: 'rgba(229,62,62,0.12)', border: '1px solid rgba(229,62,62,0.25)', borderRadius: '6px', color: '#fc8181', cursor: 'pointer', fontSize: '0.75rem' }}>
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <button type="button" onClick={() => setExtItems(prev => [...prev, emptyExtRow()])}
-                style={{ marginTop: '8px', fontSize: '0.8rem', color: '#c9a84c', background: 'none', border: '1px dashed rgba(201,168,76,0.3)', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', width: '100%' }}>
-                + Thêm thiết bị ngoài
-              </button>
+              {suggestions.map(eq => (
+                <button key={eq.id} type="button"
+                  onMouseDown={() => { onChange({ ...row, equipment_id: eq.id }); setSearch(eq.name); setShow(false); }}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '8px 12px',
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    borderBottom: '1px solid rgba(201,168,76,0.07)',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span style={{ color: '#e8c97a', fontSize: '0.82rem', fontWeight: 600 }}>{eq.name}</span>
+                  <span style={{ color: '#7878a0', fontSize: '0.7rem' }}>{eq.code}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
 
-        <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="btn-success flex-1">
-            {submitting ? 'Đang nhập...' : '⬇️ Xác nhận nhập kho'}
-          </button>
-          <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Hủy</button>
+        {/* Quantity */}
+        <div style={{ width: '80px' }}>
+          <input type="number" min="1" className="input"
+            placeholder="SL"
+            value={row.quantity}
+            onChange={e => onChange({ ...row, quantity: Math.max(1, +e.target.value) })}
+            style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
+          />
         </div>
-      </form>
+
+        {/* Remove */}
+        <button type="button" onClick={onRemove}
+          style={{
+            padding: '8px 10px', background: 'rgba(248,113,113,0.1)',
+            border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px',
+            color: '#f87171', cursor: 'pointer', fontSize: '0.85rem', marginTop: '1px',
+          }}>×</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Tab 1: Sửa xong ───────────────────────────────────────────────────────────
+function FixTab({ equipment }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [department, setDepartment] = useState('');
+  const [person, setPerson] = useState('');
+  const [date, setDate] = useState(today);
+  const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(null);
+
+  const maintenanceEq = equipment.filter(e => e.qty_maintenance > 0);
+
+  function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
+  function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
+  function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
+
+  async function submit(e) {
+    e.preventDefault();
+    const validItems = items.filter(r => r.equipment_id && r.quantity > 0);
+    if (!validItems.length) return alert('Chưa chọn thiết bị nào');
+    if (!person) return alert('Chưa chọn người nhận');
+    setSubmitting(true);
+    try {
+      const res = await api.createFix({ responsible_person: person, notes: `[${department}] Ngày: ${date}`, items: validItems });
+      setDone(res);
+    } catch (err) { alert(err.message); }
+    finally { setSubmitting(false); }
+  }
+
+  if (done) return (
+    <div className="card text-center space-y-4" style={{ marginTop: '20px' }}>
+      <div style={{ fontSize: '3rem' }}>✅</div>
+      <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Cập nhật thành công!</p>
+      <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
+        <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <form onSubmit={submit}>
+      <div style={sectionStyle}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div>
+            <label style={labelStyle}>Bộ phận</label>
+            <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
+              <option value="">-- Chọn bộ phận --</option>
+              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Ngày nhập</label>
+            <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Người nhận thiết bị đã sửa</label>
+          <select className="input" value={person} onChange={e => setPerson(e.target.value)} required>
+            <option value="">-- Chọn nhân viên --</option>
+            {KM_STAFF_GROUPS.map(g => (
+              <optgroup key={g.dept} label={g.dept}>
+                {g.members.map(m => <option key={m} value={m}>{m}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div style={sectionStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem' }}>
+            Danh sách thiết bị đã sửa
+          </span>
+          <button type="button" onClick={addRow}
+            style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
+            + Thêm
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {items.map((row, i) => (
+            <EqRow key={i} equipment={equipment} row={row}
+              onChange={v => updateRow(i, v)}
+              onRemove={() => removeRow(i)}
+              filterFn={e => e.qty_maintenance > 0}
+              placeholder="Tìm thiết bị đang bảo trì..."
+            />
+          ))}
+        </div>
+        {maintenanceEq.length === 0 && (
+          <p style={{ color: '#7878a0', fontSize: '0.78rem', marginTop: '10px' }}>
+            Hiện không có thiết bị nào đang bảo trì
+          </p>
+        )}
+      </div>
+
+      <button type="submit" disabled={submitting} className="btn-primary"
+        style={{ width: '100%', padding: '13px', fontSize: '1rem' }}>
+        {submitting ? 'Đang xử lý...' : '✅ Xác nhận cập nhật tình trạng'}
+      </button>
+    </form>
+  );
+}
+
+// ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
+function IntakeTab({ equipment }) {
+  const navigate = useNavigate();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [department, setDepartment] = useState('');
+  const [person, setPerson] = useState('');
+  const [date, setDate] = useState(today);
+  const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(null);
+
+  function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
+  function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
+  function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
+
+  async function submit(e) {
+    e.preventDefault();
+    const validItems = items.filter(r => r.equipment_id && r.quantity > 0);
+    if (!validItems.length) return alert('Chưa chọn thiết bị nào');
+    if (!person) return alert('Chưa chọn người nhập');
+    setSubmitting(true);
+    try {
+      const res = await api.createIntake({ responsible_person: person, department, intake_date: date, items: validItems });
+      setDone(res);
+    } catch (err) { alert(err.message); }
+    finally { setSubmitting(false); }
+  }
+
+  if (done) return (
+    <div className="card text-center space-y-4" style={{ marginTop: '20px' }}>
+      <div style={{ fontSize: '3rem' }}>📦</div>
+      <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Nhập kho thành công!</p>
+      <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
+        <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <form onSubmit={submit}>
+      <div style={sectionStyle}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div>
+            <label style={labelStyle}>Bộ phận</label>
+            <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
+              <option value="">-- Chọn bộ phận --</option>
+              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Ngày nhập</label>
+            <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Người nhập thiết bị mới</label>
+          <select className="input" value={person} onChange={e => setPerson(e.target.value)} required>
+            <option value="">-- Chọn nhân viên --</option>
+            {KM_STAFF_GROUPS.map(g => (
+              <optgroup key={g.dept} label={g.dept}>
+                {g.members.map(m => <option key={m} value={m}>{m}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div style={sectionStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem' }}>Tên thiết bị mới</span>
+          <button type="button" onClick={addRow}
+            style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
+            + Thêm
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {items.map((row, i) => (
+            <EqRow key={i} equipment={equipment} row={row}
+              onChange={v => updateRow(i, v)}
+              onRemove={() => removeRow(i)}
+              placeholder="Tìm tên thiết bị..."
+            />
+          ))}
+        </div>
+      </div>
+
+      <button type="submit" disabled={submitting} className="btn-primary"
+        style={{ width: '100%', padding: '13px', fontSize: '1rem' }}>
+        {submitting ? 'Đang xử lý...' : '📦 Xác nhận nhập kho thiết bị mới'}
+      </button>
+    </form>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+export default function ReturnForm() {
+  const [tab, setTab] = useState('fix'); // 'fix' | 'intake'
+  const [equipment, setEquipment] = useState([]);
+
+  useEffect(() => { api.getEquipment({ limit: 9999 }).then(d => setEquipment(d.items || d)); }, []);
+
+  const tabs = [
+    { key: 'fix',    label: '🔧 Sửa xong – Cập nhật tình trạng' },
+    { key: 'intake', label: '📦 Nhập mới thiết bị' },
+  ];
+
+  return (
+    <div className="p-6 max-w-2xl">
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: 0 }}>Nhập Kho Thiết Bị</h1>
+        <p style={{ color: '#7878a0', fontSize: '0.82rem', margin: '4px 0 0' }}>Cập nhật tình trạng sửa chữa hoặc nhập thiết bị mới</p>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {tabs.map(t => (
+          <button key={t.key} type="button" onClick={() => setTab(t.key)}
+            style={{
+              flex: 1, padding: '11px 14px', borderRadius: '10px', fontWeight: 700,
+              fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s',
+              border: tab === t.key ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.1)',
+              background: tab === t.key ? GOLD : 'rgba(255,255,255,0.03)',
+              color: tab === t.key ? '#08080e' : '#a0a0b8',
+            }}
+          >{t.label}</button>
+        ))}
+      </div>
+
+      {tab === 'fix'    && <FixTab    equipment={equipment} />}
+      {tab === 'intake' && <IntakeTab equipment={equipment} />}
     </div>
   );
 }

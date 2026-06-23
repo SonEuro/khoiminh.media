@@ -200,6 +200,58 @@ router.post('/return', canTransact, (req, res) => {
   }
 });
 
+// Nhập thiết bị mới (tăng tồn kho)
+router.post('/intake', canTransact, (req, res) => {
+  const { responsible_person, supplier, notes, items } = req.body;
+  if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+
+  const doIntake = db.transaction(() => {
+    const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'INTAKE'`).get();
+    const code = `NHAP-MOI-${String(c + 1).padStart(3, '0')}`;
+    const txR = db.prepare(`
+      INSERT INTO transactions (code, type, responsible_person, notes)
+      VALUES (?, 'INTAKE', ?, ?)
+    `).run(code, responsible_person, notes ? `[${supplier || ''}] ${notes}` : supplier || '');
+
+    const txId = txR.lastInsertRowid;
+    for (const item of items) {
+      if (!item.equipment_id || !item.quantity || item.quantity <= 0) continue;
+      db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, item.quantity);
+      db.prepare(`UPDATE equipment SET qty_total = qty_total + ?, qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
+    }
+    return { id: txId, code };
+  });
+
+  try { res.json(doIntake()); }
+  catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+// Nhập thiết bị mới (tăng tồn kho)
+router.post('/intake', canTransact, (req, res) => {
+  const { responsible_person, department, intake_date, notes, items } = req.body;
+  if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+
+  const doIntake = db.transaction(() => {
+    const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'INTAKE'`).get();
+    const code = `NHAP-MOI-${String(c + 1).padStart(3, '0')}`;
+    const txR = db.prepare(`
+      INSERT INTO transactions (code, type, responsible_person, notes)
+      VALUES (?, 'INTAKE', ?, ?)
+    `).run(code, responsible_person, [department, notes].filter(Boolean).join(' | '));
+
+    const txId = txR.lastInsertRowid;
+    for (const item of items) {
+      if (!item.equipment_id || !item.quantity || item.quantity <= 0) continue;
+      db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, item.quantity);
+      db.prepare(`UPDATE equipment SET qty_total = qty_total + ?, qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
+    }
+    return { id: txId, code };
+  });
+
+  try { res.json(doIntake()); }
+  catch (e) { res.status(400).json({ error: e.message }); }
+});
+
 // Nhập bảo trì → trả lại kho
 router.post('/fix', canTransact, (req, res) => {
   const { notes, items } = req.body;

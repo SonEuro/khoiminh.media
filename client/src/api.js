@@ -81,6 +81,7 @@ export const api = {
   createOut: (data) => request('/transactions/out', { method: 'POST', body: data }),
   createReturn: (data) => request('/transactions/return', { method: 'POST', body: data }),
   createFix: (data) => request('/transactions/fix', { method: 'POST', body: data }),
+  createIntake: (data) => request('/transactions/intake', { method: 'POST', body: data }),
 
   // Reports
   getSummary: () => request('/reports/summary'),
