@@ -3,6 +3,17 @@ import QRCode from 'qrcode';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import { useAuth } from '../contexts/AuthContext';
+import { Clapperboard, Headphones, Spotlight, Tv2, LayoutGrid, Theater, Package, HelpCircle } from 'lucide-react';
+
+const CAT_ICONS = {
+  TECH:   Clapperboard,
+  AUDIO:  Headphones,
+  LIGHT:  Spotlight,
+  LED:    Tv2,
+  MATRIX: LayoutGrid,
+  STAGE:  Theater,
+  CSVC:   Package,
+};
 
 const STATUS_LABELS = { available: 'Có sẵn', in_use: 'Đang dùng', maintenance: 'Sửa chữa', damaged: 'Hỏng', lost: 'Mất' };
 
@@ -263,8 +274,9 @@ export default function Equipment() {
                 }}>
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#e0e0ee' }}>
-                      {cat.icon} {cat.name}
+                    <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#e0e0ee', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {(() => { const Icon = CAT_ICONS[cat.code] || HelpCircle; return <Icon size={15} strokeWidth={1.75} style={{ color: '#c9a84c', flexShrink: 0 }} />; })()}
+                      {cat.name}
                     </span>
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, color: barColor }}>
                       {pct}%
@@ -359,7 +371,12 @@ export default function Equipment() {
                   <p style={{ fontWeight:600, color:'#e0e0ee', margin:0, fontSize:'0.85rem' }}>{eq.name}</p>
                   {eq.notes && <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'200px', whiteSpace:'nowrap' }}>{eq.notes}</p>}
                 </td>
-                <td style={{ padding:'10px 12px', color:'#a0a0b8', fontSize:'0.8rem' }}>{eq.category_icon} {eq.category_name}</td>
+                <td style={{ padding:'10px 12px', color:'#a0a0b8', fontSize:'0.8rem' }}>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:'6px' }}>
+                    {(() => { const Icon = CAT_ICONS[eq.category_code] || HelpCircle; return <Icon size={13} strokeWidth={1.75} style={{ color:'#c9a84c', flexShrink:0 }} />; })()}
+                    {eq.category_name}
+                  </span>
+                </td>
                 <td style={{ padding:'10px 12px', textAlign:'center', fontWeight:700, color: eq.qty_available === 0 ? '#f87171' : eq.qty_available <= 2 ? '#fbbf24' : '#4ade80' }}>
                   {eq.qty_available}
                 </td>
