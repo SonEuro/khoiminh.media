@@ -103,20 +103,44 @@ function TxDetailModal({ txId, onClose }) {
 // ── Section wrapper ───────────────────────────────────────────────────────────
 function Section({ Icon, title, color, border, count, children }) {
   const [open, setOpen] = useState(true);
+  const rgb = hexToRgb(color);
   return (
-    <div style={{ border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
+    <div style={{
+      borderRadius: '14px', overflow: 'hidden', marginBottom: '14px',
+      border: `1px solid ${border}`,
+      boxShadow: `0 4px 24px rgba(${rgb},0.10)`,
+    }}>
       <button type="button" onClick={() => setOpen(v => !v)}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '13px 18px', background: `rgba(${hexToRgb(color)},0.05)`,
+          width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+          padding: '15px 20px',
+          background: `linear-gradient(135deg, rgba(${rgb},0.18) 0%, rgba(${rgb},0.05) 100%)`,
           border: 'none', cursor: 'pointer', textAlign: 'left',
           borderBottom: open ? `1px solid ${border}` : 'none',
+          borderLeft: `4px solid ${color}`,
         }}
       >
-        <Icon size={16} strokeWidth={1.75} style={{ color, flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, color, fontSize: '0.88rem', flex: 1 }}>{title}</span>
+        {/* Icon box */}
+        <div style={{
+          width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
+          background: `rgba(${rgb},0.18)`,
+          border: `1px solid rgba(${rgb},0.35)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={16} strokeWidth={1.75} style={{ color }} />
+        </div>
+
+        <span style={{ fontWeight: 800, color, fontSize: '0.92rem', flex: 1, letterSpacing: '0.01em' }}>{title}</span>
+
         {count != null && (
-          <span style={{ fontSize: '0.7rem', fontWeight: 800, color, background: border, borderRadius: '9999px', padding: '2px 8px' }}>
+          <span style={{
+            fontSize: '0.72rem', fontWeight: 800,
+            color: count > 0 ? '#08080e' : color,
+            background: count > 0 ? color : 'transparent',
+            border: count > 0 ? 'none' : `1px solid ${border}`,
+            borderRadius: '9999px', padding: '3px 11px', minWidth: '28px', textAlign: 'center',
+            boxShadow: count > 0 ? `0 0 12px rgba(${rgb},0.55)` : 'none',
+          }}>
             {count}
           </span>
         )}
@@ -125,7 +149,7 @@ function Section({ Icon, title, color, border, count, children }) {
           : <ChevronDown size={14} style={{ color, flexShrink: 0 }} />
         }
       </button>
-      {open && <div style={{ padding: '12px 14px' }}>{children}</div>}
+      {open && <div style={{ padding: '14px 16px' }}>{children}</div>}
     </div>
   );
 }
