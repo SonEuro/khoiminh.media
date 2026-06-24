@@ -188,13 +188,15 @@ function FixTab({ equipment }) {
   }
 
   if (done) return (
-    <div className="card text-center space-y-4" style={{ marginTop: '20px' }}>
-      <div style={{ fontSize: '3rem' }}>✅</div>
-      <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Cập nhật thành công!</p>
-      <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-        <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
-        <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+      <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
+        <div style={{ fontSize: '3rem' }}>✅</div>
+        <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Cập nhật thành công!</p>
+        <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
+          <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+        </div>
       </div>
     </div>
   );
@@ -302,13 +304,15 @@ function IntakeTab({ equipment }) {
   }
 
   if (done) return (
-    <div className="card text-center space-y-4" style={{ marginTop: '20px' }}>
-      <div style={{ fontSize: '3rem' }}>📦</div>
-      <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Nhập kho thành công!</p>
-      <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-        <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
-        <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+      <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
+        <div style={{ fontSize: '3rem' }}>📦</div>
+        <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Nhập kho thành công!</p>
+        <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
+          <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+        </div>
       </div>
     </div>
   );
