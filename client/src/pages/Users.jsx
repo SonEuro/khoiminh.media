@@ -234,7 +234,7 @@ export default function Users() {
                 style={{ color: form.position ? '#f87171' : 'var(--text-muted)', fontWeight: form.position ? 700 : 400 }}>
                 <option value="">-- Chọn chức vụ --</option>
                 <option value="Giám đốc">👑 Giám đốc</option>
-                <option value="Trưởng phòng">Trưởng phòng</option>
+                <option value="Trưởng phòng">Trưởng Phòng</option>
                 <option value="Nhân viên">Nhân viên</option>
               </select>
             </div>

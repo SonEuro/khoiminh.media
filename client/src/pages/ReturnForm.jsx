@@ -155,7 +155,7 @@ function FixTab({ equipment }) {
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
-  const isTruongPhong = user?.role !== 'SUPER_ADMIN' && user?.position?.includes('Trưởng Phòng');
+  const isTruongPhong = user?.role !== 'SUPER_ADMIN' && user?.position?.toLowerCase().includes('trưởng phòng');
   const myDept = isTruongPhong ? (ROLE_TO_DEPT[user.role] || null) : null;
   const myCats = isTruongPhong ? (ROLE_TO_CATS[user.role] || null) : null;
 
@@ -389,7 +389,7 @@ function IntakeTab({ equipment }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ReturnForm() {
   const { user } = useAuth();
-  const canFix = user?.role === 'SUPER_ADMIN' || user?.position?.includes('Trưởng Phòng');
+  const canFix = user?.role === 'SUPER_ADMIN' || user?.position?.toLowerCase().includes('trưởng phòng');
 
   const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
   const [equipment, setEquipment] = useState([]);
