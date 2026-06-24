@@ -159,11 +159,11 @@ ${previewBar}
     <td>ĐỊA ĐIỂM : &nbsp;<span class="val">${tx.event_location || ''}</span></td>
   </tr>
   <tr>
-    <td colspan="2">NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.filming_date ? tx.filming_date.slice(8,10)+'/'+tx.filming_date.slice(5,7)+'/'+tx.filming_date.slice(2,4) : ''}</span></td>
+    <td>NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.filming_date ? tx.filming_date.slice(8,10)+'/'+tx.filming_date.slice(5,7)+'/'+tx.filming_date.slice(2,4) : ''}</span></td>
+    <td>NGƯỜI PHỤ TRÁCH : &nbsp;<span class="val">${tx.responsible_person || ''}</span></td>
   </tr>
   <tr>
-    <td>SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td>
-    <td></td>
+    <td colspan="2">SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td>
   </tr>
 </table>
 
