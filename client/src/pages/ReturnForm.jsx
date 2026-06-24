@@ -188,7 +188,7 @@ function FixTab({ equipment }) {
   }
 
   if (done) return (
-    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+    <div onClick={() => navigate('/')} style={{ position:'fixed', inset:0, background:'var(--bg-main)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:999 }}>
       <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
         <div style={{ fontSize: '3rem' }}>✅</div>
         <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Cập nhật thành công!</p>
@@ -304,7 +304,7 @@ function IntakeTab({ equipment }) {
   }
 
   if (done) return (
-    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+    <div onClick={() => navigate('/')} style={{ position:'fixed', inset:0, background:'var(--bg-main)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:999 }}>
       <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
         <div style={{ fontSize: '3rem' }}>📦</div>
         <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Nhập kho thành công!</p>

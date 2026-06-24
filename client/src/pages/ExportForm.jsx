@@ -140,7 +140,7 @@ export default function ExportForm() {
   if (doneSlip) {
     return (
       <div onClick={() => navigate('/')}
-        style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+        style={{ position:'fixed', inset:0, background:'var(--bg-main)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:999 }}>
         <div className="card text-center space-y-5" onClick={e => e.stopPropagation()}
           style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
           <div className="text-5xl">✅</div>
