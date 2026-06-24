@@ -40,6 +40,20 @@ const KM_STAFF_GROUPS = [
 
 const ALL_STAFF = KM_STAFF_GROUPS.flatMap(g => g.members);
 
+// Map role → bộ phận và danh mục thiết bị tương ứng
+const ROLE_TO_DEPT = {
+  TECHNICAL: 'Kỹ Thuật',
+  ATAS:      'Âm Thanh Ánh Sáng',
+  STAGE:     'Sân Khấu',
+  CSVC:      'Cơ Sở Vật Chất',
+};
+const ROLE_TO_CATS = {
+  TECHNICAL: ['TECH'],
+  ATAS:      ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
+  STAGE:     ['STAGE'],
+  CSVC:      ['CSVC'],
+};
+
 const labelStyle = {
   display: 'block', fontSize: '0.72rem', fontWeight: 700,
   color: GOLD, letterSpacing: '0.06em', marginBottom: '5px',
@@ -141,14 +155,20 @@ function FixTab({ equipment }) {
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [department, setDepartment] = useState('');
+  const isTruongPhong = user?.role !== 'SUPER_ADMIN' && user?.position?.includes('Trưởng Phòng');
+  const myDept = isTruongPhong ? (ROLE_TO_DEPT[user.role] || null) : null;
+  const myCats = isTruongPhong ? (ROLE_TO_CATS[user.role] || null) : null;
+
+  const [department, setDepartment] = useState(myDept || '');
   const [person, setPerson] = useState('');
   const [date, setDate] = useState(today);
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(null);
 
-  const maintenanceEq = equipment.filter(e => e.qty_maintenance > 0);
+  const maintenanceEq = equipment.filter(e =>
+    e.qty_maintenance > 0 && (!myCats || myCats.includes(e.category_code))
+  );
 
   function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
   function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
@@ -185,10 +205,15 @@ function FixTab({ equipment }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
           <div>
             <label style={labelStyle}>Bộ phận</label>
-            <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
-              <option value="">-- Chọn bộ phận --</option>
-              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+            {myDept ? (
+              <input className="input" value={myDept} readOnly
+                style={{ color: '#c9a84c', fontWeight: 600, cursor: 'default' }} />
+            ) : (
+              <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
+                <option value="">-- Chọn bộ phận --</option>
+                {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
           </div>
           <div>
             <label style={labelStyle}>Ngày nhập</label>
@@ -224,7 +249,7 @@ function FixTab({ equipment }) {
             <EqRow key={i} equipment={equipment} row={row}
               onChange={v => updateRow(i, v)}
               onRemove={() => removeRow(i)}
-              filterFn={e => e.qty_maintenance > 0}
+              filterFn={e => e.qty_maintenance > 0 && (!myCats || myCats.includes(e.category_code))}
               placeholder="Tìm thiết bị đang bảo trì..."
             />
           ))}
