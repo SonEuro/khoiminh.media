@@ -3,7 +3,7 @@ const { requireRole } = require('../middleware/auth');
 const { doImport } = require('../import-equipment');
 const db = require('../database');
 
-router.post('/import-equipment', requireRole('SUPER_ADMIN'), (req, res) => {
+router.post('/import-equipment', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   try {
     const result = doImport();
     res.json({ success: true, message: `Đã import ${result.count} thiết bị vào ${result.categories} danh mục.` });
@@ -13,7 +13,7 @@ router.post('/import-equipment', requireRole('SUPER_ADMIN'), (req, res) => {
 });
 
 // Reset toàn bộ phiếu xuất (OUT) và đưa qty_in_use về 0
-router.post('/reset-out-transactions', requireRole('SUPER_ADMIN'), (req, res) => {
+router.post('/reset-out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const doReset = db.transaction(() => {
     // Cộng qty_in_use trở lại qty_available, reset về 0
     const eqResult = db.prepare(

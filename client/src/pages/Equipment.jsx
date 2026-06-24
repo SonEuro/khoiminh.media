@@ -279,7 +279,7 @@ export default function Equipment() {
           <h1 className="text-2xl font-bold">Tổng Thiết Bị Khôi Minh</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
-        {user?.role === 'SUPER_ADMIN' && (
+        {['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && (
           <button
             className="btn-danger btn-sm"
             onClick={async () => {
