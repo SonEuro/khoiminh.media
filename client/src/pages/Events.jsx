@@ -4,6 +4,8 @@ import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
 import { useAuth } from '../contexts/AuthContext';
 
+const fmtD = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(2,4)}` : '—';
+
 const STATUS_MAP = {
   planned:   { label: 'Lên kế hoạch', cls: 'badge-maintenance' },
   active:    { label: 'Đang diễn ra', cls: 'badge-available' },
@@ -163,10 +165,10 @@ function EventDetailModal({ eventId, onClose }) {
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div><span className="text-gray-500">Khách hàng: </span><strong>{ev.client || '—'}</strong></div>
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
-          <div><span className="text-gray-500">Từ: </span><strong>{ev.start_date || '—'}</strong></div>
-          <div><span className="text-gray-500">Đến: </span><strong>{ev.end_date || '—'}</strong></div>
+          <div><span className="text-gray-500">Từ: </span><strong>{fmtD(ev.start_date)}</strong></div>
+          <div><span className="text-gray-500">Đến: </span><strong>{fmtD(ev.end_date)}</strong></div>
           {ev.filming_date && (
-            <div><span className="text-gray-500">Ngày ghi hình: </span><strong style={{ color: '#a78bfa' }}>🎬 {ev.filming_date}</strong></div>
+            <div><span className="text-gray-500">Ngày ghi hình: </span><strong style={{ color: '#a78bfa' }}>🎬 {fmtD(ev.filming_date)}</strong></div>
           )}
           {ev.created_by && (
             <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
