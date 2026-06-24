@@ -42,7 +42,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
   );
 
   return (
-    <form onSubmit={async e => { e.preventDefault(); await onSave(form); }} className="space-y-4">
+    <form onSubmit={async e => {
+      e.preventDefault();
+      const data = { ...form };
+      if (data.filming_date && !data.start_date) data.start_date = data.filming_date;
+      if (data.filming_date && !data.end_date)   data.end_date   = data.filming_date;
+      await onSave(data);
+    }} className="space-y-4">
       <div style={{ position: 'relative' }}>
         <label className="label">Tên sự kiện *</label>
         <input
