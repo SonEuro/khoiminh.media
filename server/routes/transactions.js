@@ -19,22 +19,22 @@ function checkDept(user, equipmentIds) {
 }
 
 function nextCode(type, eventId) {
-  if (type === 'OUT') {
-    let prefix = 'XUAT NOI BO';
-    let row;
-    if (eventId) {
-      const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
-      if (ev) prefix = ev.name.toUpperCase();
-      row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'OUT' AND event_id = ?`).get(eventId);
-    } else {
-      row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'OUT' AND event_id IS NULL`).get();
-    }
-    const seq = (row?.c ?? 0) + 1;
-    return `${prefix}-${String(seq).padStart(3, '0')}`;
+  if (type === 'FIX') {
+    const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'FIX'`).get();
+    return `FIX-${String(c + 1).padStart(3, '0')}`;
   }
-  const prefix = type === 'RETURN' ? 'NHAP' : 'FIX';
-  const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ?`).get(type);
-  return `${prefix}-${String(c + 1).padStart(3, '0')}`;
+  const prefix = type === 'OUT' ? 'Xuất' : 'Nhập';
+  let evName = '';
+  let row;
+  if (eventId) {
+    const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
+    if (ev) evName = ' ' + ev.name;
+    row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id = ?`).get(type, eventId);
+  } else {
+    row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id IS NULL`).get(type);
+  }
+  const seq = (row?.c ?? 0) + 1;
+  return `${prefix}${evName} ${String(seq).padStart(3, '0')}`;
 }
 
 // Outstanding items for an event (OUT qty - RETURN qty > 0)
@@ -161,7 +161,7 @@ router.post('/return', canTransact, (req, res) => {
   }
 
   const doReturn = db.transaction(() => {
-    const code = nextCode('RETURN');
+    const code = nextCode('RETURN', event_id || null);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, event_id, responsible_person, notes)
       VALUES (?, 'RETURN', ?, ?, ?)
