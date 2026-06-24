@@ -18,7 +18,7 @@ function checkDept(user, equipmentIds) {
   return null;
 }
 
-function nextCode(type, eventId) {
+function nextCode(type, eventId, userName) {
   if (type === 'FIX') {
     const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'FIX'`).get();
     const seq = String(c + 1).padStart(3, '0');
@@ -29,17 +29,18 @@ function nextCode(type, eventId) {
     return `Sửa chữa ${seq}`;
   }
   const prefix = type === 'OUT' ? 'Xuất' : 'Nhập';
-  let evName = '';
+  let name = '';
   let row;
   if (eventId) {
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
-    if (ev) evName = '-' + ev.name;
+    if (ev) name = '-' + ev.name;
     row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id = ?`).get(type, eventId);
   } else {
+    if (userName) name = '-' + userName;
     row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id IS NULL`).get(type);
   }
   const seq = (row?.c ?? 0) + 1;
-  return `${prefix}${evName}-${String(seq).padStart(3, '0')}`;
+  return `${prefix}${name}-${String(seq).padStart(3, '0')}`;
 }
 
 // Outstanding items for an event (OUT qty - RETURN qty > 0)
@@ -121,7 +122,7 @@ router.post('/out', canTransact, (req, res) => {
   }
 
   const doOut = db.transaction(() => {
-    const code = nextCode('OUT', event_id || null);
+    const code = nextCode('OUT', event_id || null, req.user.full_name);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, event_id, responsible_person, expected_return_date, notes, created_by_id)
       VALUES (?, 'OUT', ?, ?, ?, ?, ?)
@@ -166,7 +167,7 @@ router.post('/return', canTransact, (req, res) => {
   }
 
   const doReturn = db.transaction(() => {
-    const code = nextCode('RETURN', event_id || null);
+    const code = nextCode('RETURN', event_id || null, req.user.full_name);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, event_id, responsible_person, notes)
       VALUES (?, 'RETURN', ?, ?, ?)
