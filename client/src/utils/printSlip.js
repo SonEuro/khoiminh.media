@@ -93,7 +93,7 @@ function buildSlipHTML(tx, preview = false) {
     text-align: center;
   }
   .slip-company {
-    font-size: 10pt;
+    font-size: 16pt;
     font-weight: bold;
     letter-spacing: 1.5px;
     text-transform: uppercase;
