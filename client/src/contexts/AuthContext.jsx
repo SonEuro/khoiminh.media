@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 const DEPT_CATS = {
+  DIRECTOR:    null,
   SUPER_ADMIN: null,
   PRODUCTION:  null,
   ACCOUNTING:  null,
@@ -13,6 +14,7 @@ const DEPT_CATS = {
 };
 
 const ROLE_LABELS = {
+  DIRECTOR:    'Tổng Giám Đốc',
   SUPER_ADMIN: 'Giám Đốc Sản Xuất',
   PRODUCTION:  'Bộ Phận Sản Xuất',
   ACCOUNTING:  'Kế Toán',
@@ -48,12 +50,14 @@ export function AuthProvider({ children }) {
     const role = user.role;
     switch (action) {
       case 'manageUsers':    return role === 'SUPER_ADMIN';
-      case 'editEquipment':  return ['SUPER_ADMIN', 'PRODUCTION'].includes(role);
-      case 'deleteEquipment':return role === 'SUPER_ADMIN';
-      case 'transact':       return ['SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);
-      case 'createEvent':    return role !== 'ACCOUNTING';
-      case 'deleteEvent':    return role === 'SUPER_ADMIN';
-      case 'exportReport':   return ['SUPER_ADMIN', 'ACCOUNTING'].includes(role);
+      case 'editEquipment':  return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION'].includes(role);
+      case 'deleteEquipment':return ['DIRECTOR', 'SUPER_ADMIN'].includes(role);
+      case 'transact':       return ['DIRECTOR', 'SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);
+      case 'confirmFix':     return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);
+      case 'intake':         return ['DIRECTOR', 'SUPER_ADMIN', 'ACCOUNTING'].includes(role);
+      case 'createEvent':    return !['ACCOUNTING'].includes(role);
+      case 'deleteEvent':    return ['DIRECTOR', 'SUPER_ADMIN'].includes(role);
+      case 'exportReport':   return ['DIRECTOR', 'SUPER_ADMIN', 'ACCOUNTING'].includes(role);
       default: return true;
     }
   }

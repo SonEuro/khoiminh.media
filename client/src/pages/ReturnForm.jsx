@@ -155,9 +155,9 @@ function FixTab({ equipment }) {
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
-  const isTruongPhong = user?.role !== 'SUPER_ADMIN' && user?.position?.toLowerCase().includes('trưởng phòng');
-  const myDept = isTruongPhong ? (ROLE_TO_DEPT[user.role] || null) : null;
-  const myCats = isTruongPhong ? (ROLE_TO_CATS[user.role] || null) : null;
+  const isDeptRole = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const myDept = isDeptRole ? (ROLE_TO_DEPT[user.role] || null) : null;
+  const myCats = isDeptRole ? (ROLE_TO_CATS[user.role] || null) : null;
 
   const [department, setDepartment] = useState(myDept || '');
   const [person, setPerson] = useState('');
@@ -272,7 +272,8 @@ function FixTab({ equipment }) {
 // ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
 function IntakeTab({ equipment }) {
   const { user } = useAuth();
-  const canIntake = user?.role === 'SUPER_ADMIN' || user?.position?.includes('Kế Toán');
+  const { can } = useAuth();
+  const canIntake = can('intake');
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -389,7 +390,7 @@ function IntakeTab({ equipment }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ReturnForm() {
   const { user } = useAuth();
-  const canFix = user?.role === 'SUPER_ADMIN' || user?.position?.toLowerCase().includes('trưởng phòng');
+  const canFix = can('confirmFix');
 
   const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
   const [equipment, setEquipment] = useState([]);

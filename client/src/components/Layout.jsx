@@ -12,7 +12,7 @@ const GOLD_DIM     = 'rgba(201,168,76,0.3)';
 const GOLD_GLOW    = 'rgba(201,168,76,0.08)';
 const BG_SIDEBAR   = '#08080e';
 const BG_CARD      = '#13131d';
-const TEXT_MUTED   = '#7878a0';
+const TEXT_MUTED   = '#c8c8e0';
 const TEXT_PRIMARY = '#eeeef5';
 
 function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
@@ -41,26 +41,29 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
             to={item.to}
             end={item.to === '/'}
             onClick={onNavClick}
-            style={({ isActive }) => ({
-              display:'flex', alignItems:'center', gap:'12px',
-              padding:'11px 20px',
-              paddingLeft: isActive ? '17px' : '20px',
-              fontSize:'0.875rem', fontWeight: isActive ? 700 : 400,
-              color: isActive ? '#e8c97a' : TEXT_MUTED,
-              background: isActive ? 'rgba(201,168,76,0.1)' : 'transparent',
-              borderLeft: isActive ? `3px solid ${GOLD}` : '3px solid transparent',
-              transition:'all 0.18s',
-              textDecoration:'none',
-            })}
+            style={{ textDecoration:'none' }}
           >
-            <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-            <span style={{ letterSpacing:'0.02em', lineHeight: 1.35 }}>
-              {item.label.includes('\n')
-                ? item.label.split('\n').map((line, i) => (
-                    <span key={i} style={{ display:'block' }}>{line}</span>
-                  ))
-                : item.label}
-            </span>
+            {({ isActive }) => (
+              <div style={{
+                display:'flex', alignItems:'center', gap:'12px',
+                padding:'11px 20px',
+                paddingLeft: isActive ? '17px' : '20px',
+                fontSize:'0.875rem', fontWeight: isActive ? 700 : 400,
+                color: isActive ? '#e8c97a' : TEXT_MUTED,
+                background: isActive ? 'rgba(201,168,76,0.1)' : 'transparent',
+                borderLeft: isActive ? `3px solid ${GOLD}` : '3px solid transparent',
+                transition:'all 0.18s',
+              }}>
+                <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink:0, color: isActive ? '#e8c97a' : GOLD }} />
+                <span style={{ letterSpacing:'0.02em', lineHeight: 1.35 }}>
+                  {item.label.includes('\n')
+                    ? item.label.split('\n').map((line, i) => (
+                        <span key={i} style={{ display:'block' }}>{line}</span>
+                      ))
+                    : item.label}
+                </span>
+              </div>
+            )}
           </NavLink>
         ))}
       </nav>
