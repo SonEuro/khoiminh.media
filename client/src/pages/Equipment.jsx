@@ -301,12 +301,12 @@ export default function Equipment() {
       {topData && (
         <div style={{ marginBottom: '22px' }}>
           {/* Global stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '18px' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4" style={{ gap: '10px', marginBottom: '18px' }}>
             {[
-              { label: 'Tổng thiết bị', value: topData.summary?.total ?? 0,       color: '#e8c97a', rgb: '232,201,122', icon: '📦' },
-              { label: 'Có sẵn',        value: topData.summary?.available ?? 0,    color: '#4ade80', rgb: '74,222,128',  icon: '✅' },
-              { label: 'Đang dùng',     value: topData.summary?.in_use ?? 0,       color: '#60a5fa', rgb: '96,165,250',  icon: '🔄' },
-              { label: 'Bảo trì/Hỏng',  value: (topData.summary?.maintenance ?? 0) + (topData.summary?.damaged ?? 0), color: '#f87171', rgb: '248,113,113', icon: '⚠️' },
+              { label: 'Tổng thiết bị', value: topData.summary?.total ?? 0,       color: '#e8c97a', rgb: '232,201,122' },
+              { label: 'Có sẵn',        value: topData.summary?.available ?? 0,    color: '#4ade80', rgb: '74,222,128'  },
+              { label: 'Đang dùng',     value: topData.summary?.in_use ?? 0,       color: '#60a5fa', rgb: '96,165,250'  },
+              { label: 'Bảo trì/Hỏng',  value: (topData.summary?.maintenance ?? 0) + (topData.summary?.damaged ?? 0), color: '#f87171', rgb: '248,113,113' },
             ].map(s => (
               <div key={s.label} style={{
                 borderRadius: '12px', overflow: 'hidden',
@@ -314,12 +314,12 @@ export default function Equipment() {
                 boxShadow: `0 4px 16px rgba(${s.rgb},0.10)`,
               }}>
                 <div style={{
-                  padding: '12px 16px',
+                  padding: '10px 14px',
                   background: `linear-gradient(135deg, rgba(${s.rgb},0.16), rgba(${s.rgb},0.04))`,
                   borderLeft: `4px solid ${s.color}`,
                 }}>
-                  <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value.toLocaleString()}</p>
+                  <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{s.label}</p>
+                  <p style={{ fontSize: '1.25rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value.toLocaleString()}</p>
                 </div>
               </div>
             ))}
@@ -513,7 +513,7 @@ export default function Equipment() {
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
 
         {/* Bộ phận select */}
-        <div style={{ position: 'relative', minWidth: '170px' }}>
+        <div style={{ position: 'relative', flex: '1 1 140px' }}>
           <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSearch(''); }}
             style={{ width: '100%', paddingLeft: '36px', color: deptFilter ? '#c9a84c' : undefined, fontWeight: deptFilter ? 700 : 400 }}>
             {DEPT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
@@ -525,7 +525,7 @@ export default function Equipment() {
         </div>
 
         {/* Search with autocomplete */}
-        <div style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '400px' }}>
+        <div style={{ position: 'relative', flex: '2 1 180px' }}>
           <input className="input" placeholder="Tìm theo tên, mã..."
             value={search}
             onChange={e => { setSearch(e.target.value); setShowSearchDrop(true); }}
