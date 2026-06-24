@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_MAP = {
   planned:   { label: 'Lên kế hoạch', cls: 'badge-maintenance' },
-  active:    { label: 'Đang diễn ra', cls: 'badge-in_use' },
+  active:    { label: 'Đang diễn ra', cls: 'badge-available' },
   completed: { label: 'Hoàn thành',   cls: 'badge-available' },
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
