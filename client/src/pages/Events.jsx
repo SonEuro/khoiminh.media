@@ -224,7 +224,7 @@ function EventDetailModal({ eventId, onClose }) {
         {ev.external_items?.length > 0 && (
           <div>
             <h3 className="font-semibold mb-2" style={{ color: '#e0e0ee' }}>
-              Thiết bị mượn từ nhà cung cấp
+              Thiết bị thuê từ nhà cung cấp
             </h3>
             <table className="w-full text-sm">
               <thead><tr className="border-b text-gray-500 text-left">

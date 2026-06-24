@@ -18,7 +18,7 @@ function buildSlipHTML(tx, preview = false) {
   const extRows = extItems.length > 0 ? `
     <tr>
       <td colspan="5" style="text-align:left;padding:4px 6px;font-weight:bold;font-style:italic;background:#f9f9f9;border-top:2px solid #000">
-        Thiết bị mượn từ nhà cung cấp:
+        Thiết bị thuê từ nhà cung cấp:
       </td>
     </tr>
     ${extItems.map((item, i) => `
