@@ -1,6 +1,5 @@
 function buildSlipHTML(tx, preview = false) {
   const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
-  const logoUrl   = window.location.origin + '/logo.png';
 
   const khoItems  = tx.items || [];
   const extItems  = tx.external_items || [];
@@ -89,13 +88,7 @@ function buildSlipHTML(tx, preview = false) {
     padding: 6px 12px;
     gap: 14px;
   }
-  .slip-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
-  .slip-title-block {
+.slip-title-block {
     flex: 1;
     text-align: center;
   }
@@ -149,7 +142,6 @@ ${previewBar}
 
 <!-- HEADER -->
 <div class="slip-header">
-  <img src="${logoUrl}" class="slip-logo" alt="KM" />
   <div class="slip-title-block">
     <div class="slip-company">Khôi Minh Media</div>
     <div class="slip-title">Phiếu xuất nhập thiết bị <span class="badge">${typeLabel}</span></div>
