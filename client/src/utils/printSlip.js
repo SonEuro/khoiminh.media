@@ -120,8 +120,8 @@ function buildSlipHTML(tx, preview = false) {
 
   /* ── Info grid ── */
   .info-grid { width:100%; border-collapse:collapse; border:2px solid #000; border-top:none; }
-  .info-grid td { border:1px solid #000; padding:5px 8px; font-size:10pt; font-weight:bold; }
-  .info-grid .val { font-size:13pt; font-weight:bold; }
+  .info-grid td { border:1px solid #000; padding:5px 8px; font-size:9pt; font-weight:bold; }
+  .info-grid .val { font-size:15pt; font-weight:bold; }
 
   /* ── Main table ── */
   .main-table { width:100%; border-collapse:collapse; margin-top:-1px; }
