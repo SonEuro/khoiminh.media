@@ -130,7 +130,7 @@ function buildSlipHTML(tx, preview = false) {
 
   /* ── Footer ── */
   .footer-wrap { text-align:center; margin-top:16px; margin-bottom:4px; }
-  .footer-date { font-size:11pt; font-weight:bold; display:block; margin-bottom:4px; }
+  .footer-date { font-size:22pt; font-weight:bold; display:block; margin-bottom:4px; }
   .footer-note { font-size:10pt; font-weight:bold; display:block; }
   .sig-row { display:flex; border:2px solid #000; }
   .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:11pt; padding:6px 0 70px; }
