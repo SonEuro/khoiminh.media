@@ -15,6 +15,21 @@ const CAT_ICONS = {
   CSVC:   Package,
 };
 
+const CAT_COLORS = {
+  TECH:   { color: '#60a5fa', rgb: '96,165,250'  },
+  AUDIO:  { color: '#a78bfa', rgb: '167,139,250' },
+  LIGHT:  { color: '#fbbf24', rgb: '251,191,36'  },
+  LED:    { color: '#22d3ee', rgb: '34,211,238'  },
+  MATRIX: { color: '#fb923c', rgb: '251,146,60'  },
+  STAGE:  { color: '#f472b6', rgb: '244,114,182' },
+  CSVC:   { color: '#94a3b8', rgb: '148,163,184' },
+};
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
 const STATUS_LABELS = { available: 'Có sẵn', in_use: 'Đang dùng', maintenance: 'Sửa chữa', damaged: 'Hỏng', lost: 'Mất' };
 
 const CAT_ORDER = ['TECH', 'AUDIO', 'LIGHT', 'LED', 'MATRIX', 'STAGE', 'CSVC'];
@@ -260,52 +275,70 @@ export default function Equipment() {
           <p style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c9a84c', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
             Báo cáo tồn kho theo thời gian thực
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {catSummary.map(cat => {
               const pct = cat.total > 0 ? Math.round((cat.available / cat.total) * 100) : 0;
               const barColor = pct > 60 ? '#4ade80' : pct > 30 ? '#fbbf24' : '#f87171';
+              const { color, rgb } = CAT_COLORS[cat.code] || { color: '#c9a84c', rgb: '201,168,76' };
+              const CatIcon = CAT_ICONS[cat.code] || HelpCircle;
               return (
                 <div key={cat.code} style={{
-                  background: '#13131d',
-                  border: '1px solid rgba(201,168,76,0.13)',
-                  borderRadius: '12px',
-                  padding: '14px 16px',
-                  display: 'flex', flexDirection: 'column', gap: '10px',
+                  borderRadius: '14px', overflow: 'hidden',
+                  border: `1px solid rgba(${rgb},0.30)`,
+                  boxShadow: `0 4px 24px rgba(${rgb},0.10)`,
                 }}>
                   {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#e0e0ee', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {(() => { const Icon = CAT_ICONS[cat.code] || HelpCircle; return <Icon size={15} strokeWidth={1.75} style={{ color: '#c9a84c', flexShrink: 0 }} />; })()}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '13px 18px',
+                    background: `linear-gradient(135deg, rgba(${rgb},0.18) 0%, rgba(${rgb},0.05) 100%)`,
+                    borderBottom: `1px solid rgba(${rgb},0.20)`,
+                    borderLeft: `4px solid ${color}`,
+                  }}>
+                    <div style={{
+                      width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
+                      background: `rgba(${rgb},0.18)`, border: `1px solid rgba(${rgb},0.35)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <CatIcon size={16} strokeWidth={1.75} style={{ color }} />
+                    </div>
+                    <span style={{ fontWeight: 800, color, fontSize: '0.92rem', flex: 1, letterSpacing: '0.01em' }}>
                       {cat.name}
                     </span>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: barColor }}>
-                      {pct}%
-                    </span>
+                    <span style={{
+                      fontSize: '0.78rem', fontWeight: 800,
+                      color: '#08080e', background: barColor,
+                      borderRadius: '9999px', padding: '3px 12px',
+                      boxShadow: `0 0 12px rgba(${hexToRgb(barColor)},0.55)`,
+                    }}>{pct}%</span>
                   </div>
 
-                  {/* Stat row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
-                    {[
-                      { label: 'Có sẵn',   value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)'  },
-                      { label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
-                      { label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
-                      { label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)' },
-                    ].map(s => (
-                      <div key={s.label} style={{ background: s.bg, borderRadius: '7px', padding: '7px 10px', textAlign: 'center' }}>
-                        <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
-                        <p style={{ fontSize: '1.05rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Progress bar + total */}
-                  <div>
-                    <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '9999px', height: '6px', marginBottom: '4px' }}>
-                      <div style={{ height: '6px', borderRadius: '9999px', width: `${pct}%`, background: 'linear-gradient(90deg, #c9a84c, #f0d080)', boxShadow: '0 0 8px rgba(201,168,76,0.6)', transition: 'width 0.6s ease' }} />
+                  {/* Body */}
+                  <div style={{ padding: '12px 14px', background: '#13131d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {/* Stat row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
+                      {[
+                        { label: 'Có sẵn',   value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)'  },
+                        { label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
+                        { label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
+                        { label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)' },
+                      ].map(s => (
+                        <div key={s.label} style={{ background: s.bg, borderRadius: '8px', padding: '8px 10px', textAlign: 'center' }}>
+                          <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
+                          <p style={{ fontSize: '1.1rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
+                        </div>
+                      ))}
                     </div>
-                    <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: 0, textAlign: 'right' }}>
-                      Tổng: <strong style={{ color: '#a0a0b8' }}>{cat.total}</strong>
-                    </p>
+
+                    {/* Progress bar + total */}
+                    <div>
+                      <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '9999px', height: '5px', marginBottom: '5px' }}>
+                        <div style={{ height: '5px', borderRadius: '9999px', width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${barColor})`, boxShadow: `0 0 8px rgba(${rgb},0.5)`, transition: 'width 0.6s ease' }} />
+                      </div>
+                      <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: 0, textAlign: 'right' }}>
+                        Tổng: <strong style={{ color: '#a0a0b8' }}>{cat.total}</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
