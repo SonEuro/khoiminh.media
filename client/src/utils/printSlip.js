@@ -120,12 +120,13 @@ function buildSlipHTML(tx, preview = false) {
 
   /* ── Info grid ── */
   .info-grid { width:100%; border-collapse:collapse; border:2px solid #000; border-top:none; }
-  .info-grid td { border:1px solid #000; padding:5px 8px; font-size:11pt; }
+  .info-grid td { border:1px solid #000; padding:5px 8px; font-size:10pt; font-weight:bold; }
+  .info-grid .val { font-size:13pt; font-weight:bold; }
 
   /* ── Main table ── */
   .main-table { width:100%; border-collapse:collapse; margin-top:-1px; }
   .main-table th { border:1px solid #000; padding:5px 4px; font-size:11pt; font-weight:bold; text-align:center; background:#f0f0f0; }
-  .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; }
+  .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; font-weight:bold; }
 
   /* ── Footer ── */
   .footer-date { text-align:center; margin-top:16px; margin-bottom:4px; font-size:11pt; }
@@ -151,18 +152,18 @@ ${previewBar}
 <!-- INFO -->
 <table class="info-grid">
   <tr>
-    <td colspan="2"><b>TÊN CHƯƠNG TRÌNH :</b> &nbsp;${tx.event_name || ''}</td>
+    <td colspan="2">TÊN CHƯƠNG TRÌNH : &nbsp;<span class="val">${tx.event_name || ''}</span></td>
   </tr>
   <tr>
-    <td style="width:55%"><b>NGƯỜI NHẬN :</b> &nbsp;${tx.responsible_person || ''}</td>
-    <td><b>SỐ ĐIỆN THOẠI :</b></td>
+    <td style="width:55%">NGƯỜI NHẬN : &nbsp;<span class="val">${tx.responsible_person || ''}</span></td>
+    <td>SỐ ĐIỆN THOẠI :</td>
   </tr>
   <tr>
-    <td><b>SỐ PHIẾU :</b> &nbsp;${tx.code}</td>
+    <td>SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td>
     <td></td>
   </tr>
   <tr>
-    <td colspan="2"><b>NGÀY GHI HÌNH :</b> &nbsp;${tx.expected_return_date || ''}</td>
+    <td colspan="2">NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.expected_return_date || ''}</span></td>
   </tr>
 </table>
 
