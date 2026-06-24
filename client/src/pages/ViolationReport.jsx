@@ -85,7 +85,7 @@ const labelStyle = {
 
 export default function ViolationReport() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
 
   const [events,     setEvents]     = useState([]);
   const [violations, setViolations] = useState([]);

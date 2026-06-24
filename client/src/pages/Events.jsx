@@ -314,7 +314,7 @@ function TrashView({ onClose }) {
 
 export default function Events() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [modal, setModal] = useState(null);

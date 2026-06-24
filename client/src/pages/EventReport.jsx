@@ -371,7 +371,7 @@ const EMPTY_FORM = {
 
 export default function EventReport() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
 
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [reports, setReports] = useState([]);
