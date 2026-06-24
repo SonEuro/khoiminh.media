@@ -147,23 +147,23 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', canWrite, (req, res) => {
-  const { name, client, location, start_date, end_date, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
   const code = nextCode();
   const today = new Date().toISOString().slice(0, 10);
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, notes, status, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, name, client, location, start_date, end_date, notes, initialStatus, req.user?.full_name || '');
+    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, notes, status, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, name, client, location, start_date, end_date, filming_date || null, notes, initialStatus, req.user?.full_name || '');
   res.json({ id: r.lastInsertRowid, code });
 });
 
 router.put('/:id', canWrite, (req, res) => {
-  const { name, client, location, start_date, end_date, status, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, status, notes } = req.body;
   db.prepare(`
-    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, status=?, notes=? WHERE id=?
-  `).run(name, client, location, start_date, end_date, status, notes, req.params.id);
+    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, status=?, notes=? WHERE id=?
+  `).run(name, client, location, start_date, end_date, filming_date || null, status, notes, req.params.id);
   res.json({ ok: true });
 });
 

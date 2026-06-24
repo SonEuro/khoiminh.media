@@ -13,7 +13,7 @@ const STATUS_MAP = {
 
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
   const [form, setForm] = useState(initial || {
-    name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: ''
+    name: '', client: '', location: '', start_date: '', end_date: '', filming_date: '', status: 'planned', notes: ''
   });
   const [showSuggest, setShowSuggest] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -106,7 +106,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <input className="input bold-input" value={form.location || ''} onChange={e => set('location', e.target.value)} />
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
           <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)}
@@ -116,6 +116,11 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <label className="label">Ngày kết thúc</label>
           <DateInput value={form.end_date || ''} onChange={v => set('end_date', v)}
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
+        </div>
+        <div>
+          <label className="label">Ngày ghi hình</label>
+          <DateInput value={form.filming_date || ''} onChange={v => set('filming_date', v)}
+            style={form.filming_date ? { color:'#a78bfa', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
@@ -154,6 +159,9 @@ function EventDetailModal({ eventId, onClose }) {
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
           <div><span className="text-gray-500">Từ: </span><strong>{ev.start_date || '—'}</strong></div>
           <div><span className="text-gray-500">Đến: </span><strong>{ev.end_date || '—'}</strong></div>
+          {ev.filming_date && (
+            <div><span className="text-gray-500">Ngày ghi hình: </span><strong style={{ color: '#a78bfa' }}>🎬 {ev.filming_date}</strong></div>
+          )}
           {ev.created_by && (
             <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
           )}
