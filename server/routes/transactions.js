@@ -33,13 +33,13 @@ function nextCode(type, eventId) {
   let row;
   if (eventId) {
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
-    if (ev) evName = ' ' + ev.name;
+    if (ev) evName = '-' + ev.name;
     row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id = ?`).get(type, eventId);
   } else {
     row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id IS NULL`).get(type);
   }
   const seq = (row?.c ?? 0) + 1;
-  return `${prefix}${evName} ${String(seq).padStart(3, '0')}`;
+  return `${prefix}${evName}-${String(seq).padStart(3, '0')}`;
 }
 
 // Outstanding items for an event (OUT qty - RETURN qty > 0)
