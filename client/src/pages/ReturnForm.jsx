@@ -344,13 +344,16 @@ function IntakeTab({ equipment }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ReturnForm() {
-  const [tab, setTab] = useState('fix'); // 'fix' | 'intake'
+  const { user } = useAuth();
+  const canFix = user?.role === 'SUPER_ADMIN' || user?.position?.includes('Trưởng Phòng');
+
+  const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
   const [equipment, setEquipment] = useState([]);
 
   useEffect(() => { api.getEquipment({ limit: 9999 }).then(d => setEquipment(d.items || d)); }, []);
 
   const tabs = [
-    { key: 'fix',    label: '🔧 Sửa xong – Cập nhật tình trạng' },
+    ...(canFix ? [{ key: 'fix', label: '🔧 Sửa xong – Cập nhật tình trạng' }] : []),
     { key: 'intake', label: '📦 Nhập mới thiết bị' },
   ];
 
