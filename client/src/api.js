@@ -94,6 +94,7 @@ export const api = {
   deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
   importEquipment: () => request('/admin/import-equipment', { method: 'POST' }),
   resetOutTransactions: () => request('/admin/reset-out-transactions', { method: 'POST' }),
+  deleteTransaction: (id) => request(`/transactions/${id}`, { method: 'DELETE' }),
 
   // Event Reports
   getEventReports: (params = {}) => {

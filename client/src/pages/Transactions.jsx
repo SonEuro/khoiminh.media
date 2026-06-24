@@ -189,7 +189,7 @@ function EventRows({ events }) {
   );
 }
 
-function TxRows({ txs, onSelect }) {
+function TxRows({ txs, onSelect, onDelete }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
@@ -210,6 +210,10 @@ function TxRows({ txs, onSelect }) {
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
               <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', display:'flex', alignItems:'center' }}
                 onClick={async () => { const full = await api.getTransactionById(tx.id); printSlip(full); }}><Printer size={14} /></button>
+              {onDelete && (
+                <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
+                  onClick={() => onDelete(tx)} title="Xóa phiếu">🗑</button>
+              )}
             </div>
           </div>
         );
@@ -274,7 +278,9 @@ export default function Transactions() {
   const [loading,    setLoading]    = useState(true);
   const [selectedTx, setSelectedTx] = useState(null);
 
-  useEffect(() => {
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+
+  function load() {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
@@ -285,7 +291,17 @@ export default function Transactions() {
     ]).then(([ev, out, ret, rep, vio]) => {
       setEvents(ev); setOutTxs(out); setReturnTxs(ret); setReports(rep); setViolations(vio);
     }).finally(() => setLoading(false));
-  }, [user]);
+  }
+
+  useEffect(() => { load(); }, [user]);
+
+  async function handleDeleteTx(tx) {
+    if (!confirm(`Xóa phiếu ${tx.code}?\nThao tác này sẽ hoàn tác tồn kho tương ứng.`)) return;
+    try {
+      await api.deleteTransaction(tx.id);
+      load();
+    } catch (err) { alert(err.message); }
+  }
 
 
   return (
@@ -304,11 +320,11 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
-            <TxRows txs={outTxs} onSelect={setSelectedTx} />
+            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
-            <TxRows txs={returnTxs} onSelect={setSelectedTx} />
+            <TxRows txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
           </Section>
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>

@@ -252,4 +252,40 @@ router.post('/fix', canTransact, (req, res) => {
   }
 });
 
+// Xóa phiếu (SUPER_ADMIN only) — rollback tồn kho
+router.delete('/:id', requireRole('SUPER_ADMIN'), (req, res) => {
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
+  if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
+
+  const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+
+  const doDelete = db.transaction(() => {
+    for (const item of items) {
+      if (tx.type === 'OUT') {
+        db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = qty_in_use - ? WHERE id = ?')
+          .run(item.quantity, item.quantity, item.equipment_id);
+      } else if (tx.type === 'RETURN') {
+        db.prepare('UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?')
+          .run(item.quantity, item.quantity, item.equipment_id);
+      } else if (tx.type === 'FIX') {
+        db.prepare('UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = qty_available - ? WHERE id = ?')
+          .run(item.quantity, item.quantity, item.equipment_id);
+      } else if (tx.type === 'INTAKE') {
+        db.prepare('UPDATE equipment SET qty_total = qty_total - ?, qty_available = qty_available - ? WHERE id = ?')
+          .run(item.quantity, item.quantity, item.equipment_id);
+      }
+    }
+    db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
+    db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
+    db.prepare('DELETE FROM transactions WHERE id = ?').run(tx.id);
+  });
+
+  try {
+    doDelete();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
