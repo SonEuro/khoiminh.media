@@ -49,7 +49,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           className="input eq-search bold-input"
           required
           value={form.name}
-          placeholder="VD: Gala Dinner Công Ty ABC 2025"
+          placeholder=""
           onChange={e => { set('name', e.target.value); setShowSuggest(true); }}
           onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
           onFocus={() => setShowSuggest(true)}
