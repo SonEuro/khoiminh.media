@@ -176,6 +176,7 @@ export default function Equipment() {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topData, setTopData] = useState(null);
+  const [expandedStat, setExpandedStat] = useState(null); // { catCode, stat }
 
   const load = useCallback(() => {
     const params = {};
@@ -405,20 +406,66 @@ export default function Equipment() {
 
                   {/* Body */}
                   <div style={{ padding: '12px 14px', background: '#13131d', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {/* Stat row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
-                      {[
-                        { label: 'Có sẵn',   value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)'  },
-                        { label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
-                        { label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
-                        { label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)' },
-                      ].map(s => (
-                        <div key={s.label} style={{ background: s.bg, borderRadius: '8px', padding: '8px 10px', textAlign: 'center' }}>
-                          <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</p>
-                          <p style={{ fontSize: '1.1rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
-                        </div>
-                      ))}
-                    </div>
+                    {/* Stat row — clickable */}
+                    {(() => {
+                      const stats = [
+                        { key: 'available',   label: 'Có sẵn',    value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  filterFn: e => (e.qty_available||0) > 0,                          qtyFn: e => e.qty_available   },
+                        { key: 'in_use',      label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  filterFn: e => (e.qty_in_use||0) > 0,                             qtyFn: e => e.qty_in_use      },
+                        { key: 'maintenance', label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  filterFn: e => (e.qty_maintenance||0) > 0,                        qtyFn: e => e.qty_maintenance },
+                        { key: 'damaged',     label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)', filterFn: e => (e.qty_damaged||0)+(e.qty_lost||0) > 0,            qtyFn: e => (e.qty_damaged||0)+(e.qty_lost||0) },
+                      ];
+                      const activeStat = expandedStat?.catCode === cat.code ? expandedStat.stat : null;
+                      const activeStatCfg = stats.find(s => s.key === activeStat);
+                      const dropItems = activeStat
+                        ? visibleEquipment.filter(e => e.category_code === cat.code).filter(activeStatCfg.filterFn)
+                        : [];
+
+                      return (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
+                            {stats.map(s => {
+                              const isActive = activeStat === s.key;
+                              return (
+                                <div key={s.key}
+                                  onClick={() => s.value > 0 && setExpandedStat(isActive ? null : { catCode: cat.code, stat: s.key })}
+                                  style={{
+                                    background: isActive ? `${s.color}20` : s.bg,
+                                    border: `1px solid ${isActive ? s.color + '55' : 'transparent'}`,
+                                    borderRadius: '8px', padding: '8px 10px', textAlign: 'center',
+                                    cursor: s.value > 0 ? 'pointer' : 'default',
+                                    transition: 'all 0.15s', userSelect: 'none',
+                                  }}>
+                                  <p style={{ fontSize: '0.6rem', color: isActive ? s.color : '#7878a0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: isActive ? 700 : 400 }}>{s.label}</p>
+                                  <p style={{ fontSize: '1.1rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
+                                  {s.value > 0 && <p style={{ fontSize: '0.55rem', color: isActive ? s.color : '#555570', margin: '3px 0 0' }}>{isActive ? '▲ đóng' : '▼ xem'}</p>}
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Dropdown */}
+                          {activeStat && dropItems.length > 0 && (
+                            <div style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${activeStatCfg.color}30`, borderRadius: '10px', overflow: 'hidden' }}>
+                              <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                                {dropItems.map((eq, i) => (
+                                  <div key={eq.id} style={{
+                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                    padding: '8px 14px',
+                                    borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                  }}>
+                                    <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
+                                    <span style={{ flex: 1, fontSize: '0.82rem', color: '#e0e0ee', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: activeStatCfg.color, flexShrink: 0 }}>
+                                      {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
 
                     {/* Progress bar + total */}
                     <div>
