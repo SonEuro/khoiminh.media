@@ -137,8 +137,10 @@ export default function ExportForm() {
   // After success — show confirmation with print option
   if (doneSlip) {
     return (
-      <div className="p-6 max-w-lg">
-        <div className="card text-center space-y-5">
+      <div onClick={() => navigate('/')}
+        style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+        <div className="card text-center space-y-5" onClick={e => e.stopPropagation()}
+          style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
           <div className="text-5xl">✅</div>
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
