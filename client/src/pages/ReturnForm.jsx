@@ -246,6 +246,8 @@ function FixTab({ equipment }) {
 
 // ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
 function IntakeTab({ equipment }) {
+  const { user } = useAuth();
+  const canIntake = user?.role === 'SUPER_ADMIN' || user?.position?.includes('Kế Toán');
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -262,6 +264,7 @@ function IntakeTab({ equipment }) {
 
   async function submit(e) {
     e.preventDefault();
+    if (!canIntake) return;
     const validItems = items.filter(r => r.equipment_id && r.quantity > 0);
     if (!validItems.length) return alert('Chưa chọn thiết bị nào');
     if (!person) return alert('Chưa chọn người nhập');
@@ -287,6 +290,19 @@ function IntakeTab({ equipment }) {
 
   return (
     <form onSubmit={submit}>
+      {!canIntake && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)',
+          borderRadius: '10px', padding: '11px 16px', marginBottom: '14px',
+        }}>
+          <span>🔒</span>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#f87171' }}>
+            Chỉ <strong>Super Admin</strong> hoặc chức vụ <strong>Kế Toán</strong> mới có thể nhập thiết bị mới
+          </p>
+        </div>
+      )}
+      <div style={!canIntake ? { opacity: 0.45, pointerEvents: 'none', userSelect: 'none' } : {}}>
       <div style={sectionStyle}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
           <div>
@@ -334,8 +350,11 @@ function IntakeTab({ equipment }) {
         </div>
       </div>
 
-      <button type="submit" disabled={submitting} className="btn-primary"
-        style={{ width: '100%', padding: '13px', fontSize: '1rem' }}>
+      </div>{/* end lock wrapper */}
+
+      <button type="submit" disabled={submitting || !canIntake} className="btn-primary"
+        style={{ width: '100%', padding: '13px', fontSize: '1rem',
+          opacity: canIntake ? 1 : 0.4, cursor: canIntake ? 'pointer' : 'not-allowed' }}>
         {submitting ? 'Đang xử lý...' : '📦 Xác nhận nhập kho thiết bị mới'}
       </button>
     </form>
