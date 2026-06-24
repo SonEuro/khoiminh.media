@@ -163,7 +163,7 @@ ${previewBar}
     <td></td>
   </tr>
   <tr>
-    <td colspan="2">NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.expected_return_date || ''}</span></td>
+    <td colspan="2">NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.filming_date ? tx.filming_date.slice(8,10)+'/'+tx.filming_date.slice(5,7)+'/'+tx.filming_date.slice(2,4) : ''}</span></td>
   </tr>
 </table>
 
