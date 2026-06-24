@@ -150,9 +150,8 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
 }
 
 // ── Tab 1: Sửa xong ───────────────────────────────────────────────────────────
-function FixTab({ equipment }) {
+function FixTab({ equipment, onDone }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
   const isDeptRole = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
@@ -164,7 +163,6 @@ function FixTab({ equipment }) {
   const [date, setDate] = useState(today);
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(null);
 
   const maintenanceEq = equipment.filter(e =>
     e.qty_maintenance > 0 && (!myCats || myCats.includes(e.category_code))
@@ -182,24 +180,10 @@ function FixTab({ equipment }) {
     setSubmitting(true);
     try {
       const res = await api.createFix({ responsible_person: person, notes: `[${department}] Ngày: ${date}`, items: validItems });
-      setDone(res);
+      onDone({ ...res, _type: 'fix' });
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
   }
-
-  if (done) return (
-    <div onClick={() => navigate('/')} style={{ position:'fixed', inset:0, background:'var(--bg-main)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:999 }}>
-      <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
-        <div style={{ fontSize: '3rem' }}>✅</div>
-        <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Cập nhật thành công!</p>
-        <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
-          <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <form onSubmit={submit}>
@@ -272,10 +256,9 @@ function FixTab({ equipment }) {
 }
 
 // ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
-function IntakeTab({ equipment }) {
+function IntakeTab({ equipment, onDone }) {
   const { user, can } = useAuth();
   const canIntake = can('intake');
-  const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
 
   const [department, setDepartment] = useState('');
@@ -283,7 +266,6 @@ function IntakeTab({ equipment }) {
   const [date, setDate] = useState(today);
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(null);
 
   function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
   function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
@@ -298,24 +280,10 @@ function IntakeTab({ equipment }) {
     setSubmitting(true);
     try {
       const res = await api.createIntake({ responsible_person: person, department, intake_date: date, items: validItems });
-      setDone(res);
+      onDone({ ...res, _type: 'intake' });
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
   }
-
-  if (done) return (
-    <div onClick={() => navigate('/')} style={{ position:'fixed', inset:0, background:'var(--bg-main)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:999 }}>
-      <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
-        <div style={{ fontSize: '3rem' }}>📦</div>
-        <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>Nhập kho thành công!</p>
-        <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          <button onClick={() => { setDone(null); setItems([{ equipment_id: '', quantity: 1 }]); }} className="btn-primary">Nhập tiếp</button>
-          <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <form onSubmit={submit}>
@@ -393,10 +361,12 @@ function IntakeTab({ equipment }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ReturnForm() {
   const { user, can } = useAuth();
+  const navigate = useNavigate();
   const canFix = can('confirmFix');
 
   const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
   const [equipment, setEquipment] = useState([]);
+  const [done, setDone] = useState(null);
 
   useEffect(() => { api.getEquipment({ limit: 9999 }).then(d => setEquipment(d.items || d)); }, []);
 
@@ -404,6 +374,22 @@ export default function ReturnForm() {
     ...(canFix ? [{ key: 'fix', label: '🔧 Sửa xong – Cập nhật tình trạng' }] : []),
     { key: 'intake', label: '📦 Nhập mới thiết bị' },
   ];
+
+  if (done) return (
+    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+      <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
+        <div style={{ fontSize: '3rem' }}>{done._type === 'fix' ? '✅' : '📦'}</div>
+        <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>
+          {done._type === 'fix' ? 'Cập nhật thành công!' : 'Nhập kho thành công!'}
+        </p>
+        <p style={{ color: '#7878a0', fontSize: '0.85rem' }}>Phiếu <strong style={{ color: GOLD }}>{done.code}</strong></p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button onClick={() => setDone(null)} className="btn-primary">Nhập tiếp</button>
+          <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="p-6 max-w-2xl">
@@ -427,8 +413,8 @@ export default function ReturnForm() {
         ))}
       </div>
 
-      {tab === 'fix'    && <FixTab    equipment={equipment} />}
-      {tab === 'intake' && <IntakeTab equipment={equipment} />}
+      {tab === 'fix'    && <FixTab    equipment={equipment} onDone={setDone} />}
+      {tab === 'intake' && <IntakeTab equipment={equipment} onDone={setDone} />}
     </div>
   );
 }
