@@ -271,8 +271,7 @@ function FixTab({ equipment }) {
 
 // ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
 function IntakeTab({ equipment }) {
-  const { user } = useAuth();
-  const { can } = useAuth();
+  const { user, can } = useAuth();
   const canIntake = can('intake');
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
@@ -389,7 +388,7 @@ function IntakeTab({ equipment }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function ReturnForm() {
-  const { user } = useAuth();
+  const { user, can } = useAuth();
   const canFix = can('confirmFix');
 
   const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
