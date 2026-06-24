@@ -2,7 +2,10 @@ function buildSlipHTML(tx, preview = false) {
   const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
   const logoUrl   = window.location.origin + '/logo.png';
 
-  const itemRows = (tx.items || []).map((item, i) => `
+  const khoItems  = tx.items || [];
+  const extItems  = tx.external_items || [];
+
+  const itemRows = khoItems.map((item, i) => `
     <tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
@@ -12,7 +15,25 @@ function buildSlipHTML(tx, preview = false) {
     </tr>
   `).join('');
 
-  const blankCount = Math.max(18 - (tx.items || []).length, 4);
+  const extRows = extItems.length > 0 ? `
+    <tr>
+      <td colspan="5" style="text-align:left;padding:4px 6px;font-weight:bold;font-style:italic;background:#f9f9f9;border-top:2px solid #000">
+        Thiết bị mượn từ nhà cung cấp:
+      </td>
+    </tr>
+    ${extItems.map((item, i) => `
+      <tr>
+        <td style="text-align:center">${khoItems.length + i + 1}</td>
+        <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
+        <td style="text-align:center;font-size:9pt;color:#555">${item.supplier || ''}</td>
+        <td style="text-align:center">${item.quantity}</td>
+        <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
+      </tr>
+    `).join('')}
+  ` : '';
+
+  const totalCount = khoItems.length + extItems.length;
+  const blankCount = Math.max(18 - totalCount, 4);
   const blankRows  = Array(blankCount).fill(
     '<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>'
   ).join('');
@@ -167,6 +188,7 @@ ${previewBar}
   </thead>
   <tbody>
     ${itemRows}
+    ${extRows}
     ${blankRows}
   </tbody>
 </table>

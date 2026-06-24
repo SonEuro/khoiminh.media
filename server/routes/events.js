@@ -127,7 +127,14 @@ router.get('/:id', (req, res) => {
     GROUP BY ti.equipment_id
   `).all(req.params.id);
 
-  res.json({ ...ev, items });
+  const external_items = db.prepare(`
+    SELECT ei.supplier, ei.name, ei.quantity, ei.notes
+    FROM external_items ei
+    JOIN transactions t ON t.id = ei.transaction_id
+    WHERE t.event_id = ? AND t.type = 'OUT'
+  `).all(req.params.id);
+
+  res.json({ ...ev, items, external_items });
 });
 
 router.post('/', canWrite, (req, res) => {
