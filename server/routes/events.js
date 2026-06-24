@@ -22,6 +22,20 @@ function cleanupTrash() {
 cleanupTrash();
 setInterval(cleanupTrash, 24 * 60 * 60 * 1000);
 
+// Auto-update: sự kiện 'planned' đã đến ngày bắt đầu → chuyển sang 'active'
+function autoUpdateStatuses() {
+  const r = db.prepare(`
+    UPDATE events SET status = 'active'
+    WHERE status = 'planned'
+      AND start_date IS NOT NULL
+      AND start_date <= date('now','localtime')
+      AND deleted_at IS NULL
+  `).run();
+  if (r.changes > 0) console.log(`[AutoStatus] Chuyển ${r.changes} sự kiện → 'Đang diễn ra'`);
+}
+autoUpdateStatuses();
+setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
+
 // Danh sách sự kiện (không gồm trash)
 router.get('/', (req, res) => {
   const { status } = req.query;
@@ -68,10 +82,12 @@ router.post('/', canWrite, (req, res) => {
   const { name, client, location, start_date, end_date, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
   const code = nextCode();
+  const today = new Date().toISOString().slice(0, 10);
+  const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, notes, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, name, client, location, start_date, end_date, notes, req.user?.full_name || '');
+    INSERT INTO events (code, name, client, location, start_date, end_date, notes, status, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, name, client, location, start_date, end_date, notes, initialStatus, req.user?.full_name || '');
   res.json({ id: r.lastInsertRowid, code });
 });
 
