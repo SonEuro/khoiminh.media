@@ -129,8 +129,10 @@ function buildSlipHTML(tx, preview = false) {
   .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; font-weight:bold; }
 
   /* ── Footer ── */
-  .footer-date { text-align:center; margin-top:16px; margin-bottom:4px; font-size:11pt; }
-  .sig-row { display:flex; border:1px solid #000; }
+  .footer-wrap { text-align:center; margin-top:16px; margin-bottom:4px; }
+  .footer-date { font-size:11pt; font-weight:bold; display:block; margin-bottom:4px; }
+  .footer-note { font-size:10pt; font-weight:bold; display:block; }
+  .sig-row { display:flex; border:2px solid #000; }
   .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:11pt; padding:6px 0 70px; }
   .sig-cell:last-child { border-right:none; }
 
@@ -186,9 +188,9 @@ ${previewBar}
 </table>
 
 <!-- FOOTER -->
-<div class="footer-date">
-  ${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ký và ghi đầy đủ họ và tên
+<div class="footer-wrap">
+  <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
+  <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
 </div>
 <div class="sig-row">
   <div class="sig-cell">Quản lý kho</div>
