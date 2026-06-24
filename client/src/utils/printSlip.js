@@ -155,7 +155,7 @@ ${previewBar}
     <td colspan="2">TÊN CHƯƠNG TRÌNH : &nbsp;<span class="val">${tx.event_name || ''}</span></td>
   </tr>
   <tr>
-    <td style="width:55%">NGƯỜI NHẬN : &nbsp;<span class="val">${tx.responsible_person || ''}</span></td>
+    <td style="width:55%">NGƯỜI NHẬN : &nbsp;<span class="val">${tx.event_client || ''}</span></td>
     <td>SỐ ĐIỆN THOẠI :</td>
   </tr>
   <tr>
