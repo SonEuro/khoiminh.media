@@ -23,6 +23,37 @@ router.get('/', (req, res) => {
   res.json(db.prepare(sql).all(...params));
 });
 
+// Tóm tắt toàn kho + top thiết bị nổi bật theo lần sử dụng gần nhất
+router.get('/top-used', (req, res) => {
+  const limit = parseInt(req.query.limit) || 5;
+
+  const summary = db.prepare(`
+    SELECT
+      SUM(qty_total)       AS total,
+      SUM(qty_available)   AS available,
+      SUM(qty_in_use)      AS in_use,
+      SUM(qty_maintenance) AS maintenance,
+      SUM(qty_damaged + qty_lost) AS damaged
+    FROM equipment
+  `).get();
+
+  const topUsed = db.prepare(`
+    SELECT e.id, e.name, e.code, e.unit,
+           c.name AS category_name, c.code AS category_code,
+           e.qty_in_use, e.qty_available, e.qty_total,
+           MAX(t.transaction_date) AS last_used
+    FROM equipment e
+    LEFT JOIN categories c ON c.id = e.category_id
+    LEFT JOIN transaction_items ti ON ti.equipment_id = e.id
+    LEFT JOIN transactions t ON t.id = ti.transaction_id AND t.type = 'OUT'
+    GROUP BY e.id
+    ORDER BY last_used DESC, e.qty_in_use DESC
+    LIMIT ?
+  `).all(limit);
+
+  res.json({ summary, topUsed });
+});
+
 router.get('/:id', (req, res) => {
   const row = db.prepare(`
     SELECT e.*, c.name as category_name, c.code as category_code, c.icon as category_icon

@@ -175,6 +175,7 @@ export default function Equipment() {
   const [modal, setModal] = useState(null); // null | 'add' | 'edit' | 'qr' | 'history'
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [topData, setTopData] = useState(null);
 
   const load = useCallback(() => {
     const params = {};
@@ -185,6 +186,7 @@ export default function Equipment() {
 
   useEffect(() => { api.getCategories().then(setCategories); }, []);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
 
   // Filter by dept restriction
   const visibleEquipment = allowedCats
@@ -268,6 +270,94 @@ export default function Equipment() {
           </button>
         )}
       </div>
+
+      {/* ── Tóm tắt toàn kho + Top thiết bị nổi bật ── */}
+      {topData && (
+        <div style={{ marginBottom: '22px' }}>
+          {/* Global stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '18px' }}>
+            {[
+              { label: 'Tổng thiết bị', value: topData.summary?.total ?? 0,       color: '#e8c97a', rgb: '232,201,122', icon: '📦' },
+              { label: 'Có sẵn',        value: topData.summary?.available ?? 0,    color: '#4ade80', rgb: '74,222,128',  icon: '✅' },
+              { label: 'Đang dùng',     value: topData.summary?.in_use ?? 0,       color: '#60a5fa', rgb: '96,165,250',  icon: '🔄' },
+              { label: 'Bảo trì/Hỏng',  value: (topData.summary?.maintenance ?? 0) + (topData.summary?.damaged ?? 0), color: '#f87171', rgb: '248,113,113', icon: '⚠️' },
+            ].map(s => (
+              <div key={s.label} style={{
+                borderRadius: '12px', overflow: 'hidden',
+                border: `1px solid rgba(${s.rgb},0.28)`,
+                boxShadow: `0 4px 16px rgba(${s.rgb},0.10)`,
+              }}>
+                <div style={{
+                  padding: '12px 16px',
+                  background: `linear-gradient(135deg, rgba(${s.rgb},0.16), rgba(${s.rgb},0.04))`,
+                  borderLeft: `4px solid ${s.color}`,
+                }}>
+                  <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value.toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Top 5 nổi bật */}
+          <div style={{
+            borderRadius: '14px', overflow: 'hidden',
+            border: '1px solid rgba(201,168,76,0.28)',
+            boxShadow: '0 4px 24px rgba(201,168,76,0.08)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '13px 18px',
+              background: 'linear-gradient(135deg, rgba(201,168,76,0.16), rgba(201,168,76,0.04))',
+              borderBottom: '1px solid rgba(201,168,76,0.20)',
+              borderLeft: '4px solid #c9a84c',
+            }}>
+              <div style={{
+                width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
+                background: 'rgba(201,168,76,0.18)', border: '1px solid rgba(201,168,76,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
+              }}>⭐</div>
+              <span style={{ fontWeight: 800, color: '#c9a84c', fontSize: '0.92rem', flex: 1 }}>Thiết Bị Sử Dụng Nổi Bật</span>
+              <span style={{ fontSize: '0.7rem', color: '#7878a0' }}>theo lần dùng gần nhất</span>
+            </div>
+            <div style={{ background: '#13131d' }}>
+              {(topData.topUsed || []).length === 0 ? (
+                <p style={{ color: '#7878a0', fontSize: '0.8rem', padding: '14px 20px', margin: 0 }}>Chưa có dữ liệu sử dụng</p>
+              ) : (
+                topData.topUsed.map((eq, i) => {
+                  const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
+                  const catC = CAT_COLORS[eq.category_code] || { color: '#c9a84c', rgb: '201,168,76' };
+                  const lastDate = eq.last_used ? eq.last_used.slice(8,10) + '/' + eq.last_used.slice(5,7) + '/' + eq.last_used.slice(0,4) : '—';
+                  return (
+                    <div key={eq.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '12px',
+                      padding: '11px 18px',
+                      borderTop: i > 0 ? '1px solid rgba(201,168,76,0.07)' : 'none',
+                    }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7878a0', width: '18px', textAlign: 'center', flexShrink: 0 }}>#{i+1}</span>
+                      <div style={{
+                        width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                        background: `rgba(${catC.rgb},0.15)`, border: `1px solid rgba(${catC.rgb},0.3)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontWeight: 700, color: '#e0e0ee', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
+                        <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: '2px 0 0' }}>{eq.category_name} · {eq.code}</p>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{eq.qty_in_use} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>đang dùng</span></p>
+                        <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '2px 0 0' }}>{lastDate}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Báo cáo tồn kho thời gian thực ── */}
       {catSummary.length > 0 && (
