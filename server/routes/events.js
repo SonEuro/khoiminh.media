@@ -36,6 +36,58 @@ function autoUpdateStatuses() {
 autoUpdateStatuses();
 setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
+// Auto-violation: sự kiện kết thúc + 12h mà người phụ trách chưa nhập kho → vi phạm nội quy
+function checkLateReturns() {
+  const lateRows = db.prepare(`
+    SELECT DISTINCT
+      ev.id          AS event_id,
+      ev.name        AS event_name,
+      ev.code        AS event_code,
+      t.responsible_person
+    FROM events ev
+    JOIN transactions t ON t.event_id = ev.id AND t.type = 'OUT'
+    WHERE ev.deleted_at IS NULL
+      AND ev.end_date IS NOT NULL
+      AND datetime(ev.end_date || ' 23:59:59', '+12 hours') <= datetime('now','localtime')
+      AND ev.status != 'cancelled'
+      AND t.responsible_person IS NOT NULL
+      AND t.responsible_person != ''
+      AND EXISTS (
+        SELECT 1 FROM (
+          SELECT
+            SUM(CASE WHEN t2.type = 'OUT'    THEN ti.quantity ELSE 0 END) AS qty_out,
+            SUM(CASE WHEN t2.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_returned
+          FROM transaction_items ti
+          JOIN transactions t2 ON t2.id = ti.transaction_id
+          WHERE t2.event_id = ev.id
+          GROUP BY ti.equipment_id
+        ) sub WHERE sub.qty_out > sub.qty_returned
+      )
+  `).all();
+
+  for (const row of lateRows) {
+    const exists = db.prepare(`
+      SELECT id FROM violations
+      WHERE event_id = ? AND violator = ? AND violation_type = 'Không hoàn thành nhiệm vụ đúng hạn'
+    `).get(row.event_id, row.responsible_person);
+
+    if (!exists) {
+      db.prepare(`
+        INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
+        VALUES (?, ?, 'Hệ thống', ?, 'Không hoàn thành nhiệm vụ đúng hạn', ?)
+      `).run(
+        row.event_id,
+        `${row.event_code} – ${row.event_name}`,
+        row.responsible_person,
+        `Chưa xác nhận nhập kho thiết bị sau 12 giờ kể từ khi sự kiện "${row.event_name}" kết thúc`
+      );
+      console.log(`[AutoViolation] ${row.responsible_person} – ${row.event_code}`);
+    }
+  }
+}
+checkLateReturns();
+setInterval(checkLateReturns, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
+
 // Danh sách sự kiện (không gồm trash)
 router.get('/', (req, res) => {
   const { status } = req.query;
