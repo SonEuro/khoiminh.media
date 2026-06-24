@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,6 +52,7 @@ export default function ExportForm() {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
+  const savedSnapshot = useRef(null);
 
   // Thiết bị ngoài
   const [extOpen,     setExtOpen]     = useState(false);
@@ -121,6 +122,7 @@ export default function ExportForm() {
       ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier }))
       : [];
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
+    savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
     setSubmitting(true);
     try {
       const res = await api.createOut({ ...form, items: validItems, external_items: validExt });
@@ -161,7 +163,21 @@ export default function ExportForm() {
           {/* Row 2: Back to edit + History */}
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => setDoneSlip(null)}
+              onClick={async () => {
+                try { await api.deleteTransaction(doneSlip.id); } catch {}
+                const s = savedSnapshot.current;
+                if (s) {
+                  setForm(s.form);
+                  setItems(s.items);
+                  setSearchTerms(s.searchTerms);
+                  setDeptFilter(s.deptFilter);
+                  setExtOpen(s.extOpen);
+                  setExtSupplier(s.extSupplier);
+                  setExtCustom(s.extCustom);
+                  setExtItems(s.extItems);
+                }
+                setDoneSlip(null);
+              }}
               style={{
                 display:'flex', alignItems:'center', gap:'6px',
                 padding:'8px 16px', borderRadius:'8px', fontSize:'0.875rem',

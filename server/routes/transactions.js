@@ -118,9 +118,9 @@ router.post('/out', canTransact, (req, res) => {
   const doOut = db.transaction(() => {
     const code = nextCode('OUT', event_id || null);
     const txR = db.prepare(`
-      INSERT INTO transactions (code, type, event_id, responsible_person, expected_return_date, notes)
-      VALUES (?, 'OUT', ?, ?, ?, ?)
-    `).run(code, event_id || null, responsible_person, expected_return_date, notes);
+      INSERT INTO transactions (code, type, event_id, responsible_person, expected_return_date, notes, created_by_id)
+      VALUES (?, 'OUT', ?, ?, ?, ?, ?)
+    `).run(code, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
 
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
@@ -252,10 +252,14 @@ router.post('/fix', canTransact, (req, res) => {
   }
 });
 
-// Xóa phiếu (SUPER_ADMIN only) — rollback tồn kho
-router.delete('/:id', requireRole('SUPER_ADMIN'), (req, res) => {
+// Xóa phiếu — SUPER_ADMIN hoặc người tạo phiếu
+router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCOUNTING', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'), (req, res) => {
   const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
   if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
+  if (!isSuperAdmin && tx.created_by_id !== req.user.id) {
+    return res.status(403).json({ error: 'Bạn không có quyền xóa phiếu này' });
+  }
 
   const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
 
