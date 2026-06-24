@@ -32,6 +32,14 @@ function hexToRgb(hex) {
 
 const STATUS_LABELS = { available: 'Có sẵn', in_use: 'Đang dùng', maintenance: 'Sửa chữa', damaged: 'Hỏng', lost: 'Mất' };
 
+const DEPT_OPTIONS = [
+  { value: '',     label: 'Tất cả bộ phận', cats: null,                              Icon: LayoutGrid   },
+  { value: 'KT',   label: 'Kỹ Thuật',       cats: ['TECH'],                           Icon: Clapperboard },
+  { value: 'ATAS', label: 'ATAS',            cats: ['AUDIO','LIGHT','LED','MATRIX'],   Icon: Headphones   },
+  { value: 'SK',   label: 'Sân Khấu',       cats: ['STAGE'],                          Icon: Theater      },
+  { value: 'CSVC', label: 'CSVC',            cats: ['CSVC'],                           Icon: Package      },
+];
+
 const CAT_ORDER = ['TECH', 'AUDIO', 'LIGHT', 'LED', 'MATRIX', 'STAGE', 'CSVC'];
 const sortCats = (cats) => [...cats].sort((a, b) => {
   const ai = CAT_ORDER.indexOf(a.code), bi = CAT_ORDER.indexOf(b.code);
@@ -171,31 +179,48 @@ export default function Equipment() {
   const [equipment, setEquipment] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
-  const [catFilter, setCatFilter] = useState('');
-  const [modal, setModal] = useState(null); // null | 'add' | 'edit' | 'qr' | 'history'
+  const [deptFilter, setDeptFilter] = useState('');
+  const [showSearchDrop, setShowSearchDrop] = useState(false);
+  const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topData, setTopData] = useState(null);
-  const [expandedStat, setExpandedStat] = useState(null); // { catCode, stat }
+  const [expandedStat, setExpandedStat] = useState(null);
 
   const load = useCallback(() => {
-    const params = {};
-    if (search) params.search = search;
-    if (catFilter) params.category = catFilter;
-    api.getEquipment(params).then(setEquipment).finally(() => setLoading(false));
-  }, [search, catFilter]);
+    api.getEquipment({ limit: 9999 }).then(setEquipment).finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => { api.getCategories().then(setCategories); }, []);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
 
-  // Filter by dept restriction
-  const visibleEquipment = allowedCats
+  // Role-based restriction
+  const baseEquipment = allowedCats
     ? equipment.filter(e => allowedCats.includes(e.category_code))
     : equipment;
   const visibleCats = sortCats(
     allowedCats ? categories.filter(c => allowedCats.includes(c.code)) : categories
   );
+
+  // Client-side filtering
+  const deptCats = DEPT_OPTIONS.find(d => d.value === deptFilter)?.cats ?? null;
+  const visibleEquipment = baseEquipment
+    .filter(e => !deptCats || deptCats.includes(e.category_code))
+    .filter(e => !search.trim() ||
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.code.toLowerCase().includes(search.toLowerCase())
+    );
+
+  // Autocomplete suggestions
+  const searchSuggestions = showSearchDrop && search.trim().length >= 1
+    ? (deptCats
+        ? baseEquipment.filter(e => deptCats.includes(e.category_code))
+        : baseEquipment
+      )
+      .filter(e => e.name.toLowerCase().includes(search.toLowerCase()) || e.code.toLowerCase().includes(search.toLowerCase()))
+      .slice(0, 8)
+    : [];
 
   const handleSave = async (form) => {
     try {
@@ -485,17 +510,61 @@ export default function Equipment() {
       )}
 
       {/* Filters */}
-      <div className="flex gap-3 mb-4">
-        <input
-          className="input max-w-xs"
-          placeholder="Tìm theo tên, mã..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <select className="input max-w-xs" value={catFilter} onChange={e => setCatFilter(e.target.value)}>
-          <option value="">Tất cả danh mục</option>
-          {visibleCats.map(c => <option key={c.code} value={c.code}>{c.icon} {c.name}</option>)}
-        </select>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+
+        {/* Bộ phận select */}
+        <div style={{ position: 'relative', minWidth: '170px' }}>
+          <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSearch(''); }}
+            style={{ width: '100%', paddingLeft: '36px', color: deptFilter ? '#c9a84c' : undefined, fontWeight: deptFilter ? 700 : 400 }}>
+            {DEPT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+          </select>
+          {(() => {
+            const d = DEPT_OPTIONS.find(o => o.value === deptFilter) || DEPT_OPTIONS[0];
+            return <d.Icon size={14} strokeWidth={1.75} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#c9a84c', pointerEvents: 'none' }} />;
+          })()}
+        </div>
+
+        {/* Search with autocomplete */}
+        <div style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '400px' }}>
+          <input className="input" placeholder="Tìm theo tên, mã..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setShowSearchDrop(true); }}
+            onFocus={() => setShowSearchDrop(true)}
+            onBlur={() => setTimeout(() => setShowSearchDrop(false), 160)}
+            style={{ width: '100%' }}
+          />
+          {searchSuggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
+              background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
+              borderRadius: '10px', overflow: 'hidden',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.6)',
+            }}>
+              {searchSuggestions.map((eq, i) => {
+                const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
+                const catC = CAT_COLORS[eq.category_code] || { color: '#c9a84c' };
+                return (
+                  <div key={eq.id}
+                    onMouseDown={() => { setSearch(eq.name); setShowSearchDrop(false); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '9px 14px', cursor: 'pointer',
+                      borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.07)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: '0.83rem', color: '#e0e0ee', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#7878a0', flexShrink: 0 }}>{eq.code}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', flexShrink: 0 }}>{eq.qty_available}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Table */}
@@ -529,7 +598,7 @@ export default function Equipment() {
               <tr><td colSpan={10} className="text-center py-8 text-gray-400">Đang tải...</td></tr>
             )}
             {!loading && visibleEquipment.length === 0 && (
-              <tr><td colSpan={10} className="text-center py-8 text-gray-400">Không tìm thấy thiết bị</td></tr>
+              <tr><td colSpan={10} style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>Không tìm thấy thiết bị</td></tr>
             )}
             {visibleEquipment.map(eq => (
               <tr key={eq.id} style={{ borderBottom: '1px solid rgba(201,168,76,0.50)' }}
