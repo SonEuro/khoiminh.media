@@ -230,7 +230,7 @@ export default function Users() {
                   setForm(f => ({
                     ...f,
                     position: pos,
-                    role: f.role,
+                    role: pos === 'Super Man' ? 'SUPER_ADMIN' : f.role,
                   }));
                 }}
                 style={{ color: form.position ? '#f87171' : 'var(--text-muted)', fontWeight: form.position ? 700 : 400 }}>
@@ -239,6 +239,7 @@ export default function Users() {
                 <option value="Giám đốc">👑 Giám đốc</option>
                 <option value="Trưởng phòng">Trưởng Phòng</option>
                 <option value="Nhân viên">Nhân viên</option>
+                <option value="Super Man">🦸 Super Man</option>
               </select>
             </div>
 

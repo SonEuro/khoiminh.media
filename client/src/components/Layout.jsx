@@ -93,10 +93,10 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
             {user?.full_name?.[0] || '?'}
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ fontSize:'0.8rem', fontWeight:600, color: TEXT_PRIMARY, margin:0, lineHeight:1.35, wordBreak:'break-word' }}>
+            <p style={{ fontSize:'0.72rem', fontWeight:600, color: TEXT_PRIMARY, margin:0, lineHeight:1.35, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {user?.full_name}
             </p>
-            <p style={{ fontSize:'0.7rem', color: GOLD, margin:'2px 0 0' }}>
+            <p style={{ fontSize:'0.65rem', color: GOLD, margin:'2px 0 0', whiteSpace:'nowrap' }}>
               {ROLE_LABELS[user?.role] || user?.role}
             </p>
           </div>
