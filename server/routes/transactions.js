@@ -82,7 +82,7 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req, res) => {
   const tx = db.prepare(`
-    SELECT t.*, e.name as event_name, e.code as event_code, e.filming_date, e.client as event_client
+    SELECT t.*, e.name as event_name, e.code as event_code, e.filming_date, e.client as event_client, e.location as event_location
     FROM transactions t LEFT JOIN events e ON e.id = t.event_id
     WHERE t.id = ?
   `).get(req.params.id);

@@ -156,7 +156,7 @@ ${previewBar}
   </tr>
   <tr>
     <td style="width:55%">NGƯỜI NHẬN : &nbsp;<span class="val">${tx.event_client || ''}</span></td>
-    <td>SỐ ĐIỆN THOẠI :</td>
+    <td>ĐỊA ĐIỂM : &nbsp;<span class="val">${tx.event_location || ''}</span></td>
   </tr>
   <tr>
     <td>SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td>
