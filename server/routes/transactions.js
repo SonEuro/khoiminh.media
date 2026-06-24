@@ -21,7 +21,12 @@ function checkDept(user, equipmentIds) {
 function nextCode(type, eventId) {
   if (type === 'FIX') {
     const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'FIX'`).get();
-    return `FIX-${String(c + 1).padStart(3, '0')}`;
+    const seq = String(c + 1).padStart(3, '0');
+    if (eventId) { // eventId reused as equipmentId for FIX
+      const eq = db.prepare('SELECT name FROM equipment WHERE id = ?').get(eventId);
+      if (eq) return `${eq.name} ${seq}`;
+    }
+    return `Sửa chữa ${seq}`;
   }
   const prefix = type === 'OUT' ? 'Xuất' : 'Nhập';
   let evName = '';
@@ -232,7 +237,7 @@ router.post('/fix', canTransact, (req, res) => {
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
   const doFix = db.transaction(() => {
-    const code = nextCode('FIX');
+    const code = nextCode('FIX', items[0]?.equipment_id || null);
 
     const txR = db.prepare(`INSERT INTO transactions (code, type, notes) VALUES (?, 'FIX', ?)`).run(code, notes);
     const txId = txR.lastInsertRowid;
