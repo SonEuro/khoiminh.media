@@ -89,7 +89,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
               >
                 <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
                 <span style={{ color: '#c9a84c', fontWeight: 600, fontSize: '0.9rem' }}>{ev.name}</span>
-                {ev.start_date && <span style={{ fontSize: '0.72rem', color: '#7878a0', marginLeft: 'auto' }}>{ev.start_date}</span>}
+                {ev.start_date && <span style={{ fontSize: '0.72rem', color: '#7878a0', marginLeft: 'auto' }}>{fmtD(ev.start_date)}</span>}
               </button>
             ))}
           </div>
