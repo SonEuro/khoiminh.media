@@ -145,7 +145,7 @@ export default function Layout() {
     { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị\nSự Kiện',  show: can('transact') },
     { to: '/event-report', Icon: ClipboardList,    label: 'Báo Cáo Sự Kiện',       always: true },
     { to: '/violations',   Icon: ShieldAlert,      label: 'Vi Phạm Nội Quy',        always: true },
-    { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', show: ['SUPER_ADMIN','PRODUCTION'].includes(user?.role) },
+    { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', always: true },
     { to: '/equipment',    Icon: Warehouse,        label: 'Tổng Kho Khôi Minh', always: true },
     { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('transact') },
     { to: '/users',        Icon: Users,            label: 'Người Dùng',           show: can('manageUsers') },

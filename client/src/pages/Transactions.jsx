@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 const GOLD = '#c9a84c';
-const ALLOWED_ROLES = ['SUPER_ADMIN', 'PRODUCTION'];
+const ALLOWED_ROLES = null; // tất cả người dùng đều xem được
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -275,7 +275,7 @@ export default function Transactions() {
   const [selectedTx, setSelectedTx] = useState(null);
 
   useEffect(() => {
-    if (!ALLOWED_ROLES.includes(user?.role)) return;
+    if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
       api.getTransactions({ type: 'OUT', limit: 200 }),
@@ -287,15 +287,6 @@ export default function Transactions() {
     }).finally(() => setLoading(false));
   }, [user]);
 
-  if (!ALLOWED_ROLES.includes(user?.role)) {
-    return (
-      <div className="p-6" style={{ textAlign:'center', paddingTop:'80px' }}>
-        <p style={{ fontSize:'3rem', marginBottom:'12px' }}>🔒</p>
-        <p style={{ color:'#f87171', fontWeight:700 }}>Bạn không có quyền truy cập trang này</p>
-        <p style={{ color:'#7878a0', fontSize:'0.82rem', marginTop:'6px' }}>Chỉ Super Admin và Giám đốc sản xuất được phép xem</p>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 max-w-3xl">
