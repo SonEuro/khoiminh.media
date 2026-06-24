@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import { useAuth } from '../contexts/AuthContext';
+import { fmtD } from '../utils/fmt';
 import { Clapperboard, Headphones, Spotlight, Tv2, LayoutGrid, Theater, Package, HelpCircle } from 'lucide-react';
 
 const CAT_ICONS = {
@@ -162,7 +163,7 @@ function HistoryModal({ equipment, onClose }) {
                 <td className="py-2">{h.event_name || '—'}</td>
                 <td className="py-2 font-bold">{h.quantity}</td>
                 <td className="py-2">{h.responsible_person || '—'}</td>
-                <td className="py-2 text-gray-400">{h.transaction_date?.slice(0, 10)}</td>
+                <td className="py-2 text-gray-400">{fmtD(h.transaction_date)}</td>
               </tr>
             ))}
           </tbody>
@@ -353,7 +354,7 @@ export default function Equipment() {
                 topData.topUsed.map((eq, i) => {
                   const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
                   const catC = CAT_COLORS[eq.category_code] || { color: '#c9a84c', rgb: '201,168,76' };
-                  const lastDate = eq.last_used ? eq.last_used.slice(8,10) + '/' + eq.last_used.slice(5,7) + '/' + eq.last_used.slice(0,4) : '—';
+                  const lastDate = fmtD(eq.last_used);
                   return (
                     <div key={eq.id} style={{
                       display: 'flex', alignItems: 'center', gap: '12px',

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
+import { fmtD } from '../utils/fmt';
 
 const GOLD = '#c9a84c';
 
@@ -84,7 +85,7 @@ function EventGroup({ status, events }) {
               </div>
               {ev.start_date && (
                 <span style={{ fontSize: '0.72rem', color, fontWeight: 700, flexShrink: 0 }}>
-                  {ev.start_date.slice(8,10)}/{ev.start_date.slice(5,7)}
+                  {fmtD(ev.start_date)}
                 </span>
               )}
             </Link>

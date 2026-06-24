@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { printSlip } from '../utils/printSlip';
+import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, ChevronUp, ChevronDown,
@@ -35,10 +36,7 @@ function Badge({ color, bg, border, label }) {
   );
 }
 
-function fmtDate(d) {
-  if (!d) return '';
-  return d.slice(8,10) + '/' + d.slice(5,7) + '/' + d.slice(0,4);
-}
+const fmtDate = fmtD;
 
 // ── TX detail modal ───────────────────────────────────────────────────────────
 function TxDetailModal({ txId, onClose }) {
@@ -60,7 +58,7 @@ function TxDetailModal({ txId, onClose }) {
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', fontSize:'0.85rem' }}>
           {[
             ['LOẠI', <Badge {...cfg} label={cfg.label} />],
-            ['NGÀY', tx.transaction_date?.slice(0,16)],
+            ['NGÀY', fmtDT(tx.transaction_date)],
             ['SỰ KIỆN', tx.event_name || 'Nội bộ'],
             ['PHỤ TRÁCH', tx.responsible_person || '—'],
           ].map(([lbl, val]) => (
@@ -204,7 +202,7 @@ function TxRows({ txs, onSelect, onDelete }) {
               </p>
             </div>
             <span style={{ fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>
-              {tx.transaction_date?.slice(8,10)}/{tx.transaction_date?.slice(5,7)}
+              {fmtD(tx.transaction_date)}
             </span>
             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
@@ -259,7 +257,7 @@ function ViolationRows({ violations }) {
           </div>
           <div style={{ textAlign:'right', fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
-            <div>{v.created_at?.slice(8,10)}/{v.created_at?.slice(5,7)}</div>
+            <div>{fmtD(v.created_at)}</div>
           </div>
         </div>
       ))}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
+import { fmtD } from '../utils/fmt';
 
 const ROLES = [
   { value: 'DIRECTOR',    label: '🌟 Tổng Giám Đốc' },
@@ -186,7 +187,7 @@ export default function Users() {
                         ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
                         : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
                     </td>
-                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{u.created_at?.slice(0, 10)}</td>
+                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
                         <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
