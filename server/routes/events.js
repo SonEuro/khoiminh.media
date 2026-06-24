@@ -98,12 +98,16 @@ router.get('/', (req, res) => {
   `;
   const params = [];
   if (status) { sql += ' AND e.status = ?'; params.push(status); }
-  sql += ` ORDER BY CASE e.status
-    WHEN 'active'    THEN 1
-    WHEN 'planned'   THEN 2
-    WHEN 'completed' THEN 3
-    WHEN 'cancelled' THEN 4
-    ELSE 5 END ASC, e.created_at DESC`;
+  sql += ` ORDER BY
+    CASE e.status
+      WHEN 'active'    THEN 1
+      WHEN 'planned'   THEN 2
+      WHEN 'completed' THEN 3
+      WHEN 'cancelled' THEN 4
+      ELSE 5
+    END ASC,
+    CASE WHEN e.status = 'planned' THEN e.start_date END ASC,
+    e.created_at DESC`;
   res.json(db.prepare(sql).all(...params));
 });
 
