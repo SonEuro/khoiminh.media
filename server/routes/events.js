@@ -24,14 +24,24 @@ setInterval(cleanupTrash, 24 * 60 * 60 * 1000);
 
 // Auto-update: sự kiện 'planned' đã đến ngày bắt đầu → chuyển sang 'active'
 function autoUpdateStatuses() {
-  const r = db.prepare(`
+  const r1 = db.prepare(`
     UPDATE events SET status = 'active'
     WHERE status = 'planned'
       AND start_date IS NOT NULL
       AND start_date <= date('now','localtime')
       AND deleted_at IS NULL
   `).run();
-  if (r.changes > 0) console.log(`[AutoStatus] Chuyển ${r.changes} sự kiện → 'Đang diễn ra'`);
+  if (r1.changes > 0) console.log(`[AutoStatus] Chuyển ${r1.changes} sự kiện → 'Đang diễn ra'`);
+
+  // Sự kiện có filming_date đã qua → chuyển sang 'completed'
+  const r2 = db.prepare(`
+    UPDATE events SET status = 'completed'
+    WHERE status NOT IN ('completed', 'cancelled')
+      AND filming_date IS NOT NULL
+      AND filming_date < date('now','localtime')
+      AND deleted_at IS NULL
+  `).run();
+  if (r2.changes > 0) console.log(`[AutoStatus] Chuyển ${r2.changes} sự kiện → 'Đã hoàn thành' (filming_date đã qua)`);
 }
 autoUpdateStatuses();
 setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
