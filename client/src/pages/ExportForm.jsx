@@ -52,6 +52,7 @@ export default function ExportForm() {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
+  const [dateError, setDateError]   = useState(false);
   const savedSnapshot = useRef(null);
 
   // Thiết bị ngoài
@@ -123,6 +124,8 @@ export default function ExportForm() {
     const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
     const validExt = [...rowExt, ...sectionExt];
+    if (!form.expected_return_date) { setDateError(true); return; }
+    setDateError(false);
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
     savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
     setSubmitting(true);
@@ -242,10 +245,19 @@ export default function ExportForm() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Ngày dự kiến trả</label>
+              <label className="label" style={ dateError ? { color:'#f87171' } : {} }>
+                Ngày dự kiến trả <span style={{ color:'#f87171' }}>*</span>
+              </label>
               <DateInput value={form.expected_return_date}
-                onChange={v => setField('expected_return_date', v)}
-                min={new Date().toISOString().slice(0,10)} />
+                onChange={v => { setField('expected_return_date', v); if (v) setDateError(false); }}
+                min={new Date().toISOString().slice(0,10)}
+                className={dateError ? 'input' : 'input'}
+                style={ dateError ? { border:'1.5px solid #f87171', boxShadow:'0 0 0 2px rgba(248,113,113,0.18)' } : {} } />
+              {dateError && (
+                <p style={{ color:'#f87171', fontSize:'0.72rem', fontWeight:600, marginTop:'4px' }}>
+                  ⚠ Vui lòng chọn ngày dự kiến trả
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Ghi chú</label>
