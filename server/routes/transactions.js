@@ -3,6 +3,8 @@ const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
 const canTransact = requireRole('SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const canIntake   = requireRole('SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING');
+const canFix      = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 
 function checkDept(user, equipmentIds) {
   const cats = user.deptCats;
@@ -276,7 +278,7 @@ router.post('/return', canTransact, (req, res) => {
 });
 
 // Nhập thiết bị mới (tăng tồn kho)
-router.post('/intake', canTransact, (req, res) => {
+router.post('/intake', canIntake, (req, res) => {
   const { responsible_person, department, intake_date, notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
@@ -302,7 +304,7 @@ router.post('/intake', canTransact, (req, res) => {
 });
 
 // Nhập bảo trì → trả lại kho
-router.post('/fix', canTransact, (req, res) => {
+router.post('/fix', canFix, (req, res) => {
   const { notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
