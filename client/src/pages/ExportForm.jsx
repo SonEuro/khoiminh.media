@@ -303,6 +303,8 @@ export default function ExportForm() {
             {items.map((item, idx) => {
               const isExt = item.mode === 'ext';
               const H = 38;
+              const khoSeq = items.slice(0, idx).filter(it => it.mode !== 'ext').length + 1;
+              const nccSeq = items.slice(0, idx).filter(it => it.mode === 'ext').length + 1;
 
               /* ── EXT ROW ─────────────────────────────────────────── */
               if (isExt) {
@@ -315,8 +317,8 @@ export default function ExportForm() {
                     borderRadius:'8px',
                   }}>
                     <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
-                      {/* Icon */}
-                      <span style={{ textAlign:'center', fontSize:'0.85rem', lineHeight:`${H}px` }}>🏪</span>
+                      {/* NCC seq */}
+                      <span style={{ textAlign:'center', fontSize:'0.65rem', fontWeight:800, color:'#60a5fa', lineHeight:`${H}px` }}>N{nccSeq}</span>
 
                       {/* Nhà CC + Tên TB */}
                       <div style={{ display:'flex', gap:'4px', height:`${H}px` }}>
@@ -408,7 +410,7 @@ export default function ExportForm() {
 
                     {/* STT */}
                     <span style={{ textAlign:'center', fontSize:'0.72rem', fontWeight:700, color: filled ? 'var(--gold)' : 'var(--text-muted)', lineHeight:`${H}px` }}>
-                      {idx + 1}
+                      {khoSeq}
                     </span>
 
                     {/* Search */}
