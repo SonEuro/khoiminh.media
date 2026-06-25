@@ -488,10 +488,10 @@ export default function Equipment() {
                                       </span>
                                     </div>
                                     {activeStat === 'in_use' && inUseEvents[eq.id]?.length > 0 && (
-                                      <div style={{ marginTop: '4px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                      <div style={{ marginTop: '5px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                                         {inUseEvents[eq.id].map(ev => (
-                                          <span key={ev.event_id} style={{ fontSize: '0.6rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.25)', color: '#93c5fd', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
-                                            {ev.event_name} ({ev.qty})
+                                          <span key={ev.event_id} style={{ fontSize: '0.78rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: '#93c5fd', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                            {ev.event_name} <span style={{ opacity: 0.7 }}>({ev.qty})</span>
                                           </span>
                                         ))}
                                       </div>
