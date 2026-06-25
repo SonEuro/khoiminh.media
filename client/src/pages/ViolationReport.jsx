@@ -160,7 +160,7 @@ export default function ViolationReport() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Báo Cáo Vi Phạm Nội Quy</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', marginTop: '2px' }}>
-          Thông tin báo cáo được bảo mật — chỉ Giám Đốc Sản Xuất mới thấy tên người báo cáo
+          Thông tin báo cáo được bảo mật — chỉ Tổng Giám Đốc và Giám Đốc Sản Xuất mới thấy tên người báo cáo
         </p>
       </div>
 
@@ -192,7 +192,7 @@ export default function ViolationReport() {
             <input className="input" value={user?.full_name || ''} readOnly
               style={{ opacity: 0.55, cursor: 'default' }} />
             <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Tên này chỉ hiển thị với Giám Đốc Sản Xuất
+              Tên này chỉ hiển thị với Tổng Giám Đốc và Giám Đốc Sản Xuất
             </p>
           </div>
 

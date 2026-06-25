@@ -103,6 +103,8 @@ export const api = {
   deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
   importEquipment: () => request('/admin/import-equipment', { method: 'POST' }),
   resetOutTransactions: () => request('/admin/reset-out-transactions', { method: 'POST' }),
+  clearAllEvents: () => request('/admin/clear-all-events', { method: 'POST' }),
+  deleteEvents: (ids) => request('/admin/delete-events', { method: 'POST', body: { ids } }),
   deleteTransaction: (id) => request(`/transactions/${id}`, { method: 'DELETE' }),
 
   // Event Reports

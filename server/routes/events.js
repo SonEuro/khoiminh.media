@@ -29,10 +29,41 @@ function nextCode() {
 
 // Auto-cleanup: xóa hẳn sự kiện trong trash quá 30 ngày
 function cleanupTrash() {
-  const r = db.prepare(
-    "DELETE FROM events WHERE deleted_at IS NOT NULL AND deleted_at < datetime('now','-30 days')"
-  ).run();
-  if (r.changes > 0) console.log(`[Trash] Đã xóa vĩnh viễn ${r.changes} sự kiện quá 30 ngày`);
+  try {
+    const old = db.prepare(
+      "SELECT id FROM events WHERE deleted_at IS NOT NULL AND deleted_at < datetime('now','-30 days')"
+    ).all();
+    if (old.length === 0) return;
+    const doClean = db.transaction(() => {
+      for (const { id } of old) {
+        const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(id);
+        for (const tx of txs) {
+          const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+          for (const item of items) {
+            const qty = item.quantity;
+            const eqId = item.equipment_id;
+            if (tx.type === 'OUT' && tx.status === 'pending') {
+              db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?').run(qty, eqId);
+            } else if (tx.type === 'OUT') {
+              db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?').run(qty, qty, eqId);
+            } else if (tx.type === 'RETURN') {
+              db.prepare('UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+            }
+          }
+        }
+        try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
+        try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+        db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
+        try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
+        db.prepare('DELETE FROM transactions WHERE event_id = ?').run(id);
+        db.prepare('DELETE FROM events WHERE id = ?').run(id);
+      }
+    });
+    doClean();
+    console.log(`[Trash] Đã xóa vĩnh viễn ${old.length} sự kiện quá 30 ngày`);
+  } catch (err) {
+    console.error('[Trash] Lỗi auto-cleanup:', err.message);
+  }
 }
 cleanupTrash();
 setInterval(cleanupTrash, 24 * 60 * 60 * 1000);
@@ -130,7 +161,7 @@ setInterval(checkLateReturns, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
 // Danh sách sự kiện (không gồm trash)
 router.get('/', (req, res) => {
-  const { status, limit } = req.query;
+  const { status, limit, include_archived } = req.query;
   let sql = `
     SELECT e.*,
       u.role AS created_by_role,
@@ -138,8 +169,10 @@ router.get('/', (req, res) => {
     FROM events e
     LEFT JOIN users u ON u.id = e.created_by_id
     WHERE e.deleted_at IS NULL
-      AND (e.archived_at IS NULL OR e.archived_at > datetime('now','localtime','-24 hours'))
   `;
+  if (!include_archived) {
+    sql += ` AND (e.archived_at IS NULL OR e.archived_at > datetime('now','localtime','-24 hours'))`;
+  }
   const params = [];
   if (status) { sql += ' AND e.status = ?'; params.push(status); }
   sql += ` ORDER BY
@@ -164,7 +197,8 @@ router.get('/trash', canManage, (req, res) => {
   let sql = `
     SELECT e.*,
       u.role AS created_by_role,
-      CAST((julianday(datetime(e.deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left
+      CAST((julianday(datetime(e.deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left,
+      (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) AS tx_count
     FROM events e
     LEFT JOIN users u ON u.id = e.created_by_id
     WHERE e.deleted_at IS NOT NULL
@@ -276,8 +310,38 @@ router.post('/:id/cancel', canManage, (req, res) => {
 
 // Xóa vĩnh viễn khỏi trash
 router.delete('/:id/permanent', adminOnly, (req, res) => {
-  db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
+  const id = req.params.id;
+  const doPermanent = db.transaction(() => {
+    // Hoàn trả tồn kho từ các phiếu còn liên kết
+    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(id);
+    for (const tx of txs) {
+      const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+      for (const item of items) {
+        const qty = item.quantity;
+        const eqId = item.equipment_id;
+        if (tx.type === 'OUT' && tx.status === 'pending') {
+          db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?').run(qty, eqId);
+        } else if (tx.type === 'OUT') {
+          db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?').run(qty, qty, eqId);
+        } else if (tx.type === 'RETURN') {
+          db.prepare('UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+        }
+      }
+    }
+    // Xóa dữ liệu liên quan
+    try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
+    try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+    db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
+    try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
+    db.prepare('DELETE FROM transactions WHERE event_id = ?').run(id);
+    db.prepare('DELETE FROM events WHERE id = ?').run(id);
+  });
+  try {
+    doPermanent();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Lưu trữ sự kiện (SUPER_ADMIN) — ẩn khỏi live feed, toàn bộ dữ liệu liên quan được giữ nguyên

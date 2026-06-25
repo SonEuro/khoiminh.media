@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -387,7 +387,7 @@ export default function Transactions() {
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm   = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
 
-  function load() {
+  const load = useCallback(() => {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
@@ -400,13 +400,15 @@ export default function Transactions() {
       setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
       setReports(rep); setViolations(vio);
     }).finally(() => setLoading(false));
-  }
+  }, [user]);
 
   useEffect(() => {
     load();
-    const timer = setInterval(load, 30_000);
-    return () => clearInterval(timer);
-  }, [user]);
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [load]);
 
   async function handleDeleteTx(tx) {
     const msg = tx.status === 'pending'

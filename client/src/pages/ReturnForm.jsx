@@ -295,7 +295,7 @@ function IntakeTab({ equipment, onDone }) {
         }}>
           <span>🔒</span>
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#f87171' }}>
-            Chỉ <strong>Super Admin</strong> hoặc chức vụ <strong>Kế Toán</strong> mới có thể nhập thiết bị mới
+            Chỉ <strong>Tổng Giám Đốc</strong>, <strong>Super Admin</strong> hoặc chức vụ <strong>Kế Toán</strong> mới có thể nhập thiết bị mới
           </p>
         </div>
       )}

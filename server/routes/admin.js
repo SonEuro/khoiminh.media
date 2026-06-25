@@ -45,4 +45,101 @@ router.post('/reset-out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (
   }
 });
 
+// Xóa tất cả sự kiện + phiếu + báo cáo + vi phạm, reset tồn kho
+router.post('/clear-all-events', requireRole('SUPER_ADMIN'), (req, res) => {
+  const doClear = db.transaction(() => {
+    try { db.prepare('DELETE FROM violations').run(); } catch (_) {}
+    try { db.prepare('DELETE FROM event_reports').run(); } catch (_) {}
+    db.prepare('DELETE FROM transaction_items').run();
+    try { db.prepare('DELETE FROM external_items').run(); } catch (_) {}
+    db.prepare('DELETE FROM transactions').run();
+    db.prepare('DELETE FROM events').run();
+    try {
+      db.prepare(
+        "DELETE FROM sqlite_sequence WHERE name IN ('events','transactions','transaction_items','external_items','event_reports','violations')"
+      ).run();
+    } catch (_) {}
+    db.prepare(`
+      UPDATE equipment
+      SET qty_available   = qty_total,
+          qty_in_use      = 0,
+          qty_reserved    = 0,
+          qty_maintenance = 0,
+          qty_damaged     = 0,
+          qty_lost        = 0
+    `).run();
+    const remaining = db.prepare('SELECT COUNT(*) AS c FROM events').get().c;
+    return { ok: true, events_remaining: remaining };
+  });
+
+  try {
+    const result = doClear();
+    res.json({ success: true, ...result, message: 'Đã xóa tất cả sự kiện, phiếu, báo cáo, vi phạm. Tồn kho đã reset.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Xóa các sự kiện được chọn + dữ liệu liên quan, hoàn trả tồn kho chính xác
+router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ error: 'Cần chọn ít nhất 1 sự kiện' });
+
+  const doDelete = db.transaction(() => {
+    for (const eventId of ids) {
+      const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(eventId);
+
+      for (const tx of txs) {
+        const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+
+        for (const item of items) {
+          const qty = item.quantity;
+          const eqId = item.equipment_id;
+
+          if (tx.type === 'OUT' && tx.status === 'pending') {
+            // pending OUT chỉ tăng qty_reserved → đảo ngược chỉ giảm qty_reserved
+            db.prepare(`UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`)
+              .run(qty, eqId);
+          } else if (tx.type === 'OUT') {
+            // completed OUT: qty_available--, qty_in_use++ → đảo ngược
+            db.prepare(`UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?`)
+              .run(qty, qty, eqId);
+          } else if (tx.type === 'RETURN') {
+            // RETURN: qty_in_use--, qty_available++ → đảo ngược (nhất quán với delete transaction)
+            db.prepare(`UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+              .run(qty, qty, eqId);
+          } else if (tx.type === 'FIX') {
+            // FIX: qty_maintenance--, qty_available++ → đảo ngược
+            db.prepare(`UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = MAX(0, qty_available - ?) WHERE id = ?`)
+              .run(qty, qty, eqId);
+          } else if (tx.type === 'INTAKE') {
+            // INTAKE: qty_total++, qty_available++ → đảo ngược
+            db.prepare(`UPDATE equipment SET qty_total = MAX(0, qty_total - ?), qty_available = MAX(0, qty_available - ?) WHERE id = ?`)
+              .run(qty, qty, eqId);
+          }
+        }
+      }
+
+      try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(eventId); } catch (_) {}
+      try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(eventId); } catch (_) {}
+      try {
+        db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(eventId);
+      } catch (_) {}
+      db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(eventId);
+      db.prepare('DELETE FROM transactions WHERE event_id = ?').run(eventId);
+      db.prepare('DELETE FROM events WHERE id = ?').run(eventId);
+    }
+
+    return { deleted: ids.length };
+  });
+
+  try {
+    const result = doDelete();
+    res.json({ success: true, ...result, message: `Đã xóa ${result.deleted} sự kiện và hoàn trả tồn kho.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

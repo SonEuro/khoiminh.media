@@ -365,7 +365,7 @@ export default function ExportForm() {
                 onChange={e => setField('responsible_person', e.target.value)}
                 placeholder="Tên người nhận thiết bị"
                 readOnly={!['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)}
-                style={{ color: '#c9a84c', fontWeight: 600, ...(user?.role !== 'SUPER_ADMIN' ? { cursor: 'default' } : {}) }} />
+                style={{ color: '#c9a84c', fontWeight: 600, ...(!['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) ? { cursor: 'default' } : {}) }} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

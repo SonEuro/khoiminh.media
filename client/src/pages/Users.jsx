@@ -38,13 +38,53 @@ export default function Users() {
   const [error, setError]       = useState('');
   const [saving, setSaving]     = useState(false);
   const [showPw, setShowPw]     = useState(false);
-  const [resetInfo, setResetInfo] = useState(null); // { name, username, password }
+  const [resetInfo, setResetInfo]   = useState(null); // { name, username, password }
+  const [clearing, setClearing]     = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [eventList, setEventList]     = useState([]);
+  const [loadingEv, setLoadingEv]     = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [deleting, setDeleting]       = useState(false);
 
   async function load() {
     const data = await api.getUsers();
     setUsers(data);
   }
   useEffect(() => { load(); }, []);
+
+  async function openDeleteModal() {
+    setDeleteModal(true);
+    setSelectedIds(new Set());
+    setLoadingEv(true);
+    try {
+      const [active, trash] = await Promise.all([api.getEvents({ include_archived: 1 }), api.getTrashEvents()]);
+      setEventList([
+        ...(active || []),
+        ...(trash || []).map(e => ({ ...e, _inTrash: true })),
+      ]);
+    } catch (err) {
+      alert('❌ ' + err.message);
+      setDeleteModal(false);
+    } finally {
+      setLoadingEv(false);
+    }
+  }
+
+  async function handleDeleteSelected() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`⚠️ Xóa ${selectedIds.size} sự kiện đã chọn?\n\nPhiếu xuất/nhập, báo cáo, vi phạm liên quan cũng bị xóa.\nTồn kho sẽ được hoàn trả.\n\nKHÔNG THỂ HOÀN TÁC.`)) return;
+    if (!confirm(`⛔ XÁC NHẬN LẦN 2 — xóa vĩnh viễn ${selectedIds.size} sự kiện?`)) return;
+    setDeleting(true);
+    try {
+      const data = await api.deleteEvents([...selectedIds]);
+      alert('✅ ' + data.message);
+      setDeleteModal(false);
+    } catch (err) {
+      alert('❌ Lỗi: ' + err.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function openCreate() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
@@ -216,6 +256,187 @@ export default function Users() {
           </table>
         </div>
       </div>
+
+      {/* ── Danger Zone (SUPER_ADMIN only) ── */}
+      {isSuperAdmin && (
+        <div style={{
+          marginTop: '32px', padding: '20px', borderRadius: '12px',
+          border: '1px solid rgba(248,113,113,0.35)',
+          background: 'rgba(248,113,113,0.04)',
+        }}>
+          <p style={{ color: '#f87171', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            ⚠️ Khu vực nguy hiểm
+          </p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '14px' }}>
+            Xóa sự kiện, phiếu xuất/nhập, báo cáo, vi phạm. Dữ liệu thiết bị và tài khoản được giữ nguyên. <strong style={{ color: '#f87171' }}>Không thể hoàn tác.</strong>
+          </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={openDeleteModal}
+              style={{
+                padding: '9px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700,
+                border: '1px solid rgba(248,113,113,0.5)',
+                background: 'rgba(248,113,113,0.15)',
+                color: '#f87171', cursor: 'pointer',
+              }}
+            >
+              📋 Chọn sự kiện để xóa
+            </button>
+            <button
+              disabled={clearing}
+              onClick={async () => {
+                const first = confirm('⚠️ XÓA TOÀN BỘ SỰ KIỆN?\n\nSẽ xóa:\n• Tất cả sự kiện\n• Phiếu xuất / nhập kho\n• Báo cáo sự kiện\n• Vi phạm nội quy\n• Reset tồn kho về ban đầu\n\nNhấn OK để xác nhận lần 1...');
+                if (!first) return;
+                const second = confirm('⛔ XÁC NHẬN LẦN 2\n\nThao tác này KHÔNG THỂ HOÀN TÁC.\n\nBạn có chắc chắn muốn xóa tất cả không?');
+                if (!second) return;
+                setClearing(true);
+                try {
+                  const data = await api.clearAllEvents();
+                  alert('✅ ' + data.message);
+                } catch (err) {
+                  alert('❌ Lỗi: ' + err.message);
+                } finally {
+                  setClearing(false);
+                }
+              }}
+              style={{
+                padding: '9px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700,
+                border: '1px solid rgba(248,113,113,0.5)',
+                background: clearing ? 'rgba(248,113,113,0.1)' : 'rgba(248,113,113,0.15)',
+                color: '#f87171', cursor: clearing ? 'not-allowed' : 'pointer',
+                opacity: clearing ? 0.6 : 1,
+              }}
+            >
+              {clearing ? '⏳ Đang xóa...' : '🗑 Xóa sạch toàn bộ sự kiện'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal chọn sự kiện để xóa ── */}
+      {deleteModal && (
+        <Modal title="Chọn Sự Kiện Để Xóa" onClose={() => !deleting && setDeleteModal(false)} size="lg">
+          {loadingEv ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>⏳ Đang tải...</p>
+          ) : eventList.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>Không có sự kiện nào.</p>
+          ) : (
+            <>
+              {/* Quick select */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setSelectedIds(new Set(eventList.map(e => e.id)))}
+                  style={{ fontSize: '0.78rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
+                >
+                  Chọn tất cả
+                </button>
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  style={{ fontSize: '0.78rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
+                >
+                  Bỏ chọn
+                </button>
+                <span style={{ fontSize: '0.8rem', color: selectedIds.size > 0 ? '#f87171' : 'var(--text-muted)', marginLeft: 'auto', fontWeight: selectedIds.size > 0 ? 700 : 400 }}>
+                  {selectedIds.size > 0 ? `Đã chọn ${selectedIds.size} sự kiện` : `${eventList.length} sự kiện`}
+                </span>
+              </div>
+
+              {/* Event list */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto' }}>
+                {eventList.map(ev => {
+                  const checked = selectedIds.has(ev.id);
+                  const STATUS = {
+                    planned:   { label: 'Kế hoạch',   color: '#60a5fa' },
+                    active:    { label: 'Đang diễn',  color: '#4ade80' },
+                    completed: { label: 'Hoàn thành', color: '#94a3b8' },
+                    cancelled: { label: 'Đã hủy',     color: '#f87171' },
+                  };
+                  const st = ev._inTrash
+                    ? { label: '🗑 Thùng rác', color: '#f97316' }
+                    : ev.archived_at
+                      ? { label: '📦 Lưu trữ', color: '#a78bfa' }
+                      : (STATUS[ev.status] || { label: ev.status, color: '#94a3b8' });
+                  return (
+                    <label
+                      key={ev.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
+                        borderRadius: '8px', cursor: 'pointer',
+                        border: `1px solid ${checked ? 'rgba(248,113,113,0.5)' : 'var(--border)'}`,
+                        background: checked ? 'rgba(248,113,113,0.07)' : 'var(--surface-2)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => setSelectedIds(prev => {
+                          const next = new Set(prev);
+                          if (next.has(ev.id)) next.delete(ev.id);
+                          else next.add(ev.id);
+                          return next;
+                        })}
+                        style={{ width: '15px', height: '15px', accentColor: '#f87171', flexShrink: 0 }}
+                      />
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--text-muted)', flexShrink: 0, minWidth: '80px' }}>
+                        {ev.code}
+                      </span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ev.name}
+                      </span>
+                      <span style={{
+                        fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '99px',
+                        color: st.color, background: st.color + '22', flexShrink: 0,
+                      }}>
+                        {st.label}
+                      </span>
+                      {ev.start_date && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0 }}>
+                          {fmtD(ev.start_date)}
+                        </span>
+                      )}
+                      {ev.tx_count > 0 && (
+                        <span style={{ fontSize: '0.72rem', color: '#fbbf24', flexShrink: 0 }}>
+                          {ev.tx_count} phiếu
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
+                <button
+                  disabled={selectedIds.size === 0 || deleting}
+                  onClick={handleDeleteSelected}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '0.88rem',
+                    border: '1px solid rgba(248,113,113,0.5)',
+                    background: selectedIds.size === 0 ? 'rgba(248,113,113,0.05)' : 'rgba(248,113,113,0.2)',
+                    color: '#f87171',
+                    cursor: selectedIds.size === 0 || deleting ? 'not-allowed' : 'pointer',
+                    opacity: selectedIds.size === 0 || deleting ? 0.5 : 1,
+                  }}
+                >
+                  {deleting ? '⏳ Đang xóa...' : `🗑 Xóa ${selectedIds.size > 0 ? selectedIds.size + ' ' : ''}sự kiện đã chọn`}
+                </button>
+                <button
+                  onClick={() => setDeleteModal(false)}
+                  disabled={deleting}
+                  style={{
+                    padding: '10px 20px', borderRadius: '8px', fontSize: '0.88rem',
+                    border: '1px solid var(--border)', background: 'var(--surface-2)',
+                    color: 'var(--text-muted)', cursor: deleting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Đóng
+                </button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
 
       {modal === 'edit' && (
         <Modal title={editId ? 'Chỉnh Sửa Tài Khoản' : 'Thêm Tài Khoản'} onClose={() => setModal(null)}>

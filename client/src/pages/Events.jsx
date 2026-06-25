@@ -437,9 +437,11 @@ export default function Events() {
           {canManage && (
             <button className="btn-secondary" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
           )}
-          <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
-            + Tạo sự kiện
-          </button>
+          {!['ACCOUNTING'].includes(user?.role) && (
+            <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
+              + Tạo sự kiện
+            </button>
+          )}
         </div>
       </div>
 
