@@ -377,7 +377,11 @@ export default function Transactions() {
     }).finally(() => setLoading(false));
   }
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 30_000);
+    return () => clearInterval(timer);
+  }, [user]);
 
   async function handleDeleteTx(tx) {
     const msg = tx.status === 'pending'
