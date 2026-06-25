@@ -185,7 +185,12 @@ function Section({ Icon, title, color, border, count, children }) {
           : <ChevronDown size={14} style={{ color, flexShrink: 0 }} />
         }
       </button>
-      {open && <div style={{ padding: '14px 16px' }}>{children}</div>}
+      {open && (
+        <div style={{ padding: '14px 16px', maxHeight: '292px', overflowY: 'auto',
+          scrollbarWidth: 'thin', scrollbarColor: `${color}33 transparent` }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -365,15 +370,15 @@ export default function Transactions() {
   function load() {
     if (!user) return;
     Promise.all([
-      api.getEvents({ limit: 5 }),
-      api.getTransactions({ type: 'OUT', status: 'pending', limit: 5 }),
-      api.getTransactions({ type: 'OUT', status: 'completed', limit: 5 }),
-      api.getTransactions({ type: 'RETURN', limit: 5 }),
+      api.getEvents({ limit: 200 }),
+      api.getTransactions({ type: 'OUT', status: 'pending', limit: 200 }),
+      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200 }),
+      api.getTransactions({ type: 'RETURN', limit: 200 }),
       api.getEventReports(),
       api.getViolations(),
     ]).then(([ev, pending, out, ret, rep, vio]) => {
       setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
-      setReports(rep.slice(0, 5)); setViolations(vio.slice(0, 5));
+      setReports(rep); setViolations(vio);
     }).finally(() => setLoading(false));
   }
 
