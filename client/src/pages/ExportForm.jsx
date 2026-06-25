@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
 import DateInput from '../components/DateInput';
 import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
-import { NCC_CATALOG, NCC_LIST } from '../utils/nccCatalog';
+import { NCC_CATALOG, NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
 
 const DEPTS = [
   { value: '',       Icon: LayoutGrid,   label: 'Tất cả',   cats: null },
@@ -36,6 +36,13 @@ export default function ExportForm() {
 
   const defaultDept = ROLE_DEPT[user?.role] || '';
   const isLocked = LOCKED_ROLES.includes(user?.role);
+
+  // Lọc NCC theo bộ phận của người dùng
+  const roleDeptCode = { TECHNICAL: 'TECH', ATAS: 'ATAS', STAGE: 'STAGE', CSVC: 'CSVC' };
+  const userDept = roleDeptCode[user?.role];
+  const visibleNCC = isLocked
+    ? NCC_LIST.filter(s => NCC_DEPT[s] === userDept)
+    : NCC_LIST; // SUPER_ADMIN / DIRECTOR / PRODUCTION thấy tất cả
 
   const [equipment, setEquipment] = useState([]);
   const [events, setEvents]       = useState([]);
@@ -346,7 +353,7 @@ export default function ExportForm() {
                           onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
                         >
                           <option value="">Nhà CC...</option>
-                          {NCC_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                          {visibleNCC.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
 
                         {/* Equipment name with autocomplete */}
@@ -622,7 +629,7 @@ export default function ExportForm() {
                 </label>
                 <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
                   <option value="">— Chọn nhà cung cấp —</option>
-                  {NCC_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                  {visibleNCC.map(s => <option key={s} value={s}>{s}</option>)}
                   <option value="__custom__">✏️ Nhập thủ công...</option>
                 </select>
                 {extSupplier === '__custom__' && (

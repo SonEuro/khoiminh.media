@@ -132,7 +132,7 @@ export const NCC_CATALOG = {
     { name: "Monitor Blackmagic - 17''", unit: "Cái" },
     { name: "Monitor Blackmagic Đôi - 9''", unit: "Cái" },
     { name: "Monitor Feelword F6 Plus", unit: "Cái" },
-    { name: "Monitor Seetec 15"", unit: "Cái" },
+    { name: "Monitor Seetec 15''", unit: "Cái" },
     { name: "TV Sony 65'", unit: "Cái" },
     { name: "TV Sony 55'", unit: "Cái" },
     { name: "TV Redmi 43''", unit: "Cái" },
@@ -458,3 +458,13 @@ export const NCC_CATALOG = {
 };
 
 export const NCC_LIST = Object.keys(NCC_CATALOG);
+
+// Bộ phận được phép xem/thuê từng NCC
+export const NCC_DEPT = {
+  'NIPI':       'TECH',   // KỸ THUẬT-ORDER
+  'LONG PATE':  'ATAS',   // BỘ PHẬN ORDER - ATAS
+  'ANH TÌNH':   'ATAS',
+  'ALTA':       'ATAS',
+  'DMX':        'ATAS',
+  'LỮ NHẠC':   'STAGE',  // BỘ PHẬN ORDER - SÂN KHẤU
+};
