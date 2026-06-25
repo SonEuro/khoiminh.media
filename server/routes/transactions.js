@@ -2,7 +2,7 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
-const canTransact = requireRole('SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const canTransact = requireRole('SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 
 function checkDept(user, equipmentIds) {
   const cats = user.deptCats;

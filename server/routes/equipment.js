@@ -3,8 +3,9 @@ const db = require('../database');
 const QRCode = require('qrcode');
 const { requireRole } = require('../middleware/auth');
 
-const canEdit   = requireRole('SUPER_ADMIN', 'PRODUCTION');
-const adminOnly = requireRole('SUPER_ADMIN');
+const canEdit      = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION');
+const adminOnly    = requireRole('SUPER_ADMIN');
+const canDeleteEq  = requireRole('SUPER_ADMIN', 'DIRECTOR');
 
 router.get('/', (req, res) => {
   const { category, search, status } = req.query;
@@ -161,7 +162,7 @@ router.put('/:id', canEdit, (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete('/:id', adminOnly, (req, res) => {
+router.delete('/:id', canDeleteEq, (req, res) => {
   const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(req.params.id);
   if (!eq) return res.status(404).json({ error: 'Không tìm thấy' });
   if (eq.qty_in_use > 0) return res.status(400).json({ error: 'Thiết bị đang được sử dụng, không thể xóa' });
