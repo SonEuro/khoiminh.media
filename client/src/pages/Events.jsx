@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
+import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
 
 import { fmtD } from '../utils/fmt';
@@ -141,20 +142,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         </div>
         <div style={{ gridColumn: 'span 2' }}>
           <label className="label">Ngày ghi hình</label>
-          {(form.filming_dates || []).map((d, i) => (
-            <div key={i} style={{ display:'flex', gap:'6px', marginBottom:'6px', alignItems:'center' }}>
-              <div style={{ flex:1 }}>
-                <DateInput value={d} onChange={v => { const arr = [...(form.filming_dates||[])]; arr[i]=v; set('filming_dates', arr); }}
-                  style={d ? { color:'#a78bfa', fontWeight:700, fontSize:'1.1rem' } : {}} />
-              </div>
-              <button type="button" onClick={() => set('filming_dates', (form.filming_dates||[]).filter((_,j)=>j!==i))}
-                style={{ color:'#f87171', background:'none', border:'none', cursor:'pointer', fontSize:'1.3rem', lineHeight:1, padding:'0 4px', flexShrink:0 }}>×</button>
-            </div>
-          ))}
-          <button type="button" onClick={() => set('filming_dates', [...(form.filming_dates||[]), ''])}
-            style={{ fontSize:'0.75rem', color:'#a78bfa', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'6px', padding:'4px 12px', cursor:'pointer' }}>
-            + Thêm ngày ghi hình
-          </button>
+          <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
