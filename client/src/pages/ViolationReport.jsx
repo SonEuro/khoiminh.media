@@ -104,6 +104,10 @@ export default function ViolationReport() {
   useEffect(() => {
     api.getEvents().then(setEvents);
     load();
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
   function load() {

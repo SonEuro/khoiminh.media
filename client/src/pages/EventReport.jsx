@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -387,11 +387,19 @@ export default function EventReport() {
 
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.all([api.getEventReports(), api.getEvents()])
       .then(([r, e]) => { setReports(r); setEvents(e); })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [load]);
 
   function setField(key, value) {
     setForm(f => ({ ...f, [key]: value }));

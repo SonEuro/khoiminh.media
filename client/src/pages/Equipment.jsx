@@ -192,15 +192,19 @@ export default function Equipment() {
 
   const load = useCallback(() => {
     api.getEquipment({ limit: 9999 }).then(setEquipment).finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => { api.getCategories().then(setCategories); }, []);
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
-  useEffect(() => {
+    api.getEquipmentTopUsed(5).then(setTopData);
     api.getEquipmentInUseEvents().then(setInUseEvents).catch(() => {});
     api.getEquipmentReservedEvents().then(setReservedEvents).catch(() => {});
   }, []);
+
+  useEffect(() => { api.getCategories().then(setCategories); }, []);
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [load]);
 
   // Role-based restriction
   const baseEquipment = allowedCats

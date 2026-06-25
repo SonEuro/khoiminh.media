@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
@@ -100,9 +100,17 @@ export default function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     api.getEvents().then(setEvents).finally(() => setLoadingEvents(false));
   }, []);
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [load]);
 
   return (
     <div className="p-6 space-y-6">
