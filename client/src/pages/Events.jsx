@@ -292,7 +292,7 @@ function EventDetailModal({ eventId, onClose }) {
   );
 }
 
-function TrashView({ onClose, canPermanentDelete }) {
+function TrashView({ onClose, canPermanentDelete, canRestore }) {
   const [trash, setTrash] = useState([]);
   const load = () => api.getTrashEvents().then(setTrash);
   useEffect(() => { load(); }, []);
@@ -342,7 +342,9 @@ function TrashView({ onClose, canPermanentDelete }) {
                 </p>
               </div>
               <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
-                <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
+                {canRestore && (
+                  <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
+                )}
                 {canPermanentDelete && (
                   <button className="btn-danger btn-sm" onClick={() => handlePermanent(ev)}>🗑 Xóa vĩnh viễn</button>
                 )}
@@ -402,7 +404,7 @@ export default function Events() {
 
   return (
     <div className="p-6">
-      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} />}
+      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} canRestore={user?.role === 'SUPER_ADMIN'} />}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>

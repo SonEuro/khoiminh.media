@@ -2,7 +2,7 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
-const canWrite  = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const canWrite  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 const adminOnly = requireRole('SUPER_ADMIN');
 function canManage(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
