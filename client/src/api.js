@@ -78,6 +78,7 @@ export const api = {
   createEvent: (data) => request('/events', { method: 'POST', body: data }),
   updateEvent: (id, data) => request(`/events/${id}`, { method: 'PUT', body: data }),
   deleteEvent: (id) => request(`/events/${id}`, { method: 'DELETE' }),
+  cancelEvent: (id) => request(`/events/${id}/cancel`, { method: 'POST' }),
 
   // Transactions
   getTransactions: (params = {}) => {

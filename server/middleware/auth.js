@@ -4,13 +4,15 @@ const JWT_SECRET = process.env.JWT_SECRET || 'khoiminh-dev-secret-2025';
 
 // Categories each role can transact (null = all)
 const DEPT_CATS = {
-  SUPER_ADMIN: null,
-  PRODUCTION:  null,
-  ACCOUNTING:  null,
-  TECHNICAL:   ['TECH'],
-  ATAS:        ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
-  STAGE:       ['STAGE'],
-  CSVC:        ['CSVC'],
+  SUPER_ADMIN:  null,
+  DIRECTOR:     null,
+  TRUONG_PHONG: null,
+  PRODUCTION:   null,
+  ACCOUNTING:   null,
+  TECHNICAL:    ['TECH'],
+  ATAS:         ['AUDIO', 'LIGHT', 'LED', 'MATRIX'],
+  STAGE:        ['STAGE'],
+  CSVC:         ['CSVC'],
 };
 
 function requireAuth(req, res, next) {

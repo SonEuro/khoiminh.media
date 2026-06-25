@@ -357,7 +357,8 @@ function TrashView({ onClose, canPermanentDelete }) {
 
 export default function Events() {
   const { user } = useAuth();
-  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canManage  = ['SUPER_ADMIN', 'DIRECTOR', 'TRUONG_PHONG'].includes(user?.role);
+  const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [modal, setModal] = useState(null);
@@ -378,6 +379,12 @@ export default function Events() {
       setModal(null);
       load();
     } catch (e) { alert(e.message); }
+  };
+
+  const handleCancel = async (ev) => {
+    if (!confirm(`Hủy sự kiện "${ev.name}"?`)) return;
+    try { await api.cancelEvent(ev.id); load(); }
+    catch (e) { alert(e.message); }
   };
 
   const handleDelete = async (ev) => {
@@ -402,7 +409,7 @@ export default function Events() {
           <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
         </div>
         <div className="flex gap-2">
-          {isSuperAdmin && (
+          {canManage && (
             <button className="btn-secondary" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
           )}
           <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
@@ -450,13 +457,18 @@ export default function Events() {
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
                     Chi tiết
                   </button>
-                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
-                    ✏️
-                  </button>
+                  {canFullEdit && (
+                    <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
+                      ✏️
+                    </button>
+                  )}
+                  {canManage && ev.status !== 'cancelled' && (
+                    <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
+                  )}
                   {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
                     <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu</button>
                   )}
-                  {isSuperAdmin && ev.status === 'cancelled' && (
+                  {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
                     <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
                   )}
                 </div>
@@ -473,7 +485,7 @@ export default function Events() {
             onSave={handleSave}
             onCancel={() => setModal(null)}
             allEvents={events}
-            statusOnly={!isSuperAdmin && !!selected}
+            statusOnly={!canFullEdit && !!selected}
             creatorName={user?.full_name || ''}
           />
         </Modal>

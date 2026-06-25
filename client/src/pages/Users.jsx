@@ -5,25 +5,27 @@ import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
 
 const ROLES = [
-  { value: 'DIRECTOR',    label: '🌟 Tổng Giám Đốc' },
-  { value: 'SUPER_ADMIN', label: '👑 Giám Đốc Sản Xuất' },
-  { value: 'PRODUCTION',  label: '🏗️ Bộ Phận Sản Xuất' },
-  { value: 'ACCOUNTING',  label: '💰 Kế Toán' },
-  { value: 'TECHNICAL',   label: '🛠️ Kỹ Thuật' },
-  { value: 'ATAS',        label: '💡 ATAS – LED' },
-  { value: 'STAGE',       label: '🎭 Sân Khấu' },
-  { value: 'CSVC',        label: '🏢 Cơ Sở Vật Chất' },
+  { value: 'DIRECTOR',     label: '🌟 Tổng Giám Đốc' },
+  { value: 'SUPER_ADMIN',  label: '👑 Giám Đốc Sản Xuất' },
+  { value: 'TRUONG_PHONG', label: '🏅 Trưởng Phòng' },
+  { value: 'PRODUCTION',   label: '🏗️ Bộ Phận Sản Xuất' },
+  { value: 'ACCOUNTING',   label: '💰 Kế Toán' },
+  { value: 'TECHNICAL',    label: '🛠️ Kỹ Thuật' },
+  { value: 'ATAS',         label: '💡 ATAS – LED' },
+  { value: 'STAGE',        label: '🎭 Sân Khấu' },
+  { value: 'CSVC',         label: '🏢 Cơ Sở Vật Chất' },
 ];
 
 const ROLE_COLORS = {
-  DIRECTOR:    { bg: 'rgba(201,168,76,0.18)',  color: '#e8c97a', border: 'rgba(201,168,76,0.5)' },
-  SUPER_ADMIN: { bg: 'rgba(168,85,247,0.15)', color: '#c084fc', border: 'rgba(168,85,247,0.35)' },
-  PRODUCTION:  { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.35)' },
-  ACCOUNTING:  { bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24', border: 'rgba(251,191,36,0.35)' },
-  TECHNICAL:   { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c', border: 'rgba(251,146,60,0.35)' },
-  ATAS:        { bg: 'rgba(74,222,128,0.15)',  color: '#4ade80', border: 'rgba(74,222,128,0.35)' },
-  STAGE:       { bg: 'rgba(244,114,182,0.15)', color: '#f472b6', border: 'rgba(244,114,182,0.35)' },
-  CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
+  DIRECTOR:     { bg: 'rgba(201,168,76,0.18)',  color: '#e8c97a', border: 'rgba(201,168,76,0.5)'  },
+  SUPER_ADMIN:  { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc', border: 'rgba(168,85,247,0.35)' },
+  TRUONG_PHONG: { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf', border: 'rgba(20,184,166,0.35)' },
+  PRODUCTION:   { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.35)' },
+  ACCOUNTING:   { bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24', border: 'rgba(251,191,36,0.35)' },
+  TECHNICAL:    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c', border: 'rgba(251,146,60,0.35)' },
+  ATAS:         { bg: 'rgba(74,222,128,0.15)',  color: '#4ade80', border: 'rgba(74,222,128,0.35)' },
+  STAGE:        { bg: 'rgba(244,114,182,0.15)', color: '#f472b6', border: 'rgba(244,114,182,0.35)' },
+  CSVC:         { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
 const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true };

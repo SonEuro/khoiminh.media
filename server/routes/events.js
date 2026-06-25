@@ -2,8 +2,9 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
-const canWrite  = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
-const adminOnly = requireRole('SUPER_ADMIN');
+const canWrite   = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const canManage  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'TRUONG_PHONG');
+const adminOnly  = requireRole('SUPER_ADMIN');
 
 function nextCode() {
   const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
@@ -138,8 +139,8 @@ router.get('/', (req, res) => {
   res.json(db.prepare(sql).all(...params));
 });
 
-// Thùng rác — SUPER_ADMIN
-router.get('/trash', adminOnly, (req, res) => {
+// Thùng rác — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG
+router.get('/trash', canManage, (req, res) => {
   const rows = db.prepare(`
     SELECT *,
       CAST((julianday(datetime(deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left
@@ -226,6 +227,15 @@ router.delete('/:id', adminOnly, (req, res) => {
 // Khôi phục từ trash
 router.post('/:id/restore', adminOnly, (req, res) => {
   db.prepare('UPDATE events SET deleted_at = NULL WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// Hủy sự kiện — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG
+router.post('/:id/cancel', canManage, (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  if (ev.status === 'cancelled') return res.status(400).json({ error: 'Sự kiện đã được hủy' });
+  db.prepare("UPDATE events SET status = 'cancelled' WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });
 
