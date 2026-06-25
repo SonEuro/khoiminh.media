@@ -69,51 +69,65 @@ function TxDetailModal({ txId, onClose }) {
           ))}
         </div>
         {tx.notes && <p style={{ fontSize:'0.82rem', background:'rgba(255,255,255,0.04)', padding:'10px 12px', borderRadius:'8px', color:'#a0a0b8', border:'1px solid rgba(201,168,76,0.2)' }}>{tx.notes}</p>}
-        {tx.items?.length > 0 && (
+        {((tx.items?.length || 0) + (tx.external_items?.length || 0)) > 0 && (
           <div>
-            <h3 style={{ fontWeight:700, color:GOLD, marginBottom:'10px', fontSize:'0.85rem' }}>Thiết bị kho · {tx.items.length} loại</h3>
-            <table style={{ width:'100%', fontSize:'0.82rem' }}>
-              <thead><tr>
-                <th style={{ textAlign:'left', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>Thiết bị</th>
-                <th style={{ textAlign:'right', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>SL</th>
-                <th style={{ textAlign:'center', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>Tình trạng</th>
-              </tr></thead>
-              <tbody>
-                {tx.items.map(it => (
-                  <tr key={it.id} style={{ borderTop:'1px solid rgba(201,168,76,0.1)' }}>
-                    <td style={{ padding:'8px 0' }}>
-                      <p style={{ fontWeight:600, color:GOLD }}>{it.eq_name}</p>
-                      <p style={{ fontSize:'0.7rem', color:'#7878a0' }}>{it.eq_code} · {it.category}</p>
-                    </td>
-                    <td style={{ textAlign:'right', fontWeight:700, color:'#4ade80', padding:'8px 0 8px 8px' }}>{it.quantity} {it.unit}</td>
-                    <td style={{ textAlign:'center', padding:'8px 0 8px 8px', fontSize:'0.7rem', fontWeight:700, color: condColor[it.condition] || '#7878a0' }}>
-                      {condLabel[it.condition] || it.condition}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {tx.external_items?.length > 0 && (
-          <div>
-            <h3 style={{ fontWeight:700, color:'#60a5fa', marginBottom:'10px', fontSize:'0.85rem' }}>🏪 Thiết bị NCC · {tx.external_items.length} loại</h3>
-            <table style={{ width:'100%', fontSize:'0.82rem' }}>
-              <thead><tr>
-                <th style={{ textAlign:'left', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>Tên thiết bị</th>
-                <th style={{ textAlign:'left', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>Nhà CC</th>
-                <th style={{ textAlign:'right', paddingBottom:'8px', color:'#7878a0', fontWeight:600 }}>SL</th>
-              </tr></thead>
-              <tbody>
-                {tx.external_items.map((it, i) => (
-                  <tr key={i} style={{ borderTop:'1px solid rgba(96,165,250,0.1)' }}>
-                    <td style={{ padding:'8px 0', fontWeight:600, color:'#93c5fd' }}>{it.name}</td>
-                    <td style={{ padding:'8px 4px', fontSize:'0.7rem', color:'#7878a0' }}>{it.supplier || '—'}</td>
-                    <td style={{ textAlign:'right', fontWeight:700, color:'#60a5fa', padding:'8px 0 8px 8px' }}>{it.quantity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h3 style={{ fontWeight:700, color:'#e0e0ee', marginBottom:'10px', fontSize:'0.85rem' }}>
+              Danh sách thiết bị &nbsp;
+              <span style={{ color:GOLD }}>{tx.items?.length || 0} kho</span>
+              {tx.external_items?.length > 0 && <span style={{ color:'#60a5fa' }}> · {tx.external_items.length} NCC</span>}
+            </h3>
+            <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+              {/* KHO items */}
+              {(tx.items || []).map(it => (
+                <div key={it.id} style={{
+                  display:'grid', gridTemplateColumns:'1fr auto auto',
+                  gap:'8px', alignItems:'center',
+                  padding:'8px 10px', borderRadius:'8px',
+                  background:'rgba(201,168,76,0.05)',
+                  border:'1px solid rgba(201,168,76,0.15)',
+                }}>
+                  <div>
+                    <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
+                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}{it.category ? ` · ${it.category}` : ''}</p>
+                  </div>
+                  <span style={{ fontSize:'0.7rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
+                    {condLabel[it.condition] || it.condition}
+                  </span>
+                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                    {it.quantity} {it.unit}
+                  </span>
+                </div>
+              ))}
+
+              {/* Divider if both exist */}
+              {tx.items?.length > 0 && tx.external_items?.length > 0 && (
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'2px 0' }}>
+                  <div style={{ flex:1, height:'1px', background:'rgba(96,165,250,0.2)' }} />
+                  <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:700 }}>NCC</span>
+                  <div style={{ flex:1, height:'1px', background:'rgba(96,165,250,0.2)' }} />
+                </div>
+              )}
+
+              {/* NCC items */}
+              {(tx.external_items || []).map((it, i) => (
+                <div key={i} style={{
+                  display:'grid', gridTemplateColumns:'1fr auto auto',
+                  gap:'8px', alignItems:'center',
+                  padding:'8px 10px', borderRadius:'8px',
+                  background:'rgba(96,165,250,0.05)',
+                  border:'1px solid rgba(96,165,250,0.18)',
+                }}>
+                  <div>
+                    <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.84rem' }}>🏪 {it.name}</p>
+                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.supplier || 'Không rõ NCC'}</p>
+                  </div>
+                  <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>thuê</span>
+                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                    {it.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
