@@ -148,7 +148,7 @@ export default function Layout() {
     { to: '/violations',   Icon: ShieldAlert,      label: 'Vi Phạm Nội Quy',        always: true },
     { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', always: true },
     { to: '/equipment',    Icon: Warehouse,        label: 'Tổng Kho Khôi Minh', always: true },
-    { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('transact') },
+    { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('transact') || can('intake') || can('confirmFix') },
     { to: '/users',        Icon: Users,            label: 'Người Dùng',           show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 
