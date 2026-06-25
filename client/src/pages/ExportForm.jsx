@@ -415,18 +415,22 @@ export default function ExportForm() {
                       />
 
                       {/* Yellow rental days */}
-                      <div style={{ position:'relative', height:`${H}px` }}>
+                      <div style={{
+                        height:`${H}px`, display:'flex', flexDirection:'column',
+                        alignItems:'center', justifyContent:'center',
+                        background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
+                        borderRadius:'7px', overflow:'hidden',
+                      }}>
                         <input type="number" min="1"
                           value={item.rental_days || 1}
                           onChange={e => setItem(idx, 'rental_days', +e.target.value)}
                           style={{
-                            display:'block', width:'100%', height:`${H}px`, padding:'0 4px 0 4px',
-                            textAlign:'center', boxSizing:'border-box',
-                            background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
-                            borderRadius:'7px', color:'#fbbf24', fontSize:'0.9rem', fontWeight:800, outline:'none',
+                            width:'100%', border:'none', background:'transparent', outline:'none',
+                            textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800,
+                            padding:0, lineHeight:1, marginBottom:'1px',
                           }}
                         />
-                        <span style={{ position:'absolute', bottom:'2px', right:'4px', fontSize:'0.5rem', color:'rgba(251,191,36,0.6)', pointerEvents:'none', lineHeight:1 }}>ngày</span>
+                        <span style={{ fontSize:'0.55rem', color:'rgba(251,191,36,0.7)', lineHeight:1, letterSpacing:'0.03em' }}>ngày</span>
                       </div>
 
                       {/* Delete */}
