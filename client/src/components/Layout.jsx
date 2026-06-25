@@ -15,11 +15,13 @@ const BG_CARD      = '#13131d';
 const TEXT_MUTED   = '#c8c8e0';
 const TEXT_PRIMARY = '#eeeef5';
 
-function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout }) {
+function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, safeLeft = false }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const leftInset = safeLeft ? 'env(safe-area-inset-left, 0px)' : '0px';
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', background: BG_SIDEBAR }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', background: BG_SIDEBAR,
+      paddingLeft: leftInset }}>
 
       {/* Logo */}
       <div style={{ padding:'16px 20px', borderBottom:`1px solid ${GOLD_DIM}` }}>
@@ -196,7 +198,8 @@ export default function Layout() {
           {/* Drawer panel */}
           <div style={{
             position:'relative', zIndex:51,
-            width:'240px', height:'100%',
+            width:`calc(240px + env(safe-area-inset-left, 0px))`,
+            height:'100%',
             borderRight:`1px solid ${GOLD_DIM}`,
             boxShadow:'4px 0 32px rgba(0,0,0,0.7)',
             animation:'slideIn 0.2s ease',
@@ -205,6 +208,7 @@ export default function Layout() {
               nav={nav} user={user} ROLE_LABELS={ROLE_LABELS} can={can}
               onNavClick={() => setDrawerOpen(false)}
               onLogout={handleLogout}
+              safeLeft
             />
           </div>
         </div>
@@ -220,8 +224,8 @@ export default function Layout() {
             display:'flex', alignItems:'center', gap:'12px',
             paddingTop:`calc(env(safe-area-inset-top, 0px) + 10px)`,
             paddingBottom:'10px',
-            paddingLeft:'16px',
-            paddingRight:'16px',
+            paddingLeft:`calc(env(safe-area-inset-left, 0px) + 16px)`,
+            paddingRight:`calc(env(safe-area-inset-right, 0px) + 16px)`,
             background: BG_SIDEBAR,
             borderBottom:`1px solid ${GOLD_DIM}`,
             flexShrink:0,
@@ -259,6 +263,8 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
+          paddingLeft:'env(safe-area-inset-left, 0px)',
+          paddingRight:'env(safe-area-inset-right, 0px)',
           paddingBottom:'env(safe-area-inset-bottom, 0px)',
         }}>
           <Outlet />
