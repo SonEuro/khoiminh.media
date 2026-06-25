@@ -73,12 +73,18 @@ export default function ExportForm() {
   const reloadEquipment = () => api.getEquipment().then(setEquipment);
 
   // Tính ngày tối thiểu phải trả dựa trên sự kiện đang chọn
+  const parseFilmingDates = (ev) => {
+    if (!ev) return [];
+    try {
+      if (ev.filming_dates) return typeof ev.filming_dates === 'string' ? JSON.parse(ev.filming_dates) : ev.filming_dates;
+      return ev.filming_date ? [ev.filming_date] : [];
+    } catch { return ev.filming_date ? [ev.filming_date] : []; }
+  };
+
   const getMinReturnDate = (eventId) => {
     const ev = events.find(e => String(e.id) === String(eventId));
     if (!ev) return new Date().toISOString().slice(0, 10);
-    const filmingArr = ev.filming_dates
-      ? (typeof ev.filming_dates === 'string' ? JSON.parse(ev.filming_dates) : ev.filming_dates)
-      : (ev.filming_date ? [ev.filming_date] : []);
+    const filmingArr = parseFilmingDates(ev);
     const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
     const candidates = [lastFilming, ev.end_date, new Date().toISOString().slice(0, 10)].filter(Boolean);
     return candidates.sort().pop();
@@ -160,9 +166,7 @@ export default function ExportForm() {
     const minReturn = getMinReturnDate(form.event_id);
     if (form.expected_return_date < minReturn) {
       const selEv = events.find(ev => String(ev.id) === String(form.event_id));
-      const filmingArr = selEv?.filming_dates
-        ? (typeof selEv.filming_dates === 'string' ? JSON.parse(selEv.filming_dates) : selEv.filming_dates)
-        : (selEv?.filming_date ? [selEv.filming_date] : []);
+      const filmingArr = parseFilmingDates(selEv);
       const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
       const fmtDate = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : '';
       const parts = [

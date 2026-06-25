@@ -268,17 +268,19 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, confirming }) {
             </span>
           </div>
           <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
-            <button
-              onClick={() => onConfirm(tx)}
-              disabled={confirming === tx.id}
-              style={{
-                flex:1, padding:'6px 10px', borderRadius:'7px', cursor: confirming === tx.id ? 'not-allowed' : 'pointer', fontWeight:700, fontSize:'0.78rem',
-                background:'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(251,191,36,0.12))',
-                border:'1px solid rgba(251,191,36,0.5)', color:PENDING_COLOR,
-                opacity: confirming === tx.id ? 0.5 : 1,
-              }}>
-              {confirming === tx.id ? '⏳ Đang xử lý...' : '✅ Xác nhận xuất kho'}
-            </button>
+            {onConfirm && (
+              <button
+                onClick={() => onConfirm(tx)}
+                disabled={confirming === tx.id}
+                style={{
+                  flex:1, padding:'6px 10px', borderRadius:'7px', cursor: confirming === tx.id ? 'not-allowed' : 'pointer', fontWeight:700, fontSize:'0.78rem',
+                  background:'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(251,191,36,0.12))',
+                  border:'1px solid rgba(251,191,36,0.5)', color:PENDING_COLOR,
+                  opacity: confirming === tx.id ? 0.5 : 1,
+                }}>
+                {confirming === tx.id ? '⏳ Đang xử lý...' : '✅ Xác nhận xuất kho'}
+              </button>
+            )}
             <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
             {onDelete && (
               <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
@@ -383,6 +385,7 @@ export default function Transactions() {
   const [confirming, setConfirming] = useState(null);
 
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canConfirm   = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
 
   function load() {
     if (!user) return;
@@ -453,7 +456,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất kho tạm (chờ xác nhận)" color={PENDING_COLOR} border="rgba(251,191,36,0.25)" count={pendingTxs.length}>
-            <PendingTxRows txs={pendingTxs} onConfirm={handleConfirmPending} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} confirming={confirming} />
+            <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} confirming={confirming} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
