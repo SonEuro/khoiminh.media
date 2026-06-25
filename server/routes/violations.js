@@ -42,8 +42,8 @@ router.post('/', requireAuth, (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
-// DELETE /api/violations/:id  (SUPER_ADMIN only)
-router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN'), (req, res) => {
+// DELETE /api/violations/:id  (SUPER_ADMIN, DIRECTOR)
+router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   db.prepare('DELETE FROM violations WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

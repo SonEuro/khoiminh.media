@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
+const { requireRole } = require('../middleware/auth');
 
 router.get('/', (req, res) => {
   const { event_id } = req.query;
@@ -47,7 +48,7 @@ router.post('/', (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   db.prepare('DELETE FROM event_reports WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
