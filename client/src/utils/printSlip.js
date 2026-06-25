@@ -25,7 +25,7 @@ function buildSlipHTML(tx, preview = false) {
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
         <td style="text-align:center">${item.supplier || ''}</td>
-        <td style="text-align:center">${item.quantity}</td>
+        <td style="text-align:center">${item.quantity} ${item.unit || 'Cái'}</td>
         <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
       </tr>
     `).join('')}

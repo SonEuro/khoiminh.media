@@ -127,7 +127,11 @@ export default function ExportForm() {
     const validItems = items.filter(it => it.mode === 'kho' && it.equipment_id && it.quantity > 0);
     const rowExt = items
       .filter(it => it.mode === 'ext' && it.ext_name.trim())
-      .map(it => ({ name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '' }));
+      .map(it => {
+        const catalog = NCC_CATALOG[it.ext_supplier] || [];
+        const found = catalog.find(c => c.name === it.ext_name.trim());
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái' };
+      });
     const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
     const validExt = [...rowExt, ...sectionExt];

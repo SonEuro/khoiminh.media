@@ -143,4 +143,11 @@ db.exec(`
   );
 `);
 
+// Migration: thêm cột unit vào external_items nếu chưa có
+const extCols = db.pragma('table_info(external_items)').map(c => c.name);
+if (!extCols.includes('unit')) {
+  db.exec("ALTER TABLE external_items ADD COLUMN unit TEXT DEFAULT 'Cái'");
+  console.log('[DB] Migration: thêm cột unit vào external_items');
+}
+
 module.exports = db;
