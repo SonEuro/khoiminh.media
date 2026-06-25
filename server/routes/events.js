@@ -229,7 +229,7 @@ router.delete('/:id', adminOnly, (req, res) => {
 });
 
 // Khôi phục từ trash
-router.post('/:id/restore', adminOnly, (req, res) => {
+router.post('/:id/restore', canManage, (req, res) => {
   db.prepare('UPDATE events SET deleted_at = NULL WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

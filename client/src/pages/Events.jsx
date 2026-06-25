@@ -404,7 +404,7 @@ export default function Events() {
 
   return (
     <div className="p-6">
-      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} canRestore={user?.role === 'SUPER_ADMIN'} />}
+      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} canRestore={canManage} />}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
