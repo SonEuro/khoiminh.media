@@ -357,7 +357,7 @@ function TrashView({ onClose, canPermanentDelete }) {
 
 export default function Events() {
   const { user } = useAuth();
-  const canManage  = ['SUPER_ADMIN', 'DIRECTOR', 'TRUONG_PHONG'].includes(user?.role);
+  const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_truong_phong;
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');

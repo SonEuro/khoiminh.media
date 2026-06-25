@@ -5,30 +5,28 @@ import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
 
 const ROLES = [
-  { value: 'DIRECTOR',     label: '🌟 Tổng Giám Đốc' },
-  { value: 'SUPER_ADMIN',  label: '👑 Giám Đốc Sản Xuất' },
-  { value: 'TRUONG_PHONG', label: '🏅 Trưởng Phòng' },
-  { value: 'PRODUCTION',   label: '🏗️ Bộ Phận Sản Xuất' },
-  { value: 'ACCOUNTING',   label: '💰 Kế Toán' },
-  { value: 'TECHNICAL',    label: '🛠️ Kỹ Thuật' },
-  { value: 'ATAS',         label: '💡 ATAS – LED' },
-  { value: 'STAGE',        label: '🎭 Sân Khấu' },
-  { value: 'CSVC',         label: '🏢 Cơ Sở Vật Chất' },
+  { value: 'DIRECTOR',   label: '🌟 Tổng Giám Đốc' },
+  { value: 'SUPER_ADMIN', label: '👑 Giám Đốc Sản Xuất' },
+  { value: 'PRODUCTION', label: '🏗️ Bộ Phận Sản Xuất' },
+  { value: 'ACCOUNTING', label: '💰 Kế Toán' },
+  { value: 'TECHNICAL',  label: '🛠️ Kỹ Thuật' },
+  { value: 'ATAS',       label: '💡 ATAS – LED' },
+  { value: 'STAGE',      label: '🎭 Sân Khấu' },
+  { value: 'CSVC',       label: '🏢 Cơ Sở Vật Chất' },
 ];
 
 const ROLE_COLORS = {
-  DIRECTOR:     { bg: 'rgba(201,168,76,0.18)',  color: '#e8c97a', border: 'rgba(201,168,76,0.5)'  },
-  SUPER_ADMIN:  { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc', border: 'rgba(168,85,247,0.35)' },
-  TRUONG_PHONG: { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf', border: 'rgba(20,184,166,0.35)' },
-  PRODUCTION:   { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.35)' },
-  ACCOUNTING:   { bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24', border: 'rgba(251,191,36,0.35)' },
-  TECHNICAL:    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c', border: 'rgba(251,146,60,0.35)' },
-  ATAS:         { bg: 'rgba(74,222,128,0.15)',  color: '#4ade80', border: 'rgba(74,222,128,0.35)' },
-  STAGE:        { bg: 'rgba(244,114,182,0.15)', color: '#f472b6', border: 'rgba(244,114,182,0.35)' },
-  CSVC:         { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
+  DIRECTOR:    { bg: 'rgba(201,168,76,0.18)',  color: '#e8c97a', border: 'rgba(201,168,76,0.5)'  },
+  SUPER_ADMIN: { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc', border: 'rgba(168,85,247,0.35)' },
+  PRODUCTION:  { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.35)' },
+  ACCOUNTING:  { bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24', border: 'rgba(251,191,36,0.35)' },
+  TECHNICAL:   { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c', border: 'rgba(251,146,60,0.35)' },
+  ATAS:        { bg: 'rgba(74,222,128,0.15)',  color: '#4ade80', border: 'rgba(74,222,128,0.35)' },
+  STAGE:       { bg: 'rgba(244,114,182,0.15)', color: '#f472b6', border: 'rgba(244,114,182,0.35)' },
+  CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -52,7 +50,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -176,13 +174,18 @@ export default function Users() {
                     <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
                     <td className="px-4 py-3" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
                     <td className="px-4 py-3">
-                      <span style={{
-                        padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
-                        background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
-                        whiteSpace: 'nowrap', display: 'inline-block',
-                      }}>
-                        {ROLE_LABELS[u.role] || u.role}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{
+                          padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
+                          background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
+                          whiteSpace: 'nowrap', display: 'inline-block',
+                        }}>
+                          {ROLE_LABELS[u.role] || u.role}
+                        </span>
+                        {u.is_truong_phong ? (
+                          <span style={{ fontSize: '0.65rem', color: '#2dd4bf', fontWeight: 600 }}>🏅 Trưởng phòng</span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
@@ -298,6 +301,15 @@ export default function Users() {
                 <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>Tài khoản đang hoạt động</span>
               </label>
             )}
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.is_truong_phong}
+                onChange={e => set('is_truong_phong', e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#2dd4bf' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                🏅 Trưởng phòng <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
+              </span>
+            </label>
 
             {error && (
               <p style={{ color: '#f87171', fontSize: '0.85rem', background: 'rgba(248,113,113,0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.3)' }}>

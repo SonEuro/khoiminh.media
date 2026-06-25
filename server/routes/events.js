@@ -2,9 +2,13 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
-const canWrite   = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
-const canManage  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'TRUONG_PHONG');
-const adminOnly  = requireRole('SUPER_ADMIN');
+const canWrite  = requireRole('SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+const adminOnly = requireRole('SUPER_ADMIN');
+function canManage(req, res, next) {
+  const { role, is_truong_phong } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_truong_phong) return next();
+  return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
+}
 
 function nextCode() {
   const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
