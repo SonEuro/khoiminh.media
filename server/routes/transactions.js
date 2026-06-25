@@ -85,7 +85,7 @@ router.get('/outstanding', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  const { type, event_id, limit = 50, status } = req.query;
+  const { type, event_id, limit = 50, status, hide_archived } = req.query;
   let sql = `
     SELECT t.*, e.name as event_name,
            (SELECT COUNT(*) FROM transaction_items ti WHERE ti.transaction_id = t.id) as item_count,
@@ -95,9 +95,10 @@ router.get('/', (req, res) => {
     WHERE 1=1
   `;
   const params = [];
-  if (type)     { sql += ' AND t.type = ?'; params.push(type); }
-  if (event_id) { sql += ' AND t.event_id = ?'; params.push(event_id); }
-  if (status)   { sql += ' AND t.status = ?'; params.push(status); }
+  if (type)         { sql += ' AND t.type = ?'; params.push(type); }
+  if (event_id)     { sql += ' AND t.event_id = ?'; params.push(event_id); }
+  if (status)       { sql += ' AND t.status = ?'; params.push(status); }
+  if (hide_archived === 'true') { sql += ' AND (t.event_id IS NULL OR e.archived_at IS NULL)'; }
   sql += ' ORDER BY t.created_at DESC LIMIT ?';
   params.push(parseInt(limit));
   res.json(db.prepare(sql).all(...params));

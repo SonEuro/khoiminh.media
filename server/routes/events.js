@@ -235,13 +235,14 @@ router.delete('/:id/permanent', adminOnly, (req, res) => {
   res.json({ ok: true });
 });
 
-// Lưu trữ sự kiện hoàn thành (SUPER_ADMIN) — biến mất khỏi danh sách sau 24h
+// Lưu trữ sự kiện (SUPER_ADMIN) — ẩn khỏi live feed, toàn bộ dữ liệu liên quan được giữ nguyên
 router.post('/:id/archive', requireRole('SUPER_ADMIN'), (req, res) => {
   const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
-  if (ev.status !== 'completed') return res.status(400).json({ error: 'Chỉ lưu trữ sự kiện đã hoàn thành' });
+  const tx_count   = db.prepare('SELECT COUNT(*) AS c FROM transactions WHERE event_id = ?').get(req.params.id).c;
+  const report_count = db.prepare('SELECT COUNT(*) AS c FROM event_reports WHERE event_id = ?').get(req.params.id).c;
   db.prepare("UPDATE events SET archived_at = datetime('now','localtime') WHERE id = ?").run(req.params.id);
-  res.json({ ok: true });
+  res.json({ ok: true, tx_count, report_count });
 });
 
 module.exports = router;

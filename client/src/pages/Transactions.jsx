@@ -386,9 +386,9 @@ export default function Transactions() {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
-      api.getTransactions({ type: 'OUT', status: 'pending', limit: 200 }),
-      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200 }),
-      api.getTransactions({ type: 'RETURN', limit: 200 }),
+      api.getTransactions({ type: 'OUT', status: 'pending',   limit: 200, hide_archived: 'true' }),
+      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200, hide_archived: 'true' }),
+      api.getTransactions({ type: 'RETURN',                   limit: 200, hide_archived: 'true' }),
       api.getEventReports(),
       api.getViolations(),
     ]).then(([ev, pending, out, ret, rep, vio]) => {
@@ -415,9 +415,11 @@ export default function Transactions() {
   }
 
   async function handleArchiveEvent(ev) {
-    if (!confirm(`Lưu sự kiện "${ev.name}" vào kho?\nSự kiện sẽ ẩn khỏi danh sách hoạt động.`)) return;
+    if (!confirm(`Lưu sự kiện "${ev.name}" vào kho?\n\nToàn bộ phiếu xuất/nhập và báo cáo liên quan sẽ được bảo toàn, không bị xoá.`)) return;
     try {
-      await api.archiveEvent(ev.id);
+      const res = await api.archiveEvent(ev.id);
+      const lines = [`✅ Đã lưu sự kiện "${ev.name}"`, `• ${res.tx_count} phiếu xuất/nhập`, `• ${res.report_count} báo cáo`, `Tất cả dữ liệu được giữ nguyên trong hệ thống.`];
+      alert(lines.join('\n'));
       load();
     } catch (err) { alert(err.message); }
   }
