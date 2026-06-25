@@ -523,8 +523,9 @@ export default function EventReport() {
                     onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0' }}>{ev.code}</span>
-                    <span style={{ color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
+                    <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
+                    <span style={{ flex:1, color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
+                    {ev.location && <span style={{ fontSize:'0.68rem', color:'#60a5fa', flexShrink:0 }}>📍 {ev.location}</span>}
                   </button>
                 ))}
               </div>
@@ -534,8 +535,9 @@ export default function EventReport() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
             <div>
               <label style={labelStyle}>Địa điểm</label>
-              <input className="input" placeholder="Tự động hoặc nhập tay..."
-                value={form.location} onChange={e => setField('location', e.target.value)} />
+              <input className="input" placeholder="Tự động khi chọn sự kiện..."
+                value={form.location} onChange={e => setField('location', e.target.value)}
+                style={form.location ? { color:'#60a5fa', fontWeight:600 } : {}} />
             </div>
             <div>
               <label style={labelStyle}>Ngày báo cáo *</label>
