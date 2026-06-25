@@ -25,6 +25,7 @@ const TX_CFG = {
   OUT:    { label: '↑ Xuất', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.35)' },
   RETURN: { label: '↓ Nhập', color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.35)'  },
 };
+const PENDING_COLOR = '#fbbf24';
 
 function Badge({ color, bg, border, label }) {
   return (
@@ -224,6 +225,50 @@ function EventRows({ events }) {
   );
 }
 
+function PendingTxRows({ txs, onConfirm, onSelect, onDelete }) {
+  if (!txs.length) return <Empty text="Không có phiếu xuất kho tạm nào" />;
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+      {txs.map(tx => (
+        <div key={tx.id} style={{
+          padding:'10px 12px', borderRadius:'10px',
+          background:'rgba(251,191,36,0.05)',
+          border:'1px solid rgba(251,191,36,0.3)',
+          borderLeft:'3px solid #fbbf24',
+        }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:PENDING_COLOR, fontWeight:700, margin:'0 0 2px' }}>{tx.code}</p>
+              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại
+              </p>
+            </div>
+            <span style={{ fontSize:'0.68rem', background:'rgba(251,191,36,0.15)', color:PENDING_COLOR, border:'1px solid rgba(251,191,36,0.4)', borderRadius:'6px', padding:'2px 7px', fontWeight:700, flexShrink:0 }}>
+              Chờ xuất
+            </span>
+          </div>
+          <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
+            <button
+              onClick={() => onConfirm(tx)}
+              style={{
+                flex:1, padding:'6px 10px', borderRadius:'7px', cursor:'pointer', fontWeight:700, fontSize:'0.78rem',
+                background:'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(251,191,36,0.12))',
+                border:'1px solid rgba(251,191,36,0.5)', color:PENDING_COLOR,
+              }}>
+              ✅ Xác nhận xuất kho
+            </button>
+            <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
+            {onDelete && (
+              <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
+                onClick={() => onDelete(tx)} title="Hủy phiếu tạm">🗑</button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TxRows({ txs, onSelect, onDelete }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
   return (
@@ -306,12 +351,14 @@ function ViolationRows({ violations }) {
 export default function Transactions() {
   const { user } = useAuth();
   const [events,     setEvents]     = useState([]);
+  const [pendingTxs, setPendingTxs] = useState([]);
   const [outTxs,     setOutTxs]     = useState([]);
   const [returnTxs,  setReturnTxs]  = useState([]);
   const [reports,    setReports]    = useState([]);
   const [violations, setViolations] = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [selectedTx, setSelectedTx] = useState(null);
+  const [confirming, setConfirming] = useState(null);
 
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
 
@@ -319,23 +366,37 @@ export default function Transactions() {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
-      api.getTransactions({ type: 'OUT', limit: 200 }),
+      api.getTransactions({ type: 'OUT', status: 'pending', limit: 200 }),
+      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200 }),
       api.getTransactions({ type: 'RETURN', limit: 200 }),
       api.getEventReports(),
       api.getViolations(),
-    ]).then(([ev, out, ret, rep, vio]) => {
-      setEvents(ev); setOutTxs(out); setReturnTxs(ret); setReports(rep); setViolations(vio);
+    ]).then(([ev, pending, out, ret, rep, vio]) => {
+      setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret); setReports(rep); setViolations(vio);
     }).finally(() => setLoading(false));
   }
 
   useEffect(() => { load(); }, [user]);
 
   async function handleDeleteTx(tx) {
-    if (!confirm(`Xóa phiếu ${tx.code}?\nThao tác này sẽ hoàn tác tồn kho tương ứng.`)) return;
+    const msg = tx.status === 'pending'
+      ? `Hủy phiếu xuất kho tạm ${tx.code}?\nThiết bị chưa bị trừ kho, phiếu sẽ bị xóa.`
+      : `Xóa phiếu ${tx.code}?\nThao tác này sẽ hoàn tác tồn kho tương ứng.`;
+    if (!confirm(msg)) return;
     try {
       await api.deleteTransaction(tx.id);
       load();
     } catch (err) { alert(err.message); }
+  }
+
+  async function handleConfirmPending(tx) {
+    if (!confirm(`Xác nhận xuất kho phiếu ${tx.code}?\nThiết bị sẽ được trừ khỏi kho ngay bây giờ.`)) return;
+    setConfirming(tx.id);
+    try {
+      await api.confirmPending(tx.id);
+      load();
+    } catch (err) { alert(err.message); }
+    finally { setConfirming(null); }
   }
 
 
@@ -352,6 +413,10 @@ export default function Transactions() {
         <>
           <Section Icon={CalendarDays} title="Trạng thái sự kiện" color="#60a5fa" border="rgba(96,165,250,0.25)" count={events.length}>
             <EventRows events={events} />
+          </Section>
+
+          <Section Icon={ArrowUpFromLine} title="Xuất kho tạm (chờ xác nhận)" color={PENDING_COLOR} border="rgba(251,191,36,0.25)" count={pendingTxs.length}>
+            <PendingTxRows txs={pendingTxs} onConfirm={handleConfirmPending} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>

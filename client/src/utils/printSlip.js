@@ -8,7 +8,7 @@ function buildSlipHTML(tx, preview = false) {
     <tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
-      <td style="text-align:center"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span> <span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></td>
+      <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></div></td>
       <td style="text-align:center">${item.eq_code || ''}</td>
       <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
     </tr>
@@ -24,7 +24,7 @@ function buildSlipHTML(tx, preview = false) {
       <tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
-        <td style="text-align:center"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span> <span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></td>
+        <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></div></td>
         <td style="text-align:center">${item.supplier || ''}</td>
         <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
       </tr>

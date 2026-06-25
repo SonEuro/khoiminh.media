@@ -85,7 +85,7 @@ router.get('/outstanding', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  const { type, event_id, limit = 50 } = req.query;
+  const { type, event_id, limit = 50, status } = req.query;
   let sql = `
     SELECT t.*, e.name as event_name,
            (SELECT COUNT(*) FROM transaction_items ti WHERE ti.transaction_id = t.id) as item_count,
@@ -97,6 +97,7 @@ router.get('/', (req, res) => {
   const params = [];
   if (type)     { sql += ' AND t.type = ?'; params.push(type); }
   if (event_id) { sql += ' AND t.event_id = ?'; params.push(event_id); }
+  if (status)   { sql += ' AND t.status = ?'; params.push(status); }
   sql += ' ORDER BY t.created_at DESC LIMIT ?';
   params.push(parseInt(limit));
   res.json(db.prepare(sql).all(...params));
@@ -129,7 +130,7 @@ router.get('/:id', (req, res) => {
 router.post('/out', canTransact, (req, res) => {
   const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
   if (!event_id) return res.status(400).json({ error: 'Phải chọn sự kiện trước khi xuất thiết bị' });
-  const evCheck = db.prepare('SELECT id FROM events WHERE id = ?').get(event_id);
+  const evCheck = db.prepare('SELECT id, filming_dates, filming_date FROM events WHERE id = ?').get(event_id);
   if (!evCheck) return res.status(400).json({ error: 'Sự kiện không tồn tại. Vui lòng tải lại trang và chọn lại sự kiện.' });
   const validExt = (external_items || []).filter(i => i.name?.trim());
   if ((!items || items.length === 0) && validExt.length === 0)
@@ -139,23 +140,40 @@ router.post('/out', canTransact, (req, res) => {
     if (deptErr) return res.status(403).json({ error: deptErr });
   }
 
+  // Xác định pending: nếu ngày ghi hình sớm nhất > hôm nay thì là xuất kho tạm
+  let filmingDates = [];
+  try { filmingDates = JSON.parse(evCheck.filming_dates || '[]'); } catch { filmingDates = []; }
+  if (!filmingDates.length && evCheck.filming_date) filmingDates = [evCheck.filming_date];
+  filmingDates = filmingDates.filter(Boolean).sort();
+  const today = new Date().toISOString().slice(0, 10);
+  const earliestFilming = filmingDates[0] || null;
+  const isPending = !!(earliestFilming && earliestFilming > today);
+  const txStatus = isPending ? 'pending' : 'completed';
+
   const doOut = db.transaction(() => {
     const code = nextCode('OUT', event_id || null, req.user.full_name);
     const txR = db.prepare(`
-      INSERT INTO transactions (code, type, event_id, responsible_person, expected_return_date, notes, created_by_id)
-      VALUES (?, 'OUT', ?, ?, ?, ?, ?)
-    `).run(code, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
+      INSERT INTO transactions (code, type, status, event_id, responsible_person, expected_return_date, notes, created_by_id)
+      VALUES (?, 'OUT', ?, ?, ?, ?, ?, ?)
+    `).run(code, txStatus, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
 
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
-    const updateEq = db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ? AND qty_available >= ?`);
 
     for (const item of (items || [])) {
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      if (eq.qty_available < item.quantity) throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}`);
+      const freeQty = eq.qty_available - (eq.qty_reserved || 0);
+      if (freeQty < item.quantity)
+        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit}${isPending ? ' (sau khi trừ đặt trước)' : ''}`);
       insertItem.run(txId, item.equipment_id, item.quantity, item.notes || null);
-      updateEq.run(item.quantity, item.quantity, item.equipment_id, item.quantity);
+      if (isPending) {
+        db.prepare(`UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?`)
+          .run(item.quantity, item.equipment_id);
+      } else {
+        db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
+          .run(item.quantity, item.quantity, item.equipment_id);
+      }
     }
 
     const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
@@ -163,11 +181,41 @@ router.post('/out', canTransact, (req, res) => {
       insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
     }
 
-    return { id: txId, code };
+    return { id: txId, code, status: txStatus, filming_date: earliestFilming };
   });
 
   try {
     res.json(doOut());
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Xác nhận xuất kho tạm → trừ kho thật
+router.post('/confirm/:id', canTransact, (req, res) => {
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
+  if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
+  if (tx.type !== 'OUT' || tx.status !== 'pending')
+    return res.status(400).json({ error: 'Phiếu này không phải xuất kho tạm' });
+
+  const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+
+  const doConfirm = db.transaction(() => {
+    for (const item of items) {
+      const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
+      if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
+      if (eq.qty_available < item.quantity)
+        throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}, cần ${item.quantity}`);
+      db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ?, qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`)
+        .run(item.quantity, item.quantity, item.quantity, item.equipment_id);
+    }
+    db.prepare(`UPDATE transactions SET status = 'completed', transaction_date = datetime('now','localtime') WHERE id = ?`)
+      .run(tx.id);
+    return { ok: true };
+  });
+
+  try {
+    res.json(doConfirm());
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -289,7 +337,10 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
 
   const doDelete = db.transaction(() => {
     for (const item of items) {
-      if (tx.type === 'OUT') {
+      if (tx.type === 'OUT' && tx.status === 'pending') {
+        db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?')
+          .run(item.quantity, item.equipment_id);
+      } else if (tx.type === 'OUT') {
         db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = qty_in_use - ? WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       } else if (tx.type === 'RETURN') {

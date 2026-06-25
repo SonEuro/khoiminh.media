@@ -61,6 +61,7 @@ export default function ExportForm() {
   const [doneSlip, setDoneSlip]     = useState(null);
   const [dateError, setDateError]     = useState(false);
   const [eventError, setEventError]   = useState(false);
+  const [eventDropOpen, setEventDropOpen] = useState(false);
   const savedSnapshot = useRef(null);
 
   // Thiết bị ngoài
@@ -145,9 +146,8 @@ export default function ExportForm() {
     setSubmitting(true);
     try {
       const res = await api.createOut({ ...form, items: validItems, external_items: validExt });
-      // Load full transaction for printing
       const full = await api.getTransactionById(res.id);
-      setDoneSlip(full);
+      setDoneSlip({ ...full, _pending: res.status === 'pending', _filmingDate: res.filming_date });
     } catch (err) {
       alert(err.message);
     } finally {
@@ -162,12 +162,28 @@ export default function ExportForm() {
         style={{ minHeight:'100vh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
         <div className="card text-center space-y-5" onClick={e => e.stopPropagation()}
           style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
-          <div className="text-5xl">✅</div>
-          <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
-          <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-            Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
-            với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
-          </p>
+          {doneSlip._pending ? (
+            <>
+              <div className="text-5xl">🕐</div>
+              <h2 style={{ color:'#fbbf24', fontSize:'1.2rem', fontWeight:700 }}>Phiếu xuất kho tạm đã tạo!</h2>
+              <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
+                Phiếu <strong style={{ color:'#fbbf24', fontFamily:'monospace' }}>{doneSlip.code}</strong> đang chờ xác nhận.
+                {doneSlip._filmingDate && <> Ngày ghi hình: <strong style={{ color:'#fbbf24' }}>{doneSlip._filmingDate.slice(8,10)}/{doneSlip._filmingDate.slice(5,7)}/{doneSlip._filmingDate.slice(0,4)}</strong>.</>}
+              </p>
+              <p style={{ color:'rgba(251,191,36,0.65)', fontSize:'0.78rem', background:'rgba(251,191,36,0.07)', border:'1px solid rgba(251,191,36,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
+                ⚠ Thiết bị <strong>chưa bị trừ kho</strong>. Vào <em>Lịch Sử Vận Hành → Xuất Kho Tạm</em> để xác nhận khi đến ngày ghi hình.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="text-5xl">✅</div>
+              <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
+              <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
+                Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
+                với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
+              </p>
+            </>
+          )}
 
           {/* Row 1: Preview + Print */}
           <div className="flex gap-3 justify-center">
@@ -241,14 +257,64 @@ export default function ExportForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label" style={ eventError ? { color:'#f87171' } : {} }>Sự kiện / Dự án <span style={{ color:'#f87171' }}>*</span></label>
-              <select className="input" value={form.event_id}
-                onChange={e => { setField('event_id', e.target.value); if (e.target.value) setEventError(false); }}
-                style={ eventError ? { border:'1.5px solid #f87171', boxShadow:'0 0 0 2px rgba(248,113,113,0.18)' } : {} }>
-                <option value="">-- Chọn sự kiện --</option>
-                {events.map(ev => (
-                  <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>
-                ))}
-              </select>
+              {(() => {
+                const selEv = events.find(ev => String(ev.id) === String(form.event_id));
+                return (
+                  <div style={{ position:'relative' }}>
+                    <button type="button"
+                      onClick={() => setEventDropOpen(v => !v)}
+                      style={{
+                        width:'100%', padding:'8px 12px', borderRadius:'8px', cursor:'pointer',
+                        border: eventError ? '1.5px solid #f87171' : (selEv ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(255,255,255,0.1)'),
+                        background: selEv ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.04)',
+                        display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                        boxShadow: eventError ? '0 0 0 2px rgba(248,113,113,0.18)' : 'none',
+                        minHeight:'40px',
+                      }}>
+                      {selEv ? (
+                        <span style={{ display:'inline-flex', alignItems:'baseline', gap:'5px', overflow:'hidden' }}>
+                          <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.9rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{selEv.name}</span>
+                          <span style={{ color:'rgba(201,168,76,0.38)', fontSize:'0.78rem', fontFamily:'monospace', flexShrink:0 }}>· {selEv.code}</span>
+                        </span>
+                      ) : (
+                        <span style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>-- Chọn sự kiện --</span>
+                      )}
+                      <span style={{ color:'#c9a84c', fontSize:'0.75rem', flexShrink:0 }}>▾</span>
+                    </button>
+
+                    {eventDropOpen && (
+                      <>
+                        <div style={{ position:'fixed', inset:0, zIndex:99 }} onClick={() => setEventDropOpen(false)} />
+                        <div style={{
+                          position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:200,
+                          background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)',
+                          borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)',
+                          maxHeight:'220px', overflowY:'auto',
+                        }}>
+                          {events.map(ev => (
+                            <button key={ev.id} type="button"
+                              onClick={() => { setField('event_id', ev.id); setEventError(false); setEventDropOpen(false); }}
+                              style={{
+                                width:'100%', textAlign:'left', padding:'8px 12px',
+                                background: String(ev.id) === String(form.event_id) ? 'rgba(201,168,76,0.12)' : 'transparent',
+                                border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)',
+                                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
+                              onMouseLeave={e => e.currentTarget.style.background = String(ev.id) === String(form.event_id) ? 'rgba(201,168,76,0.12)' : 'transparent'}>
+                              <span style={{ color:'#e8c97a', fontWeight:600, fontSize:'0.875rem' }}>{ev.name}</span>
+                              <span style={{ color:'rgba(201,168,76,0.4)', fontSize:'0.65rem', fontFamily:'monospace', flexShrink:0 }}>{ev.code}</span>
+                            </button>
+                          ))}
+                          {events.length === 0 && (
+                            <p style={{ padding:'10px 12px', fontSize:'0.8rem', color:'#7878a0' }}>Không có sự kiện nào</p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
               {eventError && (
                 <p style={{ color:'#f87171', fontSize:'0.72rem', fontWeight:600, marginTop:'4px' }}>
                   ⚠ Vui lòng chọn sự kiện trước khi xuất kho
@@ -529,9 +595,15 @@ export default function ExportForm() {
                                 const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
                               }}>
                               <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.83rem', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</span>
-                              <span style={{ fontSize:'0.7rem', fontWeight:700, color: e.qty_available === 0 ? '#f87171' : '#4ade80', flexShrink:0 }}>
-                                {e.qty_available} {e.unit}
-                              </span>
+                              {(() => {
+                                const free = e.qty_available - (e.qty_reserved || 0);
+                                return (
+                                  <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', flexShrink:0 }}>
+                                    <span style={{ fontSize:'0.7rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {e.unit}</span>
+                                    {e.qty_reserved > 0 && <span style={{ fontSize:'0.6rem', color:'#fbbf24', lineHeight:1 }}>({e.qty_reserved} đặt trước)</span>}
+                                  </span>
+                                );
+                              })()}
                             </button>
                           ))}
                           {filteredEquip(searchTerms[idx], idx).length === 0 && (
@@ -600,7 +672,15 @@ export default function ExportForm() {
                       <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)' }}>·</span>
                       <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
                       <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)', marginLeft:'auto' }}>còn</span>
-                      <span style={{ fontSize:'0.72rem', fontWeight:700, color: eq.qty_available === 0 ? '#f87171' : '#4ade80' }}>{eq.qty_available} {eq.unit}</span>
+                      {(() => {
+                        const free = eq.qty_available - (eq.qty_reserved || 0);
+                        return (
+                          <>
+                            <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {eq.unit}</span>
+                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt trước)</span>}
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -611,7 +691,8 @@ export default function ExportForm() {
                         <div style={{ display:'flex', gap:'12px', marginBottom:'8px', fontSize:'0.7rem' }}>
                           <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:'monospace' }}>{eq.code}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
-                          <span style={{ color:'var(--text-muted)' }}>Có sẵn: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
+                          <span style={{ color:'var(--text-muted)' }}>Tự do: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available - (eq.qty_reserved || 0)}</span></span>
+                          {eq.qty_reserved > 0 && <span style={{ color:'var(--text-muted)' }}>Đặt trước: <span style={{ color:'#fbbf24', fontWeight:700 }}>{eq.qty_reserved}</span></span>}
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
                         </div>
                       )}
