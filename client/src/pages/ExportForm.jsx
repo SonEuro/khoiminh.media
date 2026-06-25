@@ -59,7 +59,7 @@ export default function ExportForm() {
   const [nccFocusIdx, setNccFocusIdx] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
-  const [dateError, setDateError]     = useState(false);
+  const [dateError, setDateError]     = useState('');
   const [eventError, setEventError]   = useState(false);
   const [eventDropOpen, setEventDropOpen] = useState(false);
   const savedSnapshot = useRef(null);
@@ -71,6 +71,18 @@ export default function ExportForm() {
   const [extItems,    setExtItems]    = useState([emptyExtRow()]);
 
   const reloadEquipment = () => api.getEquipment().then(setEquipment);
+
+  // Tính ngày tối thiểu phải trả dựa trên sự kiện đang chọn
+  const getMinReturnDate = (eventId) => {
+    const ev = events.find(e => String(e.id) === String(eventId));
+    if (!ev) return new Date().toISOString().slice(0, 10);
+    const filmingArr = ev.filming_dates
+      ? (typeof ev.filming_dates === 'string' ? JSON.parse(ev.filming_dates) : ev.filming_dates)
+      : (ev.filming_date ? [ev.filming_date] : []);
+    const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
+    const candidates = [lastFilming, ev.end_date, new Date().toISOString().slice(0, 10)].filter(Boolean);
+    return candidates.sort().pop();
+  };
 
   useEffect(() => {
     reloadEquipment();
@@ -144,8 +156,23 @@ export default function ExportForm() {
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
-    if (!form.expected_return_date) { setDateError(true); return; }
-    setDateError(false);
+    if (!form.expected_return_date) { setDateError('Vui lòng chọn ngày dự kiến trả'); return; }
+    const minReturn = getMinReturnDate(form.event_id);
+    if (form.expected_return_date < minReturn) {
+      const selEv = events.find(ev => String(ev.id) === String(form.event_id));
+      const filmingArr = selEv?.filming_dates
+        ? (typeof selEv.filming_dates === 'string' ? JSON.parse(selEv.filming_dates) : selEv.filming_dates)
+        : (selEv?.filming_date ? [selEv.filming_date] : []);
+      const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
+      const fmtDate = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : '';
+      const parts = [
+        lastFilming && `ngày ghi hình (${fmtDate(lastFilming)})`,
+        selEv?.end_date && `ngày kết thúc (${fmtDate(selEv.end_date)})`,
+      ].filter(Boolean);
+      setDateError(`Ngày trả phải từ ${parts.join(' và ')} trở đi`);
+      return;
+    }
+    setDateError('');
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
     savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
     setSubmitting(true);
@@ -300,7 +327,7 @@ export default function ExportForm() {
                         }}>
                           {events.map(ev => (
                             <button key={ev.id} type="button"
-                              onClick={() => { setField('event_id', ev.id); setEventError(false); setEventDropOpen(false); }}
+                              onClick={() => { setField('event_id', ev.id); setEventError(false); setEventDropOpen(false); setDateError(''); setField('expected_return_date', ''); }}
                               style={{
                                 width:'100%', textAlign:'left', padding:'8px 12px',
                                 background: String(ev.id) === String(form.event_id) ? 'rgba(201,168,76,0.12)' : 'transparent',
@@ -343,13 +370,13 @@ export default function ExportForm() {
                 Ngày dự kiến trả <span style={{ color:'#f87171' }}>*</span>
               </label>
               <DateInput value={form.expected_return_date}
-                onChange={v => { setField('expected_return_date', v); if (v) setDateError(false); }}
-                min={new Date().toISOString().slice(0,10)}
+                onChange={v => { setField('expected_return_date', v); if (v) setDateError(''); }}
+                min={getMinReturnDate(form.event_id)}
                 className={dateError ? 'input' : 'input'}
                 style={ dateError ? { border:'1.5px solid #f87171', boxShadow:'0 0 0 2px rgba(248,113,113,0.18)' } : {} } />
               {dateError && (
                 <p style={{ color:'#f87171', fontSize:'0.72rem', fontWeight:600, marginTop:'4px' }}>
-                  ⚠ Vui lòng chọn ngày dự kiến trả
+                  ⚠ {dateError}
                 </p>
               )}
             </div>
