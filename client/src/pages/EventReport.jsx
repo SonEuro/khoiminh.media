@@ -380,6 +380,7 @@ export default function EventReport() {
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
   const [evSearch, setEvSearch] = useState('');
   const [showEvDrop, setShowEvDrop] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -394,6 +395,7 @@ export default function EventReport() {
 
   function setField(key, value) {
     setForm(f => ({ ...f, [key]: value }));
+    setErrors(e => { if (!e[key]) return e; const n = { ...e }; delete n[key]; return n; });
   }
 
   function selectEvent(ev) {
@@ -420,7 +422,18 @@ export default function EventReport() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.event_id) { alert('Vui lòng chọn sự kiện'); return; }
+    const errs = {};
+    if (!form.event_id)                       errs.event_id       = 'Vui lòng chọn sự kiện';
+    if (!form.km_staff?.length)               errs.km_staff       = 'Bắt buộc chọn ít nhất 1 nhân sự Khôi Minh';
+    if (!form.time_present?.trim())           errs.time_present   = 'Bắt buộc nhập';
+    if (!form.time_onset?.trim())             errs.time_onset     = 'Bắt buộc nhập';
+    if (!form.time_off?.trim())               errs.time_off       = 'Bắt buộc nhập';
+    if (!form.time_end?.trim())               errs.time_end       = 'Bắt buộc nhập';
+    if (!form.progress?.trim())               errs.progress       = 'Bắt buộc chọn';
+    if (!form.completed_work?.trim())         errs.completed_work = 'Bắt buộc chọn';
+    if (!form.service_quality?.trim())        errs.service_quality= 'Bắt buộc chọn';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
     setSubmitting(true);
     try {
       await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
@@ -554,6 +567,7 @@ export default function EventReport() {
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)} />
+            {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
             <label style={labelStyle}>Nhân sự Freelancer</label>
@@ -575,9 +589,11 @@ export default function EventReport() {
               ['Thời gian kết thúc', 'time_end'],
             ].map(([label, key]) => (
               <div key={key}>
-                <label style={labelStyle}>{label}</label>
+                <label style={labelStyle}>{label} <span style={{ color:'#f87171' }}>*</span></label>
                 <input className="input" placeholder="vd: 08:00" value={form[key]}
-                  onChange={e => setField(key, e.target.value)} />
+                  onChange={e => setField(key, e.target.value)}
+                  style={errors[key] ? { border:'1px solid #f87171' } : {}} />
+                {errors[key] && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
               </div>
             ))}
           </div>
@@ -589,12 +605,21 @@ export default function EventReport() {
             Đánh Giá & Kết Quả
           </h3>
           <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
-            <ChipInput label="Tiến độ công việc" value={form.progress}
-              onChange={v => setField('progress', v)} chips={PROGRESS_CHIPS} />
-            <ChipInput label="Công việc hoàn thành" value={form.completed_work}
-              onChange={v => setField('completed_work', v)} chips={COMPLETED_CHIPS} />
-            <ChipInput label="Chất lượng dịch vụ" value={form.service_quality}
-              onChange={v => setField('service_quality', v)} chips={QUALITY_CHIPS} />
+            <div>
+              <ChipInput label={<>Tiến độ công việc <span style={{ color:'#f87171' }}>*</span></>} value={form.progress}
+                onChange={v => setField('progress', v)} chips={PROGRESS_CHIPS} />
+              {errors.progress && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.progress}</p>}
+            </div>
+            <div>
+              <ChipInput label={<>Công việc hoàn thành <span style={{ color:'#f87171' }}>*</span></>} value={form.completed_work}
+                onChange={v => setField('completed_work', v)} chips={COMPLETED_CHIPS} />
+              {errors.completed_work && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.completed_work}</p>}
+            </div>
+            <div>
+              <ChipInput label={<>Chất lượng dịch vụ <span style={{ color:'#f87171' }}>*</span></>} value={form.service_quality}
+                onChange={v => setField('service_quality', v)} chips={QUALITY_CHIPS} />
+              {errors.service_quality && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.service_quality}</p>}
+            </div>
           </div>
         </div>
 
