@@ -52,6 +52,7 @@ export default function EventReturn() {
   const [outstanding,  setOutstanding]  = useState([]);
   const [quantities,   setQuantities]   = useState({});   // equipment_id → qty
   const [conditions,   setConditions]   = useState({});   // equipment_id → condition
+  const [checked,      setChecked]      = useState(new Set());
   const [loading,      setLoading]      = useState(false);
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
@@ -71,6 +72,7 @@ export default function EventReturn() {
       });
       setQuantities(q);
       setConditions(c);
+      setChecked(new Set(rows.map(r => r.equipment_id)));
     }).finally(() => setLoading(false));
   }, [eventId]);
 
@@ -88,12 +90,14 @@ export default function EventReturn() {
       ).slice(0, 8)
     : [];
 
-  const canSubmit = eventId && person && visibleItems.some(r => (quantities[r.equipment_id] || 0) > 0);
+  const toggleCheck = (id) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const canSubmit = eventId && person && visibleItems.some(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0);
 
   const submit = async () => {
     if (!canSubmit) return;
     const items = visibleItems
-      .filter(r => (quantities[r.equipment_id] || 0) > 0)
+      .filter(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0)
       .map(r => ({
         equipment_id: r.equipment_id,
         quantity:     quantities[r.equipment_id],
@@ -263,7 +267,7 @@ export default function EventReturn() {
           <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(201,168,76,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <span style={{ fontWeight:700, color:'var(--gold)' }}>Thiết bị chưa trả — {visibleItems.length} loại</span>
             <button type="button"
-              onClick={() => { const q = {}; visibleItems.forEach(r => q[r.equipment_id] = r.qty_pending); setQuantities(prev => ({...prev, ...q})); }}
+              onClick={() => { const q = {}; visibleItems.forEach(r => q[r.equipment_id] = r.qty_pending); setQuantities(prev => ({...prev, ...q})); setChecked(new Set(visibleItems.map(r => r.equipment_id))); }}
               style={{ fontSize:'0.75rem', color:'#c9a84c', background:'none', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
               Chọn tất cả
             </button>
@@ -277,6 +281,7 @@ export default function EventReturn() {
                   <th style={{ textAlign:'center', padding:'10px 8px' }}>Đã xuất</th>
                   <th style={{ textAlign:'center', padding:'10px 8px' }}>Còn nợ</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'90px' }}>Số nhập</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'130px' }}>Tình trạng</th>
                 </tr>
               </thead>
@@ -301,6 +306,13 @@ export default function EventReturn() {
                           border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px',
                           color:'#4ade80', fontSize:'1.1rem', fontWeight:700,
                         }}
+                      />
+                    </td>
+                    <td style={{ textAlign:'center', padding:'8px' }}>
+                      <input type="checkbox"
+                        checked={checked.has(r.equipment_id)}
+                        onChange={() => toggleCheck(r.equipment_id)}
+                        style={{ width:'18px', height:'18px', cursor:'pointer', accentColor:'#4ade80' }}
                       />
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
