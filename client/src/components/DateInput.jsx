@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 // iOS Safari cannot style type="date" text — this component uses a hidden
 // native date input triggered by tapping a visible styled text display.
-export default function DateInput({ value, onChange, className = 'input', style = {}, placeholder = 'Chọn ngày...' }) {
+export default function DateInput({ value, onChange, min, max, className = 'input', style = {}, placeholder = 'Chọn ngày...' }) {
   const hiddenRef = useRef(null);
 
   const display = value
@@ -46,6 +46,8 @@ export default function DateInput({ value, onChange, className = 'input', style 
         type="date"
         value={value}
         onChange={e => onChange(e.target.value)}
+        min={min}
+        max={max}
         tabIndex={-1}
         style={{
           position: 'absolute',

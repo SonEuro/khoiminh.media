@@ -203,7 +203,7 @@ function FixTab({ equipment, onDone }) {
           </div>
           <div>
             <label style={labelStyle}>Ngày nhập</label>
-            <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+            <input type="date" className="input" value={date} min={new Date().toISOString().slice(0,10)} onChange={e => setDate(e.target.value)} />
           </div>
         </div>
         <div>
@@ -311,7 +311,7 @@ function IntakeTab({ equipment, onDone }) {
           </div>
           <div>
             <label style={labelStyle}>Ngày nhập</label>
-            <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+            <input type="date" className="input" value={date} min={new Date().toISOString().slice(0,10)} onChange={e => setDate(e.target.value)} />
           </div>
         </div>
         <div>

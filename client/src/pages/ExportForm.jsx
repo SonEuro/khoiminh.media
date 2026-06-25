@@ -242,7 +242,8 @@ export default function ExportForm() {
             <div>
               <label className="label">Ngày dự kiến trả</label>
               <DateInput value={form.expected_return_date}
-                onChange={v => setField('expected_return_date', v)} />
+                onChange={v => setField('expected_return_date', v)}
+                min={new Date().toISOString().slice(0,10)} />
             </div>
             <div>
               <label className="label">Ghi chú</label>

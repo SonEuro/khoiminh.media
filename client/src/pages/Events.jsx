@@ -118,16 +118,19 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         <div>
           <label className="label">Ngày bắt đầu</label>
           <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)}
+            min={new Date().toISOString().slice(0,10)}
             style={form.start_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
           <DateInput value={form.end_date || ''} onChange={v => set('end_date', v)}
+            min={new Date().toISOString().slice(0,10)}
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Ngày ghi hình</label>
           <DateInput value={form.filming_date || ''} onChange={v => set('filming_date', v)}
+            min={new Date().toISOString().slice(0,10)}
             style={form.filming_date ? { color:'#a78bfa', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
