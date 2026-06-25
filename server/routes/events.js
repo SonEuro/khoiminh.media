@@ -172,14 +172,26 @@ router.get('/:id', (req, res) => {
 router.post('/', canWrite, (req, res) => {
   const { name, client, location, start_date, end_date, filming_date, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
+
+  // Tự thêm số thứ tự nếu tên trùng
+  const base = name.trim();
+  const existing = db.prepare("SELECT name FROM events WHERE deleted_at IS NULL AND (name = ? OR name LIKE ?)")
+    .all(base, base + ' %').map(r => r.name);
+  let finalName = base;
+  if (existing.includes(base)) {
+    let seq = 2;
+    while (existing.includes(`${base} ${seq}`)) seq++;
+    finalName = `${base} ${seq}`;
+  }
+
   const code = nextCode();
   const today = new Date().toISOString().slice(0, 10);
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
     INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, notes, status, created_by)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, name, client, location, start_date, end_date, filming_date || null, notes, initialStatus, req.user?.full_name || '');
-  res.json({ id: r.lastInsertRowid, code });
+  `).run(code, finalName, client, location, start_date, end_date, filming_date || null, notes, initialStatus, req.user?.full_name || '');
+  res.json({ id: r.lastInsertRowid, code, name: finalName });
 });
 
 router.put('/:id', canWrite, (req, res) => {
