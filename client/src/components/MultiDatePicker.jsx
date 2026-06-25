@@ -3,7 +3,7 @@ import { useState } from 'react';
 const MONTH_NAMES = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const DAY_NAMES   = ['CN','T2','T3','T4','T5','T6','T7'];
 
-export default function MultiDatePicker({ value = [], onChange }) {
+export default function MultiDatePicker({ value = [], onChange, error = false }) {
   const today = new Date().toISOString().slice(0, 10);
   const [open, setOpen]           = useState(false);
   const [viewYear, setViewYear]   = useState(() => new Date().getFullYear());
@@ -41,7 +41,7 @@ export default function MultiDatePicker({ value = [], onChange }) {
     <div style={{ position:'relative' }}>
       {/* Trigger */}
       <div onClick={() => setOpen(o => !o)} className="input"
-        style={{ cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', userSelect:'none' }}>
+        style={{ cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', userSelect:'none', border: error ? '1px solid #f87171' : undefined }}>
         <span style={{ flex:1, color: value.length ? '#a78bfa' : 'var(--text-muted)', fontWeight: value.length ? 700 : 400, fontSize: value.length ? '0.95rem' : undefined, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {displayText}
         </span>

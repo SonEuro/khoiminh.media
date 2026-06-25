@@ -26,7 +26,8 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
     return { ...base, filming_dates: parseFilmingDates(initial) };
   });
   const [showSuggest, setShowSuggest] = useState(false);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [dateError, setDateError]     = useState(false);
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); if (k === 'filming_dates') setDateError(false); };
 
   const suggestions = form.name.trim().length >= 1
     ? allEvents.filter(ev =>
@@ -54,8 +55,9 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
   return (
     <form onSubmit={async e => {
       e.preventDefault();
-      const data = { ...form };
       const datesArr = (form.filming_dates || []).filter(Boolean).sort();
+      if (!initial && datesArr.length === 0) { setDateError(true); return; }
+      const data = { ...form };
       data.filming_dates = datesArr;
       data.filming_date = datesArr[datesArr.length - 1] || '';
       if (datesArr.length > 0) {
@@ -141,8 +143,9 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
-          <label className="label">Ngày ghi hình</label>
-          <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} />
+          <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
+          <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} />
+          {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
         <div>
           <label className="label">Trạng thái</label>
