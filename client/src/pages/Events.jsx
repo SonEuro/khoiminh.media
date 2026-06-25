@@ -13,9 +13,16 @@ const STATUS_MAP = {
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
 
+function parseFilmingDates(ev) {
+  if (!ev) return [];
+  if (ev.filming_dates) { try { return JSON.parse(ev.filming_dates); } catch {} }
+  return ev.filming_date ? [ev.filming_date] : [];
+}
+
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
-  const [form, setForm] = useState(initial || {
-    name: '', client: '', location: '', start_date: '', end_date: '', filming_date: '', status: 'planned', notes: ''
+  const [form, setForm] = useState(() => {
+    const base = initial || { name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: '' };
+    return { ...base, filming_dates: parseFilmingDates(initial) };
   });
   const [showSuggest, setShowSuggest] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -47,8 +54,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
     <form onSubmit={async e => {
       e.preventDefault();
       const data = { ...form };
-      if (data.filming_date && !data.start_date) data.start_date = data.filming_date;
-      if (data.filming_date && !data.end_date)   data.end_date   = data.filming_date;
+      const datesArr = (form.filming_dates || []).filter(Boolean).sort();
+      data.filming_dates = datesArr;
+      data.filming_date = datesArr[datesArr.length - 1] || '';
+      if (datesArr.length > 0) {
+        if (!data.start_date) data.start_date = datesArr[0];
+        if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
+      }
       await onSave(data);
     }} className="space-y-4">
       <div style={{ position: 'relative' }}>
@@ -127,11 +139,22 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             min={new Date().toISOString().slice(0,10)}
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
-        <div>
+        <div style={{ gridColumn: 'span 2' }}>
           <label className="label">Ngày ghi hình</label>
-          <DateInput value={form.filming_date || ''} onChange={v => set('filming_date', v)}
-            min={new Date().toISOString().slice(0,10)}
-            style={form.filming_date ? { color:'#a78bfa', fontWeight:700, fontSize:'1.1rem' } : {}} />
+          {(form.filming_dates || []).map((d, i) => (
+            <div key={i} style={{ display:'flex', gap:'6px', marginBottom:'6px', alignItems:'center' }}>
+              <div style={{ flex:1 }}>
+                <DateInput value={d} onChange={v => { const arr = [...(form.filming_dates||[])]; arr[i]=v; set('filming_dates', arr); }}
+                  style={d ? { color:'#a78bfa', fontWeight:700, fontSize:'1.1rem' } : {}} />
+              </div>
+              <button type="button" onClick={() => set('filming_dates', (form.filming_dates||[]).filter((_,j)=>j!==i))}
+                style={{ color:'#f87171', background:'none', border:'none', cursor:'pointer', fontSize:'1.3rem', lineHeight:1, padding:'0 4px', flexShrink:0 }}>×</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => set('filming_dates', [...(form.filming_dates||[]), ''])}
+            style={{ fontSize:'0.75rem', color:'#a78bfa', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'6px', padding:'4px 12px', cursor:'pointer' }}>
+            + Thêm ngày ghi hình
+          </button>
         </div>
         <div>
           <label className="label">Trạng thái</label>
@@ -170,9 +193,17 @@ function EventDetailModal({ eventId, onClose }) {
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
           <div><span className="text-gray-500">Từ: </span><strong>{fmtD(ev.start_date)}</strong></div>
           <div><span className="text-gray-500">Đến: </span><strong>{fmtD(ev.end_date)}</strong></div>
-          {ev.filming_date && (
-            <div><span className="text-gray-500">Ngày ghi hình: </span><strong style={{ color: '#a78bfa' }}>🎬 {fmtD(ev.filming_date)}</strong></div>
-          )}
+          {(() => {
+            const dates = parseFilmingDates(ev);
+            return dates.length > 0 ? (
+              <div style={{ gridColumn: dates.length > 1 ? 'span 2' : undefined }}>
+                <span className="text-gray-500">Ngày ghi hình: </span>
+                {dates.map((d, i) => (
+                  <strong key={i} style={{ color:'#a78bfa', marginRight:'10px' }}>🎬 {fmtD(d)}</strong>
+                ))}
+              </div>
+            ) : null;
+          })()}
           {ev.created_by && (
             <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
           )}

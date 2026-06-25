@@ -40,7 +40,10 @@ function autoUpdateStatuses() {
     WHERE status = 'planned'
       AND start_date IS NULL
       AND filming_date IS NOT NULL
-      AND filming_date = date('now','localtime')
+      AND (
+        filming_date = date('now','localtime')
+        OR (filming_dates IS NOT NULL AND filming_dates LIKE '%"' || date('now','localtime') || '"%')
+      )
       AND deleted_at IS NULL
   `).run();
   if (r1b.changes > 0) console.log(`[AutoStatus] Chuyển ${r1b.changes} sự kiện → 'Đang diễn ra' (filming_date hôm nay)`);
@@ -170,8 +173,13 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', canWrite, (req, res) => {
-  const { name, client, location, start_date, end_date, filming_date, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, filming_dates, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
+
+  // Chuẩn hóa filming_dates
+  const datesArr = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
+  const lastDate = datesArr[datesArr.length - 1] || null;
+  const datesJson = datesArr.length > 0 ? JSON.stringify(datesArr) : null;
 
   // Tự thêm số thứ tự nếu tên trùng
   const base = name.trim();
@@ -188,17 +196,20 @@ router.post('/', canWrite, (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, notes, status, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, finalName, client, location, start_date, end_date, filming_date || null, notes, initialStatus, req.user?.full_name || '');
+    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, notes, status, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, notes, initialStatus, req.user?.full_name || '');
   res.json({ id: r.lastInsertRowid, code, name: finalName });
 });
 
 router.put('/:id', canWrite, (req, res) => {
-  const { name, client, location, start_date, end_date, filming_date, status, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, filming_dates, status, notes } = req.body;
+  const datesArrU = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
+  const lastDateU = datesArrU[datesArrU.length - 1] || null;
+  const datesJsonU = datesArrU.length > 0 ? JSON.stringify(datesArrU) : null;
   db.prepare(`
-    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, status=?, notes=? WHERE id=?
-  `).run(name, client, location, start_date, end_date, filming_date || null, status, notes, req.params.id);
+    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, filming_dates=?, status=?, notes=? WHERE id=?
+  `).run(name, client, location, start_date, end_date, lastDateU, datesJsonU, status, notes, req.params.id);
   res.json({ ok: true });
 });
 

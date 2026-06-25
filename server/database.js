@@ -143,6 +143,13 @@ db.exec(`
   );
 `);
 
+// Migration: thêm filming_dates vào events nếu chưa có
+const eventCols = db.pragma('table_info(events)').map(c => c.name);
+if (!eventCols.includes('filming_dates')) {
+  db.exec("ALTER TABLE events ADD COLUMN filming_dates TEXT");
+  console.log('[DB] Migration: thêm cột filming_dates vào events');
+}
+
 // Migration: thêm cột unit vào external_items nếu chưa có
 const extCols = db.pragma('table_info(external_items)').map(c => c.name);
 if (!extCols.includes('unit')) {
