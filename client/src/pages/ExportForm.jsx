@@ -59,7 +59,8 @@ export default function ExportForm() {
   const [nccFocusIdx, setNccFocusIdx] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
-  const [dateError, setDateError]   = useState(false);
+  const [dateError, setDateError]     = useState(false);
+  const [eventError, setEventError]   = useState(false);
   const savedSnapshot = useRef(null);
 
   // Thiết bị ngoài
@@ -135,6 +136,8 @@ export default function ExportForm() {
     const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
     const validExt = [...rowExt, ...sectionExt];
+    if (!form.event_id) { setEventError(true); return; }
+    setEventError(false);
     if (!form.expected_return_date) { setDateError(true); return; }
     setDateError(false);
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
@@ -163,7 +166,7 @@ export default function ExportForm() {
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
             Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
-            với <strong style={{ color:'var(--text-primary)' }}>{doneSlip.items?.length}</strong> loại thiết bị.
+            với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
           </p>
 
           {/* Row 1: Preview + Print */}
@@ -237,13 +240,20 @@ export default function ExportForm() {
           <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Thông tin phiếu</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Sự kiện / Dự án *</label>
-              <select className="input" required value={form.event_id} onChange={e => setField('event_id', e.target.value)}>
+              <label className="label" style={ eventError ? { color:'#f87171' } : {} }>Sự kiện / Dự án <span style={{ color:'#f87171' }}>*</span></label>
+              <select className="input" value={form.event_id}
+                onChange={e => { setField('event_id', e.target.value); if (e.target.value) setEventError(false); }}
+                style={ eventError ? { border:'1.5px solid #f87171', boxShadow:'0 0 0 2px rgba(248,113,113,0.18)' } : {} }>
                 <option value="">-- Chọn sự kiện --</option>
                 {events.map(ev => (
                   <option key={ev.id} value={ev.id}>{ev.name} · {ev.code}</option>
                 ))}
               </select>
+              {eventError && (
+                <p style={{ color:'#f87171', fontSize:'0.72rem', fontWeight:600, marginTop:'4px' }}>
+                  ⚠ Vui lòng chọn sự kiện trước khi xuất kho
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Người phụ trách *</label>
