@@ -205,14 +205,14 @@ function Empty({ text }) {
 }
 
 // ── Section contents ──────────────────────────────────────────────────────────
-function EventRows({ events }) {
+function EventRows({ events, isSuperAdmin, onArchive }) {
   if (!events.length) return <Empty text="Chưa có sự kiện nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
       {events.map(ev => {
         const cfg = STATUS_CFG[ev.status] || STATUS_CFG.planned;
         return (
-          <div key={ev.id} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
+          <div key={ev.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
             <div style={{ flex:1, minWidth:0 }}>
               <p style={{ fontWeight:600, color:'#e0e0ee', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</p>
               <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
@@ -222,6 +222,21 @@ function EventRows({ events }) {
             <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
               {ev.start_date && <span style={{ fontSize:'0.7rem', color:cfg.color }}>{fmtDate(ev.start_date)}</span>}
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
+              {isSuperAdmin && (
+                <button
+                  onClick={() => onArchive(ev)}
+                  title="Lưu sự kiện vào kho"
+                  style={{
+                    padding:'3px 8px', borderRadius:'6px', cursor:'pointer',
+                    border:'1px solid rgba(120,120,160,0.3)', background:'transparent',
+                    color:'#7878a0', fontSize:'0.65rem', fontWeight:700,
+                    whiteSpace:'nowrap', transition:'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(120,120,160,0.15)'; e.currentTarget.style.color='#a0a0c0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#7878a0'; }}>
+                  Lưu
+                </button>
+              )}
             </div>
           </div>
         );
@@ -399,6 +414,14 @@ export default function Transactions() {
     } catch (err) { alert(err.message); }
   }
 
+  async function handleArchiveEvent(ev) {
+    if (!confirm(`Lưu sự kiện "${ev.name}" vào kho?\nSự kiện sẽ ẩn khỏi danh sách hoạt động.`)) return;
+    try {
+      await api.archiveEvent(ev.id);
+      load();
+    } catch (err) { alert(err.message); }
+  }
+
   async function handleConfirmPending(tx) {
     if (!confirm(`Xác nhận xuất kho phiếu ${tx.code}?\nThiết bị sẽ được trừ khỏi kho ngay bây giờ.`)) return;
     setConfirming(tx.id);
@@ -422,7 +445,7 @@ export default function Transactions() {
       ) : (
         <>
           <Section Icon={CalendarDays} title="Trạng thái sự kiện" color="#60a5fa" border="rgba(96,165,250,0.25)" count={events.length}>
-            <EventRows events={events} />
+            <EventRows events={events} isSuperAdmin={isSuperAdmin} onArchive={handleArchiveEvent} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất kho tạm (chờ xác nhận)" color={PENDING_COLOR} border="rgba(251,191,36,0.25)" count={pendingTxs.length}>
