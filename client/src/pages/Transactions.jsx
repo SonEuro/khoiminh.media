@@ -245,7 +245,7 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
   );
 }
 
-function PendingTxRows({ txs, onConfirm, onSelect, onDelete }) {
+function PendingTxRows({ txs, onConfirm, onSelect, onDelete, confirming }) {
   if (!txs.length) return <Empty text="Không có phiếu xuất kho tạm nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
@@ -270,12 +270,14 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete }) {
           <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
             <button
               onClick={() => onConfirm(tx)}
+              disabled={confirming === tx.id}
               style={{
-                flex:1, padding:'6px 10px', borderRadius:'7px', cursor:'pointer', fontWeight:700, fontSize:'0.78rem',
+                flex:1, padding:'6px 10px', borderRadius:'7px', cursor: confirming === tx.id ? 'not-allowed' : 'pointer', fontWeight:700, fontSize:'0.78rem',
                 background:'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(251,191,36,0.12))',
                 border:'1px solid rgba(251,191,36,0.5)', color:PENDING_COLOR,
+                opacity: confirming === tx.id ? 0.5 : 1,
               }}>
-              ✅ Xác nhận xuất kho
+              {confirming === tx.id ? '⏳ Đang xử lý...' : '✅ Xác nhận xuất kho'}
             </button>
             <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
             {onDelete && (
@@ -447,11 +449,11 @@ export default function Transactions() {
       ) : (
         <>
           <Section Icon={CalendarDays} title="Trạng thái sự kiện" color="#60a5fa" border="rgba(96,165,250,0.25)" count={events.length}>
-            <EventRows events={events} isSuperAdmin={isSuperAdmin} onArchive={handleArchiveEvent} />
+            <EventRows events={events} isSuperAdmin={user?.role === 'SUPER_ADMIN'} onArchive={handleArchiveEvent} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất kho tạm (chờ xác nhận)" color={PENDING_COLOR} border="rgba(251,191,36,0.25)" count={pendingTxs.length}>
-            <PendingTxRows txs={pendingTxs} onConfirm={handleConfirmPending} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
+            <PendingTxRows txs={pendingTxs} onConfirm={handleConfirmPending} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} confirming={confirming} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>

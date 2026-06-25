@@ -271,6 +271,7 @@ export default function Equipment() {
       in_use:      items.reduce((s, e) => s + (e.qty_in_use || 0), 0),
       maintenance: items.reduce((s, e) => s + (e.qty_maintenance || 0), 0),
       damaged:     items.reduce((s, e) => s + ((e.qty_damaged || 0) + (e.qty_lost || 0)), 0),
+      reserved:    items.reduce((s, e) => s + (e.qty_reserved || 0), 0),
     };
   }).filter(c => c.total > 0);
 
@@ -440,6 +441,7 @@ export default function Equipment() {
                       const stats = [
                         { key: 'available',   label: 'Có sẵn',    value: cat.available,   color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  filterFn: e => (e.qty_available||0) > 0,                          qtyFn: e => e.qty_available   },
                         { key: 'in_use',      label: 'Đang dùng', value: cat.in_use,      color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  filterFn: e => (e.qty_in_use||0) > 0,                             qtyFn: e => e.qty_in_use      },
+                        { key: 'reserved',    label: 'Đặt trước', value: cat.reserved,    color: '#fb923c', bg: 'rgba(251,146,60,0.08)',  filterFn: e => (e.qty_reserved||0) > 0,                           qtyFn: e => e.qty_reserved || 0 },
                         { key: 'maintenance', label: 'Bảo trì',   value: cat.maintenance, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  filterFn: e => (e.qty_maintenance||0) > 0,                        qtyFn: e => e.qty_maintenance },
                         { key: 'damaged',     label: 'Hư/Mất',    value: cat.damaged,     color: '#f87171', bg: 'rgba(248,113,113,0.08)', filterFn: e => (e.qty_damaged||0)+(e.qty_lost||0) > 0,            qtyFn: e => (e.qty_damaged||0)+(e.qty_lost||0) },
                       ];
@@ -451,7 +453,7 @@ export default function Equipment() {
 
                       return (
                         <>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '6px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '6px' }}>
                             {stats.map(s => {
                               const isActive = activeStat === s.key;
                               return (
