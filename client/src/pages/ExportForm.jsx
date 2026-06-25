@@ -258,10 +258,7 @@ export default function ExportForm() {
 
         {/* Equipment items */}
         <div className="card space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Danh sách thiết bị xuất</h2>
-            <button type="button" className="btn-secondary btn-sm" onClick={addItem}>+ Thêm 5 dòng</button>
-          </div>
+          <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Danh sách thiết bị xuất</h2>
 
           {/* Department filter */}
           <div>
@@ -543,6 +540,18 @@ export default function ExportForm() {
               );
             })}
           </div>
+
+          <button type="button" onClick={addItem}
+            style={{
+              width:'100%', padding:'8px', borderRadius:'8px', cursor:'pointer',
+              border:'1px dashed rgba(201,168,76,0.3)', background:'transparent',
+              color:'rgba(201,168,76,0.6)', fontSize:'0.8rem', fontWeight:600,
+              transition:'all 0.15s',
+            }}
+            onMouseEnter={ev => { ev.currentTarget.style.background='rgba(201,168,76,0.07)'; ev.currentTarget.style.color='#c9a84c'; }}
+            onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(201,168,76,0.6)'; }}>
+            + Thêm 5 dòng
+          </button>
         </div>
 
         {/* Thiết bị ngoài */}
