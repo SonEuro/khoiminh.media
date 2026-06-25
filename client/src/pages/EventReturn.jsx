@@ -309,11 +309,18 @@ export default function EventReturn() {
                       />
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
-                      <input type="checkbox"
-                        checked={checked.has(r.equipment_id)}
-                        onChange={() => toggleCheck(r.equipment_id)}
-                        style={{ width:'18px', height:'18px', cursor:'pointer', accentColor:'#4ade80' }}
-                      />
+                      <button type="button"
+                        onClick={() => toggleCheck(r.equipment_id)}
+                        style={{
+                          width:'70px', padding:'4px 6px', textAlign:'center',
+                          background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`,
+                          borderRadius:'6px', cursor:'pointer',
+                          color: checked.has(r.equipment_id) ? '#4ade80' : '#555570',
+                          fontSize:'1.1rem', fontWeight:700, lineHeight:'1.4',
+                          display:'block', margin:'0 auto',
+                        }}
+                      >{checked.has(r.equipment_id) ? '✓' : ''}</button>
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
                       <select
