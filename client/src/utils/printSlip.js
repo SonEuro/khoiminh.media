@@ -176,7 +176,7 @@ ${previewBar}
     <tr>
       <th style="width:7%">STT</th>
       <th style="width:42%">TÊN THIẾT BỊ</th>
-      <th style="width:16%">MÃ MÁY</th>
+      <th style="width:16%">NCC</th>
       <th style="width:12%">SỐ LƯỢNG</th>
       <th style="width:23%">GHI CHÚ</th>
     </tr>
