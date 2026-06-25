@@ -385,7 +385,7 @@ export default function ExportForm() {
                                       onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
                                       onClick={() => setItem(idx, 'ext_name', c.name)}>
                                       <span style={{ color:'#93c5fd', fontWeight:600, fontSize:'0.82rem', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
-                                      <span style={{ fontSize:'0.68rem', color:'#7878a0', flexShrink:0 }}>{c.unit}</span>
+                                      <span style={{ fontSize:'0.68rem', color:'#4ade80', flexShrink:0, marginLeft:'6px' }}>{c.qty > 0 ? c.qty : '–'} {c.unit}</span>
                                     </button>
                                   ))}
                                 </div>
