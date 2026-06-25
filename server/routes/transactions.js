@@ -87,7 +87,8 @@ router.get('/', (req, res) => {
   const { type, event_id, limit = 50 } = req.query;
   let sql = `
     SELECT t.*, e.name as event_name,
-           (SELECT COUNT(*) FROM transaction_items ti WHERE ti.transaction_id = t.id) as item_count
+           (SELECT COUNT(*) FROM transaction_items ti WHERE ti.transaction_id = t.id) as item_count,
+           (SELECT COUNT(*) FROM external_items ei WHERE ei.transaction_id = t.id) as ext_count
     FROM transactions t
     LEFT JOIN events e ON e.id = t.event_id
     WHERE 1=1
