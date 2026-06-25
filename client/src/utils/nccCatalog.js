@@ -459,12 +459,12 @@ export const NCC_CATALOG = {
 
 export const NCC_LIST = Object.keys(NCC_CATALOG);
 
-// Bộ phận được phép xem/thuê từng NCC
+// Bộ phận được phép xem/thuê từng NCC (array → hỗ trợ nhiều bộ phận)
 export const NCC_DEPT = {
-  'NIPI':       'TECH',   // KỸ THUẬT-ORDER
-  'LONG PATE':  'ATAS',   // BỘ PHẬN ORDER - ATAS
-  'ANH TÌNH':   'ATAS',
-  'ALTA':       'ATAS',
-  'DMX':        'ATAS',
-  'LỮ NHẠC':   'STAGE',  // BỘ PHẬN ORDER - SÂN KHẤU
+  'NIPI':       ['TECH'],
+  'LONG PATE':  ['ATAS'],
+  'ANH TÌNH':   ['ATAS', 'TECH'],
+  'ALTA':       ['ATAS'],
+  'DMX':        ['ATAS'],
+  'LỮ NHẠC':   ['STAGE'],
 };

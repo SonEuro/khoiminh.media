@@ -41,7 +41,7 @@ export default function ExportForm() {
   const roleDeptCode = { TECHNICAL: 'TECH', ATAS: 'ATAS', STAGE: 'STAGE', CSVC: 'CSVC' };
   const userDept = roleDeptCode[user?.role];
   const visibleNCC = isLocked
-    ? NCC_LIST.filter(s => NCC_DEPT[s] === userDept)
+    ? NCC_LIST.filter(s => NCC_DEPT[s]?.includes(userDept))
     : NCC_LIST; // SUPER_ADMIN / DIRECTOR / PRODUCTION thấy tất cả
 
   const [equipment, setEquipment] = useState([]);
