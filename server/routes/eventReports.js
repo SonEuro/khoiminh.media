@@ -2,6 +2,12 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 
+function canManage(req, res, next) {
+  const { role, is_truong_phong } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_truong_phong) return next();
+  return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
+}
+
 router.get('/', (req, res) => {
   const { event_id } = req.query;
   let sql = 'SELECT * FROM event_reports';
@@ -48,7 +54,7 @@ router.post('/', (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
-router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+router.delete('/:id', canManage, (req, res) => {
   db.prepare('DELETE FROM event_reports WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

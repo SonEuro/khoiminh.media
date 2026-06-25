@@ -371,7 +371,7 @@ const EMPTY_FORM = {
 
 export default function EventReport() {
   const { user } = useAuth();
-  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canDelete = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_truong_phong;
 
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [reports, setReports] = useState([]);
@@ -479,7 +479,7 @@ export default function EventReport() {
         )}
 
         {!loading && reports.map(r => (
-          <ReportCard key={r.id} report={r} onDelete={handleDelete} isSuperAdmin={isSuperAdmin} />
+          <ReportCard key={r.id} report={r} onDelete={handleDelete} isSuperAdmin={canDelete} />
         ))}
       </div>
     );
@@ -557,6 +557,12 @@ export default function EventReport() {
               <input type="date" className="input" value={form.report_date}
                 onChange={e => setField('report_date', e.target.value)} required />
             </div>
+          </div>
+
+          <div style={{ marginTop:'14px' }}>
+            <label style={labelStyle}>Nhân sự báo cáo</label>
+            <input className="input" readOnly value={user?.full_name || ''}
+              style={{ opacity:0.7, cursor:'not-allowed', color: GOLD, fontWeight:600 }} />
           </div>
         </div>
 
