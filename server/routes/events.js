@@ -115,7 +115,7 @@ setInterval(checkLateReturns, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
 // Danh sách sự kiện (không gồm trash)
 router.get('/', (req, res) => {
-  const { status } = req.query;
+  const { status, limit } = req.query;
   let sql = `
     SELECT e.*,
       (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) as tx_count
@@ -134,6 +134,7 @@ router.get('/', (req, res) => {
     END ASC,
     CASE WHEN e.status = 'planned' THEN e.start_date END ASC,
     e.created_at DESC`;
+  if (limit) { sql += ' LIMIT ?'; params.push(parseInt(limit)); }
   res.json(db.prepare(sql).all(...params));
 });
 
