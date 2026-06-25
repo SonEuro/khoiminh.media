@@ -376,7 +376,7 @@ export default function ReturnForm() {
   ];
 
   if (done) return (
-    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+    <div onClick={() => navigate('/')} style={{ minHeight:'100vh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
       <div className="card text-center space-y-4" onClick={e => e.stopPropagation()} style={{ maxWidth:'380px', width:'100%', margin:'0 16px' }}>
         <div style={{ fontSize: '3rem' }}>{done._type === 'fix' ? '✅' : '📦'}</div>
         <p style={{ color: '#4ade80', fontWeight: 700, fontSize: '1.1rem' }}>
