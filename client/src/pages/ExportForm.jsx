@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
 import DateInput from '../components/DateInput';
 import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
+import { NCC_CATALOG, NCC_LIST } from '../utils/nccCatalog';
 
 const DEPTS = [
   { value: '',       Icon: LayoutGrid,   label: 'Tất cả',   cats: null },
@@ -27,8 +28,6 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '' }));
 
-// ── Danh sách nhà cung cấp (thêm tên vào đây) ─────────────────────────────
-const SUPPLIERS = [];
 const emptyExtRow = () => ({ name: '', quantity: 1, notes: '' });
 
 export default function ExportForm() {
@@ -332,30 +331,61 @@ export default function ExportForm() {
                       {/* NCC seq */}
                       <span style={{ textAlign:'center', fontSize:'0.65rem', fontWeight:800, color:'#60a5fa', lineHeight:`${H}px` }}>N{nccSeq}</span>
 
-                      {/* Nhà CC + Tên TB */}
+                      {/* Nhà CC (dropdown) + Tên TB (autocomplete) */}
                       <div style={{ display:'flex', gap:'4px', height:`${H}px` }}>
-                        <input
+                        {/* Supplier select */}
+                        <select
                           style={{
-                            flex:'0 0 36%', height:`${H}px`, padding:'0 8px', boxSizing:'border-box',
+                            flex:'0 0 36%', height:`${H}px`, padding:'0 6px', boxSizing:'border-box',
                             background:'rgba(96,165,250,0.07)', border:'1px solid rgba(96,165,250,0.28)',
-                            borderRadius:'7px', color:'#93c5fd', fontSize:'0.78rem', outline:'none',
+                            borderRadius:'7px', color: item.ext_supplier ? '#93c5fd' : 'var(--text-muted)',
+                            fontSize:'0.78rem', fontWeight: item.ext_supplier ? 700 : 400, outline:'none',
+                            appearance:'none',
                           }}
-                          placeholder="Nhà CC..."
                           value={item.ext_supplier}
-                          onChange={e => setItem(idx, 'ext_supplier', e.target.value)}
-                        />
-                        <input
-                          style={{
-                            flex:1, height:`${H}px`, padding:'0 8px', boxSizing:'border-box',
-                            background: filled ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
-                            border:`1px solid ${filled ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.15)'}`,
-                            borderRadius:'7px', color: filled ? '#93c5fd' : 'var(--text-muted)',
-                            fontWeight: filled ? 700 : 400, fontSize:'0.875rem', outline:'none',
-                          }}
-                          placeholder="Tên thiết bị thuê..."
-                          value={item.ext_name}
-                          onChange={e => setItem(idx, 'ext_name', e.target.value)}
-                        />
+                          onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
+                        >
+                          <option value="">Nhà CC...</option>
+                          {NCC_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+
+                        {/* Equipment name with autocomplete */}
+                        {(() => {
+                          const catalog = item.ext_supplier ? (NCC_CATALOG[item.ext_supplier] || []) : [];
+                          const suggestions = item.ext_name
+                            ? catalog.filter(c => c.name.toLowerCase().includes(item.ext_name.toLowerCase())).slice(0, 8)
+                            : [];
+                          return (
+                            <div style={{ flex:1, position:'relative', height:`${H}px` }}>
+                              <input
+                                style={{
+                                  width:'100%', height:`${H}px`, padding:'0 8px', boxSizing:'border-box',
+                                  background: filled ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
+                                  border:`1px solid ${filled ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.15)'}`,
+                                  borderRadius:'7px', color: filled ? '#93c5fd' : 'var(--text-muted)',
+                                  fontWeight: filled ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                                }}
+                                placeholder={item.ext_supplier ? `Tên TB (${catalog.length})...` : 'Tên thiết bị...'}
+                                value={item.ext_name}
+                                onChange={e => setItem(idx, 'ext_name', e.target.value)}
+                              />
+                              {suggestions.length > 0 && (
+                                <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:200, maxHeight:'200px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                                  {suggestions.map((c, i) => (
+                                    <button key={i} type="button"
+                                      style={{ width:'100%', textAlign:'left', padding:'7px 10px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}
+                                      onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
+                                      onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                      onClick={() => setItem(idx, 'ext_name', c.name)}>
+                                      <span style={{ color:'#93c5fd', fontWeight:600, fontSize:'0.82rem', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
+                                      <span style={{ fontSize:'0.68rem', color:'#7878a0', flexShrink:0 }}>{c.unit}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Blue qty */}
@@ -590,21 +620,14 @@ export default function ExportForm() {
                 <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>
                   Nhà cung cấp
                 </label>
-                {SUPPLIERS.length > 0 ? (
-                  <>
-                    <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
-                      <option value="">— Chọn nhà cung cấp —</option>
-                      {SUPPLIERS.map(s => <option key={s} value={s}>{s}</option>)}
-                      <option value="__custom__">✏️ Nhập thủ công...</option>
-                    </select>
-                    {extSupplier === '__custom__' && (
-                      <input className="input mt-2" placeholder="Tên nhà cung cấp..."
-                        value={extCustom} onChange={e => setExtCustom(e.target.value)} />
-                    )}
-                  </>
-                ) : (
-                  <input className="input" placeholder="Tên nhà cung cấp..."
-                    value={extSupplier} onChange={e => setExtSupplier(e.target.value)} />
+                <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
+                  <option value="">— Chọn nhà cung cấp —</option>
+                  {NCC_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+                  <option value="__custom__">✏️ Nhập thủ công...</option>
+                </select>
+                {extSupplier === '__custom__' && (
+                  <input className="input mt-2" placeholder="Tên nhà cung cấp..."
+                    value={extCustom} onChange={e => setExtCustom(e.target.value)} />
                 )}
               </div>
 
