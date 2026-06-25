@@ -70,7 +70,8 @@ router.get('/outstanding', (req, res) => {
       c.code AS category_code,
       c.name AS category_name,
       COALESCE(SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END),0) AS qty_out,
-      COALESCE(SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END),0) AS qty_returned
+      COALESCE(SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END),0) AS qty_returned,
+      MIN(ti.id) AS first_row
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN equipment    e ON e.id = ti.equipment_id
@@ -78,7 +79,7 @@ router.get('/outstanding', (req, res) => {
     WHERE t.event_id = ?
     GROUP BY e.id
     HAVING qty_out > qty_returned
-    ORDER BY c.code, e.name
+    ORDER BY first_row ASC
   `).all(event_id);
   res.json(rows.map(r => ({ ...r, qty_pending: r.qty_out - r.qty_returned })));
 });
