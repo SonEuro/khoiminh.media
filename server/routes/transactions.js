@@ -129,6 +129,8 @@ router.get('/:id', (req, res) => {
 router.post('/out', canTransact, (req, res) => {
   const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
   if (!event_id) return res.status(400).json({ error: 'Phải chọn sự kiện trước khi xuất thiết bị' });
+  const evCheck = db.prepare('SELECT id FROM events WHERE id = ?').get(event_id);
+  if (!evCheck) return res.status(400).json({ error: 'Sự kiện không tồn tại. Vui lòng tải lại trang và chọn lại sự kiện.' });
   const validExt = (external_items || []).filter(i => i.name?.trim());
   if ((!items || items.length === 0) && validExt.length === 0)
     return res.status(400).json({ error: 'Chưa có thiết bị nào' });
