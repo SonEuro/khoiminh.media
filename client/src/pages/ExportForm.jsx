@@ -70,9 +70,14 @@ export default function ExportForm() {
   const [extCustom,   setExtCustom]   = useState('');
   const [extItems,    setExtItems]    = useState([emptyExtRow()]);
 
+  const reloadEquipment = () => api.getEquipment().then(setEquipment);
+
   useEffect(() => {
-    api.getEquipment().then(setEquipment);
+    reloadEquipment();
     api.getEvents().then(setEvents);
+    const onFocus = () => reloadEquipment();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, []);
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -211,6 +216,7 @@ export default function ExportForm() {
                   setExtCustom(s.extCustom);
                   setExtItems(s.extItems);
                 }
+                reloadEquipment();
                 setDoneSlip(null);
               }}
               style={{
@@ -234,6 +240,7 @@ export default function ExportForm() {
               setForm({ event_id: '', responsible_person: user?.full_name || '', expected_return_date: '', notes: '' });
               setItems(emptyRows(10));
               setSearchTerms(Array(10).fill(''));
+              reloadEquipment();
             }}
             style={{ color:'var(--text-muted)', fontSize:'0.8rem', background:'none', border:'none', cursor:'pointer' }}>
             + Tạo phiếu mới
