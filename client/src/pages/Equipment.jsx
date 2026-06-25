@@ -187,6 +187,7 @@ export default function Equipment() {
   const [loading, setLoading] = useState(true);
   const [topData, setTopData] = useState(null);
   const [expandedStat, setExpandedStat] = useState(null);
+  const [inUseEvents, setInUseEvents] = useState({});
 
   const load = useCallback(() => {
     api.getEquipment({ limit: 9999 }).then(setEquipment).finally(() => setLoading(false));
@@ -195,6 +196,7 @@ export default function Equipment() {
   useEffect(() => { api.getCategories().then(setCategories); }, []);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
+  useEffect(() => { api.getEquipmentInUseEvents().then(setInUseEvents); }, []);
 
   // Role-based restriction
   const baseEquipment = allowedCats
@@ -475,15 +477,25 @@ export default function Equipment() {
                               <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
                                 {dropItems.map((eq, i) => (
                                   <div key={eq.id} style={{
-                                    display: 'flex', alignItems: 'center', gap: '10px',
                                     padding: '8px 14px',
                                     borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                                   }}>
-                                    <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
-                                    <span style={{ flex: 1, fontSize: '0.82rem', color: '#e0e0ee', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: activeStatCfg.color, flexShrink: 0 }}>
-                                      {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
+                                      <span style={{ flex: 1, fontSize: '0.82rem', color: '#e0e0ee', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
+                                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: activeStatCfg.color, flexShrink: 0 }}>
+                                        {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
+                                      </span>
+                                    </div>
+                                    {activeStat === 'in_use' && inUseEvents[eq.id]?.length > 0 && (
+                                      <div style={{ marginTop: '4px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                        {inUseEvents[eq.id].map(ev => (
+                                          <span key={ev.event_id} style={{ fontSize: '0.6rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.25)', color: '#93c5fd', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                                            {ev.event_name} ({ev.qty})
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>

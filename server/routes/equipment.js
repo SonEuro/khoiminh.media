@@ -24,6 +24,34 @@ router.get('/', (req, res) => {
 });
 
 // Tóm tắt toàn kho + top thiết bị nổi bật theo lần sử dụng gần nhất
+// Thiết bị đang dùng → sự kiện nào đang giữ
+router.get('/in-use-events', (req, res) => {
+  const rows = db.prepare(`
+    SELECT
+      ti.equipment_id,
+      ev.id   AS event_id,
+      ev.code AS event_code,
+      ev.name AS event_name,
+      SUM(CASE WHEN t.type = 'OUT'    THEN ti.quantity ELSE 0 END) -
+      SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_pending
+    FROM transaction_items ti
+    JOIN transactions t ON t.id = ti.transaction_id
+    JOIN events ev ON ev.id = t.event_id
+    WHERE ev.deleted_at IS NULL
+    GROUP BY ti.equipment_id, ev.id
+    HAVING qty_pending > 0
+    ORDER BY ev.name
+  `).all();
+
+  // Group by equipment_id → [events]
+  const map = {};
+  for (const r of rows) {
+    if (!map[r.equipment_id]) map[r.equipment_id] = [];
+    map[r.equipment_id].push({ event_id: r.event_id, event_code: r.event_code, event_name: r.event_name, qty: r.qty_pending });
+  }
+  res.json(map);
+});
+
 router.get('/top-used', (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
 

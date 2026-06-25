@@ -55,6 +55,7 @@ export const api = {
     return request(`/equipment${q ? '?' + q : ''}`);
   },
   getEquipmentTopUsed: (limit = 5) => request(`/equipment/top-used?limit=${limit}`),
+  getEquipmentInUseEvents: () => request('/equipment/in-use-events'),
   getEquipmentById: (id) => request(`/equipment/${id}`),
   getEquipmentHistory: (id) => request(`/equipment/${id}/history`),
   getEquipmentQR: (id) => request(`/equipment/${id}/qr`),
