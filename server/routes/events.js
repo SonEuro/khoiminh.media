@@ -10,6 +10,16 @@ function canManage(req, res, next) {
   return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
 }
 
+// Kiểm tra TRUONG_PHONG có quyền quản lý sự kiện này không (theo phòng ban người tạo)
+function checkTruongPhongDept(req, eventCreatedById) {
+  const { role, is_truong_phong } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role)) return true;
+  if (!is_truong_phong) return false;
+  if (!eventCreatedById) return true; // sự kiện cũ chưa có created_by_id
+  const creator = db.prepare('SELECT role FROM users WHERE id = ?').get(eventCreatedById);
+  return !creator || creator.role === role;
+}
+
 function nextCode() {
   const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
   if (!last) return 'EVENT-001';
@@ -123,8 +133,11 @@ router.get('/', (req, res) => {
   const { status, limit } = req.query;
   let sql = `
     SELECT e.*,
+      u.role AS created_by_role,
       (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) as tx_count
-    FROM events e WHERE e.deleted_at IS NULL
+    FROM events e
+    LEFT JOIN users u ON u.id = e.created_by_id
+    WHERE e.deleted_at IS NULL
       AND (e.archived_at IS NULL OR e.archived_at > datetime('now','localtime','-24 hours'))
   `;
   const params = [];
@@ -143,14 +156,26 @@ router.get('/', (req, res) => {
   res.json(db.prepare(sql).all(...params));
 });
 
-// Thùng rác — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG
+// Thùng rác — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG (lọc theo phòng ban)
 router.get('/trash', canManage, (req, res) => {
-  const rows = db.prepare(`
-    SELECT *,
-      CAST((julianday(datetime(deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left
-    FROM events WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC
-  `).all();
-  res.json(rows);
+  const { role, is_truong_phong } = req.user;
+  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role);
+
+  let sql = `
+    SELECT e.*,
+      u.role AS created_by_role,
+      CAST((julianday(datetime(e.deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left
+    FROM events e
+    LEFT JOIN users u ON u.id = e.created_by_id
+    WHERE e.deleted_at IS NOT NULL
+  `;
+  const params = [];
+  if (!isFullAdmin && is_truong_phong) {
+    sql += ' AND (e.created_by_id IS NULL OR u.role = ?)';
+    params.push(role);
+  }
+  sql += ' ORDER BY e.deleted_at DESC';
+  res.json(db.prepare(sql).all(...params));
 });
 
 router.get('/:id', (req, res) => {
@@ -202,9 +227,9 @@ router.post('/', canWrite, (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, notes, status, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, notes, initialStatus, req.user?.full_name || '');
+    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, notes, status, created_by, created_by_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, notes, initialStatus, req.user?.full_name || '', req.user?.id || null);
   res.json({ id: r.lastInsertRowid, code, name: finalName });
 });
 
@@ -230,14 +255,20 @@ router.delete('/:id', adminOnly, (req, res) => {
 
 // Khôi phục từ trash
 router.post('/:id/restore', canManage, (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id = ?').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy' });
+  if (!checkTruongPhongDept(req, ev.created_by_id))
+    return res.status(403).json({ error: 'Chỉ được khôi phục sự kiện của phòng ban mình' });
   db.prepare('UPDATE events SET deleted_at = NULL WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
 
-// Hủy sự kiện — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG
+// Hủy sự kiện — SUPER_ADMIN, DIRECTOR, TRUONG_PHONG (theo phòng ban)
 router.post('/:id/cancel', canManage, (req, res) => {
   const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  if (!checkTruongPhongDept(req, ev.created_by_id))
+    return res.status(403).json({ error: 'Chỉ được hủy sự kiện của phòng ban mình' });
   if (ev.status === 'cancelled') return res.status(400).json({ error: 'Sự kiện đã được hủy' });
   db.prepare("UPDATE events SET status = 'cancelled' WHERE id = ?").run(req.params.id);
   res.json({ ok: true });

@@ -371,7 +371,14 @@ const EMPTY_FORM = {
 
 export default function EventReport() {
   const { user } = useAuth();
-  const canDelete = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_truong_phong;
+  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng
+  const canDeleteReport = (report) => {
+    if (isFullAdmin) return true;
+    if (!user?.is_truong_phong) return false;
+    if (!report.reporter_role) return true; // báo cáo cũ chưa có reporter_user_id
+    return report.reporter_role === user?.role;
+  };
 
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [reports, setReports] = useState([]);
@@ -487,7 +494,7 @@ export default function EventReport() {
         )}
 
         {!loading && reports.map(r => (
-          <ReportCard key={r.id} report={r} onDelete={handleDelete} isSuperAdmin={canDelete} />
+          <ReportCard key={r.id} report={r} onDelete={handleDelete} isSuperAdmin={canDeleteReport(r)} />
         ))}
       </div>
     );

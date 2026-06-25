@@ -95,6 +95,8 @@ try { db.prepare("ALTER TABLE transactions ADD COLUMN created_by_id INTEGER DEFA
 try { db.prepare("ALTER TABLE events ADD COLUMN archived_at TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE equipment ADD COLUMN qty_reserved INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN is_truong_phong INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE events ADD COLUMN created_by_id INTEGER DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE event_reports ADD COLUMN reporter_user_id INTEGER DEFAULT NULL").run(); } catch (_) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS event_reports (

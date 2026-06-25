@@ -292,10 +292,18 @@ function EventDetailModal({ eventId, onClose }) {
   );
 }
 
-function TrashView({ onClose, canPermanentDelete, canRestore }) {
+function TrashView({ onClose, canPermanentDelete, user }) {
   const [trash, setTrash] = useState([]);
   const load = () => api.getTrashEvents().then(setTrash);
   useEffect(() => { load(); }, []);
+
+  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canRestoreEvent = (ev) => {
+    if (isFullAdmin) return true;
+    if (!user?.is_truong_phong) return false;
+    if (!ev.created_by_id || !ev.created_by_role) return true;
+    return ev.created_by_role === user?.role;
+  };
 
   const handleRestore = async (ev) => {
     if (!confirm(`Khôi phục sự kiện "${ev.name}"?`)) return;
@@ -342,7 +350,7 @@ function TrashView({ onClose, canPermanentDelete, canRestore }) {
                 </p>
               </div>
               <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
-                {canRestore && (
+                {canRestoreEvent(ev) && (
                   <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
                 )}
                 {canPermanentDelete && (
@@ -361,6 +369,15 @@ export default function Events() {
   const { user } = useAuth();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_truong_phong;
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const isFullAdmin = canFullEdit;
+
+  // TRUONG_PHONG chỉ hủy/khôi phục sự kiện do người cùng phòng tạo
+  const canManageEvent = (ev) => {
+    if (isFullAdmin) return true;
+    if (!user?.is_truong_phong) return false;
+    if (!ev.created_by_id || !ev.created_by_role) return true; // sự kiện cũ chưa có created_by_id
+    return ev.created_by_role === user?.role;
+  };
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [modal, setModal] = useState(null);
@@ -410,7 +427,7 @@ export default function Events() {
 
   return (
     <div className="p-6">
-      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} canRestore={canManage} />}
+      {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
@@ -470,7 +487,7 @@ export default function Events() {
                       ✏️
                     </button>
                   )}
-                  {canManage && ev.status !== 'cancelled' && (
+                  {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (
                     <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
                   )}
                   {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
