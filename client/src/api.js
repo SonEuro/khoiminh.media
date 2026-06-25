@@ -15,7 +15,12 @@ async function request(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Lỗi server (${res.status})`);
+  }
 
   if (res.status === 401) {
     // Auth endpoints return 401 for wrong credentials — show actual error, don't redirect

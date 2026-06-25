@@ -198,8 +198,8 @@ export default function Equipment() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
   useEffect(() => {
-    api.getEquipmentInUseEvents().then(setInUseEvents);
-    api.getEquipmentReservedEvents().then(setReservedEvents);
+    api.getEquipmentInUseEvents().then(setInUseEvents).catch(() => {});
+    api.getEquipmentReservedEvents().then(setReservedEvents).catch(() => {});
   }, []);
 
   // Role-based restriction
