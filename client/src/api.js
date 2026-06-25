@@ -106,4 +106,5 @@ export const api = {
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),
+  archiveEvent: (id) => request(`/events/${id}/archive`, { method: 'POST' }),
 };

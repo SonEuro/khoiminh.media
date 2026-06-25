@@ -363,6 +363,12 @@ export default function Events() {
     catch (e) { alert(e.message); }
   };
 
+  const handleArchive = async (ev) => {
+    if (!confirm(`Lưu trữ sự kiện "${ev.name}"?\nSự kiện sẽ biến mất khỏi danh sách sau 24 giờ.`)) return;
+    try { await api.archiveEvent(ev.id); load(); }
+    catch (e) { alert(e.message); }
+  };
+
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} />}
@@ -423,6 +429,9 @@ export default function Events() {
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
                     ✏️
                   </button>
+                  {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
+                    <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu</button>
+                  )}
                   {isSuperAdmin && ev.status === 'cancelled' && (
                     <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
                   )}

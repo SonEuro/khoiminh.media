@@ -117,6 +117,7 @@ router.get('/', (req, res) => {
     SELECT e.*,
       (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) as tx_count
     FROM events e WHERE e.deleted_at IS NULL
+      AND (e.archived_at IS NULL OR e.archived_at > datetime('now','localtime','-24 hours'))
   `;
   const params = [];
   if (status) { sql += ' AND e.status = ?'; params.push(status); }
@@ -207,6 +208,15 @@ router.post('/:id/restore', adminOnly, (req, res) => {
 // Xóa vĩnh viễn khỏi trash
 router.delete('/:id/permanent', adminOnly, (req, res) => {
   db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// Lưu trữ sự kiện hoàn thành (SUPER_ADMIN) — biến mất khỏi danh sách sau 24h
+router.post('/:id/archive', requireRole('SUPER_ADMIN'), (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  if (ev.status !== 'completed') return res.status(400).json({ error: 'Chỉ lưu trữ sự kiện đã hoàn thành' });
+  db.prepare("UPDATE events SET archived_at = datetime('now','localtime') WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });
 
