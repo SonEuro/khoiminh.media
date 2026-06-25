@@ -18,29 +18,43 @@ function checkDept(user, equipmentIds) {
   return null;
 }
 
+function findNextSeq(existingCodes, makeCode) {
+  let maxNum = 0;
+  for (const r of existingCodes) {
+    const m = r.code.match(/(\d+)$/);
+    if (m && parseInt(m[1]) > maxNum) maxNum = parseInt(m[1]);
+  }
+  let seq = maxNum + 1;
+  let candidate;
+  do {
+    candidate = makeCode(seq);
+    seq++;
+  } while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(candidate));
+  return candidate;
+}
+
 function nextCode(type, eventId, userName) {
   if (type === 'FIX') {
-    const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'FIX'`).get();
-    const seq = String(c + 1).padStart(3, '0');
-    if (eventId) { // eventId reused as equipmentId for FIX
+    let name = 'Sửa chữa';
+    if (eventId) {
       const eq = db.prepare('SELECT name FROM equipment WHERE id = ?').get(eventId);
-      if (eq) return `${eq.name} ${seq}`;
+      if (eq) name = eq.name;
     }
-    return `Sửa chữa ${seq}`;
+    const rows = db.prepare(`SELECT code FROM transactions WHERE type = 'FIX' AND code LIKE ?`).all(name + ' %');
+    return findNextSeq(rows, seq => `${name} ${String(seq).padStart(3, '0')}`);
   }
   const prefix = type === 'OUT' ? 'Xuất' : 'Nhập';
-  let name = '';
-  let row;
+  let namePart = '';
+  let rows;
   if (eventId) {
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(eventId);
-    if (ev) name = '-' + ev.name;
-    row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id = ?`).get(type, eventId);
+    if (ev) namePart = '-' + ev.name;
+    rows = db.prepare(`SELECT code FROM transactions WHERE type = ? AND event_id = ?`).all(type, eventId);
   } else {
-    if (userName) name = '-' + userName;
-    row = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = ? AND event_id IS NULL`).get(type);
+    if (userName) namePart = '-' + userName;
+    rows = db.prepare(`SELECT code FROM transactions WHERE type = ? AND event_id IS NULL`).all(type);
   }
-  const seq = (row?.c ?? 0) + 1;
-  return `${prefix}${name}-${String(seq).padStart(3, '0')}`;
+  return findNextSeq(rows, seq => `${prefix}${namePart}-${String(seq).padStart(3, '0')}`);
 }
 
 // Outstanding items for an event (OUT qty - RETURN qty > 0)
@@ -212,8 +226,8 @@ router.post('/intake', canTransact, (req, res) => {
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
   const doIntake = db.transaction(() => {
-    const { c } = db.prepare(`SELECT COUNT(*) as c FROM transactions WHERE type = 'INTAKE'`).get();
-    const code = `NHAP-MOI-${String(c + 1).padStart(3, '0')}`;
+    const intakeRows = db.prepare(`SELECT code FROM transactions WHERE type = 'INTAKE'`).all();
+    const code = findNextSeq(intakeRows, seq => `NHAP-MOI-${String(seq).padStart(3, '0')}`);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, responsible_person, notes)
       VALUES (?, 'INTAKE', ?, ?)
