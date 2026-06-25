@@ -26,7 +26,7 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
-const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '' }));
+const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ name: '', quantity: 1, notes: '' });
 
@@ -130,7 +130,7 @@ export default function ExportForm() {
       .map(it => {
         const catalog = NCC_CATALOG[it.ext_supplier] || [];
         const found = catalog.find(c => c.name === it.ext_name.trim());
-        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái' };
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: it.rental_days || 1 };
       });
     const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
@@ -339,7 +339,7 @@ export default function ExportForm() {
                     borderLeft:'3px solid #60a5fa',
                     borderRadius:'8px',
                   }}>
-                    <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 52px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
                       {/* NCC seq */}
                       <span style={{ textAlign:'center', fontSize:'0.65rem', fontWeight:800, color:'#60a5fa', lineHeight:`${H}px` }}>N{nccSeq}</span>
 
@@ -414,6 +414,21 @@ export default function ExportForm() {
                         }}
                       />
 
+                      {/* Yellow rental days */}
+                      <div style={{ position:'relative', height:`${H}px` }}>
+                        <input type="number" min="1"
+                          value={item.rental_days || 1}
+                          onChange={e => setItem(idx, 'rental_days', +e.target.value)}
+                          style={{
+                            display:'block', width:'100%', height:`${H}px`, padding:'0 4px 0 4px',
+                            textAlign:'center', boxSizing:'border-box',
+                            background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
+                            borderRadius:'7px', color:'#fbbf24', fontSize:'0.9rem', fontWeight:800, outline:'none',
+                          }}
+                        />
+                        <span style={{ position:'absolute', bottom:'2px', right:'4px', fontSize:'0.5rem', color:'rgba(251,191,36,0.6)', pointerEvents:'none', lineHeight:1 }}>ngày</span>
+                      </div>
+
                       {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{
@@ -439,7 +454,7 @@ export default function ExportForm() {
               const insertExtBelow = () => {
                 setItems(prev => {
                   const next = [...prev];
-                  next.splice(idx + 1, 0, { mode:'ext', equipment_id:'', quantity:1, notes:'', ext_supplier:'', ext_name:'' });
+                  next.splice(idx + 1, 0, { mode:'ext', equipment_id:'', quantity:1, notes:'', ext_supplier:'', ext_name:'', rental_days:1 });
                   return next;
                 });
                 setSearchTerms(prev => {

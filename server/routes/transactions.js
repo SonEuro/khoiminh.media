@@ -155,9 +155,9 @@ router.post('/out', canTransact, (req, res) => {
       updateEq.run(item.quantity, item.quantity, item.equipment_id, item.quantity);
     }
 
-    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit) VALUES (?, ?, ?, ?, ?, ?)`);
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
     for (const ext of validExt) {
-      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái');
+      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
     }
 
     return { id: txId, code };
@@ -206,9 +206,9 @@ router.post('/return', canTransact, (req, res) => {
       }
     }
 
-    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit) VALUES (?, ?, ?, ?, ?, ?)`);
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
     for (const ext of validExt) {
-      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái');
+      insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
     }
 
     return { id: txId, code };
