@@ -140,11 +140,12 @@ router.post('/out', canTransact, (req, res) => {
     if (deptErr) return res.status(403).json({ error: deptErr });
   }
 
-  // Xác định pending: ưu tiên filming_dates → filming_date → start_date
+  // Xác định pending: ưu tiên filming_dates → filming_date → start_date → expected_return_date
   let filmingDates = [];
   try { filmingDates = JSON.parse(evCheck.filming_dates || '[]'); } catch { filmingDates = []; }
-  if (!filmingDates.length && evCheck.filming_date) filmingDates = [evCheck.filming_date];
-  if (!filmingDates.length && evCheck.start_date)   filmingDates = [evCheck.start_date];
+  if (!filmingDates.length && evCheck.filming_date)    filmingDates = [evCheck.filming_date];
+  if (!filmingDates.length && evCheck.start_date)      filmingDates = [evCheck.start_date];
+  if (!filmingDates.length && expected_return_date)    filmingDates = [expected_return_date];
   filmingDates = filmingDates.filter(Boolean).sort();
   const today = new Date().toISOString().slice(0, 10);
   const earliestFilming = filmingDates[0] || null;
