@@ -25,7 +25,7 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
-const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ equipment_id: '', quantity: 1, notes: '' }));
+const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '' }));
 
 // ── Danh sách nhà cung cấp (thêm tên vào đây) ─────────────────────────────
 const SUPPLIERS = [];
@@ -116,11 +116,13 @@ export default function ExportForm() {
 
   const submit = async (e) => {
     e.preventDefault();
-    const validItems = items.filter(it => it.equipment_id && it.quantity > 0);
+    const validItems = items.filter(it => it.mode === 'kho' && it.equipment_id && it.quantity > 0);
+    const rowExt = items
+      .filter(it => it.mode === 'ext' && it.ext_name.trim())
+      .map(it => ({ name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '' }));
     const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
-    const validExt = extOpen
-      ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier }))
-      : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
+    const validExt = [...rowExt, ...sectionExt];
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
     savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
     setSubmitting(true);
@@ -302,70 +304,107 @@ export default function ExportForm() {
 
           <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
             {items.map((item, idx) => {
-              const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
-              const isOpen = expandedRows.has(idx);
-              const filled = !!item.equipment_id;
-              const H = 38; // uniform input height px
+              const isExt = item.mode === 'ext';
+              const eq = !isExt && equipment.find(e => String(e.id) === String(item.equipment_id));
+              const isOpen = !isExt && expandedRows.has(idx);
+              const filled = isExt ? !!item.ext_name.trim() : !!item.equipment_id;
+              const H = 38;
+
+              const toggleMode = () => {
+                setItems(prev => prev.map((it, j) => {
+                  if (j !== idx) return it;
+                  if (it.mode === 'kho') return { ...it, mode: 'ext', equipment_id: '' };
+                  return { ...it, mode: 'kho', ext_name: '', ext_supplier: '' };
+                }));
+                if (!isExt) {
+                  const t = [...searchTerms]; t[idx] = ''; setSearchTerms(t);
+                }
+              };
 
               return (
                 <div key={idx} style={{
                   backgroundColor:'#10101a',
-                  border:`1px solid ${filled ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                  borderLeft:`3px solid ${filled ? '#c9a84c' : 'rgba(255,255,255,0.1)'}`,
+                  border:`1px solid ${filled ? (isExt ? 'rgba(96,165,250,0.4)' : 'rgba(201,168,76,0.4)') : 'rgba(255,255,255,0.07)'}`,
+                  borderLeft:`3px solid ${filled ? (isExt ? '#60a5fa' : '#c9a84c') : 'rgba(255,255,255,0.1)'}`,
                   borderRadius:'8px',
                 }}>
                   {/* ── Main row ── */}
-                  <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px 44px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
 
                     {/* STT */}
-                    <span style={{ textAlign:'center', fontSize:'0.72rem', fontWeight:700, color: filled ? 'var(--gold)' : 'var(--text-muted)', lineHeight:`${H}px` }}>
+                    <span style={{ textAlign:'center', fontSize:'0.72rem', fontWeight:700, color: filled ? (isExt ? '#60a5fa' : 'var(--gold)') : 'var(--text-muted)', lineHeight:`${H}px` }}>
                       {idx + 1}
                     </span>
 
-                    {/* Search */}
-                    <div style={{ position:'relative' }}>
-                      <input
-                        style={{
-                          display:'block', width:'100%', height:`${H}px`, padding:'0 10px',
-                          background: filled ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.04)',
-                          border:`1px solid ${filled ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.1)'}`,
-                          borderRadius:'7px',
-                          color: filled ? '#f5c842' : 'var(--text-muted)',
-                          fontWeight: filled ? 700 : 400,
-                          fontSize:'0.875rem',
-                          outline:'none',
-                          boxSizing:'border-box',
-                        }}
-                        placeholder="Tìm thiết bị..."
-                        value={searchTerms[idx]}
-                        onChange={e => {
-                          const t = [...searchTerms]; t[idx] = e.target.value; setSearchTerms(t);
-                          setItem(idx, 'equipment_id', '');
-                        }}
-                      />
-                      {searchTerms[idx] && !item.equipment_id && (
-                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
-                          {filteredEquip(searchTerms[idx], idx).map(e => (
-                            <button type="button" key={e.id}
-                              style={{ width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px' }}
-                              onMouseEnter={ev => ev.currentTarget.style.background='rgba(201,168,76,0.1)'}
-                              onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
-                              onClick={() => {
-                                setItem(idx, 'equipment_id', e.id);
-                                const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
-                              }}>
-                              <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.83rem', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</span>
-                              <span style={{ fontSize:'0.7rem', fontWeight:700, color: e.qty_available === 0 ? '#f87171' : '#4ade80', flexShrink:0 }}>
-                                {e.qty_available} {e.unit}
-                              </span>
-                            </button>
-                          ))}
-                          {filteredEquip(searchTerms[idx], idx).length === 0 && (
-                            <p style={{ padding:'10px 12px', fontSize:'0.8rem', color:'#7878a0' }}>Không tìm thấy</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    {/* Search (kho) / Supplier+Name (ext) */}
+                    {isExt ? (
+                      <div style={{ display:'flex', gap:'4px', height:`${H}px` }}>
+                        <input
+                          style={{
+                            flex:'0 0 36%', height:`${H}px`, padding:'0 8px', boxSizing:'border-box',
+                            background:'rgba(96,165,250,0.06)', border:'1px solid rgba(96,165,250,0.3)',
+                            borderRadius:'7px', color:'#93c5fd', fontSize:'0.78rem', outline:'none',
+                          }}
+                          placeholder="Nhà CC..."
+                          value={item.ext_supplier}
+                          onChange={e => setItem(idx, 'ext_supplier', e.target.value)}
+                        />
+                        <input
+                          style={{
+                            flex:1, height:`${H}px`, padding:'0 8px', boxSizing:'border-box',
+                            background: filled ? 'rgba(96,165,250,0.08)' : 'rgba(255,255,255,0.04)',
+                            border:`1px solid ${filled ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                            borderRadius:'7px', color: filled ? '#93c5fd' : 'var(--text-muted)',
+                            fontWeight: filled ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                          }}
+                          placeholder="Tên thiết bị thuê..."
+                          value={item.ext_name}
+                          onChange={e => setItem(idx, 'ext_name', e.target.value)}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ position:'relative' }}>
+                        <input
+                          style={{
+                            display:'block', width:'100%', height:`${H}px`, padding:'0 10px',
+                            background: filled ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.04)',
+                            border:`1px solid ${filled ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                            borderRadius:'7px',
+                            color: filled ? '#f5c842' : 'var(--text-muted)',
+                            fontWeight: filled ? 700 : 400, fontSize:'0.875rem',
+                            outline:'none', boxSizing:'border-box',
+                          }}
+                          placeholder="Tìm thiết bị..."
+                          value={searchTerms[idx]}
+                          onChange={e => {
+                            const t = [...searchTerms]; t[idx] = e.target.value; setSearchTerms(t);
+                            setItem(idx, 'equipment_id', '');
+                          }}
+                        />
+                        {searchTerms[idx] && !item.equipment_id && (
+                          <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                            {filteredEquip(searchTerms[idx], idx).map(e => (
+                              <button type="button" key={e.id}
+                                style={{ width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px' }}
+                                onMouseEnter={ev => ev.currentTarget.style.background='rgba(201,168,76,0.1)'}
+                                onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                onClick={() => {
+                                  setItem(idx, 'equipment_id', e.id);
+                                  const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
+                                }}>
+                                <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.83rem', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</span>
+                                <span style={{ fontSize:'0.7rem', fontWeight:700, color: e.qty_available === 0 ? '#f87171' : '#4ade80', flexShrink:0 }}>
+                                  {e.qty_available} {e.unit}
+                                </span>
+                              </button>
+                            ))}
+                            {filteredEquip(searchTerms[idx], idx).length === 0 && (
+                              <p style={{ padding:'10px 12px', fontSize:'0.8rem', color:'#7878a0' }}>Không tìm thấy</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Quantity */}
                     <input type="number" min="1"
@@ -374,25 +413,45 @@ export default function ExportForm() {
                       style={{
                         display:'block', width:'100%', height:`${H}px`, padding:'0',
                         textAlign:'center', boxSizing:'border-box',
-                        background:'rgba(74,222,128,0.08)',
-                        border:'1px solid rgba(74,222,128,0.35)',
+                        background: isExt ? 'rgba(96,165,250,0.08)' : 'rgba(74,222,128,0.08)',
+                        border: isExt ? '1px solid rgba(96,165,250,0.35)' : '1px solid rgba(74,222,128,0.35)',
                         borderRadius:'7px',
-                        color:'#4ade80', fontSize:'1rem', fontWeight:800,
+                        color: isExt ? '#60a5fa' : '#4ade80', fontSize:'1rem', fontWeight:800,
                         outline:'none',
                       }}
                     />
 
-                    {/* Edit toggle */}
-                    <button type="button" onClick={() => toggleExpand(idx)}
+                    {/* Edit toggle (kho only) */}
+                    {isExt ? (
+                      <div style={{ width:'34px', height:`${H}px` }} />
+                    ) : (
+                      <button type="button" onClick={() => toggleExpand(idx)}
+                        style={{
+                          width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
+                          border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
+                          color: isOpen ? '#e8c97a' : '#5a5a7a',
+                          fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center',
+                          transition:'all 0.15s',
+                        }}>
+                        ✏️
+                      </button>
+                    )}
+
+                    {/* Thuê TB toggle */}
+                    <button type="button" onClick={toggleMode}
                       style={{
-                        width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
-                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                        background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
-                        color: isOpen ? '#e8c97a' : '#5a5a7a',
-                        fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center',
+                        width:'44px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
+                        border: isExt ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.25)',
+                        background: isExt ? 'rgba(96,165,250,0.18)' : 'transparent',
+                        color: isExt ? '#60a5fa' : 'rgba(96,165,250,0.45)',
+                        fontSize:'0.6rem', fontWeight:800, letterSpacing:'0.02em',
+                        display:'flex', alignItems:'center', justifyContent:'center',
                         transition:'all 0.15s',
-                      }}>
-                      ✏️
+                      }}
+                      onMouseEnter={ev => { if (!isExt) { ev.currentTarget.style.background='rgba(96,165,250,0.1)'; ev.currentTarget.style.color='#60a5fa'; }}}
+                      onMouseLeave={ev => { if (!isExt) { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.45)'; }}}>
+                      {isExt ? 'KHO' : 'THUÊ'}
                     </button>
 
                     {/* Delete */}
@@ -411,7 +470,7 @@ export default function ExportForm() {
                     </button>
                   </div>
 
-                  {/* ── Info strip when item selected ── */}
+                  {/* ── Info strip: kho item selected ── */}
                   {eq && !isOpen && (
                     <div style={{ padding:'0 8px 6px 44px', display:'flex', alignItems:'center', gap:'6px' }}>
                       <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.code}</span>
@@ -422,7 +481,14 @@ export default function ExportForm() {
                     </div>
                   )}
 
-                  {/* ── Expanded edit panel ── */}
+                  {/* ── Info strip: ext supplier shown ── */}
+                  {isExt && item.ext_supplier && (
+                    <div style={{ padding:'0 8px 6px 44px', display:'flex', alignItems:'center', gap:'6px' }}>
+                      <span style={{ fontSize:'0.68rem', color:'rgba(96,165,250,0.6)' }}>🏪 {item.ext_supplier}</span>
+                    </div>
+                  )}
+
+                  {/* ── Expanded edit panel (kho only) ── */}
                   {isOpen && (
                     <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'10px 10px 10px 44px', background:'rgba(201,168,76,0.04)', borderRadius:'0 0 8px 8px' }}>
                       {eq && (
