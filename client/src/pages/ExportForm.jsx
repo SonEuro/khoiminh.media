@@ -91,7 +91,7 @@ export default function ExportForm() {
   };
 
   const setItem = (idx, key, val) =>
-    setItems(items.map((it, j) => j === idx ? { ...it, [key]: val } : it));
+    setItems(prev => prev.map((it, j) => j === idx ? { ...it, [key]: val } : it));
 
   // Filter equipment by dept + search term
   const deptCats = DEPTS.find(d => d.value === deptFilter)?.cats ?? null;
