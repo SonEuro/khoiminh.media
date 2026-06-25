@@ -52,6 +52,30 @@ router.get('/in-use-events', (req, res) => {
   res.json(map);
 });
 
+router.get('/reserved-events', (req, res) => {
+  const rows = db.prepare(`
+    SELECT
+      ti.equipment_id,
+      ev.id   AS event_id,
+      ev.code AS event_code,
+      ev.name AS event_name,
+      SUM(ti.quantity) AS qty_reserved
+    FROM transaction_items ti
+    JOIN transactions t ON t.id = ti.transaction_id
+    JOIN events ev ON ev.id = t.event_id
+    WHERE t.status = 'pending' AND t.type = 'OUT' AND ev.deleted_at IS NULL
+    GROUP BY ti.equipment_id, ev.id
+    ORDER BY ev.name
+  `).all();
+
+  const map = {};
+  for (const r of rows) {
+    if (!map[r.equipment_id]) map[r.equipment_id] = [];
+    map[r.equipment_id].push({ event_id: r.event_id, event_code: r.event_code, event_name: r.event_name, qty: r.qty_reserved });
+  }
+  res.json(map);
+});
+
 router.get('/top-used', (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
 

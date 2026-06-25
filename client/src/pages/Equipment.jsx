@@ -188,6 +188,7 @@ export default function Equipment() {
   const [topData, setTopData] = useState(null);
   const [expandedStat, setExpandedStat] = useState(null);
   const [inUseEvents, setInUseEvents] = useState({});
+  const [reservedEvents, setReservedEvents] = useState({});
 
   const load = useCallback(() => {
     api.getEquipment({ limit: 9999 }).then(setEquipment).finally(() => setLoading(false));
@@ -196,7 +197,10 @@ export default function Equipment() {
   useEffect(() => { api.getCategories().then(setCategories); }, []);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.getEquipmentTopUsed(5).then(setTopData); }, []);
-  useEffect(() => { api.getEquipmentInUseEvents().then(setInUseEvents); }, []);
+  useEffect(() => {
+    api.getEquipmentInUseEvents().then(setInUseEvents);
+    api.getEquipmentReservedEvents().then(setReservedEvents);
+  }, []);
 
   // Role-based restriction
   const baseEquipment = allowedCats
@@ -494,6 +498,15 @@ export default function Equipment() {
                                       <div style={{ marginTop: '5px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                                         {inUseEvents[eq.id].map(ev => (
                                           <span key={ev.event_id} style={{ fontSize: '0.78rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: '#93c5fd', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                            {ev.event_name} <span style={{ opacity: 0.7 }}>({ev.qty})</span>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {activeStat === 'reserved' && reservedEvents[eq.id]?.length > 0 && (
+                                      <div style={{ marginTop: '5px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                        {reservedEvents[eq.id].map(ev => (
+                                          <span key={ev.event_id} style={{ fontSize: '0.78rem', background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
                                             {ev.event_name} <span style={{ opacity: 0.7 }}>({ev.qty})</span>
                                           </span>
                                         ))}
