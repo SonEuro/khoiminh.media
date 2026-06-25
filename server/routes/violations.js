@@ -5,7 +5,7 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 
 // GET /api/violations
 router.get('/', requireAuth, (req, res) => {
-  const isSuperAdmin = req.user.role === 'SUPER_ADMIN';
+  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
   const rows = db.prepare(`
     SELECT v.*, e.name AS event_name
     FROM violations v
