@@ -130,7 +130,7 @@ router.get('/:id', (req, res) => {
 router.post('/out', canTransact, (req, res) => {
   const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
   if (!event_id) return res.status(400).json({ error: 'Phải chọn sự kiện trước khi xuất thiết bị' });
-  const evCheck = db.prepare('SELECT id, filming_dates, filming_date FROM events WHERE id = ?').get(event_id);
+  const evCheck = db.prepare('SELECT id, filming_dates, filming_date, start_date FROM events WHERE id = ?').get(event_id);
   if (!evCheck) return res.status(400).json({ error: 'Sự kiện không tồn tại. Vui lòng tải lại trang và chọn lại sự kiện.' });
   const validExt = (external_items || []).filter(i => i.name?.trim());
   if ((!items || items.length === 0) && validExt.length === 0)
@@ -140,10 +140,11 @@ router.post('/out', canTransact, (req, res) => {
     if (deptErr) return res.status(403).json({ error: deptErr });
   }
 
-  // Xác định pending: nếu ngày ghi hình sớm nhất > hôm nay thì là xuất kho tạm
+  // Xác định pending: ưu tiên filming_dates → filming_date → start_date
   let filmingDates = [];
   try { filmingDates = JSON.parse(evCheck.filming_dates || '[]'); } catch { filmingDates = []; }
   if (!filmingDates.length && evCheck.filming_date) filmingDates = [evCheck.filming_date];
+  if (!filmingDates.length && evCheck.start_date)   filmingDates = [evCheck.start_date];
   filmingDates = filmingDates.filter(Boolean).sort();
   const today = new Date().toISOString().slice(0, 10);
   const earliestFilming = filmingDates[0] || null;
