@@ -56,6 +56,7 @@ export default function ExportForm() {
   const [items, setItems]           = useState(emptyRows(10));
   const [searchTerms, setSearchTerms] = useState(Array(10).fill(''));
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [nccFocusIdx, setNccFocusIdx] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
   const [dateError, setDateError]   = useState(false);
@@ -374,16 +375,18 @@ export default function ExportForm() {
                                 }}
                                 placeholder={item.ext_supplier ? `Tên TB (${catalog.length})...` : 'Tên thiết bị...'}
                                 value={item.ext_name}
-                                onChange={e => setItem(idx, 'ext_name', e.target.value)}
+                                onChange={e => { setItem(idx, 'ext_name', e.target.value); setNccFocusIdx(idx); }}
+                                onFocus={() => setNccFocusIdx(idx)}
+                                onBlur={() => setTimeout(() => setNccFocusIdx(v => v === idx ? -1 : v), 150)}
                               />
-                              {suggestions.length > 0 && (
+                              {nccFocusIdx === idx && suggestions.length > 0 && (
                                 <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:200, maxHeight:'200px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
                                   {suggestions.map((c, i) => (
                                     <button key={i} type="button"
                                       style={{ width:'100%', textAlign:'left', padding:'7px 10px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}
                                       onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
                                       onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
-                                      onClick={() => setItem(idx, 'ext_name', c.name)}>
+                                      onClick={() => { setItem(idx, 'ext_name', c.name); setNccFocusIdx(-1); }}>
                                       <span style={{ color:'#93c5fd', fontWeight:600, fontSize:'0.82rem', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
                                       <span style={{ fontSize:'0.68rem', color:'#4ade80', flexShrink:0, marginLeft:'6px' }}>{c.qty > 0 ? c.qty : '–'} {c.unit}</span>
                                     </button>
