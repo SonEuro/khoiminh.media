@@ -365,14 +365,15 @@ export default function Transactions() {
   function load() {
     if (!user) return;
     Promise.all([
-      api.getEvents({ limit: 200 }),
-      api.getTransactions({ type: 'OUT', status: 'pending', limit: 200 }),
-      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200 }),
-      api.getTransactions({ type: 'RETURN', limit: 200 }),
+      api.getEvents({ limit: 5 }),
+      api.getTransactions({ type: 'OUT', status: 'pending', limit: 5 }),
+      api.getTransactions({ type: 'OUT', status: 'completed', limit: 5 }),
+      api.getTransactions({ type: 'RETURN', limit: 5 }),
       api.getEventReports(),
       api.getViolations(),
     ]).then(([ev, pending, out, ret, rep, vio]) => {
-      setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret); setReports(rep); setViolations(vio);
+      setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
+      setReports(rep.slice(0, 5)); setViolations(vio.slice(0, 5));
     }).finally(() => setLoading(false));
   }
 
