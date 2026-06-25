@@ -8,8 +8,8 @@ function buildSlipHTML(tx, preview = false) {
     <tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
+      <td style="text-align:center"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span> <span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></td>
       <td style="text-align:center">${item.eq_code || ''}</td>
-      <td style="text-align:center">${item.quantity} ${item.unit || ''}</td>
       <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
     </tr>
   `).join('');
@@ -24,8 +24,8 @@ function buildSlipHTML(tx, preview = false) {
       <tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
+        <td style="text-align:center"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span> <span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></td>
         <td style="text-align:center">${item.supplier || ''}</td>
-        <td style="text-align:center">${item.quantity} ${item.unit || 'Cái'}</td>
         <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
       </tr>
     `).join('')}
@@ -176,8 +176,8 @@ ${previewBar}
     <tr>
       <th style="width:7%">STT</th>
       <th style="width:42%">TÊN THIẾT BỊ</th>
-      <th style="width:16%">NCC</th>
       <th style="width:12%">SỐ LƯỢNG</th>
+      <th style="width:16%">NCC</th>
       <th style="width:23%">GHI CHÚ</th>
     </tr>
   </thead>
