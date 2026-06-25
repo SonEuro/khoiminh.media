@@ -61,7 +61,8 @@ router.get('/top-used', (req, res) => {
       SUM(qty_available)   AS available,
       SUM(qty_in_use)      AS in_use,
       SUM(qty_maintenance) AS maintenance,
-      SUM(qty_damaged + qty_lost) AS damaged
+      SUM(qty_damaged + qty_lost) AS damaged,
+      SUM(COALESCE(qty_reserved, 0)) AS reserved
     FROM equipment
   `).get();
 
