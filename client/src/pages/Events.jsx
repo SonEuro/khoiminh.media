@@ -445,7 +445,7 @@ export default function Events() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành'], ['cancelled', 'Đã hủy']].map(([v, l]) => (
           <button key={v}
             className={`btn btn-sm ${statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
@@ -465,40 +465,38 @@ export default function Events() {
         {events.map(ev => {
           const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
           return (
-            <div key={ev.id} className="card flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
+            <div key={ev.id} className="card">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
                   <span className={s.cls}>{s.label}</span>
                 </div>
-                <h3 className="font-semibold text-lg">{ev.name}</h3>
-                <div className="flex gap-4 text-sm text-gray-500 mt-1">
-                  {ev.client && <span>👤 {ev.client}</span>}
-                  {ev.location && <span>📍 {ev.location}</span>}
-                  {ev.start_date && <span>📅 {fmtD(ev.start_date)}{ev.end_date && ev.end_date !== ev.start_date ? ` → ${fmtD(ev.end_date)}` : ''}</span>}
-                </div>
+                <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-sm text-gray-400 mb-2">{ev.tx_count} phiếu</p>
-                <div className="flex gap-2">
-                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
-                    Chi tiết
+              <h3 className="font-semibold text-lg mb-1">{ev.name}</h3>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
+                {ev.client && <span>👤 {ev.client}</span>}
+                {ev.location && <span>📍 {ev.location}</span>}
+                {ev.start_date && <span>📅 {fmtD(ev.start_date)}{ev.end_date && ev.end_date !== ev.start_date ? ` → ${fmtD(ev.end_date)}` : ''}</span>}
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
+                  Chi tiết
+                </button>
+                {canFullEdit && (
+                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
+                    ✏️
                   </button>
-                  {canFullEdit && (
-                    <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
-                      ✏️
-                    </button>
-                  )}
-                  {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (
-                    <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
-                  )}
-                  {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
-                    <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu</button>
-                  )}
-                  {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
-                    <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
-                  )}
-                </div>
+                )}
+                {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (
+                  <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
+                )}
+                {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
+                  <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu</button>
+                )}
+                {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
+                  <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
+                )}
               </div>
             </div>
           );
