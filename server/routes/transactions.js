@@ -60,6 +60,39 @@ function nextCode(type, eventId, userName) {
 }
 
 // Outstanding items for an event (OUT qty - RETURN qty > 0)
+// Events that have OUT items not yet fully returned
+router.get('/pending-returns', (req, res) => {
+  const rows = db.prepare(`
+    SELECT
+      ev.id        AS event_id,
+      ev.name      AS event_name,
+      ev.code      AS event_code,
+      ev.start_date,
+      (SELECT GROUP_CONCAT(t2.code)
+       FROM transactions t2
+       WHERE t2.event_id = ev.id AND t2.type = 'OUT') AS out_codes,
+      COUNT(DISTINCT sub.equipment_id) AS item_types,
+      SUM(sub.qty_pending)             AS total_pending
+    FROM (
+      SELECT
+        t.event_id,
+        ti.equipment_id,
+        SUM(CASE WHEN t.type = 'OUT'    THEN ti.quantity ELSE 0 END) -
+        SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_pending
+      FROM transaction_items ti
+      JOIN transactions t ON t.id = ti.transaction_id
+      WHERE t.event_id IS NOT NULL
+      GROUP BY t.event_id, ti.equipment_id
+      HAVING qty_pending > 0
+    ) sub
+    JOIN events ev ON ev.id = sub.event_id
+    WHERE ev.archived_at IS NULL AND ev.deleted_at IS NULL
+    GROUP BY ev.id
+    ORDER BY ev.start_date DESC
+  `).all();
+  res.json(rows);
+});
+
 router.get('/outstanding', (req, res) => {
   const { event_id } = req.query;
   if (!event_id) return res.json([]);

@@ -48,6 +48,10 @@ export default function EventReturn() {
   const [person,        setPerson]       = useState(user?.full_name || '');
   const [returnDate,    setReturnDate]   = useState(new Date().toISOString().slice(0,10));
 
+  // Pending returns list
+  const [pendingReturns,  setPendingReturns]  = useState([]);
+  const [loadingPending,  setLoadingPending]  = useState(true);
+
   // Outstanding items
   const [outstanding,  setOutstanding]  = useState([]);
   const [quantities,   setQuantities]   = useState({});   // equipment_id → qty
@@ -57,7 +61,12 @@ export default function EventReturn() {
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
 
-  useEffect(() => { api.getEvents().then(setEvents); }, []);
+  const loadPending = () => {
+    setLoadingPending(true);
+    api.getPendingReturns().then(setPendingReturns).finally(() => setLoadingPending(false));
+  };
+
+  useEffect(() => { api.getEvents().then(setEvents); loadPending(); }, []);
 
   // Load outstanding when event selected
   useEffect(() => {
@@ -90,6 +99,13 @@ export default function EventReturn() {
       ).slice(0, 8)
     : [];
 
+  const selectEvent = (ev) => {
+    setEventId(ev.event_id);
+    setEventName(ev.event_name);
+    setEventSearch(ev.event_name);
+    setShowEvSuggest(false);
+  };
+
   const toggleCheck = (id) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const canSubmit = eventId && person && visibleItems.some(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0);
@@ -108,6 +124,7 @@ export default function EventReturn() {
       const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items });
       const full = await api.getTransactionById(res.id);
       setDone(full);
+      loadPending();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -146,8 +163,112 @@ export default function EventReturn() {
         <p style={{ color:'var(--text-muted)', fontSize:'0.85rem' }}>Trả thiết bị sau sự kiện về kho</p>
       </div>
 
+      {/* ── Phiếu xuất chưa nhập kho ─────────────────── */}
+      {!eventId && (
+        <div className="card p-0 overflow-hidden mb-5">
+          <div style={{
+            padding:'12px 20px', borderBottom:'1px solid rgba(201,168,76,0.2)',
+            display:'flex', alignItems:'center', gap:'10px',
+          }}>
+            <span style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.875rem' }}>
+              📋 Phiếu xuất chưa nhập kho
+            </span>
+            {!loadingPending && (
+              <span style={{
+                fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'9999px',
+                background: pendingReturns.length > 0 ? 'rgba(251,191,36,0.15)' : 'rgba(74,222,128,0.12)',
+                color: pendingReturns.length > 0 ? '#fbbf24' : '#4ade80',
+              }}>
+                {pendingReturns.length > 0 ? `${pendingReturns.length} sự kiện` : 'Đã nhập hết'}
+              </span>
+            )}
+          </div>
+
+          {loadingPending && (
+            <div style={{ padding:'24px', textAlign:'center', color:'var(--text-muted)', fontSize:'0.85rem' }}>
+              Đang tải...
+            </div>
+          )}
+
+          {!loadingPending && pendingReturns.length === 0 && (
+            <div style={{ padding:'28px', textAlign:'center' }}>
+              <p style={{ fontSize:'2rem', marginBottom:'6px' }}>✅</p>
+              <p style={{ color:'#4ade80', fontWeight:600, fontSize:'0.875rem' }}>
+                Tất cả thiết bị đã được nhập kho!
+              </p>
+            </div>
+          )}
+
+          {!loadingPending && pendingReturns.map((row, i) => (
+            <button
+              key={row.event_id}
+              type="button"
+              onClick={() => selectEvent(row)}
+              style={{
+                width:'100%', textAlign:'left',
+                padding:'11px 20px',
+                background:'transparent', border:'none', cursor:'pointer',
+                borderBottom: i < pendingReturns.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none',
+                display:'flex', alignItems:'center', gap:'14px',
+                transition:'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.06)'}
+              onMouseLeave={e => e.currentTarget.style.background='transparent'}
+            >
+              {/* Left: event info */}
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+                  <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem' }}>
+                    {row.event_name}
+                  </span>
+                  <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0' }}>
+                    {row.event_code}
+                  </span>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'3px', flexWrap:'wrap' }}>
+                  {row.start_date && (
+                    <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>📅 {row.start_date}</span>
+                  )}
+                  {row.out_codes && (
+                    <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace' }}>
+                      {row.out_codes.split(',').map(c => c.trim()).slice(0, 3).join(', ')}
+                      {row.out_codes.split(',').length > 3 ? ' ...' : ''}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: badge */}
+              <div style={{
+                flexShrink:0, textAlign:'right',
+                fontSize:'0.75rem', fontWeight:700,
+                background:'rgba(248,113,113,0.12)', color:'#f87171',
+                padding:'4px 12px', borderRadius:'9999px', whiteSpace:'nowrap',
+              }}>
+                {row.item_types} loại · {row.total_pending} cái
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Filter card ─────────────────────────────────── */}
       <div className="card space-y-4 mb-5" style={{ overflow: 'visible' }}>
+
+        {/* Back to list button when event selected */}
+        {eventId && (
+          <button
+            type="button"
+            onClick={() => { setEventId(''); setEventName(''); setEventSearch(''); setOutstanding([]); }}
+            style={{
+              display:'inline-flex', alignItems:'center', gap:'6px',
+              fontSize:'0.78rem', color:'var(--text-muted)',
+              background:'none', border:'none', cursor:'pointer', padding:'0',
+            }}
+          >
+            ← Quay lại danh sách phiếu xuất
+          </button>
+        )}
 
         {/* Event search */}
         <div style={{ position:'relative', zIndex: 100 }}>
