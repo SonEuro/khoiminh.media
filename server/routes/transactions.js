@@ -272,7 +272,7 @@ router.post('/return', canTransact, (req, res) => {
 
   const doReturn = db.transaction(() => {
     const code = nextCode('RETURN', event_id || null, req.user.full_name);
-    const txDate = transaction_date || null;
+    const txDate = transaction_date ? transaction_date + ' 00:00:00' : null;
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, event_id, responsible_person, notes, transaction_date)
       VALUES (?, 'RETURN', ?, ?, ?, COALESCE(?, datetime('now','localtime')))
