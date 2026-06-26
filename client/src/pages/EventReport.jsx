@@ -209,7 +209,7 @@ function TimeInput({ value, onChange, hasError }) {
 
   function handleHH(e) {
     let v = e.target.value.replace(/\D/g, '').slice(0, 2);
-    if (v.length === 2 && parseInt(v, 10) > 23) v = '23';
+    if (v.length === 2 && parseInt(v, 10) > 24) v = '24';
     onChange(`${v}:${mm}`);
     if (v.length === 2 || (v.length === 1 && +v >= 3)) {
       setTimeout(() => { mmRef.current?.focus(); mmRef.current?.select(); }, 0);
@@ -218,7 +218,7 @@ function TimeInput({ value, onChange, hasError }) {
 
   function handleMM(e) {
     let v = e.target.value.replace(/\D/g, '').slice(0, 2);
-    if (v.length === 2 && parseInt(v, 10) > 59) v = '59';
+    if (v.length === 2 && parseInt(v, 10) > 60) v = '60';
     onChange(`${hh}:${v}`);
   }
 
