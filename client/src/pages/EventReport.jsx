@@ -199,65 +199,48 @@ const sectionStyle = {
   borderRadius:'12px', padding:'20px', marginBottom:'16px',
 };
 
-// ── Time input HH:MM với auto-advance ────────────────────────────────────────
+// ── Time input: gõ liên tục 4 số → tự format HH:MM ──────────────────────────
 function TimeInput({ value, onChange, hasError }) {
-  const parts = (value || '').split(':');
-  const hh = parts[0] ?? '';
-  const mm = parts[1] ?? '';
-  const hhRef = useRef(null);
-  const mmRef = useRef(null);
+  const [raw, setRaw] = useState(() => (value || '').replace(/\D/g, '').slice(0, 4));
 
-  function handleHH(e) {
-    let v = e.target.value.replace(/\D/g, '').slice(0, 2);
-    if (v.length === 2 && parseInt(v, 10) > 24) v = '24';
-    onChange(`${v}:${mm}`);
-    if (v.length === 2 || (v.length === 1 && +v >= 3)) {
-      setTimeout(() => { mmRef.current?.focus(); mmRef.current?.select(); }, 0);
+  useEffect(() => {
+    setRaw((value || '').replace(/\D/g, '').slice(0, 4));
+  }, [value]);
+
+  // Hiển thị: chèn ':' sau 2 chữ số đầu
+  const display = raw.length > 2 ? `${raw.slice(0,2)}:${raw.slice(2)}` : raw;
+
+  function apply(r) {
+    // Cap hh ≤ 24
+    if (r.length >= 2 && parseInt(r.slice(0,2), 10) > 24) r = '24' + r.slice(2);
+    // Cap mm ≤ 60
+    if (r.length >= 4 && parseInt(r.slice(2,4), 10) > 60) r = r.slice(0,2) + '60';
+    if (r.length > 4) r = r.slice(0,4);
+    setRaw(r);
+    onChange(r ? `${r.slice(0,2)}:${r.slice(2,4)}` : '');
+  }
+
+  function onKeyDown(e) {
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      if (raw.length < 4) apply(raw + e.key);
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      apply(raw.slice(0, -1));
+    } else if (!['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+      e.preventDefault();
     }
   }
-
-  function handleMM(e) {
-    let v = e.target.value.replace(/\D/g, '').slice(0, 2);
-    if (v.length === 2 && parseInt(v, 10) > 60) v = '60';
-    onChange(`${hh}:${v}`);
-  }
-
-  function handleMMKeyDown(e) {
-    if (e.key === 'Backspace' && mm === '') {
-      hhRef.current?.focus();
-      setTimeout(() => {
-        if (hhRef.current) {
-          const len = hhRef.current.value.length;
-          hhRef.current.setSelectionRange(len, len);
-        }
-      }, 0);
-    }
-  }
-
-  const cellStyle = {
-    width: '28px', background: 'transparent', border: 'none', outline: 'none',
-    color: '#e0e0ee', fontSize: '0.9rem', fontWeight: 700,
-    textAlign: 'center', padding: 0, caretColor: '#c9a84c',
-  };
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '1px',
-      background: 'rgba(255,255,255,0.04)',
-      border: `1px solid ${hasError ? '#f87171' : 'rgba(201,168,76,0.2)'}`,
-      borderRadius: '8px', padding: '0 12px', height: '40px',
-    }}>
-      <input ref={hhRef} type="text" inputMode="numeric" value={hh}
-        onChange={handleHH}
-        onFocus={e => setTimeout(() => e.target.select(), 0)}
-        placeholder="hh" maxLength={2} style={cellStyle} />
-      <span style={{ color: '#c9a84c', fontWeight: 800, userSelect: 'none', fontSize: '1.05rem', lineHeight: 1 }}>:</span>
-      <input ref={mmRef} type="text" inputMode="numeric" value={mm}
-        onChange={handleMM}
-        onFocus={e => setTimeout(() => e.target.select(), 0)}
-        onKeyDown={handleMMKeyDown}
-        placeholder="mm" maxLength={2} style={cellStyle} />
-    </div>
+    <input
+      type="text" inputMode="numeric" className="input"
+      value={display} placeholder="hh:mm"
+      onKeyDown={onKeyDown}
+      onChange={() => {}}
+      onFocus={e => setTimeout(() => e.target.select(), 0)}
+      style={hasError ? { border:'1px solid #f87171' } : {}}
+    />
   );
 }
 
