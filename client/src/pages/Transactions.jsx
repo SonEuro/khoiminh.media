@@ -138,9 +138,9 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
                       </p>
                     )}
                   </div>
-                  <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>thuê</span>
+                  <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
                   <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
-                    {it.quantity}
+                    {it.quantity} <span style={{ fontSize:'0.7rem', fontWeight:400, color:'#7878a0' }}>{it.unit || 'Cái'}</span>
                   </span>
                 </div>
               ))}
