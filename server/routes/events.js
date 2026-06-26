@@ -237,7 +237,7 @@ router.get('/:id', (req, res) => {
   `).all(req.params.id);
 
   const external_items = db.prepare(`
-    SELECT ei.supplier, ei.name, ei.quantity, ei.notes
+    SELECT ei.supplier, ei.name, ei.quantity, ei.unit, ei.notes, ei.rental_days
     FROM external_items ei
     JOIN transactions t ON t.id = ei.transaction_id
     WHERE t.event_id = ? AND t.type = 'OUT'
