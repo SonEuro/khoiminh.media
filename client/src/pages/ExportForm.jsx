@@ -183,7 +183,7 @@ export default function ExportForm() {
     try {
       const res = await api.createOut({ ...form, items: validItems, external_items: validExt });
       const full = await api.getTransactionById(res.id);
-      setDoneSlip({ ...full, _pending: res.status === 'pending', _filmingDate: res.filming_date });
+      setDoneSlip({ ...full, _pending: res.status === 'pending', _filmingDate: res._filmingDate });
     } catch (err) {
       alert(err.message);
     } finally {
