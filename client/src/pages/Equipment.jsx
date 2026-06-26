@@ -463,7 +463,7 @@ export default function Equipment() {
 
                       return (
                         <>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '6px' }}>
+                          <div className="stat-grid-5" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '6px' }}>
                             {stats.map(s => {
                               const isActive = activeStat === s.key;
                               return (

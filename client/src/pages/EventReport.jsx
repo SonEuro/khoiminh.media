@@ -294,7 +294,7 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
         <div style={{ padding:'16px 18px' }}>
           {/* Timeline row */}
           {(report.time_present || report.time_onset || report.time_off || report.time_end) && (
-            <div style={{
+            <div className="time-grid-4" style={{
               display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px',
               background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom:'14px',
             }}>

@@ -138,7 +138,7 @@ export default function ViolationReport() {
     try {
       await api.createViolation({
         event_id:       form.event_id || null,
-        event_label:    form.event_id ? '' : form.event_label,
+        event_label:    form.event_id ? null : form.event_label,
         violator,
         violation_type,
         description:    form.description,

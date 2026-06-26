@@ -28,7 +28,7 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
-const emptyExtRow = () => ({ name: '', quantity: 1, notes: '' });
+const emptyExtRow = () => ({ name: '', quantity: 1, notes: '', rental_days: 1 });
 
 export default function ExportForm() {
   const navigate = useNavigate();

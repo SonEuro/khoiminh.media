@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
-const { requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 function canManage(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
@@ -37,7 +37,7 @@ router.get('/:id', (req, res) => {
   res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]') });
 });
 
-router.post('/', (req, res) => {
+router.post('/', requireAuth, (req, res) => {
   const {
     event_id, event_label, location, report_date,
     km_staff, freelancer_staff,

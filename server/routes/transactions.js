@@ -357,13 +357,13 @@ router.post('/intake', canIntake, (req, res) => {
 
 // Nhập bảo trì → trả lại kho
 router.post('/fix', canFix, (req, res) => {
-  const { notes, items } = req.body;
+  const { notes, items, responsible_person } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
 
   const doFix = db.transaction(() => {
     const code = nextCode('FIX', items[0]?.equipment_id || null);
 
-    const txR = db.prepare(`INSERT INTO transactions (code, type, notes) VALUES (?, 'FIX', ?)`).run(code, notes);
+    const txR = db.prepare(`INSERT INTO transactions (code, type, notes, responsible_person) VALUES (?, 'FIX', ?, ?)`).run(code, notes, responsible_person || null);
     const txId = txR.lastInsertRowid;
 
     for (const item of items) {
