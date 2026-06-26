@@ -256,27 +256,26 @@ function FixTab({ equipment, onDone }) {
 }
 
 // ── Tab 2: Nhập mới ───────────────────────────────────────────────────────────
-function IntakeTab({ equipment, onDone }) {
+function IntakeTab({ onDone }) {
   const { user, can } = useAuth();
   const canIntake = can('intake');
   const today = new Date().toISOString().slice(0, 10);
 
+  const person = user?.full_name || '';
   const [department, setDepartment] = useState('');
-  const [person, setPerson] = useState('');
-  const [date, setDate] = useState(today);
-  const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
+  const [date, setDate]   = useState(today);
+  const [items, setItems] = useState([{ name: '', unit: 'Cái', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
 
-  function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
-  function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
-  function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
+  function addRow()       { setItems(p => [...p, { name: '', unit: 'Cái', quantity: 1 }]); }
+  function removeRow(i)   { setItems(p => p.filter((_, j) => j !== i)); }
+  function updateRow(i, k, v) { setItems(p => p.map((r, j) => j === i ? { ...r, [k]: v } : r)); }
 
   async function submit(e) {
     e.preventDefault();
     if (!canIntake) return;
-    const validItems = items.filter(r => r.equipment_id && r.quantity > 0);
-    if (!validItems.length) return alert('Chưa chọn thiết bị nào');
-    if (!person) return alert('Chưa chọn người nhập');
+    const validItems = items.filter(r => r.name?.trim() && r.quantity > 0);
+    if (!validItems.length) return alert('Chưa nhập tên thiết bị nào');
     setSubmitting(true);
     try {
       const res = await api.createIntake({ responsible_person: person, department, intake_date: date, items: validItems });
@@ -284,6 +283,8 @@ function IntakeTab({ equipment, onDone }) {
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
   }
+
+  const colHdr = { fontSize: '0.68rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' };
 
   return (
     <form onSubmit={submit}>
@@ -300,52 +301,77 @@ function IntakeTab({ equipment, onDone }) {
         </div>
       )}
       <div style={!canIntake ? { opacity: 0.45, pointerEvents: 'none', userSelect: 'none' } : {}}>
-      <div style={sectionStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-          <div>
-            <label style={labelStyle}>Bộ phận</label>
-            <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
-              <option value="">-- Chọn bộ phận --</option>
-              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>Ngày nhập</label>
-            <input type="date" className="input" value={date} min={new Date().toISOString().slice(0,10)} onChange={e => setDate(e.target.value)} />
-          </div>
-        </div>
-        <div>
-          <label style={labelStyle}>Người nhập thiết bị mới</label>
-          <select className="input" value={person} onChange={e => setPerson(e.target.value)} required>
-            <option value="">-- Chọn nhân viên --</option>
-            {KM_STAFF_GROUPS.map(g => (
-              <optgroup key={g.dept} label={g.dept}>
-                {g.members.map(m => <option key={m} value={m}>{m}</option>)}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      <div style={sectionStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem' }}>Tên thiết bị mới</span>
-          <button type="button" onClick={addRow}
-            style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
-              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
-            + Thêm
-          </button>
+        {/* Thông tin chung */}
+        <div style={sectionStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+            <div>
+              <label style={labelStyle}>Bộ phận</label>
+              <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>
+                <option value="">-- Chọn bộ phận --</option>
+                {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Ngày nhập</label>
+              <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Người nhập thiết bị</label>
+            <div style={{
+              padding: '10px 14px', borderRadius: '8px',
+              background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.22)',
+              color: '#e8c97a', fontWeight: 700, fontSize: '0.9rem',
+            }}>{person || '—'}</div>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {items.map((row, i) => (
-            <EqRow key={i} equipment={equipment} row={row}
-              onChange={v => updateRow(i, v)}
-              onRemove={() => removeRow(i)}
-              placeholder="Tìm tên thiết bị..."
-            />
-          ))}
+
+        {/* Danh sách thiết bị */}
+        <div style={sectionStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem' }}>Danh sách thiết bị nhập mới</span>
+            <button type="button" onClick={addRow}
+              style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+                background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
+              + Thêm
+            </button>
+          </div>
+
+          {/* Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 72px 36px', gap: '8px', padding: '0 2px', marginBottom: '6px' }}>
+            <span style={colHdr}>Tên thiết bị</span>
+            <span style={{ ...colHdr, textAlign: 'center' }}>Đơn vị tính</span>
+            <span style={{ ...colHdr, textAlign: 'center' }}>Số lượng</span>
+            <span />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {items.map((row, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 72px 36px', gap: '8px', alignItems: 'center' }}>
+                <input
+                  className="input" placeholder="Nhập tên thiết bị..."
+                  value={row.name} onChange={e => updateRow(i, 'name', e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                />
+                <input
+                  className="input" placeholder="Cái, Bộ..."
+                  value={row.unit} onChange={e => updateRow(i, 'unit', e.target.value)}
+                  style={{ textAlign: 'center', fontSize: '0.85rem' }}
+                />
+                <input
+                  type="number" min="1" className="input"
+                  value={row.quantity} onChange={e => updateRow(i, 'quantity', Math.max(1, +e.target.value))}
+                  style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
+                />
+                <button type="button" onClick={() => removeRow(i)}
+                  style={{ padding: '8px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', color: '#f87171', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
       </div>{/* end lock wrapper */}
 
@@ -414,7 +440,7 @@ export default function ReturnForm() {
       </div>
 
       {tab === 'fix'    && <FixTab    equipment={equipment} onDone={setDone} />}
-      {tab === 'intake' && <IntakeTab equipment={equipment} onDone={setDone} />}
+      {tab === 'intake' && <IntakeTab onDone={setDone} />}
     </div>
   );
 }

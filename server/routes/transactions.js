@@ -311,10 +311,12 @@ router.post('/return', canTransact, (req, res) => {
   }
 });
 
-// Nhập thiết bị mới (tăng tồn kho)
+// Nhập thiết bị mới (tăng tồn kho) — items: [{ name, unit, quantity }]
 router.post('/intake', canIntake, (req, res) => {
   const { responsible_person, department, intake_date, notes, items } = req.body;
   if (!items || items.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  const validItems = items.filter(i => i.name?.trim() && i.quantity > 0);
+  if (!validItems.length) return res.status(400).json({ error: 'Chưa có thiết bị nào hợp lệ' });
 
   const doIntake = db.transaction(() => {
     const intakeRows = db.prepare(`SELECT code FROM transactions WHERE type = 'INTAKE'`).all();
@@ -325,10 +327,26 @@ router.post('/intake', canIntake, (req, res) => {
     `).run(code, responsible_person, [department, notes].filter(Boolean).join(' | '));
 
     const txId = txR.lastInsertRowid;
-    for (const item of items) {
-      if (!item.equipment_id || !item.quantity || item.quantity <= 0) continue;
-      db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, item.quantity);
-      db.prepare(`UPDATE equipment SET qty_total = qty_total + ?, qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
+    for (const item of validItems) {
+      const name = item.name.trim();
+      const unit = (item.unit || 'Cái').trim();
+
+      // Tìm thiết bị theo tên (không phân biệt hoa thường)
+      let eq = db.prepare(`SELECT * FROM equipment WHERE LOWER(TRIM(name)) = LOWER(?) LIMIT 1`).get(name.toLowerCase());
+
+      if (!eq) {
+        // Tạo thiết bị mới với mã tự động
+        const newCodes = db.prepare(`SELECT code FROM equipment WHERE code LIKE 'NEW-%'`).all();
+        const newCode = findNextSeq(newCodes, seq => `NEW-${String(seq).padStart(3, '0')}`);
+        const ins = db.prepare(`
+          INSERT INTO equipment (code, name, unit, qty_total, qty_available, qty_in_use, qty_maintenance, qty_damaged, qty_lost)
+          VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0)
+        `).run(newCode, name, unit);
+        eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(ins.lastInsertRowid);
+      }
+
+      db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, eq.id, item.quantity);
+      db.prepare(`UPDATE equipment SET qty_total = qty_total + ?, qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, eq.id);
     }
     return { id: txId, code };
   });
