@@ -176,7 +176,6 @@ router.post('/out', canTransact, (req, res) => {
     if (deptErr) return res.status(403).json({ error: deptErr });
   }
 
-  // Luôn xuất kho ngay (completed) — không tạo pending dựa trên ngày ghi hình
   let filmingDates = [];
   try { filmingDates = JSON.parse(evCheck.filming_dates || '[]'); } catch { filmingDates = []; }
   if (!filmingDates.length && evCheck.filming_date) filmingDates = [evCheck.filming_date];
@@ -184,12 +183,17 @@ router.post('/out', canTransact, (req, res) => {
   filmingDates = filmingDates.filter(Boolean).sort();
   const earliestFilming = filmingDates[0] || null;
 
+  // Dùng localtime từ SQLite tránh lệch múi giờ UTC của Node.js
+  const { today } = db.prepare("SELECT date('now','localtime') AS today").get();
+  const isPending = !!(earliestFilming && earliestFilming > today);
+  const txStatus = isPending ? 'pending' : 'completed';
+
   const doOut = db.transaction(() => {
     const code = nextCode('OUT', event_id || null, req.user.full_name);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, status, event_id, responsible_person, expected_return_date, notes, created_by_id)
-      VALUES (?, 'OUT', 'completed', ?, ?, ?, ?, ?)
-    `).run(code, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
+      VALUES (?, 'OUT', ?, ?, ?, ?, ?, ?)
+    `).run(code, txStatus, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
 
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
@@ -201,8 +205,13 @@ router.post('/out', canTransact, (req, res) => {
       if (freeQty < item.quantity)
         throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit}`);
       insertItem.run(txId, item.equipment_id, item.quantity, item.notes || null);
-      db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
-        .run(item.quantity, item.quantity, item.equipment_id);
+      if (isPending) {
+        db.prepare(`UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?`)
+          .run(item.quantity, item.equipment_id);
+      } else {
+        db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
+          .run(item.quantity, item.quantity, item.equipment_id);
+      }
     }
 
     const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
@@ -210,7 +219,7 @@ router.post('/out', canTransact, (req, res) => {
       insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
     }
 
-    return { id: txId, code, status: 'completed', filming_date: earliestFilming };
+    return { id: txId, code, status: txStatus, _pending: isPending, _filmingDate: earliestFilming };
   });
 
   try {
