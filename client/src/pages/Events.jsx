@@ -428,17 +428,17 @@ export default function Events() {
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
           <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           {canManage && (
-            <button className="btn-secondary" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
+            <button className="btn-secondary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
           )}
           {!['ACCOUNTING'].includes(user?.role) && (
-            <button className="btn-primary" onClick={() => { setSelected(null); setModal('form'); }}>
+            <button className="btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => { setSelected(null); setModal('form'); }}>
               + Tạo sự kiện
             </button>
           )}

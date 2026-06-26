@@ -129,12 +129,12 @@ export default function Users() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Người Dùng</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{users.length} tài khoản</p>
         </div>
-        <div style={{ display:'flex', gap:'8px' }}>
+        <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', justifyContent:'flex-end', flexShrink:0 }}>
           {isSuperAdmin && (
             <>
               {/* Download local */}
@@ -153,7 +153,7 @@ export default function Users() {
                     URL.revokeObjectURL(url);
                   } catch (err) { alert('Lỗi: ' + err.message); }
                 }}
-                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600, border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', cursor:'pointer' }}
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', cursor:'pointer', whiteSpace:'nowrap' }}
               >
                 💾 Backup
               </button>
@@ -163,7 +163,7 @@ export default function Users() {
                 onClick={async (e) => {
                   const btn = e.currentTarget;
                   btn.disabled = true;
-                  btn.textContent = '⏳ Đang upload...';
+                  btn.textContent = '⏳ Uploading...';
                   try {
                     const token = localStorage.getItem('km_token');
                     const res = await fetch('/api/backup/gdrive', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
@@ -176,17 +176,17 @@ export default function Users() {
                     alert('❌ ' + err.message);
                   } finally {
                     btn.disabled = false;
-                    btn.textContent = '☁️ Google Drive';
+                    btn.textContent = '☁️ Drive';
                   }
                 }}
-                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'10px 18px', borderRadius:'10px', fontSize:'0.85rem', fontWeight:600, border:'1px solid rgba(96,165,250,0.35)', background:'rgba(96,165,250,0.08)', color:'#60a5fa', cursor:'pointer' }}
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(96,165,250,0.35)', background:'rgba(96,165,250,0.08)', color:'#60a5fa', cursor:'pointer', whiteSpace:'nowrap' }}
               >
-                ☁️ Google Drive
+                ☁️ Drive
               </button>
             </>
           )}
           {isSuperAdmin && (
-            <button className="btn-primary" onClick={openCreate}>+ Thêm tài khoản</button>
+            <button className="btn-primary btn-sm" style={{ whiteSpace:'nowrap' }} onClick={openCreate}>+ Thêm tài khoản</button>
           )}
         </div>
       </div>
