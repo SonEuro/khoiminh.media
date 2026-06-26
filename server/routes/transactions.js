@@ -261,7 +261,7 @@ router.post('/confirm/:id', canTransact, (req, res) => {
 
 // Nhập kho / trả kho (RETURN)
 router.post('/return', canTransact, (req, res) => {
-  const { event_id, responsible_person, notes, items, external_items } = req.body;
+  const { event_id, responsible_person, notes, items, external_items, transaction_date } = req.body;
   const validExt = (external_items || []).filter(i => i.name?.trim());
   if ((!items || items.length === 0) && validExt.length === 0)
     return res.status(400).json({ error: 'Chưa có thiết bị nào' });
@@ -272,10 +272,11 @@ router.post('/return', canTransact, (req, res) => {
 
   const doReturn = db.transaction(() => {
     const code = nextCode('RETURN', event_id || null, req.user.full_name);
+    const txDate = transaction_date || null;
     const txR = db.prepare(`
-      INSERT INTO transactions (code, type, event_id, responsible_person, notes)
-      VALUES (?, 'RETURN', ?, ?, ?)
-    `).run(code, event_id || null, responsible_person, notes);
+      INSERT INTO transactions (code, type, event_id, responsible_person, notes, transaction_date)
+      VALUES (?, 'RETURN', ?, ?, ?, COALESCE(?, datetime('now','localtime')))
+    `).run(code, event_id || null, responsible_person, notes, txDate);
 
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)`);

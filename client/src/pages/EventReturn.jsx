@@ -121,7 +121,7 @@ export default function EventReturn() {
       }));
     setSubmitting(true);
     try {
-      const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items });
+      const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items, transaction_date: returnDate });
       const full = await api.getTransactionById(res.id);
       setDone(full);
       loadPending();
