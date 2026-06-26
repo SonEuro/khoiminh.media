@@ -293,7 +293,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         {/* Danh sách thiết bị kho */}
         {khoItems.length > 0 && (
           <div>
-            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị kho ({khoItems.length})</p>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị KHO ({khoItems.length})</p>
             <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
               {khoItems.map((it, idx) => (
                 <div key={idx} style={{
