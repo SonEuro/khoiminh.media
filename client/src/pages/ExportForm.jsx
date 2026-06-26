@@ -622,7 +622,7 @@ export default function ExportForm() {
                         }}
                       />
                       {searchTerms[idx] && !item.equipment_id && (
-                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, minWidth:'270px', zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
                           {filteredEquip(searchTerms[idx], idx).map(e => {
                             const free = e.qty_available - (e.qty_reserved || 0);
                             return (
