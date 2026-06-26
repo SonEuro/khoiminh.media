@@ -52,6 +52,8 @@ export const api = {
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
 
   // Categories
+  getDashboard: () => request('/dashboard'),
+
   getCategories: () => request('/categories'),
 
   // Equipment
