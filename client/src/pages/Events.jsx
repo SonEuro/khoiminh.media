@@ -283,7 +283,9 @@ function EventDetailModal({ eventId, onClose }) {
                       <td className="py-1.5 font-medium" style={{ color: '#c9a84c' }}>{it.supplier || '—'}</td>
                       <td className="py-1.5" style={{ color: '#e0e0ee' }}>{it.name}</td>
                       <td className="py-1.5 text-right font-bold" style={{ color: '#60a5fa' }}>{it.quantity}</td>
-                      <td className="py-1.5 text-gray-500 text-xs">{it.notes || ''}</td>
+                      <td className="py-1.5 text-gray-500 text-xs">
+                        {[it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ')}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

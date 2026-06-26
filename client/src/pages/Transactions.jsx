@@ -132,6 +132,11 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
                   <div>
                     <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.84rem' }}>🏪 {it.name}</p>
                     <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.supplier || 'Không rõ NCC'}</p>
+                    {(it.rental_days > 0 || it.notes) && (
+                      <p style={{ fontSize:'0.68rem', color:'#e8c97a', margin:'3px 0 0' }}>
+                        {[it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                   </div>
                   <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>thuê</span>
                   <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
