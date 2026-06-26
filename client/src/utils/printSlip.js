@@ -20,15 +20,20 @@ function buildSlipHTML(tx, preview = false) {
         Thiết bị thuê từ nhà cung cấp:
       </td>
     </tr>
-    ${extItems.map((item, i) => `
+    ${extItems.map((item, i) => {
+      const parts = [];
+      if (item.rental_days && item.rental_days > 0) parts.push(`Thuê ${item.rental_days} ngày`);
+      if (item.notes) parts.push(item.notes);
+      const ghiChu = parts.join(' — ');
+      return `
       <tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
         <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></div></td>
         <td style="text-align:center">${item.supplier || ''}</td>
-        <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
-      </tr>
-    `).join('')}
+        <td style="text-align:left;padding-left:6px">${ghiChu}</td>
+      </tr>`;
+    }).join('')}
   ` : '';
 
   const totalCount = khoItems.length + extItems.length;
