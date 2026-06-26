@@ -85,7 +85,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
           <div>
             <h3 style={{ fontWeight:700, color:'#e0e0ee', marginBottom:'10px', fontSize:'0.85rem' }}>
               Danh sách thiết bị &nbsp;
-              <span style={{ color:GOLD }}>{tx.items?.length || 0} kho</span>
+              <span style={{ color:GOLD }}>{tx.items?.length || 0} KHO</span>
               {tx.external_items?.length > 0 && <span style={{ color:'#60a5fa' }}> · {tx.external_items.length} NCC</span>}
             </h3>
             <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
