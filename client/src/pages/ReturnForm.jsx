@@ -340,36 +340,39 @@ function IntakeTab({ onDone }) {
             </button>
           </div>
 
-          {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 72px 36px', gap: '8px', padding: '0 2px', marginBottom: '6px' }}>
-            <span style={colHdr}>Tên thiết bị</span>
-            <span style={{ ...colHdr, textAlign: 'center' }}>Đơn vị tính</span>
-            <span style={{ ...colHdr, textAlign: 'center' }}>Số lượng</span>
-            <span />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {items.map((row, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 72px 36px', gap: '8px', alignItems: 'center' }}>
-                <input
-                  className="input" placeholder="Nhập tên thiết bị..."
-                  value={row.name} onChange={e => updateRow(i, 'name', e.target.value)}
-                  style={{ fontSize: '0.85rem' }}
-                />
-                <input
-                  className="input" placeholder="Cái, Bộ..."
-                  value={row.unit} onChange={e => updateRow(i, 'unit', e.target.value)}
-                  style={{ textAlign: 'center', fontSize: '0.85rem' }}
-                />
-                <input
-                  type="number" min="1" className="input"
-                  value={row.quantity} onChange={e => updateRow(i, 'quantity', Math.max(1, +e.target.value))}
-                  style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
-                />
-                <button type="button" onClick={() => removeRow(i)}
-                  style={{ padding: '8px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', color: '#f87171', cursor: 'pointer', fontSize: '0.9rem' }}>
-                  ×
-                </button>
+              <div key={i} style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '10px',
+                padding: '10px',
+              }}>
+                {/* Dòng 1: Tên thiết bị + Xóa */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    className="input" placeholder="Nhập tên thiết bị..."
+                    value={row.name} onChange={e => updateRow(i, 'name', e.target.value)}
+                    style={{ flex: 1, fontSize: '0.9rem', height: '40px' }}
+                  />
+                  <button type="button" onClick={() => removeRow(i)}
+                    style={{ flexShrink: 0, width: '38px', height: '40px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', color: '#f87171', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    ×
+                  </button>
+                </div>
+                {/* Dòng 2: Đơn vị + Số lượng */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '8px' }}>
+                  <input
+                    className="input" placeholder="Đơn vị (Cái, Bộ...)"
+                    value={row.unit} onChange={e => updateRow(i, 'unit', e.target.value)}
+                    style={{ fontSize: '0.88rem', height: '40px' }}
+                  />
+                  <input
+                    type="number" min="1" className="input"
+                    value={row.quantity} onChange={e => updateRow(i, 'quantity', Math.max(1, +e.target.value))}
+                    style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem', height: '40px' }}
+                  />
+                </div>
               </div>
             ))}
           </div>

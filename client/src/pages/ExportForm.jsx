@@ -613,7 +613,7 @@ export default function ExportForm() {
                 );
               }
 
-              /* ── KHO ROW ─────────────────────────────────────────── */
+              /* ── KHO ROW (card layout mobile-friendly) ──────────── */
               const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
               const isOpen = expandedRows.has(idx);
               const filled = !!item.equipment_id;
@@ -641,27 +641,26 @@ export default function ExportForm() {
                   backgroundColor:'#10101a',
                   border:`1px solid ${filled ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.07)'}`,
                   borderLeft:`3px solid ${filled ? '#c9a84c' : 'rgba(255,255,255,0.1)'}`,
-                  borderRadius:'8px',
+                  borderRadius:'10px',
+                  padding:'10px',
                 }}>
-                  {/* ── Main row ── */}
-                  <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px 44px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
 
-                    {/* STT */}
-                    <span style={{ textAlign:'center', fontSize:'0.72rem', fontWeight:700, color: filled ? 'var(--gold)' : 'var(--text-muted)', lineHeight:`${H}px` }}>
-                      {khoSeq}
-                    </span>
+                  {/* ── Dòng 1: STT + Search + Xóa ── */}
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                    <span style={{
+                      fontSize:'0.72rem', fontWeight:700, flexShrink:0, minWidth:'22px', textAlign:'center',
+                      color: filled ? 'var(--gold)' : 'var(--text-muted)',
+                    }}>{khoSeq}</span>
 
-                    {/* Search */}
-                    <div style={{ position:'relative' }}>
+                    <div style={{ flex:1, position:'relative' }}>
                       <input
                         style={{
-                          display:'block', width:'100%', height:`${H}px`, padding:'0 10px',
+                          display:'block', width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
                           background: filled ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.04)',
                           border:`1px solid ${filled ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.1)'}`,
-                          borderRadius:'7px',
+                          borderRadius:'8px',
                           color: filled ? '#f5c842' : 'var(--text-muted)',
-                          fontWeight: filled ? 700 : 400, fontSize:'0.875rem',
-                          outline:'none', boxSizing:'border-box',
+                          fontWeight: filled ? 700 : 400, fontSize:'0.9rem', outline:'none',
                         }}
                         placeholder="Tìm thiết bị..."
                         value={searchTerms[idx]}
@@ -671,7 +670,7 @@ export default function ExportForm() {
                         }}
                       />
                       {searchTerms[idx] && !item.equipment_id && (
-                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, minWidth:'270px', zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
                           {filteredEquip(searchTerms[idx], idx).map(e => {
                             const free = e.qty_available - (e.qty_reserved || 0);
                             return (
@@ -699,51 +698,12 @@ export default function ExportForm() {
                       )}
                     </div>
 
-                    {/* Quantity */}
-                    <input type="number" min="1"
-                      value={item.quantity}
-                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
-                      style={{
-                        display:'block', width:'100%', height:`${H}px`, padding:'0',
-                        textAlign:'center', boxSizing:'border-box',
-                        background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
-                        borderRadius:'7px', color:'#4ade80', fontSize:'1rem', fontWeight:800, outline:'none',
-                      }}
-                    />
-
-                    {/* Edit toggle */}
-                    <button type="button" onClick={() => toggleExpand(idx)}
-                      style={{
-                        width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
-                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                        background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
-                        color: isOpen ? '#e8c97a' : '#5a5a7a',
-                        fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
-                      }}>
-                      ✏️
-                    </button>
-
-                    {/* THUÊ — insert ext row below */}
-                    <button type="button" onClick={insertExtBelow}
-                      style={{
-                        width:'44px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
-                        border:'1px solid rgba(96,165,250,0.28)',
-                        background:'transparent', color:'rgba(96,165,250,0.5)',
-                        fontSize:'0.6rem', fontWeight:800, letterSpacing:'0.02em',
-                        display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
-                      }}
-                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
-                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.5)'; }}>
-                      THUÊ
-                    </button>
-
-                    {/* Delete */}
                     <button type="button" onClick={() => removeItem(idx)}
                       style={{
-                        width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer', flexShrink:0,
+                        flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
                         border:'1px solid rgba(248,113,113,0.25)', background:'transparent',
-                        color:'rgba(248,113,113,0.6)', fontSize:'0.9rem',
-                        display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
+                        color:'rgba(248,113,113,0.6)', fontSize:'1rem',
+                        display:'flex', alignItems:'center', justifyContent:'center',
                       }}
                       onMouseEnter={ev => { ev.currentTarget.style.background='rgba(248,113,113,0.12)'; ev.currentTarget.style.color='#f87171'; }}
                       onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(248,113,113,0.6)'; }}>
@@ -751,30 +711,68 @@ export default function ExportForm() {
                     </button>
                   </div>
 
-                  {/* ── Info strip ── */}
+                  {/* ── Info strip khi đã chọn ── */}
                   {eq && !isOpen && (
-                    <div style={{ padding:'0 8px 6px 44px', display:'flex', alignItems:'center', gap:'6px' }}>
-                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.code}</span>
-                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)' }}>·</span>
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px', paddingLeft:'30px' }}>
+                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.4)' }}>·</span>
                       <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
-                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.5)', marginLeft:'auto' }}>còn</span>
+                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.4)', marginLeft:'auto' }}>còn</span>
                       {(() => {
                         const free = eq.qty_available - (eq.qty_reserved || 0);
                         return (
                           <>
                             <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {eq.unit}</span>
-                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt trước)</span>}
+                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
                           </>
                         );
                       })()}
                     </div>
                   )}
 
+                  {/* ── Dòng 2: Số lượng + Ghi chú + THUÊ ── */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 44px 64px', gap:'8px' }}>
+                    <input type="number" min="1"
+                      value={item.quantity}
+                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                      style={{
+                        height:'42px', width:'100%', padding:'0', boxSizing:'border-box',
+                        textAlign:'center',
+                        background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
+                        borderRadius:'8px', color:'#4ade80', fontSize:'1.1rem', fontWeight:800, outline:'none',
+                      }}
+                    />
+
+                    <button type="button" onClick={() => toggleExpand(idx)}
+                      style={{
+                        height:'42px', borderRadius:'8px', cursor:'pointer',
+                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                        background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
+                        color: isOpen ? '#e8c97a' : '#5a5a7a',
+                        fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center',
+                      }}>
+                      ✏️
+                    </button>
+
+                    <button type="button" onClick={insertExtBelow}
+                      style={{
+                        height:'42px', borderRadius:'8px', cursor:'pointer',
+                        border:'1px solid rgba(96,165,250,0.3)',
+                        background:'transparent', color:'rgba(96,165,250,0.6)',
+                        fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.03em',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                      }}
+                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
+                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
+                      THUÊ
+                    </button>
+                  </div>
+
                   {/* ── Expanded edit panel ── */}
                   {isOpen && (
-                    <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'10px 10px 10px 44px', background:'rgba(201,168,76,0.04)', borderRadius:'0 0 8px 8px' }}>
+                    <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px', background:'rgba(201,168,76,0.03)', borderRadius:'0 0 8px 8px' }}>
                       {eq && (
-                        <div style={{ display:'flex', gap:'12px', marginBottom:'8px', fontSize:'0.7rem' }}>
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'10px', marginBottom:'8px', fontSize:'0.7rem' }}>
                           <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:'monospace' }}>{eq.code}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>Tự do: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available - (eq.qty_reserved || 0)}</span></span>
@@ -783,7 +781,7 @@ export default function ExportForm() {
                         </div>
                       )}
                       <input
-                        style={{ width:'100%', height:'34px', padding:'0 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'7px', color:'var(--text-primary)', fontSize:'0.82rem', outline:'none', boxSizing:'border-box' }}
+                        style={{ width:'100%', height:'40px', padding:'0 12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.9rem', outline:'none', boxSizing:'border-box' }}
                         placeholder="Ghi chú cho dòng này..."
                         value={item.notes || ''}
                         onChange={e => setItem(idx, 'notes', e.target.value)}

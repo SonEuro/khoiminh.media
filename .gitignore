@@ -13,3 +13,10 @@ deploy/
 php-backend/
 ecosystem.config.cjs
 start.sh
+BACKUP DRIVE/
+*.json.bak
+KM_LOGO*.png
+"Danh Sách*"
+"Nhà Cung*"
+"Tổng Kho*"
+troubleshooting-*.html
