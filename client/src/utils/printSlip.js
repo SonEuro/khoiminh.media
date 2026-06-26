@@ -43,12 +43,11 @@ function buildSlipHTML(tx, preview = false) {
   ).join('');
 
   const txDate = tx.transaction_date ? new Date(tx.transaction_date) : new Date();
-  const now    = new Date();
   const day    = txDate.getDate();
   const month  = txDate.getMonth() + 1;
   const year   = txDate.getFullYear();
-  const hour   = String(now.getHours()).padStart(2, '0');
-  const min    = String(now.getMinutes()).padStart(2, '0');
+  const hour   = String(txDate.getHours()).padStart(2, '0');
+  const min    = String(txDate.getMinutes()).padStart(2, '0');
 
   const previewBar = preview ? `
   <div class="preview-bar">

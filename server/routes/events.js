@@ -102,6 +102,9 @@ function autoUpdateStatuses() {
       AND (
         filming_date = date('now','localtime')
         OR (filming_dates IS NOT NULL AND filming_dates LIKE '%"' || date('now','localtime') || '"%')
+        OR (filming_dates IS NOT NULL
+            AND json_extract(filming_dates, '$[0]') <= date('now','localtime')
+            AND filming_date >= date('now','localtime'))
       )
       AND deleted_at IS NULL
   `).run();
@@ -114,6 +117,7 @@ function autoUpdateStatuses() {
       AND filming_date IS NOT NULL
       AND filming_date < date('now','localtime')
       AND deleted_at IS NULL
+      AND archived_at IS NULL
   `).run();
   if (r2.changes > 0) console.log(`[AutoStatus] Chuyển ${r2.changes} sự kiện → 'Đã hoàn thành' (filming_date đã qua)`);
 }

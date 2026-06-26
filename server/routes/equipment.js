@@ -38,7 +38,7 @@ router.get('/in-use-events', (req, res) => {
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN events ev ON ev.id = t.event_id
-    WHERE ev.deleted_at IS NULL
+    WHERE ev.deleted_at IS NULL AND t.status != 'pending'
     GROUP BY ti.equipment_id, ev.id
     HAVING qty_pending > 0
     ORDER BY ev.name
