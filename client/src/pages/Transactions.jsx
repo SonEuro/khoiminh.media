@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -156,9 +156,16 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   const [search, setSearch]       = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     Promise.all([api.getTransactionById(txId), api.getEquipment()]).then(([txData, eqList]) => {
+      if (!mounted.current) return;
       setTx(txData);
       setEquipment(eqList);
       setKhoItems((txData.items || []).map(it => ({
@@ -212,9 +219,9 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         items: validKho.map(i => ({ equipment_id: i.equipment_id, quantity: i.quantity })),
         external_items: validExt,
       });
-      onSaved();
-    } catch (err) { setError(err.message); }
-    finally { setSaving(false); }
+      if (mounted.current) onSaved();
+    } catch (err) { if (mounted.current) setError(err.message); }
+    finally { if (mounted.current) setSaving(false); }
   };
 
   if (!tx) return (
