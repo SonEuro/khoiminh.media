@@ -80,7 +80,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
             </div>
           ))}
         </div>
-        {tx.notes && <p style={{ fontSize:'0.85rem', background:'rgba(255,255,255,0.06)', padding:'10px 12px', borderRadius:'8px', color:'#e0e0ee', border:'1px solid rgba(201,168,76,0.25)', fontWeight:500 }}>{tx.notes}</p>}
+        {tx.notes && <p style={{ fontSize:'0.84rem', background:'rgba(255,255,255,0.04)', padding:'10px 12px', borderRadius:'8px', color:'#c9b98a', border:'1px solid rgba(201,168,76,0.22)', fontStyle:'italic' }}>{tx.notes}</p>}
         {((tx.items?.length || 0) + (tx.external_items?.length || 0)) > 0 && (
           <div>
             <h3 style={{ fontWeight:700, color:'#e0e0ee', marginBottom:'10px', fontSize:'0.85rem' }}>
