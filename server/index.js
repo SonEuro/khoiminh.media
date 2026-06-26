@@ -60,10 +60,11 @@ app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res)
 // Serve React frontend (production)
 const publicDir = path.join(__dirname, 'public');
 
-// sw.js và index.html không được cache — luôn lấy từ server
+// sw.js: luôn serve inline để tránh loop — xóa cache cũ + unregister, không làm gì thêm
 app.get('/sw.js', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.sendFile(path.join(publicDir, 'sw.js'));
+  res.type('application/javascript');
+  res.send(`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>self.registration.unregister()));});`);
 });
 app.get(['/index.html', '/'], (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
