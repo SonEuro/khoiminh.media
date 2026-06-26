@@ -34,7 +34,7 @@ export default function MultiDatePicker({ value = [], onChange, error = false })
 
   // Display text
   const displayText = value.length > 0
-    ? value.map(d => { const [y,m,day] = d.split('-'); return `${day}/${m}`; }).join('  ·  ')
+    ? value.map(d => { const [y,m,day] = d.split('-'); return `${day}-${m}`; }).join('  ·  ')
     : 'Chọn ngày ghi hình...';
 
   return (

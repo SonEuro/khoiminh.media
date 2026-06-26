@@ -6,7 +6,7 @@ export default function DateInput({ value, onChange, min, max, className = 'inpu
   const hiddenRef = useRef(null);
 
   const display = value
-    ? new Date(value + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    ? `${value.slice(8,10)}-${value.slice(5,7)}-${value.slice(2,4)}`
     : '';
 
   const open = () => {
