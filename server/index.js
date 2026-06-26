@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 
 require('./seed');
+require('./import-equipment').runOnce();
 
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
