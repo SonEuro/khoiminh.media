@@ -7200,9 +7200,9 @@ function clearAndInsert() {
     }
 
     // 2. Upsert equipment (giữ ID cũ cho code trùng, thêm mới cho code mới)
-    // Khi thiết bị đã tồn tại: cập nhật metadata + qty_total (số tổng chuẩn từ Excel)
-    // qty_available được tính lại = new_total - in_use - maintenance - damaged - lost
-    // KHÔNG ghi đè qty_in_use, qty_maintenance, qty_damaged, qty_lost (do app quản lý)
+    // Thiết bị đã tồn tại: cập nhật từ Excel: total, damaged, maintenance, lost
+    // qty_available tính lại = total - in_use - damaged - maintenance - lost
+    // qty_in_use KHÔNG ghi đè (do transaction quản lý)
     const upsertEq = db.prepare(`
       INSERT INTO equipment
         (code, name, category_id, unit, unit_price,
