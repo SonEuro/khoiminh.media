@@ -98,23 +98,30 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
           const eqId = item.equipment_id;
 
           if (tx.type === 'OUT' && tx.status === 'pending') {
-            // pending OUT chỉ tăng qty_reserved → đảo ngược chỉ giảm qty_reserved
             db.prepare(`UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`)
               .run(qty, eqId);
           } else if (tx.type === 'OUT') {
-            // completed OUT: qty_available--, qty_in_use++ → đảo ngược
             db.prepare(`UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?`)
               .run(qty, qty, eqId);
           } else if (tx.type === 'RETURN') {
-            // RETURN: qty_in_use--, qty_available++ → đảo ngược (nhất quán với delete transaction)
-            db.prepare(`UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
-              .run(qty, qty, eqId);
+            const cond = item.condition || 'good';
+            if (cond === 'damaged') {
+              db.prepare(`UPDATE equipment SET qty_damaged = MAX(0, qty_damaged - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+                .run(qty, qty, eqId);
+            } else if (cond === 'maintenance') {
+              db.prepare(`UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+                .run(qty, qty, eqId);
+            } else if (cond === 'lost') {
+              db.prepare(`UPDATE equipment SET qty_lost = MAX(0, qty_lost - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+                .run(qty, qty, eqId);
+            } else {
+              db.prepare(`UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+                .run(qty, qty, eqId);
+            }
           } else if (tx.type === 'FIX') {
-            // FIX: qty_maintenance--, qty_available++ → đảo ngược
             db.prepare(`UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = MAX(0, qty_available - ?) WHERE id = ?`)
               .run(qty, qty, eqId);
           } else if (tx.type === 'INTAKE') {
-            // INTAKE: qty_total++, qty_available++ → đảo ngược
             db.prepare(`UPDATE equipment SET qty_total = MAX(0, qty_total - ?), qty_available = MAX(0, qty_available - ?) WHERE id = ?`)
               .run(qty, qty, eqId);
           }

@@ -346,16 +346,28 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
         db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?')
           .run(item.quantity, item.equipment_id);
       } else if (tx.type === 'OUT') {
-        db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = qty_in_use - ? WHERE id = ?')
+        db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       } else if (tx.type === 'RETURN') {
-        db.prepare('UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?')
-          .run(item.quantity, item.quantity, item.equipment_id);
+        const cond = item.condition || 'good';
+        if (cond === 'damaged') {
+          db.prepare('UPDATE equipment SET qty_damaged = MAX(0, qty_damaged - ?), qty_in_use = qty_in_use + ? WHERE id = ?')
+            .run(item.quantity, item.quantity, item.equipment_id);
+        } else if (cond === 'maintenance') {
+          db.prepare('UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_in_use = qty_in_use + ? WHERE id = ?')
+            .run(item.quantity, item.quantity, item.equipment_id);
+        } else if (cond === 'lost') {
+          db.prepare('UPDATE equipment SET qty_lost = MAX(0, qty_lost - ?), qty_in_use = qty_in_use + ? WHERE id = ?')
+            .run(item.quantity, item.quantity, item.equipment_id);
+        } else {
+          db.prepare('UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?')
+            .run(item.quantity, item.quantity, item.equipment_id);
+        }
       } else if (tx.type === 'FIX') {
-        db.prepare('UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = qty_available - ? WHERE id = ?')
+        db.prepare('UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = MAX(0, qty_available - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       } else if (tx.type === 'INTAKE') {
-        db.prepare('UPDATE equipment SET qty_total = qty_total - ?, qty_available = qty_available - ? WHERE id = ?')
+        db.prepare('UPDATE equipment SET qty_total = MAX(0, qty_total - ?), qty_available = MAX(0, qty_available - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       }
     }
