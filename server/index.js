@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 
 require('./seed');
-require('./import-equipment').runOnce();
+try { require('./import-equipment').runOnce(); } catch (e) { console.error('[Import] Lỗi khi import thiết bị:', e.message); }
 
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
