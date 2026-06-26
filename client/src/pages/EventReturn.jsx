@@ -325,7 +325,7 @@ export default function EventReturn() {
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
-            <DateInput value={returnDate} onChange={setReturnDate} min={new Date().toISOString().slice(0,10)} />
+            <DateInput value={returnDate} onChange={setReturnDate} />
           </div>
         </div>
 
