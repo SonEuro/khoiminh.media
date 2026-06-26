@@ -198,28 +198,14 @@ export default function ExportForm() {
         style={{ minHeight:'100vh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
         <div className="card text-center space-y-5" onClick={e => e.stopPropagation()}
           style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
-          {doneSlip._pending ? (
-            <>
-              <div className="text-5xl">🕐</div>
-              <h2 style={{ color:'#fbbf24', fontSize:'1.2rem', fontWeight:700 }}>Phiếu xuất kho tạm đã tạo!</h2>
-              <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-                Phiếu <strong style={{ color:'#fbbf24', fontFamily:'monospace' }}>{doneSlip.code}</strong> đang chờ xác nhận.
-                {doneSlip._filmingDate && <> Ngày ghi hình: <strong style={{ color:'#fbbf24' }}>{doneSlip._filmingDate.slice(8,10)}-{doneSlip._filmingDate.slice(5,7)}-{doneSlip._filmingDate.slice(2,4)}</strong>.</>}
-              </p>
-              <p style={{ color:'rgba(251,191,36,0.65)', fontSize:'0.78rem', background:'rgba(251,191,36,0.07)', border:'1px solid rgba(251,191,36,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
-                ⚠ Thiết bị <strong>chưa bị trừ kho</strong>. Vào <em>Lịch Sử Vận Hành → Xuất Kho Tạm</em> để xác nhận khi đến ngày ghi hình.
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="text-5xl">✅</div>
-              <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
-              <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-                Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
-                với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
-              </p>
-            </>
-          )}
+          <>
+            <div className="text-5xl">✅</div>
+            <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
+            <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
+              Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
+              với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
+            </p>
+          </>
 
           {/* Row 1: Preview + Print */}
           <div className="flex gap-3 justify-center">

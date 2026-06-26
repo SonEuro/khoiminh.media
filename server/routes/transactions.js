@@ -176,24 +176,20 @@ router.post('/out', canTransact, (req, res) => {
     if (deptErr) return res.status(403).json({ error: deptErr });
   }
 
-  // Xác định pending: ưu tiên filming_dates → filming_date → start_date → expected_return_date
+  // Luôn xuất kho ngay (completed) — không tạo pending dựa trên ngày ghi hình
   let filmingDates = [];
   try { filmingDates = JSON.parse(evCheck.filming_dates || '[]'); } catch { filmingDates = []; }
-  if (!filmingDates.length && evCheck.filming_date)    filmingDates = [evCheck.filming_date];
-  if (!filmingDates.length && evCheck.start_date)      filmingDates = [evCheck.start_date];
-  if (!filmingDates.length && expected_return_date)    filmingDates = [expected_return_date];
+  if (!filmingDates.length && evCheck.filming_date) filmingDates = [evCheck.filming_date];
+  if (!filmingDates.length && evCheck.start_date)   filmingDates = [evCheck.start_date];
   filmingDates = filmingDates.filter(Boolean).sort();
-  const today = new Date().toISOString().slice(0, 10);
   const earliestFilming = filmingDates[0] || null;
-  const isPending = !!(earliestFilming && earliestFilming > today);
-  const txStatus = isPending ? 'pending' : 'completed';
 
   const doOut = db.transaction(() => {
     const code = nextCode('OUT', event_id || null, req.user.full_name);
     const txR = db.prepare(`
       INSERT INTO transactions (code, type, status, event_id, responsible_person, expected_return_date, notes, created_by_id)
-      VALUES (?, 'OUT', ?, ?, ?, ?, ?, ?)
-    `).run(code, txStatus, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
+      VALUES (?, 'OUT', 'completed', ?, ?, ?, ?, ?)
+    `).run(code, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
 
     const txId = txR.lastInsertRowid;
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
@@ -203,15 +199,10 @@ router.post('/out', canTransact, (req, res) => {
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
       const freeQty = eq.qty_available - (eq.qty_reserved || 0);
       if (freeQty < item.quantity)
-        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit}${isPending ? ' (sau khi trừ đặt trước)' : ''}`);
+        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit}`);
       insertItem.run(txId, item.equipment_id, item.quantity, item.notes || null);
-      if (isPending) {
-        db.prepare(`UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?`)
-          .run(item.quantity, item.equipment_id);
-      } else {
-        db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
-          .run(item.quantity, item.quantity, item.equipment_id);
-      }
+      db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
+        .run(item.quantity, item.quantity, item.equipment_id);
     }
 
     const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
@@ -219,7 +210,7 @@ router.post('/out', canTransact, (req, res) => {
       insertExt.run(txId, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
     }
 
-    return { id: txId, code, status: txStatus, filming_date: earliestFilming };
+    return { id: txId, code, status: 'completed', filming_date: earliestFilming };
   });
 
   try {
