@@ -59,7 +59,7 @@ export default function MultiDatePicker({ value = [], onChange, error = false })
             background:'#0e0e1a', border:'1px solid rgba(167,139,250,0.45)',
             borderRadius:'14px', padding:'14px 12px 10px',
             boxShadow:'0 20px 60px rgba(0,0,0,0.95)',
-            minWidth:'270px',
+            minWidth:'270px', maxWidth:'calc(100vw - 32px)',
           }}>
             {/* Month navigation */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>

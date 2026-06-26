@@ -355,7 +355,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
                   Xóa lúc: {ev.deleted_at?.slice(0, 16)}
                 </p>
               </div>
-              <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
+              <div style={{ display:'flex', gap:'8px', flexShrink:0, flexWrap:'wrap', justifyContent:'flex-end' }}>
                 {canRestoreEvent(ev) && (
                   <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
                 )}
@@ -434,12 +434,12 @@ export default function Events() {
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
-      <div className="flex items-start justify-between gap-3 mb-6">
+      <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
           <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 flex-shrink-0 flex-wrap">
           {canManage && (
             <button className="btn-secondary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
           )}

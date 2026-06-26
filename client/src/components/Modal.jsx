@@ -22,12 +22,12 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 20px',
+          display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+          padding: '14px 20px',
           borderBottom: '1px solid var(--gold-dim)',
         }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', margin: 0 }}>{title}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', margin: 0, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {extra}
             <button onClick={onClose}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.4rem', lineHeight: 1, padding: '2px 6px' }}

@@ -191,7 +191,8 @@ export default function Users() {
         </div>
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      {/* ── Desktop: Table ── */}
+      <div className="card p-0 overflow-hidden hide-mobile">
         <div className="table-wrap">
           <table className="w-full text-sm" style={{ minWidth: '600px' }}>
             <thead>
@@ -255,6 +256,49 @@ export default function Users() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ── Mobile: Card list ── */}
+      <div className="show-mobile" style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+        {users.length === 0 && (
+          <p style={{ textAlign:'center', padding:'32px', color:'var(--text-muted)' }}>Chưa có tài khoản nào</p>
+        )}
+        {users.map(u => {
+          const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
+          return (
+            <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'14px' }}>
+              {/* Dòng 1: Tên + Trạng thái */}
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'6px' }}>
+                <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
+                {u.is_active
+                  ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
+                  : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
+              </div>
+              {/* Dòng 2: Username + Badge */}
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'var(--gold)' }}>{u.username}</span>
+                <span style={{ padding:'2px 10px', borderRadius:'9999px', fontSize:'0.68rem', fontWeight:700, background:rc.bg, color:rc.color, border:`1px solid ${rc.border}`, whiteSpace:'nowrap' }}>
+                  {ROLE_LABELS[u.role] || u.role}
+                </span>
+                {u.is_truong_phong && <span style={{ fontSize:'0.65rem', color:'#2dd4bf', fontWeight:600 }}>🏅</span>}
+              </div>
+              {/* Dòng 3: Chức vụ (nếu có) */}
+              {u.position && <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginBottom:'10px' }}>{u.position}</p>}
+              {/* Dòng 4: Actions */}
+              <div style={{ display:'flex', gap:'8px' }}>
+                <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
+                {isSuperAdmin && (
+                  <button onClick={() => handleReset(u)}
+                    style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
+                    title="Reset mật khẩu">
+                    🔑
+                  </button>
+                )}
+                <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Danger Zone (SUPER_ADMIN only) ── */}
