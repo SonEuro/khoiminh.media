@@ -160,7 +160,6 @@ function FixTab({ equipment, onDone }) {
 
   const [department, setDepartment] = useState(myDept || '');
   const [person, setPerson] = useState('');
-  const [date, setDate] = useState(today);
   const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -179,7 +178,7 @@ function FixTab({ equipment, onDone }) {
     if (!person) return alert('Chưa chọn người nhận');
     setSubmitting(true);
     try {
-      const res = await api.createFix({ responsible_person: person, notes: `[${department}] Ngày: ${date}`, items: validItems });
+      const res = await api.createFix({ responsible_person: person, notes: `[${department}] Ngày: ${today}`, items: validItems });
       onDone({ ...res, _type: 'fix' });
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
@@ -203,7 +202,9 @@ function FixTab({ equipment, onDone }) {
           </div>
           <div>
             <label style={labelStyle}>Ngày nhập</label>
-            <input type="date" className="input" value={date} min={new Date().toISOString().slice(0,10)} onChange={e => setDate(e.target.value)} />
+            <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.9rem' }}>
+              {today.split('-').reverse().join('/')}
+            </div>
           </div>
         </div>
         <div>
@@ -263,7 +264,6 @@ function IntakeTab({ onDone }) {
 
   const person = user?.full_name || '';
   const [department, setDepartment] = useState('');
-  const [date, setDate]   = useState(today);
   const [items, setItems] = useState([{ name: '', unit: 'Cái', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -278,7 +278,7 @@ function IntakeTab({ onDone }) {
     if (!validItems.length) return alert('Chưa nhập tên thiết bị nào');
     setSubmitting(true);
     try {
-      const res = await api.createIntake({ responsible_person: person, department, intake_date: date, items: validItems });
+      const res = await api.createIntake({ responsible_person: person, department, intake_date: today, items: validItems });
       onDone({ ...res, _type: 'intake' });
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
@@ -314,7 +314,9 @@ function IntakeTab({ onDone }) {
             </div>
             <div>
               <label style={labelStyle}>Ngày nhập</label>
-              <input type="date" className="input" value={date} onChange={e => setDate(e.target.value)} />
+              <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.9rem' }}>
+                {today.split('-').reverse().join('/')}
+              </div>
             </div>
           </div>
           <div>
