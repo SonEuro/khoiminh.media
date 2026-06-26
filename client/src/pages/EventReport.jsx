@@ -199,6 +199,48 @@ const sectionStyle = {
   borderRadius:'12px', padding:'20px', marginBottom:'16px',
 };
 
+// ── Time input HH:MM với auto-advance ────────────────────────────────────────
+function TimeInput({ value, onChange, hasError }) {
+  const parts = (value || '').split(':');
+  const hh = parts[0] ?? '';
+  const mm = parts[1] ?? '';
+  const mmRef = useRef(null);
+
+  function handleHH(e) {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    onChange(`${v}:${mm}`);
+    if (v.length === 2 || (v.length === 1 && +v >= 3)) {
+      setTimeout(() => { mmRef.current?.focus(); mmRef.current?.select(); }, 0);
+    }
+  }
+
+  function handleMM(e) {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    onChange(`${hh}:${v}`);
+  }
+
+  const cellStyle = {
+    width: '28px', background: 'transparent', border: 'none', outline: 'none',
+    color: '#e0e0ee', fontSize: '0.9rem', fontWeight: 700,
+    textAlign: 'center', padding: 0, caretColor: '#c9a84c',
+  };
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '1px',
+      background: 'rgba(255,255,255,0.04)',
+      border: `1px solid ${hasError ? '#f87171' : 'rgba(201,168,76,0.2)'}`,
+      borderRadius: '8px', padding: '0 12px', height: '40px',
+    }}>
+      <input type="text" inputMode="numeric" value={hh}
+        onChange={handleHH} placeholder="hh" maxLength={2} style={cellStyle} />
+      <span style={{ color: '#c9a84c', fontWeight: 800, userSelect: 'none', fontSize: '1.05rem', lineHeight: 1 }}>:</span>
+      <input ref={mmRef} type="text" inputMode="numeric" value={mm}
+        onChange={handleMM} placeholder="mm" maxLength={2} style={cellStyle} />
+    </div>
+  );
+}
+
 // ── Report detail modal ───────────────────────────────────────────────────────
 function ReportCard({ report, onDelete, isSuperAdmin }) {
   const [expanded, setExpanded] = useState(false);
@@ -440,10 +482,11 @@ export default function EventReport() {
     const errs = {};
     if (!form.event_id)                       errs.event_id       = 'Vui lòng chọn sự kiện';
     if (!form.km_staff?.length)               errs.km_staff       = 'Bắt buộc chọn ít nhất 1 nhân sự Khôi Minh';
-    if (!form.time_present?.trim())           errs.time_present   = 'Bắt buộc nhập';
-    if (!form.time_onset?.trim())             errs.time_onset     = 'Bắt buộc nhập';
-    if (!form.time_off?.trim())               errs.time_off       = 'Bắt buộc nhập';
-    if (!form.time_end?.trim())               errs.time_end       = 'Bắt buộc nhập';
+    const validTime = v => { const [h, m] = (v || '').split(':'); return h?.length > 0 && m?.length > 0; };
+    if (!validTime(form.time_present))        errs.time_present   = 'Bắt buộc nhập';
+    if (!validTime(form.time_onset))          errs.time_onset     = 'Bắt buộc nhập';
+    if (!validTime(form.time_off))            errs.time_off       = 'Bắt buộc nhập';
+    if (!validTime(form.time_end))            errs.time_end       = 'Bắt buộc nhập';
     if (!form.progress?.trim())               errs.progress       = 'Bắt buộc chọn';
     if (!form.completed_work?.trim())         errs.completed_work = 'Bắt buộc chọn';
     if (!form.service_quality?.trim())        errs.service_quality= 'Bắt buộc chọn';
@@ -611,9 +654,7 @@ export default function EventReport() {
             ].map(([label, key]) => (
               <div key={key}>
                 <label style={labelStyle}>{label} <span style={{ color:'#f87171' }}>*</span></label>
-                <input className="input" placeholder="vd: 08:00" value={form[key]}
-                  onChange={e => setField(key, e.target.value)}
-                  style={errors[key] ? { border:'1px solid #f87171' } : {}} />
+                <TimeInput value={form[key]} onChange={v => setField(key, v)} hasError={!!errors[key]} />
                 {errors[key] && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
               </div>
             ))}
