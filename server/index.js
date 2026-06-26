@@ -66,12 +66,11 @@ app.get('/sw.js', (req, res) => {
   res.type('application/javascript');
   res.send(`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>self.registration.unregister()));});`);
 });
-app.get(['/index.html', '/'], (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  next();
-});
-
-app.use(express.static(publicDir));
+app.use(express.static(publicDir, {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  }
+}));
 
 // Trang xóa cache SW — truy cập /clear để reset
 app.get('/clear', (req, res) => {
@@ -94,6 +93,7 @@ app.get('/clear', (req, res) => {
 });
 
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
