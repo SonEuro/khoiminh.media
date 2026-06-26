@@ -453,7 +453,7 @@ export default function ExportForm() {
                     borderLeft:'3px solid #60a5fa',
                     borderRadius:'8px',
                   }}>
-                    <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 52px 34px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 62px 34px 52px 34px', gap:'6px', alignItems:'center', padding:'7px 8px' }}>
                       {/* NCC seq */}
                       <span style={{ textAlign:'center', fontSize:'0.65rem', fontWeight:800, color:'#60a5fa', lineHeight:`${H}px` }}>N{nccSeq}</span>
 
@@ -528,6 +528,18 @@ export default function ExportForm() {
                         }}
                       />
 
+                      {/* Notes toggle */}
+                      <button type="button" onClick={() => toggleExpand(idx)}
+                        style={{
+                          width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer',
+                          border: expandedRows.has(idx) ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
+                          background: expandedRows.has(idx) ? 'rgba(96,165,250,0.2)' : 'transparent',
+                          color: expandedRows.has(idx) ? '#60a5fa' : 'rgba(96,165,250,0.4)',
+                          fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
+                        }}>
+                        ✏️
+                      </button>
+
                       {/* Yellow rental days */}
                       <div style={{
                         height:`${H}px`, display:'flex', flexDirection:'column',
@@ -546,18 +558,6 @@ export default function ExportForm() {
                         />
                         <span style={{ fontSize:'0.55rem', color:'rgba(251,191,36,0.7)', lineHeight:1, letterSpacing:'0.03em' }}>ngày</span>
                       </div>
-
-                      {/* Notes toggle */}
-                      <button type="button" onClick={() => toggleExpand(idx)}
-                        style={{
-                          width:'34px', height:`${H}px`, borderRadius:'7px', cursor:'pointer',
-                          border: expandedRows.has(idx) ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
-                          background: expandedRows.has(idx) ? 'rgba(96,165,250,0.2)' : 'transparent',
-                          color: expandedRows.has(idx) ? '#60a5fa' : 'rgba(96,165,250,0.4)',
-                          fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s',
-                        }}>
-                        ✏️
-                      </button>
 
                       {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
