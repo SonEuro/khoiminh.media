@@ -7200,6 +7200,8 @@ function clearAndInsert() {
     }
 
     // 2. Upsert equipment (giữ ID cũ cho code trùng, thêm mới cho code mới)
+    // Khi thiết bị đã tồn tại: chỉ cập nhật metadata (tên, đơn vị, giá, notes)
+    // KHÔNG ghi đè qty_* vì các con số đó do app quản lý qua phiếu xuất/nhập
     const upsertEq = db.prepare(`
       INSERT INTO equipment
         (code, name, category_id, unit, unit_price,
@@ -7209,9 +7211,6 @@ function clearAndInsert() {
       ON CONFLICT(code) DO UPDATE SET
         name=excluded.name, category_id=excluded.category_id,
         unit=excluded.unit, unit_price=excluded.unit_price,
-        qty_total=excluded.qty_total, qty_available=excluded.qty_available,
-        qty_in_use=excluded.qty_in_use, qty_maintenance=excluded.qty_maintenance,
-        qty_damaged=excluded.qty_damaged, qty_lost=excluded.qty_lost,
         notes=excluded.notes
     `);
     for (const e of EQUIPMENT) {
