@@ -204,10 +204,12 @@ function TimeInput({ value, onChange, hasError }) {
   const parts = (value || '').split(':');
   const hh = parts[0] ?? '';
   const mm = parts[1] ?? '';
+  const hhRef = useRef(null);
   const mmRef = useRef(null);
 
   function handleHH(e) {
-    const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    let v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    if (v.length === 2 && parseInt(v, 10) > 23) v = '23';
     onChange(`${v}:${mm}`);
     if (v.length === 2 || (v.length === 1 && +v >= 3)) {
       setTimeout(() => { mmRef.current?.focus(); mmRef.current?.select(); }, 0);
@@ -215,8 +217,21 @@ function TimeInput({ value, onChange, hasError }) {
   }
 
   function handleMM(e) {
-    const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    let v = e.target.value.replace(/\D/g, '').slice(0, 2);
+    if (v.length === 2 && parseInt(v, 10) > 59) v = '59';
     onChange(`${hh}:${v}`);
+  }
+
+  function handleMMKeyDown(e) {
+    if (e.key === 'Backspace' && mm === '') {
+      hhRef.current?.focus();
+      setTimeout(() => {
+        if (hhRef.current) {
+          const len = hhRef.current.value.length;
+          hhRef.current.setSelectionRange(len, len);
+        }
+      }, 0);
+    }
   }
 
   const cellStyle = {
@@ -232,11 +247,16 @@ function TimeInput({ value, onChange, hasError }) {
       border: `1px solid ${hasError ? '#f87171' : 'rgba(201,168,76,0.2)'}`,
       borderRadius: '8px', padding: '0 12px', height: '40px',
     }}>
-      <input type="text" inputMode="numeric" value={hh}
-        onChange={handleHH} placeholder="hh" maxLength={2} style={cellStyle} />
+      <input ref={hhRef} type="text" inputMode="numeric" value={hh}
+        onChange={handleHH}
+        onFocus={e => setTimeout(() => e.target.select(), 0)}
+        placeholder="hh" maxLength={2} style={cellStyle} />
       <span style={{ color: '#c9a84c', fontWeight: 800, userSelect: 'none', fontSize: '1.05rem', lineHeight: 1 }}>:</span>
       <input ref={mmRef} type="text" inputMode="numeric" value={mm}
-        onChange={handleMM} placeholder="mm" maxLength={2} style={cellStyle} />
+        onChange={handleMM}
+        onFocus={e => setTimeout(() => e.target.select(), 0)}
+        onKeyDown={handleMMKeyDown}
+        placeholder="mm" maxLength={2} style={cellStyle} />
     </div>
   );
 }
