@@ -30,6 +30,8 @@ router.post('/', (req, res) => {
 
 router.put('/:id', (req, res) => {
   const { username, full_name, position, role, is_active, password, is_truong_phong } = req.body;
+  if (!username?.trim() || !full_name?.trim() || !role)
+    return res.status(400).json({ error: 'Tên đăng nhập, họ tên và vai trò là bắt buộc' });
   const id = req.params.id;
   const tp = is_truong_phong ? 1 : 0;
   if (password) {

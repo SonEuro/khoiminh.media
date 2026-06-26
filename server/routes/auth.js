@@ -26,6 +26,8 @@ router.get('/me', requireAuth, (req, res) => {
 
 router.post('/change-password', requireAuth, (req, res) => {
   const { current_password, new_password } = req.body;
+  if (!new_password || new_password.length < 6)
+    return res.status(400).json({ error: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   if (!bcrypt.compareSync(current_password, user.password_hash)) {
     return res.status(400).json({ error: 'Mật khẩu hiện tại không đúng' });

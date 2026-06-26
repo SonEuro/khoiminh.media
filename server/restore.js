@@ -73,13 +73,15 @@ async function restore() {
 
 restore()
   .then(() => {
-    // Sau khi restore xong, tự động import thiết bị nếu chưa làm
-    const { runOnce } = require('./import-equipment');
-    runOnce();
+    try {
+      const { runOnce } = require('./import-equipment');
+      runOnce();
+    } catch (e) {
+      console.warn('[Restore] runOnce bỏ qua (lỗi không nghiêm trọng):', e.message);
+    }
   })
   .catch(err => {
     console.error('[Restore] ❌ Lỗi:', err.message);
-    // Vẫn thử import nếu restore thất bại
     try {
       const { runOnce } = require('./import-equipment');
       runOnce();
