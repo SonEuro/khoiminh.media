@@ -149,25 +149,27 @@ function HistoryModal({ equipment, onClose }) {
       {history.length === 0 ? (
         <p className="text-gray-400 text-center py-8">Chưa có lịch sử</p>
       ) : (
-        <table className="w-full text-sm">
-          <thead><tr className="border-b text-gray-500 text-left">
-            <th className="pb-2">Loại</th><th className="pb-2">Phiếu</th>
-            <th className="pb-2">Sự kiện</th><th className="pb-2">SL</th>
-            <th className="pb-2">Người phụ trách</th><th className="pb-2">Ngày</th>
-          </tr></thead>
-          <tbody>
-            {history.map((h, i) => (
-              <tr key={i} className="border-b last:border-0 hover:bg-gray-50">
-                <td className={`py-2 font-medium ${typeColors[h.type] || ''}`}>{typeLabels[h.type] || h.type}</td>
-                <td className="py-2 font-mono text-xs">{h.tx_code}</td>
-                <td className="py-2">{h.event_name || '—'}</td>
-                <td className="py-2 font-bold">{h.quantity}</td>
-                <td className="py-2">{h.responsible_person || '—'}</td>
-                <td className="py-2 text-gray-400">{fmtD(h.transaction_date)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table className="w-full text-sm" style={{ minWidth: '520px' }}>
+            <thead><tr className="border-b text-gray-500 text-left">
+              <th className="pb-2">Loại</th><th className="pb-2">Phiếu</th>
+              <th className="pb-2">Sự kiện</th><th className="pb-2">SL</th>
+              <th className="pb-2">Người phụ trách</th><th className="pb-2">Ngày</th>
+            </tr></thead>
+            <tbody>
+              {history.map((h, i) => (
+                <tr key={i} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className={`py-2 font-medium ${typeColors[h.type] || ''}`}>{typeLabels[h.type] || h.type}</td>
+                  <td className="py-2 font-mono text-xs">{h.tx_code}</td>
+                  <td className="py-2">{h.event_name || '—'}</td>
+                  <td className="py-2 font-bold">{h.quantity}</td>
+                  <td className="py-2">{h.responsible_person || '—'}</td>
+                  <td className="py-2 text-gray-400">{fmtD(h.transaction_date)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </Modal>
   );

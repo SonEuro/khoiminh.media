@@ -239,25 +239,27 @@ function EventDetailModal({ eventId, onClose }) {
           {ev.items.length === 0 ? (
             <p className="text-gray-400 text-sm">Chưa có thiết bị nào được xuất</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead><tr className="border-b text-gray-500 text-left">
-                <th className="pb-2">Mã</th><th className="pb-2">Thiết bị</th>
-                <th className="pb-2 text-right">Xuất</th><th className="pb-2 text-right">Đã trả</th><th className="pb-2 text-right">Còn nợ</th>
-              </tr></thead>
-              <tbody>
-                {ev.items.map(it => (
-                  <tr key={it.equipment_id} className="border-b last:border-0">
-                    <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
-                    <td className="py-1.5">{it.eq_name}</td>
-                    <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
-                    <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
-                    <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                      {it.qty_out - (it.qty_returned || 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-wrap">
+              <table className="w-full text-sm" style={{ minWidth: '360px' }}>
+                <thead><tr className="border-b text-gray-500 text-left">
+                  <th className="pb-2">Mã</th><th className="pb-2">Thiết bị</th>
+                  <th className="pb-2 text-right">Xuất</th><th className="pb-2 text-right">Đã trả</th><th className="pb-2 text-right">Còn nợ</th>
+                </tr></thead>
+                <tbody>
+                  {ev.items.map(it => (
+                    <tr key={it.equipment_id} className="border-b last:border-0">
+                      <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
+                      <td className="py-1.5">{it.eq_name}</td>
+                      <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
+                      <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
+                      <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                        {it.qty_out - (it.qty_returned || 0)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -267,24 +269,26 @@ function EventDetailModal({ eventId, onClose }) {
             <h3 className="font-semibold mb-2" style={{ color: '#e0e0ee' }}>
               Thiết bị thuê từ nhà cung cấp
             </h3>
-            <table className="w-full text-sm">
-              <thead><tr className="border-b text-gray-500 text-left">
-                <th className="pb-2">Nhà cung cấp</th>
-                <th className="pb-2">Tên thiết bị</th>
-                <th className="pb-2 text-right">SL</th>
-                <th className="pb-2">Ghi chú</th>
-              </tr></thead>
-              <tbody>
-                {ev.external_items.map((it, i) => (
-                  <tr key={i} className="border-b last:border-0">
-                    <td className="py-1.5 font-medium" style={{ color: '#c9a84c' }}>{it.supplier || '—'}</td>
-                    <td className="py-1.5" style={{ color: '#e0e0ee' }}>{it.name}</td>
-                    <td className="py-1.5 text-right font-bold" style={{ color: '#60a5fa' }}>{it.quantity}</td>
-                    <td className="py-1.5 text-gray-500 text-xs">{it.notes || ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-wrap">
+              <table className="w-full text-sm" style={{ minWidth: '320px' }}>
+                <thead><tr className="border-b text-gray-500 text-left">
+                  <th className="pb-2">Nhà cung cấp</th>
+                  <th className="pb-2">Tên thiết bị</th>
+                  <th className="pb-2 text-right">SL</th>
+                  <th className="pb-2">Ghi chú</th>
+                </tr></thead>
+                <tbody>
+                  {ev.external_items.map((it, i) => (
+                    <tr key={i} className="border-b last:border-0">
+                      <td className="py-1.5 font-medium" style={{ color: '#c9a84c' }}>{it.supplier || '—'}</td>
+                      <td className="py-1.5" style={{ color: '#e0e0ee' }}>{it.name}</td>
+                      <td className="py-1.5 text-right font-bold" style={{ color: '#60a5fa' }}>{it.quantity}</td>
+                      <td className="py-1.5 text-gray-500 text-xs">{it.notes || ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
