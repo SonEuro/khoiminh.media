@@ -94,7 +94,8 @@ export default function Reports() {
               <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.95rem' }}>{items[0]?.icon || ''} {cat}</h2>
               <span style={{ fontSize:'0.78rem', color:'var(--text-muted)' }}>{items.length} loại · tổng {catTotal.qty_total}</span>
             </div>
-            <table className="w-full text-sm">
+            <div className="table-wrap">
+            <table className="w-full text-sm" style={{ minWidth: '580px' }}>
               <thead>
                 <tr>
                   <th style={{ textAlign:'center', padding:'8px 12px' }}>Mã</th>
@@ -133,6 +134,7 @@ export default function Reports() {
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         );
       })}
