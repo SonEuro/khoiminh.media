@@ -359,7 +359,7 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
-const EMPTY_FORM = {
+const makeEmptyForm = () => ({
   event_id: '', event_label: '', location: '',
   report_date: new Date().toISOString().slice(0, 10),
   km_staff: [], freelancer_staff: '',
@@ -367,7 +367,7 @@ const EMPTY_FORM = {
   incomplete: '', incidents: '',
   progress: '', completed_work: '', service_quality: '',
   images: [],
-};
+});
 
 export default function EventReport() {
   const { user } = useAuth();
@@ -386,7 +386,7 @@ export default function EventReport() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(makeEmptyForm);
   const [errors, setErrors] = useState({});
   const [evSearch, setEvSearch] = useState('');
   const [showEvDrop, setShowEvDrop] = useState(false);
@@ -454,7 +454,7 @@ export default function EventReport() {
       await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
       const updated = await api.getEventReports();
       setReports(updated);
-      setForm(EMPTY_FORM);
+      setForm(makeEmptyForm());
       setEvSearch('');
       setView('list');
     } catch (err) {
@@ -705,7 +705,7 @@ export default function EventReport() {
             style={{ flex:1, padding:'13px', fontSize:'1rem' }}>
             {submitting ? 'Đang lưu...' : '✅ Lưu báo cáo'}
           </button>
-          <button type="button" onClick={() => { setView('list'); setForm(EMPTY_FORM); setEvSearch(''); }}
+          <button type="button" onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); }}
             className="btn-secondary" style={{ padding:'13px 20px' }}>
             Huỷ
           </button>

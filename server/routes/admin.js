@@ -91,7 +91,7 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
 
   const doDelete = db.transaction(() => {
     for (const eventId of ids) {
-      const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(eventId);
+      const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(eventId);
 
       for (const tx of txs) {
         const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);

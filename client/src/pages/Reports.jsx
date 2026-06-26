@@ -13,7 +13,8 @@ export default function Reports() {
     if (!data) return;
     const headers = ['Mã', 'Tên thiết bị', 'Danh mục', 'Đơn vị', 'Tổng', 'Có sẵn', 'Đang dùng', 'Sửa chữa', 'Hỏng', 'Mất'];
     const rows = data.map(r => [r.code, r.name, r.category, r.unit, r.qty_total, r.qty_available, r.qty_in_use, r.qty_maintenance, r.qty_damaged, r.qty_lost]);
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map(r => r.map(q).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
