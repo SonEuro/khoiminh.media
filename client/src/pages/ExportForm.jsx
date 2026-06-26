@@ -57,6 +57,7 @@ export default function ExportForm() {
   const [searchTerms, setSearchTerms] = useState(Array(10).fill(''));
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [nccFocusIdx, setNccFocusIdx] = useState(-1);
+  const [nccSupplierFocusIdx, setNccSupplierFocusIdx] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
   const [dateError, setDateError]     = useState('');
@@ -459,21 +460,42 @@ export default function ExportForm() {
 
                       {/* Nhà CC (dropdown) + Tên TB (autocomplete) */}
                       <div style={{ display:'flex', gap:'4px', height:`${H}px` }}>
-                        {/* Supplier select */}
-                        <select
-                          style={{
-                            flex:'0 0 36%', height:`${H}px`, padding:'0 6px', boxSizing:'border-box',
-                            background:'rgba(96,165,250,0.07)', border:'1px solid rgba(96,165,250,0.28)',
-                            borderRadius:'7px', color: item.ext_supplier ? '#93c5fd' : 'var(--text-muted)',
-                            fontSize:'0.78rem', fontWeight: item.ext_supplier ? 700 : 400, outline:'none',
-                            appearance:'none',
-                          }}
-                          value={item.ext_supplier}
-                          onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
-                        >
-                          <option value="">Nhà CC...</option>
-                          {visibleNCC.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        {/* Supplier input with autocomplete */}
+                        {(() => {
+                          const supplierSuggestions = item.ext_supplier
+                            ? visibleNCC.filter(s => s.toLowerCase().includes(item.ext_supplier.toLowerCase()) && s !== item.ext_supplier).slice(0, 6)
+                            : visibleNCC.slice(0, 6);
+                          return (
+                            <div style={{ flex:'0 0 36%', position:'relative', height:`${H}px` }}>
+                              <input
+                                style={{
+                                  width:'100%', height:`${H}px`, padding:'0 6px', boxSizing:'border-box',
+                                  background:'rgba(96,165,250,0.07)', border:`1px solid ${item.ext_supplier ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.28)'}`,
+                                  borderRadius:'7px', color: item.ext_supplier ? '#93c5fd' : 'var(--text-muted)',
+                                  fontSize:'0.78rem', fontWeight: item.ext_supplier ? 700 : 400, outline:'none',
+                                }}
+                                placeholder="Nhà CC..."
+                                value={item.ext_supplier}
+                                onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
+                                onFocus={() => setNccSupplierFocusIdx(idx)}
+                                onBlur={() => setTimeout(() => setNccSupplierFocusIdx(v => v === idx ? -1 : v), 150)}
+                              />
+                              {nccSupplierFocusIdx === idx && supplierSuggestions.length > 0 && (
+                                <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, zIndex:300, minWidth:'160px', maxHeight:'200px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                                  {supplierSuggestions.map((s, i) => (
+                                    <button key={i} type="button"
+                                      style={{ width:'100%', textAlign:'left', padding:'7px 10px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', color:'#93c5fd', fontSize:'0.82rem', fontWeight:600 }}
+                                      onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
+                                      onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                      onClick={() => { setItem(idx, 'ext_supplier', s); setItem(idx, 'ext_name', ''); setNccSupplierFocusIdx(-1); }}>
+                                      {s}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Equipment name with autocomplete */}
                         {(() => {
