@@ -165,9 +165,14 @@ router.put('/:id', canEdit, (req, res) => {
 router.delete('/:id', canDeleteEq, (req, res) => {
   const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(req.params.id);
   if (!eq) return res.status(404).json({ error: 'Không tìm thấy' });
-  if (eq.qty_in_use > 0) return res.status(400).json({ error: 'Thiết bị đang được sử dụng, không thể xóa' });
-  db.prepare('DELETE FROM equipment WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
+  if (eq.qty_in_use > 0)    return res.status(400).json({ error: 'Thiết bị đang được sử dụng, không thể xóa' });
+  if (eq.qty_reserved > 0) return res.status(400).json({ error: 'Thiết bị đang được đặt trước (phiếu chờ xác nhận), không thể xóa' });
+  try {
+    db.prepare('DELETE FROM equipment WHERE id = ?').run(req.params.id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: 'Không thể xóa: thiết bị đang có trong phiếu xuất nhập' });
+  }
 });
 
 module.exports = router;

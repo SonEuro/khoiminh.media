@@ -20,14 +20,17 @@ router.post('/reset-out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (
       `UPDATE equipment SET qty_available = qty_available + qty_in_use + qty_reserved, qty_in_use = 0, qty_reserved = 0 WHERE qty_in_use > 0 OR qty_reserved > 0`
     ).run();
 
-    // Xóa transaction_items thuộc các phiếu OUT
+    // Xóa transaction_items thuộc các phiếu OUT và RETURN (cả hai đều cần reset)
     const itemResult = db.prepare(
-      `DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE type = 'OUT')`
+      `DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE type IN ('OUT','RETURN'))`
     ).run();
+    try {
+      db.prepare(`DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE type IN ('OUT','RETURN'))`).run();
+    } catch (_) {}
 
-    // Xóa phiếu OUT
+    // Xóa phiếu OUT và RETURN
     const txResult = db.prepare(
-      `DELETE FROM transactions WHERE type = 'OUT'`
+      `DELETE FROM transactions WHERE type IN ('OUT','RETURN')`
     ).run();
 
     return {
