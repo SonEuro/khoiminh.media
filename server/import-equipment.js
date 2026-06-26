@@ -7214,11 +7214,14 @@ function clearAndInsert() {
         unit=excluded.unit, unit_price=excluded.unit_price,
         notes=excluded.notes,
         qty_total=excluded.qty_total,
+        qty_damaged=excluded.qty_damaged,
+        qty_maintenance=excluded.qty_maintenance,
+        qty_lost=excluded.qty_lost,
         qty_available=MAX(0, excluded.qty_total
           - equipment.qty_in_use
-          - equipment.qty_maintenance
-          - equipment.qty_damaged
-          - equipment.qty_lost)
+          - excluded.qty_maintenance
+          - excluded.qty_damaged
+          - excluded.qty_lost)
     `);
     for (const e of EQUIPMENT) {
       upsertEq.run(
@@ -7244,14 +7247,14 @@ function clearAndInsert() {
 // Chạy auto 1 lần khi khởi động nếu chưa import
 function runOnce() {
   db.exec(`CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, ran_at TEXT)`);
-  const done = db.prepare("SELECT name FROM _migrations WHERE name = 'equipment_v4_2406'").get();
+  const done = db.prepare("SELECT name FROM _migrations WHERE name = 'equipment_v5_2406'").get();
   if (done) {
     console.log('[Import] Đã import thiết bị trước đó, bỏ qua.');
     return false;
   }
   console.log('[Import] Bắt đầu import danh sách thiết bị mới...');
   clearAndInsert();
-  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v4_2406', datetime('now','localtime'))").run();
+  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v5_2406', datetime('now','localtime'))").run();
   console.log(`[Import] Hoàn tất: ${EQUIPMENT.length} thiết bị.`);
   // Tự động backup lên Google Drive sau khi import để lần restart sau không chạy lại
   setTimeout(async () => {
@@ -7270,7 +7273,7 @@ function runOnce() {
 function doImport() {
   clearAndInsert();
   db.exec(`CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, ran_at TEXT)`);
-  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v4_2406', datetime('now','localtime'))").run();
+  db.prepare("INSERT OR REPLACE INTO _migrations (name, ran_at) VALUES ('equipment_v5_2406', datetime('now','localtime'))").run();
   return { count: EQUIPMENT.length, categories: CATEGORIES.length };
 }
 
