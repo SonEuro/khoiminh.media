@@ -622,30 +622,29 @@ export default function ExportForm() {
                         }}
                       />
                       {searchTerms[idx] && !item.equipment_id && (
-                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
-                          {filteredEquip(searchTerms[idx], idx).map(e => (
-                            <button type="button" key={e.id}
-                              style={{ width:'100%', textAlign:'left', padding:'8px 12px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px' }}
-                              onMouseEnter={ev => ev.currentTarget.style.background='rgba(201,168,76,0.1)'}
-                              onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
-                              onClick={() => {
-                                setItem(idx, 'equipment_id', e.id);
-                                const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
-                              }}>
-                              <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.83rem', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</span>
-                              {(() => {
-                                const free = e.qty_available - (e.qty_reserved || 0);
-                                return (
-                                  <span style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', flexShrink:0 }}>
-                                    <span style={{ fontSize:'0.7rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {e.unit}</span>
-                                    {e.qty_reserved > 0 && <span style={{ fontSize:'0.6rem', color:'#fbbf24', lineHeight:1 }}>({e.qty_reserved} đặt trước)</span>}
-                                  </span>
-                                );
-                              })()}
-                            </button>
-                          ))}
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                          {filteredEquip(searchTerms[idx], idx).map(e => {
+                            const free = e.qty_available - (e.qty_reserved || 0);
+                            return (
+                              <button type="button" key={e.id}
+                                style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.06)', cursor:'pointer', display:'block' }}
+                                onMouseEnter={ev => ev.currentTarget.style.background='rgba(201,168,76,0.1)'}
+                                onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                onClick={() => {
+                                  setItem(idx, 'equipment_id', e.id);
+                                  const t = [...searchTerms]; t[idx] = e.name; setSearchTerms(t);
+                                }}>
+                                <div style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.92rem', marginBottom:'4px' }}>{e.name}</div>
+                                <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                                  <span style={{ fontSize:'0.75rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>Còn {free} {e.unit}</span>
+                                  {e.qty_reserved > 0 && <span style={{ fontSize:'0.72rem', color:'#fbbf24' }}>· {e.qty_reserved} đặt trước</span>}
+                                  <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace', marginLeft:'auto' }}>{e.code}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
                           {filteredEquip(searchTerms[idx], idx).length === 0 && (
-                            <p style={{ padding:'10px 12px', fontSize:'0.8rem', color:'#7878a0' }}>Không tìm thấy</p>
+                            <p style={{ padding:'12px 14px', fontSize:'0.85rem', color:'#7878a0' }}>Không tìm thấy</p>
                           )}
                         </div>
                       )}
