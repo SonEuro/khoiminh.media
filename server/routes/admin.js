@@ -15,9 +15,9 @@ router.post('/import-equipment', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, r
 // Reset toàn bộ phiếu xuất (OUT) và đưa qty_in_use về 0
 router.post('/reset-out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const doReset = db.transaction(() => {
-    // Cộng qty_in_use trở lại qty_available, reset về 0
+    // Cộng qty_in_use + qty_reserved trở lại qty_available, reset cả hai về 0
     const eqResult = db.prepare(
-      `UPDATE equipment SET qty_available = qty_available + qty_in_use, qty_in_use = 0 WHERE qty_in_use > 0`
+      `UPDATE equipment SET qty_available = qty_available + qty_in_use + qty_reserved, qty_in_use = 0, qty_reserved = 0 WHERE qty_in_use > 0 OR qty_reserved > 0`
     ).run();
 
     // Xóa transaction_items thuộc các phiếu OUT
