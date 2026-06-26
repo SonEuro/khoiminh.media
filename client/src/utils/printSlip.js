@@ -24,7 +24,7 @@ function buildSlipHTML(tx, preview = false) {
       const parts = [];
       if (item.rental_days && item.rental_days > 0) parts.push(`Thuê ${item.rental_days} ngày`);
       if (item.notes) parts.push(item.notes);
-      const ghiChu = parts.join(' — ');
+      const ghiChu = parts.join('<br>');
       return `
       <tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
