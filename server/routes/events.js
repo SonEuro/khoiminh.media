@@ -23,8 +23,12 @@ function checkTruongPhongDept(req, eventCreatedById) {
 function nextCode() {
   const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
   if (!last) return 'EVENT-001';
-  const num = parseInt(last.code.split('-')[1]) + 1;
-  return `EVENT-${String(num).padStart(3, '0')}`;
+  const num = parseInt(last.code.split('-')[1]);
+  if (isNaN(num)) {
+    const count = db.prepare('SELECT COUNT(*) AS c FROM events').get().c;
+    return `EVENT-${String(count + 1).padStart(3, '0')}`;
+  }
+  return `EVENT-${String(num + 1).padStart(3, '0')}`;
 }
 
 // Auto-cleanup: xóa hẳn sự kiện trong trash quá 30 ngày
@@ -36,7 +40,7 @@ function cleanupTrash() {
     if (old.length === 0) return;
     const doClean = db.transaction(() => {
       for (const { id } of old) {
-        const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(id);
+        const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(id);
         for (const tx of txs) {
           const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
           for (const item of items) {
@@ -320,9 +324,11 @@ router.post('/:id/cancel', canManage, (req, res) => {
 // Xóa vĩnh viễn khỏi trash
 router.delete('/:id/permanent', adminOnly, (req, res) => {
   const id = req.params.id;
+  const ev = db.prepare('SELECT id FROM events WHERE id = ? AND deleted_at IS NOT NULL').get(id);
+  if (!ev) return res.status(404).json({ error: 'Sự kiện không có trong thùng rác' });
   const doPermanent = db.transaction(() => {
-    // Hoàn trả tồn kho từ các phiếu còn liên kết
-    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ?').all(id);
+    // Hoàn trả tồn kho từ các phiếu còn liên kết (RETURN trước, OUT sau)
+    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(id);
     for (const tx of txs) {
       const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
       for (const item of items) {

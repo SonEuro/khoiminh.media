@@ -81,7 +81,7 @@ router.get('/pending-returns', (req, res) => {
         SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_pending
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
-      WHERE t.event_id IS NOT NULL
+      WHERE t.event_id IS NOT NULL AND t.status != 'pending'
       GROUP BY t.event_id, ti.equipment_id
       HAVING qty_pending > 0
     ) sub
@@ -111,7 +111,7 @@ router.get('/outstanding', (req, res) => {
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN equipment    e ON e.id = ti.equipment_id
     LEFT JOIN categories c ON c.id = e.category_id
-    WHERE t.event_id = ?
+    WHERE t.event_id = ? AND t.status != 'pending'
     GROUP BY e.id
     HAVING qty_out > qty_returned
     ORDER BY first_row ASC
