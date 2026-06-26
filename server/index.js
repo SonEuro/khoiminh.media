@@ -59,7 +59,39 @@ app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res)
 
 // Serve React frontend (production)
 const publicDir = path.join(__dirname, 'public');
+
+// sw.js và index.html không được cache — luôn lấy từ server
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.sendFile(path.join(publicDir, 'sw.js'));
+});
+app.get(['/index.html', '/'], (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  next();
+});
+
 app.use(express.static(publicDir));
+
+// Trang xóa cache SW — truy cập /clear để reset
+app.get('/clear', (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Đang xóa cache...</title></head><body>
+<p style="font-family:sans-serif;padding:20px">Đang xóa cache, vui lòng chờ...</p>
+<script>
+(async () => {
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+  if (window.caches) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  window.location.replace('/');
+})();
+</script></body></html>`);
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });

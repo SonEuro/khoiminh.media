@@ -293,14 +293,37 @@ export default function Dashboard() {
     ? (dash.today_events.length > 0 ? 1 : 0) + dash.need_confirm.length + dash.overdue.length + dash.conflicts.length
     : 0;
 
+  const scrollToAlerts = () => document.getElementById('alerts-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   return (
     <div className="p-6 space-y-6">
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-        <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: 0 }}>Trang Chủ</h1>
-        {totalAlerts > 0 && (
-          <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#f87171', color: '#fff', borderRadius: '9999px', padding: '2px 9px' }}>
-            {totalAlerts} cảnh báo
-          </span>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: totalAlerts > 0 ? '8px' : 0 }}>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: 0 }}>Trang Chủ</h1>
+        </div>
+        {!loading && totalAlerts > 0 && dash && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {dash.today_events.length > 0 && (
+              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(74,222,128,0.15)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                📅 {dash.today_events.length} sự kiện hôm nay
+              </span>
+            )}
+            {dash.need_confirm.length > 0 && (
+              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                📋 {dash.need_confirm.length} chờ xác nhận
+              </span>
+            )}
+            {dash.overdue.length > 0 && (
+              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(248,113,113,0.15)', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                ⚠️ {dash.overdue.length} quá hạn trả
+              </span>
+            )}
+            {dash.conflicts.length > 0 && (
+              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(251,113,133,0.15)', color: '#fb7185', border: '1px solid rgba(251,113,133,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                ⚡ {dash.conflicts.length} xung đột
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -309,7 +332,7 @@ export default function Dashboard() {
       ) : (
         <>
           {/* ── Cảnh báo vận hành ── */}
-          <div>
+          <div id="alerts-section">
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a0a0b8', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Vận hành hôm nay
             </h2>

@@ -41,12 +41,12 @@ export default function Reports() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Báo Cáo Tồn Kho</h1>
           <p className="text-gray-500 text-sm">Cập nhật theo thời gian thực</p>
         </div>
-        <button className="btn-secondary" onClick={exportCSV}>📥 Xuất CSV</button>
+        <button className="btn-secondary btn-sm flex-shrink-0" style={{ whiteSpace: 'nowrap' }} onClick={exportCSV}>📥 Xuất CSV</button>
       </div>
 
       {/* Summary row — 3 cols on mobile, 6 on desktop */}

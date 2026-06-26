@@ -87,7 +87,7 @@ function EquipmentForm({ categories, initial, onSave, onCancel }) {
         <label className="label">Tên thiết bị *</label>
         <input className="input" value={form.name} onChange={e => set('name', e.target.value)} required />
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Đơn vị</label>
           <select className="input" value={form.unit} onChange={e => set('unit', e.target.value)}>
@@ -98,13 +98,13 @@ function EquipmentForm({ categories, initial, onSave, onCancel }) {
           <label className="label">Đơn giá (đ/ngày)</label>
           <input className="input" type="number" min="0" value={form.unit_price} onChange={e => set('unit_price', +e.target.value)} />
         </div>
-        {!initial && (
-          <div>
-            <label className="label">Số lượng ban đầu</label>
-            <input className="input" type="number" min="0" value={form.qty_total} onChange={e => set('qty_total', +e.target.value)} />
-          </div>
-        )}
       </div>
+      {!initial && (
+        <div>
+          <label className="label">Số lượng ban đầu</label>
+          <input className="input" type="number" min="0" value={form.qty_total} onChange={e => set('qty_total', +e.target.value)} />
+        </div>
+      )}
       <div>
         <label className="label">Ghi chú</label>
         <textarea className="input" rows={2} value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
