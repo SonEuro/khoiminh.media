@@ -207,7 +207,7 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
   const fmtDate = (d) => {
     if (!d) return '';
     const parts = d.split('-');
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0].slice(2,4)}`;
     return d;
   };
 

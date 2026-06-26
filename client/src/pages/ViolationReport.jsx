@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { fmtD } from '../utils/fmt';
 
 // ── Danh sách vi phạm ──────────────────────────────────────────────────────
 const VIOLATION_TYPES = [
@@ -365,7 +366,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
             </p>
           )}
 
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.created_at}</p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fmtD(v.created_at)}</p>
         </div>
 
         {/* Actions */}

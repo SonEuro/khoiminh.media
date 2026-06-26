@@ -168,7 +168,7 @@ export default function ExportForm() {
       const selEv = events.find(ev => String(ev.id) === String(form.event_id));
       const filmingArr = parseFilmingDates(selEv);
       const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
-      const fmtDate = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : '';
+      const fmtDate = d => d ? `${d.slice(8,10)}-${d.slice(5,7)}-${d.slice(2,4)}` : '';
       const parts = [
         lastFilming && `ngày ghi hình (${fmtDate(lastFilming)})`,
         selEv?.end_date && `ngày kết thúc (${fmtDate(selEv.end_date)})`,
@@ -204,7 +204,7 @@ export default function ExportForm() {
               <h2 style={{ color:'#fbbf24', fontSize:'1.2rem', fontWeight:700 }}>Phiếu xuất kho tạm đã tạo!</h2>
               <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
                 Phiếu <strong style={{ color:'#fbbf24', fontFamily:'monospace' }}>{doneSlip.code}</strong> đang chờ xác nhận.
-                {doneSlip._filmingDate && <> Ngày ghi hình: <strong style={{ color:'#fbbf24' }}>{doneSlip._filmingDate.slice(8,10)}/{doneSlip._filmingDate.slice(5,7)}/{doneSlip._filmingDate.slice(0,4)}</strong>.</>}
+                {doneSlip._filmingDate && <> Ngày ghi hình: <strong style={{ color:'#fbbf24' }}>{doneSlip._filmingDate.slice(8,10)}-{doneSlip._filmingDate.slice(5,7)}-{doneSlip._filmingDate.slice(2,4)}</strong>.</>}
               </p>
               <p style={{ color:'rgba(251,191,36,0.65)', fontSize:'0.78rem', background:'rgba(251,191,36,0.07)', border:'1px solid rgba(251,191,36,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
                 ⚠ Thiết bị <strong>chưa bị trừ kho</strong>. Vào <em>Lịch Sử Vận Hành → Xuất Kho Tạm</em> để xác nhận khi đến ngày ghi hình.

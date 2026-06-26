@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { printSlip } from '../utils/printSlip';
 import DateInput from '../components/DateInput';
 import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
+import { fmtD } from '../utils/fmt';
 
 const DEPT_CATS = {
   SUPER_ADMIN: null, PRODUCTION: null, ACCOUNTING: null,
@@ -227,7 +228,7 @@ export default function EventReturn() {
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'3px', flexWrap:'wrap' }}>
                   {row.start_date && (
-                    <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>📅 {row.start_date}</span>
+                    <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
                   )}
                   {row.out_codes && (
                     <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace' }}>
@@ -307,7 +308,7 @@ export default function EventReturn() {
                 >
                   <span style={{ fontFamily:'monospace', fontSize:'0.7rem', color:'#7878a0' }}>{ev.code}</span>
                   <span style={{ color:'#c9a84c', fontWeight:600 }}>{ev.name}</span>
-                  {ev.start_date && <span style={{ fontSize:'0.7rem', color:'#7878a0', marginLeft:'auto' }}>{ev.start_date}</span>}
+                  {ev.start_date && <span style={{ fontSize:'0.7rem', color:'#7878a0', marginLeft:'auto' }}>{fmtD(ev.start_date)}</span>}
                 </button>
               ))}
             </div>
