@@ -109,6 +109,7 @@ export const api = {
   clearAllEvents: () => request('/admin/clear-all-events', { method: 'POST' }),
   deleteEvents: (ids) => request('/admin/delete-events', { method: 'POST', body: { ids } }),
   deleteTransaction: (id) => request(`/transactions/${id}`, { method: 'DELETE' }),
+  updatePendingItems: (id, data) => request(`/transactions/${id}/items`, { method: 'PUT', body: data }),
 
   // Event Reports
   getEventReports: (params = {}) => {

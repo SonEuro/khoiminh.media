@@ -40,7 +40,7 @@ function Badge({ color, bg, border, label }) {
 const fmtDate = fmtD;
 
 // ── TX detail modal ───────────────────────────────────────────────────────────
-function TxDetailModal({ txId, onClose }) {
+function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
   const [tx, setTx] = useState(null);
   useEffect(() => { api.getTransactionById(txId).then(setTx); }, [txId]);
   if (!tx) return (
@@ -51,9 +51,20 @@ function TxDetailModal({ txId, onClose }) {
   const condLabel = { good:'Tốt', damaged:'Hỏng', maintenance:'Cần sửa', lost:'Mất' };
   const condColor = { good:'#4ade80', damaged:'#f87171', maintenance:'#fbbf24', lost:'#94a3b8' };
   const cfg = TX_CFG[tx.type] || { label: tx.type, color: GOLD, bg: 'rgba(201,168,76,0.12)', border: 'rgba(201,168,76,0.3)' };
+  const isPending = tx.status === 'pending';
   return (
     <Modal title={tx.code} onClose={onClose} size="lg"
-      extra={<button onClick={() => printSlip(tx)} className="btn-secondary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}><Printer size={13} /> In phiếu</button>}
+      extra={
+        <div style={{ display:'inline-flex', gap:'6px' }}>
+          {isPending && canEdit && (
+            <button onClick={() => onEdit(tx.id)} className="btn-secondary btn-sm"
+              style={{ display:'inline-flex', alignItems:'center', gap:'5px', borderColor:'rgba(251,191,36,0.5)', color:PENDING_COLOR }}>
+              ✏️ Chỉnh sửa
+            </button>
+          )}
+          <button onClick={() => printSlip(tx)} className="btn-secondary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}><Printer size={13} /> In phiếu</button>
+        </div>
+      }
     >
       <div className="space-y-4">
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', fontSize:'0.85rem' }}>
@@ -131,6 +142,223 @@ function TxDetailModal({ txId, onClose }) {
             </div>
           </div>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+// ── Edit pending OUT modal ────────────────────────────────────────────────────
+function EditPendingModal({ txId, onClose, onSaved }) {
+  const [tx, setTx]               = useState(null);
+  const [equipment, setEquipment] = useState([]);
+  const [khoItems, setKhoItems]   = useState([]);
+  const [extItems, setExtItems]   = useState([]);
+  const [search, setSearch]       = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  useEffect(() => {
+    Promise.all([api.getTransactionById(txId), api.getEquipment()]).then(([txData, eqList]) => {
+      setTx(txData);
+      setEquipment(eqList);
+      setKhoItems((txData.items || []).map(it => ({
+        equipment_id: it.equipment_id,
+        eq_name: it.eq_name,
+        eq_code: it.eq_code,
+        unit: it.unit,
+        quantity: it.quantity,
+      })));
+      setExtItems((txData.external_items || []).map(it => ({
+        name: it.name,
+        supplier: it.supplier || '',
+        quantity: it.quantity || 1,
+        unit: it.unit || 'Cái',
+        rental_days: it.rental_days || 1,
+      })));
+    });
+  }, [txId]);
+
+  const filteredEq = search.length >= 1
+    ? equipment
+        .filter(eq =>
+          eq.name.toLowerCase().includes(search.toLowerCase()) ||
+          eq.code.toLowerCase().includes(search.toLowerCase())
+        )
+        .slice(0, 8)
+    : [];
+
+  const addEquipment = (eq) => {
+    if (khoItems.some(i => i.equipment_id === eq.id)) return;
+    setKhoItems(prev => [...prev, { equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, quantity: 1 }]);
+    setSearch('');
+  };
+
+  const removeKhoItem = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
+  const updateKhoQty  = (idx, qty) =>
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: Math.max(1, parseInt(qty) || 1) } : it));
+
+  const addExtItem    = () => setExtItems(prev => [...prev, { name: '', supplier: '', quantity: 1, unit: 'Cái', rental_days: 1 }]);
+  const removeExtItem = (idx) => setExtItems(prev => prev.filter((_, i) => i !== idx));
+  const updateExtItem = (idx, field, val) =>
+    setExtItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it));
+
+  const handleSave = async () => {
+    const validKho = khoItems.filter(i => i.equipment_id && i.quantity > 0);
+    const validExt = extItems.filter(i => i.name?.trim());
+    if (!validKho.length && !validExt.length) { setError('Phiếu phải có ít nhất một thiết bị'); return; }
+    setSaving(true); setError('');
+    try {
+      await api.updatePendingItems(txId, {
+        items: validKho.map(i => ({ equipment_id: i.equipment_id, quantity: i.quantity })),
+        external_items: validExt,
+      });
+      onSaved();
+    } catch (err) { setError(err.message); }
+    finally { setSaving(false); }
+  };
+
+  if (!tx) return (
+    <Modal title="Chỉnh sửa phiếu" onClose={onClose}>
+      <div style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>Đang tải...</div>
+    </Modal>
+  );
+
+  const inputStyle = { padding:'7px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.83rem', width:'100%', boxSizing:'border-box' };
+  const extInputStyle = { padding:'6px 8px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.22)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.8rem', width:'100%', boxSizing:'border-box' };
+
+  return (
+    <Modal title={`Chỉnh sửa: ${tx.code}`} onClose={onClose} size="lg">
+      <div className="space-y-4">
+
+        {/* Tìm kiếm thiết bị kho */}
+        <div>
+          <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
+          <div style={{ position:'relative' }}>
+            <input
+              type="text" value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Tìm tên hoặc mã thiết bị..."
+              style={inputStyle}
+            />
+            {filteredEq.length > 0 && (
+              <div style={{
+                position:'absolute', top:'100%', left:0, right:0, zIndex:50,
+                marginTop:'3px', borderRadius:'8px',
+                border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e',
+                maxHeight:'176px', overflowY:'auto',
+                boxShadow:'0 8px 24px rgba(0,0,0,0.5)',
+              }}>
+                {filteredEq.map(eq => {
+                  const inList = khoItems.some(i => i.equipment_id === eq.id);
+                  const freeQty = eq.qty_available - (eq.qty_reserved || 0);
+                  return (
+                    <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
+                      style={{
+                        width:'100%', padding:'8px 12px', textAlign:'left',
+                        background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer',
+                        borderBottom:'1px solid rgba(255,255,255,0.04)',
+                        display:'flex', justifyContent:'space-between', alignItems:'center',
+                        opacity: inList ? 0.5 : 1,
+                      }}
+                      onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
+                    >
+                      <div>
+                        <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                        <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                      </div>
+                      <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
+                        {inList ? '✓ Đã có' : `${freeQty} ${eq.unit}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Danh sách thiết bị kho */}
+        {khoItems.length > 0 && (
+          <div>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị kho ({khoItems.length})</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {khoItems.map((it, idx) => (
+                <div key={idx} style={{
+                  display:'grid', gridTemplateColumns:'1fr auto auto',
+                  gap:'8px', alignItems:'center',
+                  padding:'8px 10px', borderRadius:'8px',
+                  background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)',
+                }}>
+                  <div>
+                    <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
+                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}</p>
+                  </div>
+                  <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+                    <input type="number" min="1" value={it.quantity}
+                      onChange={e => updateKhoQty(idx, e.target.value)}
+                      style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                    />
+                    <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
+                  </div>
+                  <button onClick={() => removeKhoItem(idx)}
+                    style={{ padding:'5px 8px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* NCC items */}
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#60a5fa', margin:0 }}>Thiết bị NCC ({extItems.length})</p>
+            <button onClick={addExtItem}
+              style={{ padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'#60a5fa', cursor:'pointer', fontSize:'0.74rem' }}>
+              + Thêm
+            </button>
+          </div>
+          {extItems.length > 0 && (
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {extItems.map((it, idx) => (
+                <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.05)', border:'1px solid rgba(96,165,250,0.18)' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 64px 32px', gap:'6px', alignItems:'center' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+                      <input placeholder="Tên thiết bị NCC *" value={it.name}
+                        onChange={e => updateExtItem(idx, 'name', e.target.value)} style={extInputStyle} />
+                      <input placeholder="Nhà cung cấp" value={it.supplier}
+                        onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
+                        style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.73rem' }} />
+                    </div>
+                    <input type="number" min="1" value={it.quantity}
+                      onChange={e => updateExtItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                      style={{ padding:'5px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(96,165,250,0.2)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }} />
+                    <button onClick={() => removeExtItem(idx)}
+                      style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
+
+        <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end', paddingTop:'4px' }}>
+          <button onClick={onClose} className="btn-secondary">Hủy</button>
+          <button onClick={handleSave} disabled={saving}
+            style={{
+              padding:'8px 22px', borderRadius:'8px', border:'none', cursor: saving ? 'not-allowed' : 'pointer',
+              background: saving ? 'rgba(201,168,76,0.4)' : 'linear-gradient(135deg,#c9a84c,#e8c97a)',
+              color:'#08080e', fontWeight:700, fontSize:'0.85rem',
+            }}>
+            {saving ? 'Đang lưu...' : '✅ Lưu thay đổi'}
+          </button>
+        </div>
       </div>
     </Modal>
   );
@@ -382,10 +610,12 @@ export default function Transactions() {
   const [violations, setViolations] = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [selectedTx, setSelectedTx] = useState(null);
+  const [editingTx,  setEditingTx]  = useState(null);
   const [confirming, setConfirming] = useState(null);
 
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm   = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const canEdit      = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
 
   const load = useCallback(() => {
     if (!user) return;
@@ -479,7 +709,21 @@ export default function Transactions() {
         </>
       )}
 
-      {selectedTx && <TxDetailModal txId={selectedTx} onClose={() => setSelectedTx(null)} />}
+      {selectedTx && (
+        <TxDetailModal
+          txId={selectedTx}
+          onClose={() => setSelectedTx(null)}
+          canEdit={canEdit}
+          onEdit={(id) => { setSelectedTx(null); setEditingTx(id); }}
+        />
+      )}
+      {editingTx && (
+        <EditPendingModal
+          txId={editingTx}
+          onClose={() => setEditingTx(null)}
+          onSaved={() => { setEditingTx(null); load(); }}
+        />
+      )}
     </div>
   );
 }

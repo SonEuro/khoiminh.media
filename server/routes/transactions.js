@@ -363,6 +363,65 @@ router.post('/fix', canFix, (req, res) => {
   }
 });
 
+// Chỉnh sửa danh sách thiết bị của phiếu xuất kho tạm (chỉ khi status=pending)
+router.put('/:id/items', canTransact, (req, res) => {
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
+  if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
+  if (tx.type !== 'OUT' || tx.status !== 'pending')
+    return res.status(400).json({ error: 'Chỉ có thể chỉnh sửa phiếu xuất kho tạm (chờ xác nhận)' });
+
+  const { items, external_items } = req.body;
+  const validExt = (external_items || []).filter(i => i.name?.trim());
+  if ((!items || items.length === 0) && validExt.length === 0)
+    return res.status(400).json({ error: 'Phiếu phải có ít nhất một thiết bị' });
+
+  if (items?.length) {
+    const deptErr = checkDept(req.user, items.map(i => i.equipment_id));
+    if (deptErr) return res.status(403).json({ error: deptErr });
+  }
+
+  const doUpdate = db.transaction(() => {
+    // Hoàn trả qty_reserved cho các item cũ
+    const oldItems = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+    for (const old of oldItems) {
+      db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?')
+        .run(old.quantity, old.equipment_id);
+    }
+
+    // Xóa items cũ
+    db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
+    db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
+
+    // Thêm items mới + đặt qty_reserved
+    const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
+    for (const item of (items || [])) {
+      const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
+      if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
+      const freeQty = eq.qty_available - (eq.qty_reserved || 0);
+      if (freeQty < item.quantity)
+        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit} khả dụng`);
+      insertItem.run(tx.id, item.equipment_id, item.quantity, item.notes || null);
+      db.prepare('UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?')
+        .run(item.quantity, item.equipment_id);
+    }
+
+    // Thêm external items mới
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    for (const ext of validExt) {
+      insertExt.run(tx.id, ext.supplier || '', ext.name.trim(), ext.quantity || 1, ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
+    }
+
+    return { ok: true };
+  });
+
+  try {
+    doUpdate();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 // Xóa phiếu — SUPER_ADMIN hoặc người tạo phiếu
 router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCOUNTING', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'), (req, res) => {
   const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
