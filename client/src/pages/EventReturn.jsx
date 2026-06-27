@@ -170,7 +170,8 @@ export default function EventReturn() {
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Nhập kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
             Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{done.code}</strong> —{' '}
-            <strong style={{ color:'var(--text-primary)' }}>{done.items?.length}</strong> loại thiết bị.
+            <strong style={{ color:'var(--text-primary)' }}>{(done.items?.length || 0) + (done.external_items?.length || 0)}</strong> loại thiết bị
+            {done.external_items?.length > 0 ? ` (${done.external_items.length} NCC)` : ''}.
           </p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => printSlip(done)} className="btn-primary">🖨️ In phiếu</button>
@@ -394,7 +395,7 @@ export default function EventReturn() {
         <div className="card text-center py-8" style={{ color:'var(--text-muted)' }}>Đang tải...</div>
       )}
 
-      {eventId && !loading && outstanding.length === 0 && (
+      {eventId && !loading && outstanding.length === 0 && outstandingExt.length === 0 && (
         <div className="card text-center py-10">
           <p className="text-3xl mb-2">📭</p>
           <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
