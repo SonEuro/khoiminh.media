@@ -53,8 +53,8 @@ export default function ExportForm() {
     expected_return_date: '',
     notes: '',
   });
-  const [items, setItems]           = useState(emptyRows(10));
-  const [searchTerms, setSearchTerms] = useState(Array(10).fill(''));
+  const [items, setItems]           = useState(emptyRows(5));
+  const [searchTerms, setSearchTerms] = useState(Array(5).fill(''));
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [nccFocusIdx, setNccFocusIdx] = useState(-1);
   const [nccSupplierFocusIdx, setNccSupplierFocusIdx] = useState(-1);
@@ -269,8 +269,8 @@ export default function ExportForm() {
             onClick={() => {
               setDoneSlip(null);
               setForm({ event_id: '', responsible_person: user?.full_name || '', expected_return_date: '', notes: '' });
-              setItems(emptyRows(10));
-              setSearchTerms(Array(10).fill(''));
+              setItems(emptyRows(5));
+              setSearchTerms(Array(5).fill(''));
               reloadEquipment();
             }}
             style={{ color:'var(--text-muted)', fontSize:'0.8rem', background:'none', border:'none', cursor:'pointer' }}>
@@ -409,8 +409,8 @@ export default function ExportForm() {
                   onClick={() => {
                     if (!isLocked) {
                       setDeptFilter(d.value);
-                      setItems(emptyRows(10));
-                      setSearchTerms(Array(10).fill(''));
+                      setItems(emptyRows(5));
+                      setSearchTerms(Array(5).fill(''));
                       setExpandedRows(new Set());
                     }
                   }}
