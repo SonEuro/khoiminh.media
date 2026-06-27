@@ -440,7 +440,6 @@ export default function ExportForm() {
           <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
             {items.map((item, idx) => {
               const isExt = item.mode === 'ext';
-              const H = 38;
               const khoSeq = items.slice(0, idx).filter(it => it.mode !== 'ext').length + 1;
               const nccSeq = items.slice(0, idx).filter(it => it.mode === 'ext').length + 1;
 
