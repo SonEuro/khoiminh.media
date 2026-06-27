@@ -695,23 +695,16 @@ export default function ExportForm() {
                         </div>
                       )}
                       {/* Info strip dưới search khi đã chọn */}
-                      {eq && !isOpen && (
-                        <div style={{ display:'flex', alignItems:'center', gap:'5px', marginTop:'5px' }}>
-                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
-                          <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.35)' }}>·</span>
-                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
-                          {(() => {
-                            const free = eq.qty_available - (eq.qty_reserved || 0);
-                            return (
-                              <>
-                                <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.35)', marginLeft:'auto' }}>còn</span>
-                                <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {eq.unit}</span>
-                                {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
+                      {eq && !isOpen && (() => {
+                        const free = eq.qty_available - (eq.qty_reserved || 0);
+                        return (
+                          <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px' }}>
+                            <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                            <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit}</span>
+                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.65rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] — gridTemplateRows đồng đều */}
