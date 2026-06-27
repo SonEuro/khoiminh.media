@@ -60,7 +60,6 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       if (!initial && datesArr.length === 0) { setDateError(true); return; }
       const data = { ...form };
       data.filming_dates = datesArr;
-      data.filming_date = datesArr[datesArr.length - 1] || '';
       if (datesArr.length > 0) {
         if (!data.start_date) data.start_date = datesArr[0];
         if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
@@ -146,6 +145,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         <div>
           <label className="label">Ngày chạy chương trình</label>
           <DateInput value={form.show_date || ''} onChange={v => set('show_date', v)}
+            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
             style={form.show_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
@@ -173,9 +173,15 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
 }
 
 function EventDetailModal({ eventId, onClose }) {
-  const [ev, setEv] = useState(null);
-  useEffect(() => { api.getEventById(eventId).then(setEv); }, [eventId]);
+  const [ev, setEv]   = useState(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => { api.getEventById(eventId).then(setEv).catch(() => setErr(true)); }, [eventId]);
 
+  if (err) return (
+    <Modal title="Sự kiện" onClose={onClose}>
+      <div className="text-center py-8" style={{ color:'#f87171' }}>Không thể tải sự kiện.</div>
+    </Modal>
+  );
   if (!ev) return (
     <Modal title="Sự kiện" onClose={onClose}>
       <div className="text-center py-8 text-gray-400">Đang tải...</div>
