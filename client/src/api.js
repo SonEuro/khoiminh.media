@@ -89,6 +89,7 @@ export const api = {
   },
   getTransactionById: (id) => request(`/transactions/${id}`),
   getOutstanding: (event_id) => request(`/transactions/outstanding?event_id=${event_id}`),
+  getOutstandingExt: (event_id) => request(`/transactions/outstanding-ext?event_id=${event_id}`),
   getPendingReturns: () => request('/transactions/pending-returns'),
   createOut: (data) => request('/transactions/out', { method: 'POST', body: data }),
   confirmPending: (id) => request(`/transactions/confirm/${id}`, { method: 'POST' }),

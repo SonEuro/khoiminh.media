@@ -119,6 +119,28 @@ router.get('/outstanding', (req, res) => {
   res.json(rows.map(r => ({ ...r, qty_pending: r.qty_out - r.qty_returned })));
 });
 
+// NCC items chưa trả theo event
+router.get('/outstanding-ext', (req, res) => {
+  const { event_id } = req.query;
+  if (!event_id) return res.json([]);
+  const rows = db.prepare(`
+    SELECT
+      ei.supplier,
+      ei.name,
+      ei.unit,
+      MAX(ei.rental_days) AS rental_days,
+      SUM(CASE WHEN t.type = 'OUT'    THEN ei.quantity ELSE 0 END) AS qty_out,
+      SUM(CASE WHEN t.type = 'RETURN' THEN ei.quantity ELSE 0 END) AS qty_returned
+    FROM external_items ei
+    JOIN transactions t ON t.id = ei.transaction_id
+    WHERE t.event_id = ? AND t.status != 'pending'
+    GROUP BY ei.supplier, ei.name, ei.unit
+    HAVING qty_out > qty_returned
+    ORDER BY ei.supplier, ei.name
+  `).all(event_id);
+  res.json(rows.map(r => ({ ...r, qty_pending: r.qty_out - r.qty_returned })));
+});
+
 router.get('/', (req, res) => {
   const { type, event_id, limit = 50, status, hide_archived } = req.query;
   let sql = `
