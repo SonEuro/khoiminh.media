@@ -20,10 +20,16 @@ function parseFilmingDates(ev) {
   return ev.filming_date ? [ev.filming_date] : [];
 }
 
+function parseShowDates(ev) {
+  if (!ev) return [];
+  if (ev.show_dates) { try { return JSON.parse(ev.show_dates); } catch {} }
+  return [];
+}
+
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
   const [form, setForm] = useState(() => {
     const base = initial || { name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: '' };
-    return { ...base, filming_dates: parseFilmingDates(initial) };
+    return { ...base, filming_dates: parseFilmingDates(initial), show_dates: parseShowDates(initial) };
   });
   const [showSuggest, setShowSuggest] = useState(false);
   const [dateError, setDateError]     = useState(false);
@@ -60,6 +66,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       const data = { ...form };
       data.filming_dates = datesArr;
       data.filming_date = datesArr[datesArr.length - 1] || '';
+      data.show_dates = (form.show_dates || []).filter(Boolean).sort();
       if (datesArr.length > 0) {
         if (!data.start_date) data.start_date = datesArr[0];
         if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
@@ -147,6 +154,10 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
+        <div style={{ gridColumn: 'span 2' }}>
+          <label className="label">Ngày chạy chương trình</label>
+          <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} />
+        </div>
         <div>
           <label className="label">Trạng thái</label>
           <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
@@ -191,6 +202,17 @@ function EventDetailModal({ eventId, onClose }) {
                 <span className="text-gray-500">Ngày ghi hình: </span>
                 {dates.map((d, i) => (
                   <strong key={i} style={{ color:'#a78bfa', marginRight:'10px' }}>🎬 {fmtD(d)}</strong>
+                ))}
+              </div>
+            ) : null;
+          })()}
+          {(() => {
+            const sdates = parseShowDates(ev);
+            return sdates.length > 0 ? (
+              <div style={{ gridColumn: sdates.length > 1 ? 'span 2' : undefined }}>
+                <span className="text-gray-500">Ngày chạy CT: </span>
+                {sdates.map((d, i) => (
+                  <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>
                 ))}
               </div>
             ) : null;

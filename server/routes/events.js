@@ -257,13 +257,17 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', canWrite, (req, res) => {
-  const { name, client, location, start_date, end_date, filming_date, filming_dates, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, filming_dates, show_dates, notes } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
 
   // Chuẩn hóa filming_dates
   const datesArr = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
   const lastDate = datesArr[datesArr.length - 1] || null;
   const datesJson = datesArr.length > 0 ? JSON.stringify(datesArr) : null;
+
+  // Chuẩn hóa show_dates
+  const showArr = Array.isArray(show_dates) ? show_dates.filter(Boolean).sort() : [];
+  const showJson = showArr.length > 0 ? JSON.stringify(showArr) : null;
 
   // Tự thêm số thứ tự nếu tên trùng
   const base = name.trim();
@@ -280,9 +284,9 @@ router.post('/', canWrite, (req, res) => {
   const today = db.prepare("SELECT date('now','localtime') AS d").get().d;
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, notes, status, created_by, created_by_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, notes, initialStatus, req.user?.full_name || '', req.user?.id || null);
+    INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, show_dates, notes, status, created_by, created_by_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, showJson, notes, initialStatus, req.user?.full_name || '', req.user?.id || null);
   res.json({ id: r.lastInsertRowid, code, name: finalName });
 });
 
@@ -291,13 +295,15 @@ router.put('/:id', canWrite, (req, res) => {
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
   if (ev.status === 'completed' && req.user.role !== 'SUPER_ADMIN')
     return res.status(403).json({ error: 'Chỉ SUPER_ADMIN được chỉnh sửa sự kiện đã hoàn thành' });
-  const { name, client, location, start_date, end_date, filming_date, filming_dates, status, notes } = req.body;
+  const { name, client, location, start_date, end_date, filming_date, filming_dates, show_dates, status, notes } = req.body;
   const datesArrU = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
   const lastDateU = datesArrU[datesArrU.length - 1] || null;
   const datesJsonU = datesArrU.length > 0 ? JSON.stringify(datesArrU) : null;
+  const showArrU = Array.isArray(show_dates) ? show_dates.filter(Boolean).sort() : [];
+  const showJsonU = showArrU.length > 0 ? JSON.stringify(showArrU) : null;
   db.prepare(`
-    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, filming_dates=?, status=?, notes=? WHERE id=?
-  `).run(name, client, location, start_date, end_date, lastDateU, datesJsonU, status, notes, req.params.id);
+    UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, filming_dates=?, show_dates=?, status=?, notes=? WHERE id=?
+  `).run(name, client, location, start_date, end_date, lastDateU, datesJsonU, showJsonU, status, notes, req.params.id);
   res.json({ ok: true });
 });
 

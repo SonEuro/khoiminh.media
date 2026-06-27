@@ -147,11 +147,15 @@ db.exec(`
   );
 `);
 
-// Migration: thêm filming_dates vào events nếu chưa có
+// Migration: thêm filming_dates và show_dates vào events nếu chưa có
 const eventCols = db.pragma('table_info(events)').map(c => c.name);
 if (!eventCols.includes('filming_dates')) {
   db.exec("ALTER TABLE events ADD COLUMN filming_dates TEXT");
   console.log('[DB] Migration: thêm cột filming_dates vào events');
+}
+if (!eventCols.includes('show_dates')) {
+  db.exec("ALTER TABLE events ADD COLUMN show_dates TEXT");
+  console.log('[DB] Migration: thêm cột show_dates vào events');
 }
 
 // Migration: thêm cột unit + rental_days vào external_items nếu chưa có
