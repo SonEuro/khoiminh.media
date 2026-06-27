@@ -150,13 +150,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
+          <label className="label">Ngày chạy chương trình</label>
+          <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} />
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
           <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
-        </div>
-        <div style={{ gridColumn: 'span 2' }}>
-          <label className="label">Ngày chạy chương trình</label>
-          <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} />
         </div>
         <div>
           <label className="label">Trạng thái</label>
