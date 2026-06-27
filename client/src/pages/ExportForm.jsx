@@ -465,16 +465,16 @@ export default function ExportForm() {
                     padding:'10px',
                   }}>
 
-                    {/* ── Dòng 1: Badge + Nhà CC + Xóa ── */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                    {/* ── Dòng 1: Badge + Nhà CC + Qty + Ngày + ✏️ + X ── */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
                       <span style={{
                         fontSize:'0.68rem', fontWeight:800, color:'#60a5fa', flexShrink:0,
                         background:'rgba(96,165,250,0.12)', border:'1px solid rgba(96,165,250,0.3)',
                         borderRadius:'6px', padding:'3px 8px',
                       }}>N{nccSeq}</span>
 
-                      {/* Supplier */}
-                      <div style={{ flex:1, position:'relative' }}>
+                      {/* Supplier search */}
+                      <div style={{ flex:1, position:'relative', minWidth:0 }}>
                         <input
                           style={{
                             width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
@@ -504,6 +504,48 @@ export default function ExportForm() {
                           </div>
                         )}
                       </div>
+
+                      {/* Qty blue compact */}
+                      <input type="number" min="1"
+                        value={item.quantity}
+                        onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                        style={{
+                          flexShrink:0, width:'52px', height:'38px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                          background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
+                          borderRadius:'8px', color:'#60a5fa', fontSize:'1.05rem', fontWeight:800, outline:'none',
+                        }}
+                      />
+
+                      {/* Rental days gold */}
+                      <div style={{
+                        flexShrink:0, width:'64px', height:'38px', display:'flex', flexDirection:'column',
+                        alignItems:'center', justifyContent:'center',
+                        background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
+                        borderRadius:'8px', overflow:'hidden', gap:'1px',
+                      }}>
+                        <input type="number" min="1"
+                          value={item.rental_days || 1}
+                          onChange={e => setItem(idx, 'rental_days', +e.target.value)}
+                          style={{
+                            width:'100%', border:'none', background:'transparent', outline:'none',
+                            textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800,
+                            padding:0, lineHeight:1,
+                          }}
+                        />
+                        <span style={{ fontSize:'0.58rem', color:'rgba(251,191,36,0.7)', lineHeight:1, letterSpacing:'0.03em' }}>ngày</span>
+                      </div>
+
+                      {/* Notes toggle */}
+                      <button type="button" onClick={() => toggleExpand(idx)}
+                        style={{
+                          flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
+                          border: isExpanded ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
+                          background: isExpanded ? 'rgba(96,165,250,0.2)' : 'transparent',
+                          color: isExpanded ? '#60a5fa' : 'rgba(96,165,250,0.35)',
+                          fontSize:'0.95rem', display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                        ✏️
+                      </button>
 
                       {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
@@ -550,52 +592,6 @@ export default function ExportForm() {
                           ))}
                         </div>
                       )}
-                    </div>
-
-                    {/* ── Dòng 3: Số lượng + Ghi chú + Số ngày ── */}
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 44px 90px', gap:'8px' }}>
-                      {/* Blue qty */}
-                      <input type="number" min="1"
-                        value={item.quantity}
-                        onChange={e => setItem(idx, 'quantity', +e.target.value)}
-                        style={{
-                          height:'42px', width:'100%', padding:'0', boxSizing:'border-box',
-                          textAlign:'center',
-                          background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
-                          borderRadius:'8px', color:'#60a5fa', fontSize:'1.1rem', fontWeight:800, outline:'none',
-                        }}
-                      />
-
-                      {/* Notes toggle */}
-                      <button type="button" onClick={() => toggleExpand(idx)}
-                        style={{
-                          height:'42px', borderRadius:'8px', cursor:'pointer',
-                          border: isExpanded ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
-                          background: isExpanded ? 'rgba(96,165,250,0.2)' : 'transparent',
-                          color: isExpanded ? '#60a5fa' : 'rgba(96,165,250,0.4)',
-                          fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>
-                        ✏️
-                      </button>
-
-                      {/* Yellow rental days */}
-                      <div style={{
-                        height:'42px', display:'flex', flexDirection:'column',
-                        alignItems:'center', justifyContent:'center',
-                        background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
-                        borderRadius:'8px', overflow:'hidden', gap:'1px',
-                      }}>
-                        <input type="number" min="1"
-                          value={item.rental_days || 1}
-                          onChange={e => setItem(idx, 'rental_days', +e.target.value)}
-                          style={{
-                            width:'100%', border:'none', background:'transparent', outline:'none',
-                            textAlign:'center', color:'#fbbf24', fontSize:'1.1rem', fontWeight:800,
-                            padding:0, lineHeight:1,
-                          }}
-                        />
-                        <span style={{ fontSize:'0.6rem', color:'rgba(251,191,36,0.7)', lineHeight:1, letterSpacing:'0.03em' }}>ngày</span>
-                      </div>
                     </div>
 
                     {/* Notes expanded */}
