@@ -367,6 +367,10 @@ router.post('/fix', canFix, (req, res) => {
     const txId = txR.lastInsertRowid;
 
     for (const item of items) {
+      const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
+      if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
+      if (eq.qty_maintenance < item.quantity)
+        throw new Error(`${eq.name}: chỉ có ${eq.qty_maintenance} đang bảo trì, không thể nhập ${item.quantity}`);
       db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, item.quantity);
       db.prepare(`UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_available = qty_available + ? WHERE id = ?`).run(item.quantity, item.quantity, item.equipment_id);
     }

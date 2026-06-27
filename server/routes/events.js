@@ -133,7 +133,7 @@ function checkLateReturns() {
       ev.code        AS event_code,
       t.responsible_person
     FROM events ev
-    JOIN transactions t ON t.event_id = ev.id AND t.type = 'OUT'
+    JOIN transactions t ON t.event_id = ev.id AND t.type = 'OUT' AND t.status = 'completed'
     WHERE ev.deleted_at IS NULL
       AND COALESCE(ev.end_date, ev.filming_date) IS NOT NULL
       AND datetime(COALESCE(ev.end_date, ev.filming_date) || ' 23:59:59', '+12 hours') <= datetime('now','localtime')
@@ -143,8 +143,8 @@ function checkLateReturns() {
       AND EXISTS (
         SELECT 1 FROM (
           SELECT
-            SUM(CASE WHEN t2.type = 'OUT'    THEN ti.quantity ELSE 0 END) AS qty_out,
-            SUM(CASE WHEN t2.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_returned
+            SUM(CASE WHEN t2.type = 'OUT' AND t2.status = 'completed' THEN ti.quantity ELSE 0 END) AS qty_out,
+            SUM(CASE WHEN t2.type = 'RETURN'                           THEN ti.quantity ELSE 0 END) AS qty_returned
           FROM transaction_items ti
           JOIN transactions t2 ON t2.id = ti.transaction_id
           WHERE t2.event_id = ev.id

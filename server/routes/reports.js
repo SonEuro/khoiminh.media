@@ -14,13 +14,15 @@ router.get('/summary', (req, res) => {
   `).get();
 
   const by_category = db.prepare(`
-    SELECT c.name, c.code, c.icon,
+    SELECT COALESCE(c.name, 'Chưa phân loại') AS name,
+           COALESCE(c.code, 'OTHER')           AS code,
+           COALESCE(c.icon, '📦')              AS icon,
       SUM(e.qty_total)       as total,
       SUM(e.qty_available)   as available,
       SUM(e.qty_in_use)      as in_use,
       SUM(e.qty_damaged)     as damaged
     FROM equipment e
-    JOIN categories c ON c.id = e.category_id
+    LEFT JOIN categories c ON c.id = e.category_id
     GROUP BY c.id
     ORDER BY c.name
   `).all();
@@ -29,27 +31,31 @@ router.get('/summary', (req, res) => {
     SELECT e.id, e.code, e.name, e.client, e.start_date, e.end_date,
       (SELECT SUM(ti.quantity) FROM transaction_items ti
        JOIN transactions t ON t.id = ti.transaction_id
-       WHERE t.event_id = e.id AND t.type = 'OUT') as qty_out,
+       WHERE t.event_id = e.id AND t.type = 'OUT' AND t.status != 'pending') as qty_out,
       (SELECT SUM(ti.quantity) FROM transaction_items ti
        JOIN transactions t ON t.id = ti.transaction_id
        WHERE t.event_id = e.id AND t.type = 'RETURN') as qty_returned
-    FROM events e WHERE e.status IN ('planned','active')
+    FROM events e
+    WHERE e.status IN ('planned','active')
+      AND e.deleted_at IS NULL AND e.archived_at IS NULL
     ORDER BY e.start_date
   `).all();
 
   const low_stock = db.prepare(`
-    SELECT e.code, e.name, e.qty_available, e.unit, c.name as category
+    SELECT e.code, e.name, e.qty_available, e.unit,
+           COALESCE(c.name, 'Chưa phân loại') as category
     FROM equipment e
-    JOIN categories c ON c.id = e.category_id
+    LEFT JOIN categories c ON c.id = e.category_id
     WHERE e.qty_available <= 2 AND e.qty_total > 0
     ORDER BY e.qty_available
     LIMIT 10
   `).all();
 
   const damaged_list = db.prepare(`
-    SELECT e.code, e.name, e.qty_damaged, e.qty_lost, e.unit, c.name as category
+    SELECT e.code, e.name, e.qty_damaged, e.qty_lost, e.unit,
+           COALESCE(c.name, 'Chưa phân loại') as category
     FROM equipment e
-    JOIN categories c ON c.id = e.category_id
+    LEFT JOIN categories c ON c.id = e.category_id
     WHERE e.qty_damaged > 0 OR e.qty_lost > 0
     ORDER BY e.qty_damaged DESC
   `).all();
