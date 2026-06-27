@@ -708,7 +708,7 @@ export default function ExportForm() {
                     </div>
 
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
-                    <div style={{ display:'grid', gridTemplateColumns:'68px 56px', gap:'5px', flexShrink:0 }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'56px 56px', gap:'5px', flexShrink:0 }}>
                       {/* Qty */}
                       <input type="number" min="1"
                         value={item.quantity}
