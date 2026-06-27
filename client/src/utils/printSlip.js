@@ -43,7 +43,7 @@ function buildSlipHTML(tx, preview = false) {
   ` : '';
 
   const totalCount = khoItems.length + extItems.length;
-  const blankCount = totalCount >= 20 ? 2 : Math.max(18 - totalCount, 4);
+  const blankCount = totalCount > 20 ? 0 : Math.max(18 - totalCount, 4);
   const blankRows  = Array(blankCount).fill(
     '<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>'
   ).join('');
