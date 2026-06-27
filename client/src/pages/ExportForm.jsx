@@ -513,7 +513,8 @@ export default function ExportForm() {
 
                       {/* Rental days gold */}
                       <div style={{
-                        flexShrink:0, width:'56px', height:'36px', position:'relative',
+                        flexShrink:0, width:'56px', height:'36px',
+                        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px',
                         background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
                         borderRadius:'8px', overflow:'hidden',
                       }}>
@@ -521,13 +522,12 @@ export default function ExportForm() {
                           value={item.rental_days || 1}
                           onChange={e => setItem(idx, 'rental_days', +e.target.value)}
                           style={{
-                            position:'absolute', top:0, left:0, width:'100%', height:'100%',
-                            border:'none', background:'transparent', outline:'none',
+                            width:'100%', height:'20px', border:'none', background:'transparent', outline:'none',
                             textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800,
-                            padding:'0 0 10px 0', boxSizing:'border-box',
+                            padding:0, lineHeight:'20px',
                           }}
                         />
-                        <span style={{ position:'absolute', bottom:'3px', left:0, right:0, textAlign:'center', fontSize:'0.52rem', color:'rgba(251,191,36,0.7)', lineHeight:1, pointerEvents:'none' }}>ngày</span>
+                        <span style={{ fontSize:'0.52rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
                       </div>
 
                       {/* Notes toggle */}
@@ -832,13 +832,13 @@ export default function ExportForm() {
                         style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                       />
                       {/* Ngày */}
-                      <div style={{ flexShrink:0, width:'56px', height:'36px', position:'relative', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
+                      <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
                           value={row.rental_days || 1}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: +e.target.value } : r))}
-                          style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:'0 0 10px 0', boxSizing:'border-box' }}
+                          style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
-                        <span style={{ position:'absolute', bottom:'3px', left:0, right:0, textAlign:'center', fontSize:'0.52rem', color:'rgba(251,191,36,0.7)', lineHeight:1, pointerEvents:'none' }}>ngày</span>
+                        <span style={{ fontSize:'0.52rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
                       </div>
                       {/* X */}
                       <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
