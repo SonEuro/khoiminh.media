@@ -101,8 +101,7 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
           const eqId = item.equipment_id;
 
           if (tx.type === 'OUT' && tx.status === 'pending') {
-            db.prepare(`UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`)
-              .run(qty, eqId);
+            // Pending không trừ kho → xóa không cần hoàn lại
           } else if (tx.type === 'OUT') {
             db.prepare(`UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?`)
               .run(qty, qty, eqId);

@@ -47,7 +47,7 @@ function cleanupTrash() {
             const qty = item.quantity;
             const eqId = item.equipment_id;
             if (tx.type === 'OUT' && tx.status === 'pending') {
-              db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?').run(qty, eqId);
+              // Pending không trừ kho → xóa không cần hoàn lại
             } else if (tx.type === 'OUT') {
               db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?').run(qty, qty, eqId);
             } else if (tx.type === 'RETURN') {
@@ -347,7 +347,7 @@ router.delete('/:id/permanent', adminOnly, (req, res) => {
         const qty = item.quantity;
         const eqId = item.equipment_id;
         if (tx.type === 'OUT' && tx.status === 'pending') {
-          db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?').run(qty, eqId);
+          // Pending không trừ kho → xóa không cần hoàn lại
         } else if (tx.type === 'OUT') {
           db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?').run(qty, qty, eqId);
         } else if (tx.type === 'RETURN') {
