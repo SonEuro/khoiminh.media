@@ -263,7 +263,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
               }}>
                 {filteredEq.map(eq => {
                   const inList = khoItems.some(i => i.equipment_id === eq.id);
-                  const freeQty = eq.qty_available - (eq.qty_reserved || 0);
+                  const freeQty = eq.qty_available;
                   return (
                     <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
                       style={{

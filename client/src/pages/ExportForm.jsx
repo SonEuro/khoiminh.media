@@ -677,7 +677,8 @@ export default function ExportForm() {
                       {searchTerms[idx] && !item.equipment_id && (
                         <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
                           {filteredEquip(searchTerms[idx], idx).map(e => {
-                            const free = Math.max(0, e.qty_available - (e.qty_reserved || 0));
+                            const free = Math.max(0, e.qty_available);
+                            const pendingQty = (reservedMap[e.id] || []).reduce((s, r) => s + r.qty, 0);
                             return (
                               <button type="button" key={e.id}
                                 style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.06)', cursor:'pointer', display:'block' }}
@@ -690,7 +691,7 @@ export default function ExportForm() {
                                 <div style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.92rem', marginBottom:'4px' }}>{e.name}</div>
                                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                                   <span style={{ fontSize:'0.75rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>Còn {free} {e.unit}</span>
-                                  {e.qty_reserved > 0 && <span style={{ fontSize:'0.72rem', color:'#fbbf24' }}>· {e.qty_reserved} đặt trước</span>}
+                                  {pendingQty > 0 && <span style={{ fontSize:'0.72rem', color:'#fbbf24' }}>· {pendingQty} tạm xuất</span>}
                                   <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace', marginLeft:'auto' }}>{e.code}</span>
                                 </div>
                               </button>
@@ -782,8 +783,8 @@ export default function ExportForm() {
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'10px', marginBottom:'8px', fontSize:'0.7rem' }}>
                           <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:'monospace' }}>{eq.code}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
-                          <span style={{ color:'var(--text-muted)' }}>Tự do: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available - (eq.qty_reserved || 0)}</span></span>
-                          {eq.qty_reserved > 0 && <span style={{ color:'var(--text-muted)' }}>Đặt trước: <span style={{ color:'#fbbf24', fontWeight:700 }}>{eq.qty_reserved}</span></span>}
+                          <span style={{ color:'var(--text-muted)' }}>Khả dụng: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
+                          {(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0) > 0 && <span style={{ color:'var(--text-muted)' }}>Tạm xuất: <span style={{ color:'#fbbf24', fontWeight:700 }}>{(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0)}</span></span>}
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
                         </div>
                       )}
