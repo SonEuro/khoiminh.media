@@ -467,11 +467,7 @@ export default function ExportForm() {
 
                     {/* ── Dòng 1: Badge + Nhà CC + Qty + Ngày + ✏️ + X ── */}
                     <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
-                      <span style={{
-                        fontSize:'0.68rem', fontWeight:800, color:'#60a5fa', flexShrink:0,
-                        background:'rgba(96,165,250,0.12)', border:'1px solid rgba(96,165,250,0.3)',
-                        borderRadius:'6px', padding:'3px 8px',
-                      }}>N{nccSeq}</span>
+                      <span style={{ display:'none' }}>N{nccSeq}</span>
 
                       {/* Supplier search */}
                       <div style={{ flex:1, position:'relative', minWidth:0 }}>
