@@ -610,6 +610,8 @@ export default function ExportForm() {
               const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
               const isOpen = expandedRows.has(idx);
               const filled = !!item.equipment_id;
+              const free = eq ? Math.max(0, eq.qty_available - (eq.qty_reserved || 0)) : 9999;
+              const qtyOver = eq && item.quantity > free;
 
               const insertExtBelow = () => {
                 setItems(prev => {
@@ -692,28 +694,28 @@ export default function ExportForm() {
                         </div>
                       )}
                       {/* Info strip dưới search khi đã chọn */}
-                      {eq && !isOpen && (() => {
-                        const free = eq.qty_available - (eq.qty_reserved || 0);
-                        return (
-                          <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px' }}>
-                            <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
-                            <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit}</span>
-                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.65rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
-                          </div>
-                        );
-                      })()}
+                      {eq && !isOpen && (
+                        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px' }}>
+                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                          <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit}</span>
+                          {eq.qty_reserved > 0 && <span style={{ fontSize:'0.65rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
+                        </div>
+                      )}
                     </div>
 
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
                     <div style={{ display:'grid', gridTemplateColumns:'56px 56px', gap:'5px', flexShrink:0 }}>
                       {/* Qty */}
-                      <input type="number" min="1"
-                        value={item.quantity}
-                        onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                      <input type="number" min="1" max={eq ? free : undefined}
+                        value={item.quantity ?? 1}
+                        onChange={e => setItem(idx, 'quantity', Math.min(+e.target.value, eq ? free : 9999))}
+                        onBlur={e => setItem(idx, 'quantity', Math.max(1, Math.min(parseInt(e.target.value) || 1, eq ? free : 9999)))}
+                        title={eq ? `Tối đa: ${free} ${eq.unit}` : ''}
                         style={{
                           height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
-                          background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
-                          borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
+                          background: qtyOver ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.08)',
+                          border: `1px solid ${qtyOver ? 'rgba(248,113,113,0.6)' : 'rgba(74,222,128,0.35)'}`,
+                          borderRadius:'8px', color: qtyOver ? '#f87171' : '#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
                         }}
                       />
                       {/* Delete X */}
