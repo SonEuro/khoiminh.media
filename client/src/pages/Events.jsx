@@ -61,7 +61,6 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       const data = { ...form };
       data.filming_dates = datesArr;
       data.filming_date = datesArr[datesArr.length - 1] || '';
-      data.show_date = form.show_date || '';
       if (datesArr.length > 0) {
         if (!data.start_date) data.start_date = datesArr[0];
         if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
@@ -135,13 +134,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         <div>
           <label className="label">Ngày bắt đầu</label>
           <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)}
-            min={new Date().toISOString().slice(0,10)}
+            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
             style={form.start_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
           <DateInput value={form.end_date || ''} onChange={v => set('end_date', v)}
-            min={new Date().toISOString().slice(0,10)}
+            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
