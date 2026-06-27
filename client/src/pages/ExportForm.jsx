@@ -714,14 +714,14 @@ export default function ExportForm() {
                       )}
                     </div>
 
-                    {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
-                    <div style={{ display:'grid', gridTemplateColumns:'68px 56px', gap:'5px', flexShrink:0 }}>
+                    {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] — gridTemplateRows đồng đều */}
+                    <div style={{ display:'grid', gridTemplateColumns:'68px 56px', gridTemplateRows:'1fr 1fr', gap:'5px', flexShrink:0, alignSelf:'stretch' }}>
                       {/* Qty */}
                       <input type="number" min="1"
                         value={item.quantity}
                         onChange={e => setItem(idx, 'quantity', +e.target.value)}
                         style={{
-                          height:'38px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                          padding:'0', textAlign:'center', boxSizing:'border-box',
                           background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
                           borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
                         }}
@@ -729,7 +729,7 @@ export default function ExportForm() {
                       {/* Delete X */}
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{
-                          height:'38px', borderRadius:'8px', cursor:'pointer',
+                          borderRadius:'8px', cursor:'pointer',
                           border:'1px solid rgba(248,113,113,0.3)', background:'transparent',
                           color:'rgba(248,113,113,0.65)', fontSize:'1rem',
                           display:'flex', alignItems:'center', justifyContent:'center',
@@ -741,7 +741,7 @@ export default function ExportForm() {
                       {/* Notes toggle ✏️ */}
                       <button type="button" onClick={() => toggleExpand(idx)}
                         style={{
-                          height:'34px', borderRadius:'8px', cursor:'pointer',
+                          borderRadius:'8px', cursor:'pointer',
                           border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
                           background: isOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
                           color: isOpen ? '#e8c97a' : '#4a4a6a',
@@ -752,7 +752,7 @@ export default function ExportForm() {
                       {/* THUÊ NCC */}
                       <button type="button" onClick={insertExtBelow}
                         style={{
-                          height:'34px', borderRadius:'8px', cursor:'pointer',
+                          borderRadius:'8px', cursor:'pointer',
                           border:'1px solid rgba(96,165,250,0.3)',
                           background:'transparent', color:'rgba(96,165,250,0.6)',
                           fontSize:'0.67rem', fontWeight:800, letterSpacing:'0.02em',
