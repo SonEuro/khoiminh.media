@@ -2,7 +2,7 @@
   "name": "kho-khoiminh",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd client && npm install && npm run build && cp -r dist ../server/public",
+    "build": "cd client && npm install && npm run build && rm -rf ../server/public && cp -r dist ../server/public",
     "start": "node server/restore.js && node server/index.js",
     "postinstall": "cd server && npm install"
   },
