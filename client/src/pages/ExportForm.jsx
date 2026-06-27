@@ -645,14 +645,15 @@ export default function ExportForm() {
                   padding:'10px',
                 }}>
 
-                  {/* ── Dòng 1: STT + Search + Xóa ── */}
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                  {/* ── Dòng chính: # + Search + Qty + ✏️ + THUÊ + X ── */}
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                     <span style={{
-                      fontSize:'0.72rem', fontWeight:700, flexShrink:0, minWidth:'22px', textAlign:'center',
+                      fontSize:'0.72rem', fontWeight:700, flexShrink:0, minWidth:'20px', textAlign:'center',
                       color: filled ? 'var(--gold)' : 'var(--text-muted)',
                     }}>{khoSeq}</span>
 
-                    <div style={{ flex:1, position:'relative' }}>
+                    {/* Search */}
+                    <div style={{ flex:1, position:'relative', minWidth:0 }}>
                       <input
                         style={{
                           display:'block', width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
@@ -698,6 +699,45 @@ export default function ExportForm() {
                       )}
                     </div>
 
+                    {/* Qty — compact */}
+                    <input type="number" min="1"
+                      value={item.quantity}
+                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                      style={{
+                        flexShrink:0, width:'62px', height:'38px', padding:'0',
+                        textAlign:'center', boxSizing:'border-box',
+                        background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
+                        borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
+                      }}
+                    />
+
+                    {/* Notes toggle */}
+                    <button type="button" onClick={() => toggleExpand(idx)}
+                      style={{
+                        flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
+                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.18)',
+                        background: isOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                        color: isOpen ? '#e8c97a' : '#5a5a7a',
+                        fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center',
+                      }}>
+                      ✏️
+                    </button>
+
+                    {/* THUÊ NCC */}
+                    <button type="button" onClick={insertExtBelow}
+                      style={{
+                        flexShrink:0, width:'48px', height:'38px', borderRadius:'8px', cursor:'pointer',
+                        border:'1px solid rgba(96,165,250,0.3)',
+                        background:'transparent', color:'rgba(96,165,250,0.6)',
+                        fontSize:'0.68rem', fontWeight:800, letterSpacing:'0.02em',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                      }}
+                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
+                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
+                      THUÊ
+                    </button>
+
+                    {/* Delete */}
                     <button type="button" onClick={() => removeItem(idx)}
                       style={{
                         flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
@@ -713,7 +753,7 @@ export default function ExportForm() {
 
                   {/* ── Info strip khi đã chọn ── */}
                   {eq && !isOpen && (
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px', paddingLeft:'30px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'6px', paddingLeft:'26px' }}>
                       <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
                       <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.4)' }}>·</span>
                       <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
@@ -729,44 +769,6 @@ export default function ExportForm() {
                       })()}
                     </div>
                   )}
-
-                  {/* ── Dòng 2: Số lượng + Ghi chú + THUÊ ── */}
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 44px 64px', gap:'8px' }}>
-                    <input type="number" min="1"
-                      value={item.quantity}
-                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
-                      style={{
-                        height:'42px', width:'100%', padding:'0', boxSizing:'border-box',
-                        textAlign:'center',
-                        background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
-                        borderRadius:'8px', color:'#4ade80', fontSize:'1.1rem', fontWeight:800, outline:'none',
-                      }}
-                    />
-
-                    <button type="button" onClick={() => toggleExpand(idx)}
-                      style={{
-                        height:'42px', borderRadius:'8px', cursor:'pointer',
-                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                        background: isOpen ? 'rgba(201,168,76,0.2)' : 'transparent',
-                        color: isOpen ? '#e8c97a' : '#5a5a7a',
-                        fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center',
-                      }}>
-                      ✏️
-                    </button>
-
-                    <button type="button" onClick={insertExtBelow}
-                      style={{
-                        height:'42px', borderRadius:'8px', cursor:'pointer',
-                        border:'1px solid rgba(96,165,250,0.3)',
-                        background:'transparent', color:'rgba(96,165,250,0.6)',
-                        fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.03em',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                      }}
-                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
-                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
-                      THUÊ
-                    </button>
-                  </div>
 
                   {/* ── Expanded edit panel ── */}
                   {isOpen && (
