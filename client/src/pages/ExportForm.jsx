@@ -345,7 +345,21 @@ export default function ExportForm() {
                         }}>
                           {events.map(ev => (
                             <button key={ev.id} type="button"
-                              onClick={() => { setField('event_id', ev.id); setEventError(false); setEventDropOpen(false); setDateError(''); setField('expected_return_date', ''); }}
+                              onClick={() => {
+                                setField('event_id', ev.id);
+                                setEventError(false);
+                                setEventDropOpen(false);
+                                setDateError('');
+                                // Auto-set return date = ngày ghi hình nếu là sự kiện tương lai (xuất tạm)
+                                const evFilmDates = parseFilmingDates(ev);
+                                const earliest = [...evFilmDates].sort()[0] || null;
+                                const td = new Date().toISOString().slice(0, 10);
+                                if (earliest && earliest > td) {
+                                  setField('expected_return_date', getMinReturnDate(ev.id));
+                                } else {
+                                  setField('expected_return_date', '');
+                                }
+                              }}
                               style={{
                                 width:'100%', textAlign:'left', padding:'8px 12px',
                                 background: String(ev.id) === String(form.event_id) ? 'rgba(201,168,76,0.12)' : 'transparent',
