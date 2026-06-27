@@ -277,7 +277,7 @@ router.post('/', canWrite, (req, res) => {
   }
 
   const code = nextCode();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = db.prepare("SELECT date('now','localtime') AS d").get().d;
   const initialStatus = (start_date && start_date <= today) ? 'active' : 'planned';
   const r = db.prepare(`
     INSERT INTO events (code, name, client, location, start_date, end_date, filming_date, filming_dates, notes, status, created_by, created_by_id)
