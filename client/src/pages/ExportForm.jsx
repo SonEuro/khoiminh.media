@@ -93,7 +93,7 @@ export default function ExportForm() {
 
   useEffect(() => {
     reloadEquipment();
-    api.getEvents().then(setEvents);
+    api.getEvents().then(data => setEvents((data || []).filter(e => ['planned','active'].includes(e.status))));
     const onFocus = () => reloadEquipment();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);

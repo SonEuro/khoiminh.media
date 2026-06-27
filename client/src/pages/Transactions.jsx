@@ -181,11 +181,12 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         quantity: it.quantity,
       })));
       setExtItems((txData.external_items || []).map(it => ({
-        name: it.name,
-        supplier: it.supplier || '',
-        quantity: it.quantity || 1,
-        unit: it.unit || 'Cái',
+        name:        it.name,
+        supplier:    it.supplier    || '',
+        quantity:    it.quantity    || 1,
+        unit:        it.unit        || 'Cái',
         rental_days: it.rental_days || 1,
+        notes:       it.notes       || '',
       })));
     });
   }, [txId]);

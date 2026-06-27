@@ -87,12 +87,14 @@ router.get('/', (req, res) => {
 
     const items = db.prepare(`
       SELECT ti.equipment_id, eq.name AS eq_name, eq.unit, eq.qty_available,
-        SUM(ti.quantity) AS qty
+        SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
+        SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END) AS qty
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
       JOIN equipment eq ON eq.id = ti.equipment_id
-      WHERE t.event_id = ? AND t.type = 'OUT' AND t.status IN ('pending', 'completed')
+      WHERE t.event_id = ? AND t.status IN ('pending', 'completed')
       GROUP BY ti.equipment_id
+      HAVING qty > 0
     `).all(ev.id);
 
     for (const item of items) {

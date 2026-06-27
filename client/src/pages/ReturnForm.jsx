@@ -187,7 +187,7 @@ function FixTab({ equipment, onDone }) {
   return (
     <form onSubmit={submit}>
       <div style={sectionStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label style={labelStyle}>Bộ phận</label>
             {myDept ? (
@@ -304,7 +304,7 @@ function IntakeTab({ onDone }) {
 
         {/* Thông tin chung */}
         <div style={sectionStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label style={labelStyle}>Bộ phận</label>
               <select className="input" value={department} onChange={e => setDepartment(e.target.value)}>

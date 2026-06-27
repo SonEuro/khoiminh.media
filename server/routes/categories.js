@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
+const { requireRole } = require('../middleware/auth');
 
 router.get('/', (req, res) => {
   const rows = db.prepare(`
@@ -12,7 +13,7 @@ router.get('/', (req, res) => {
   res.json(rows);
 });
 
-router.post('/', (req, res) => {
+router.post('/', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const { name, code, icon } = req.body;
   if (!name || !code) return res.status(400).json({ error: 'name và code là bắt buộc' });
   try {

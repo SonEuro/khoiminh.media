@@ -606,7 +606,7 @@ export default function EventReport() {
             )}
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>Địa điểm</label>
               <input className="input" placeholder="Tự động khi chọn sự kiện..."
@@ -648,7 +648,7 @@ export default function EventReport() {
           <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Mốc Thời Gian
           </h3>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px' }}>
+          <div className="grid grid-cols-2 gap-4">
             {[
               ['Thời gian có mặt', 'time_present'],
               ['Thời gian Onset', 'time_onset'],

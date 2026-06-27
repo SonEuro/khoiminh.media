@@ -71,7 +71,7 @@ router.get('/inventory', (req, res) => {
            e.qty_total, e.qty_available, e.qty_in_use,
            e.qty_maintenance, e.qty_damaged, e.qty_lost
     FROM equipment e
-    JOIN categories c ON c.id = e.category_id
+    LEFT JOIN categories c ON c.id = e.category_id
     ORDER BY c.code, e.code
   `).all();
   res.json(rows);

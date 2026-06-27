@@ -135,8 +135,8 @@ function checkLateReturns() {
     FROM events ev
     JOIN transactions t ON t.event_id = ev.id AND t.type = 'OUT'
     WHERE ev.deleted_at IS NULL
-      AND ev.end_date IS NOT NULL
-      AND datetime(ev.end_date || ' 23:59:59', '+12 hours') <= datetime('now','localtime')
+      AND COALESCE(ev.end_date, ev.filming_date) IS NOT NULL
+      AND datetime(COALESCE(ev.end_date, ev.filming_date) || ' 23:59:59', '+12 hours') <= datetime('now','localtime')
       AND ev.status != 'cancelled'
       AND t.responsible_person IS NOT NULL
       AND t.responsible_person != ''
@@ -240,7 +240,7 @@ router.get('/:id', (req, res) => {
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN equipment e ON e.id = ti.equipment_id
-    WHERE t.event_id = ?
+    WHERE t.event_id = ? AND t.status != 'pending'
     GROUP BY ti.equipment_id
   `).all(req.params.id);
 
