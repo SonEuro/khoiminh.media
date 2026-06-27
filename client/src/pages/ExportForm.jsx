@@ -92,6 +92,13 @@ export default function ExportForm() {
     return candidates.sort().pop();
   };
 
+  // Tính trạng thái xuất tạm dựa trên sự kiện đang chọn
+  const selEvForPending = events.find(ev => String(ev.id) === String(form.event_id));
+  const currentFilmingDates = parseFilmingDates(selEvForPending);
+  const currentFilmingSet = new Set(currentFilmingDates);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isPendingExport = currentFilmingDates.length > 0 && [...currentFilmingDates].sort()[0] > todayStr;
+
   useEffect(() => {
     reloadEquipment();
     api.getEvents().then(data => setEvents((data || []).filter(e => ['planned','active'].includes(e.status))));
@@ -295,7 +302,7 @@ export default function ExportForm() {
         <p className="text-gray-500 text-sm">Phải chọn sự kiện trước khi xuất thiết bị</p>
       </div>
 
-      <form onSubmit={submit} className="space-y-6">
+      <form onSubmit={submit} className="space-y-6" noValidate>
         {/* Header info */}
         <div className="card space-y-4">
           <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.9rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Thông tin phiếu</h2>
@@ -618,8 +625,13 @@ export default function ExportForm() {
               const isOpen = expandedRows.has(idx);
               const filled = !!item.equipment_id;
               const free = eq ? Math.max(0, eq.qty_available) : 9999;
-              const qtyOver = eq && item.quantity > free;
+              const qtyOver = !isPendingExport && eq && item.quantity > free;
               const pendingWarnings = eq ? (reservedMap[eq.id] || []) : [];
+              const sameDayWarnings = eq ? (reservedMap[eq.id] || []).filter(w => {
+                if (String(w.event_id) === String(form.event_id)) return false;
+                const otherEv = events.find(e => String(e.id) === String(w.event_id));
+                return otherEv && parseFilmingDates(otherEv).some(d => currentFilmingSet.has(d));
+              }) : [];
 
               const insertExtBelow = () => {
                 setItems(prev => {
@@ -718,6 +730,15 @@ export default function ExportForm() {
                               ))}
                             </div>
                           )}
+                          {sameDayWarnings.length > 0 && (
+                            <div style={{ marginTop:'4px', display:'flex', flexDirection:'column', gap:'2px' }}>
+                              {sameDayWarnings.map((w, i) => (
+                                <span key={i} style={{ fontSize:'0.63rem', color:'#fb923c', background:'rgba(251,146,60,0.08)', border:'1px solid rgba(251,146,60,0.3)', borderRadius:'5px', padding:'2px 7px' }}>
+                                  📅 Cùng ngày ghi hình: {w.event_name} tạm xuất {w.qty} {eq.unit}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -725,11 +746,13 @@ export default function ExportForm() {
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
                     <div style={{ display:'grid', gridTemplateColumns:'56px 56px', gap:'5px', flexShrink:0 }}>
                       {/* Qty */}
-                      <input type="number" min="1" max={eq ? free : undefined}
+                      <input type="number" min="1" max={isPendingExport ? undefined : (eq ? free : undefined)}
                         value={item.quantity ?? 1}
                         onChange={e => setItem(idx, 'quantity', e.target.value)}
-                        onBlur={e => setItem(idx, 'quantity', Math.max(1, Math.min(parseInt(e.target.value) || 1, eq ? free : 9999)))}
-                        title={eq ? `Tối đa: ${free} ${eq.unit}` : ''}
+                        onBlur={e => setItem(idx, 'quantity', isPendingExport
+                          ? Math.max(1, parseInt(e.target.value) || 1)
+                          : Math.max(1, Math.min(parseInt(e.target.value) || 1, eq ? free : 9999)))}
+                        title={eq ? (isPendingExport ? `Xuất tạm – nhập số lượng cần dùng` : `Tối đa: ${free} ${eq.unit}`) : ''}
                         style={{
                           height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
                           background: qtyOver ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.08)',
