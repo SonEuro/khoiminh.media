@@ -508,7 +508,7 @@ export default function ExportForm() {
                         onChange={e => setItem(idx, 'quantity', e.target.value)}
                         onBlur={e => setItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                         style={{
-                          flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                          flexShrink:0, width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
                           background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
                           borderRadius:'8px', color:'#60a5fa', fontSize:'1.05rem', fontWeight:800, outline:'none',
                         }}
@@ -516,7 +516,7 @@ export default function ExportForm() {
 
                       {/* Rental days gold */}
                       <div style={{
-                        flexShrink:0, width:'56px', height:'36px',
+                        flexShrink:0, width:'46px', height:'36px',
                         display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px',
                         background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
                         borderRadius:'8px', overflow:'hidden',
@@ -537,11 +537,11 @@ export default function ExportForm() {
                       {/* Notes toggle */}
                       <button type="button" onClick={() => toggleExpand(idx)}
                         style={{
-                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
+                          flexShrink:0, width:'34px', height:'36px', borderRadius:'8px', cursor:'pointer',
                           border: isExpanded ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
                           background: isExpanded ? 'rgba(96,165,250,0.2)' : 'transparent',
                           color: isExpanded ? '#60a5fa' : 'rgba(96,165,250,0.35)',
-                          fontSize:'0.95rem', display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:'0.85rem', display:'flex', alignItems:'center', justifyContent:'center',
                         }}>
                         ✏️
                       </button>
@@ -549,9 +549,9 @@ export default function ExportForm() {
                       {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{
-                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
+                          flexShrink:0, width:'34px', height:'36px', borderRadius:'8px', cursor:'pointer',
                           border:'1px solid rgba(248,113,113,0.3)', background:'transparent',
-                          color:'rgba(248,113,113,0.7)', fontSize:'1rem',
+                          color:'rgba(248,113,113,0.7)', fontSize:'0.9rem',
                           display:'flex', alignItems:'center', justifyContent:'center',
                         }}
                         onMouseEnter={ev => { ev.currentTarget.style.background='rgba(248,113,113,0.12)'; ev.currentTarget.style.color='#f87171'; }}
@@ -836,10 +836,10 @@ export default function ExportForm() {
                         value={row.quantity ?? 1}
                         onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: e.target.value } : r))}
                         onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: Math.max(1, parseInt(e.target.value) || 1) } : r))}
-                        style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                        style={{ flexShrink:0, width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                       />
                       {/* Ngày */}
-                      <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
+                      <div style={{ flexShrink:0, width:'46px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
                           value={row.rental_days ?? 1}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: e.target.value } : r))}
@@ -850,7 +850,7 @@ export default function ExportForm() {
                       </div>
                       {/* X */}
                       <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
-                        style={{ flexShrink:0, width:'56px', height:'36px', background:'rgba(229,62,62,0.1)', border:'1px solid rgba(229,62,62,0.3)', borderRadius:'8px', color:'#fc8181', cursor:'pointer', fontSize:'0.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        style={{ flexShrink:0, width:'34px', height:'36px', background:'rgba(229,62,62,0.1)', border:'1px solid rgba(229,62,62,0.3)', borderRadius:'8px', color:'#fc8181', cursor:'pointer', fontSize:'0.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
                         ✕
                       </button>
                     </div>

@@ -235,13 +235,23 @@
 .hide-mobile  { display: block; }
 .show-mobile  { display: none; }
 
+/* ── EventReturn: table vs card layout ──────────── */
+.return-table-wrap { display: block; }
+.return-card-list  { display: none;  }
+
+/* ── EventReturn card layout trên mobile ────────── */
+@media (max-width: 767px) {
+  .return-table-wrap { display: none !important; }
+  .return-card-list  { display: flex !important; flex-direction: column; gap: 8px; }
+}
+
 /* ── iPhone / small phone (≤ 430px) ──────────────── */
 @media (max-width: 430px) {
   .hide-mobile { display: none  !important; }
   .show-mobile { display: block !important; }
 
-  /* Equipment 5-col stat grid → 3 cột trên mobile */
-  .stat-grid-5 { grid-template-columns: repeat(3, 1fr) !important; }
+  /* Equipment 5-col stat grid → giữ 5 cột trên mobile (cells nhỏ, vẫn vừa) */
+  .stat-grid-5 { grid-template-columns: repeat(5, 1fr) !important; }
 
   /* EventReport timeline 4-col → 2 cột trên mobile */
   .time-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }

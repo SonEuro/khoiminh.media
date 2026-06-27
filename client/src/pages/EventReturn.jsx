@@ -425,7 +425,8 @@ export default function EventReturn() {
             </button>
           </div>
 
-          <div className="table-wrap">
+          {/* ── Desktop: bảng ── */}
+          <div className="return-table-wrap table-wrap">
             <table style={{ width:'100%', minWidth:'580px' }}>
               <thead>
                 <tr>
@@ -454,58 +455,72 @@ export default function EventReturn() {
                         value={quantities[r.equipment_id] ?? r.qty_pending}
                         onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
                         onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                        style={{
-                          width:'70px', padding:'4px 6px', textAlign:'center',
-                          background:'rgba(255,255,255,0.04)',
-                          border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px',
-                          color:'#4ade80', fontSize:'1.1rem', fontWeight:700,
-                        }}
+                        style={{ width:'70px', padding:'4px 6px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', color:'#4ade80', fontSize:'1.1rem', fontWeight:700 }}
                       />
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
-                      <button type="button"
-                        onClick={() => toggleCheck(r.equipment_id)}
-                        style={{
-                          width:'70px', padding:'4px 6px', textAlign:'center',
-                          background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`,
-                          borderRadius:'6px', cursor:'pointer',
-                          color: checked.has(r.equipment_id) ? '#4ade80' : '#555570',
-                          fontSize:'1.1rem', fontWeight:700, lineHeight:'1.4',
-                          display:'block', margin:'0 auto',
-                        }}
+                      <button type="button" onClick={() => toggleCheck(r.equipment_id)}
+                        style={{ width:'70px', padding:'4px 6px', textAlign:'center', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.1rem', fontWeight:700, lineHeight:'1.4', display:'block', margin:'0 auto' }}
                       >{checked.has(r.equipment_id) ? '✓' : ''}</button>
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
-                      <select
-                        value={conditions[r.equipment_id] || 'good'}
-                        onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        style={{
-                          padding:'4px 6px', fontSize:'0.78rem', fontWeight:600,
-                          background:'#13131d', border:'1px solid rgba(201,168,76,0.3)',
-                          borderRadius:'6px', color:'#e8c97a', cursor:'pointer',
-                        }}
-                      >
+                      <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                        style={{ padding:'4px 6px', fontSize:'0.78rem', fontWeight:600, background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', color:'#e8c97a', cursor:'pointer' }}>
                         {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </select>
                     </td>
                     <td style={{ padding:'8px' }}>
-                      <input
-                        placeholder="Ghi chú..."
-                        value={itemNotes[r.equipment_id] || ''}
-                        onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        style={{
-                          width:'100%', minWidth:'120px', padding:'4px 8px',
-                          background:'rgba(255,255,255,0.04)',
-                          border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px',
-                          color:'var(--text-primary)', fontSize:'0.8rem',
-                        }}
+                      <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                        style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
                       />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* ── Mobile: cards ── */}
+          <div className="return-card-list" style={{ padding:'10px 14px' }}>
+            {visibleItems.map(r => (
+              <div key={r.equipment_id} style={{ background:'rgba(201,168,76,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.4)' : 'rgba(201,168,76,0.18)'}`, borderRadius:'10px', padding:'12px', transition:'border-color 0.15s' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.88rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
+                    <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0' }}>{r.eq_code} · {r.category_code}</p>
+                  </div>
+                  <div style={{ textAlign:'right', flexShrink:0, marginLeft:'10px' }}>
+                    <p style={{ fontSize:'0.6rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
+                    <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
+                  </div>
+                </div>
+                <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', marginBottom:'8px' }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
+                    <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số nhập</span>
+                    <input type="number" min="0" max={r.qty_pending}
+                      value={quantities[r.equipment_id] ?? r.qty_pending}
+                      onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                      onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
+                      style={{ width:'100%', padding:'8px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#4ade80', fontSize:'1.2rem', fontWeight:800 }}
+                    />
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:2 }}>
+                    <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tình trạng</span>
+                    <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                      style={{ width:'100%', padding:'8px', background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#e8c97a', cursor:'pointer', fontSize:'0.88rem', fontWeight:600 }}>
+                      {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                  <button type="button" onClick={() => toggleCheck(r.equipment_id)}
+                    style={{ flexShrink:0, width:'52px', height:'52px', borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.4rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                    {checked.has(r.equipment_id) ? '✓' : ''}
+                  </button>
+                </div>
+                <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                  style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -526,7 +541,8 @@ export default function EventReturn() {
               Chọn tất cả
             </button>
           </div>
-          <div className="table-wrap">
+          {/* ── Desktop: bảng ── */}
+          <div className="return-table-wrap table-wrap">
             <table style={{ width:'100%', minWidth:'560px' }}>
               <thead>
                 <tr>
@@ -565,10 +581,7 @@ export default function EventReturn() {
                         </button>
                       </td>
                       <td style={{ padding:'8px' }}>
-                        <input
-                          placeholder="Ghi chú..."
-                          value={extNotes[k] || ''}
-                          onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
+                        <input placeholder="Ghi chú..." value={extNotes[k] || ''} onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
                           style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
                         />
                       </td>
@@ -577,6 +590,46 @@ export default function EventReturn() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* ── Mobile: cards ── */}
+          <div className="return-card-list" style={{ padding:'10px 14px' }}>
+            {outstandingExt.map(r => {
+              const k = extKey(r);
+              return (
+                <div key={k} style={{ background:'rgba(96,165,250,0.04)', border:`1px solid ${checkedExt.has(k) ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.18)'}`, borderRadius:'10px', padding:'12px', transition:'border-color 0.15s' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.88rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.name}</p>
+                      <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0' }}>{r.supplier} · {r.rental_days} ngày</p>
+                    </div>
+                    <div style={{ textAlign:'right', flexShrink:0, marginLeft:'10px' }}>
+                      <p style={{ fontSize:'0.6rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
+                      <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', marginBottom:'8px' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
+                      <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số trả</span>
+                      <input type="number" min="0" max={r.qty_pending}
+                        value={extQty[k] ?? r.qty_pending}
+                        onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}
+                        onBlur={e => setExtQty(prev => ({ ...prev, [k]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
+                        style={{ width:'100%', padding:'8px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'8px', color:'#60a5fa', fontSize:'1.2rem', fontWeight:800 }}
+                      />
+                    </div>
+                    <button type="button"
+                      onClick={() => setCheckedExt(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; })}
+                      style={{ flexShrink:0, width:'52px', height:'52px', borderRadius:'8px', cursor:'pointer', background: checkedExt.has(k) ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checkedExt.has(k) ? '#60a5fa' : 'rgba(201,168,76,0.3)'}`, color: checkedExt.has(k) ? '#60a5fa' : '#555570', fontSize:'1.4rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                      {checkedExt.has(k) ? '✓' : ''}
+                    </button>
+                  </div>
+                  <input placeholder="Ghi chú..." value={extNotes[k] || ''} onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
+                    style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
