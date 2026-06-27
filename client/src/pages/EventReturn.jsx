@@ -615,12 +615,12 @@ export default function EventReturn() {
                         value={extQty[k] ?? r.qty_pending}
                         onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}
                         onBlur={e => setExtQty(prev => ({ ...prev, [k]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                        style={{ width:'100%', padding:'8px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'8px', color:'#60a5fa', fontSize:'1.2rem', fontWeight:800 }}
+                        style={{ width:'100%', padding:'8px 10px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'8px', color:'#60a5fa', fontSize:'1.2rem', fontWeight:800, boxSizing:'border-box' }}
                       />
                     </div>
                     <button type="button"
                       onClick={() => setCheckedExt(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; })}
-                      style={{ flexShrink:0, width:'52px', height:'52px', borderRadius:'8px', cursor:'pointer', background: checkedExt.has(k) ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checkedExt.has(k) ? '#60a5fa' : 'rgba(201,168,76,0.3)'}`, color: checkedExt.has(k) ? '#60a5fa' : '#555570', fontSize:'1.4rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                      style={{ flex:1, padding:'8px 0', borderRadius:'8px', cursor:'pointer', background: checkedExt.has(k) ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checkedExt.has(k) ? '#60a5fa' : 'rgba(201,168,76,0.3)'}`, color: checkedExt.has(k) ? '#60a5fa' : '#555570', fontSize:'1.2rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
                       {checkedExt.has(k) ? '✓' : ''}
                     </button>
                   </div>
