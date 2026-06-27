@@ -186,7 +186,7 @@ export default function Layout() {
         <div
           className="lg:hidden"
           style={{
-            position:'fixed', inset:0, zIndex:50,
+            position:'fixed', inset:0, zIndex:1000,
             display:'flex',
           }}
         >
@@ -197,7 +197,7 @@ export default function Layout() {
           />
           {/* Drawer panel */}
           <div style={{
-            position:'relative', zIndex:51,
+            position:'relative', zIndex:1001,
             width:`calc(240px + env(safe-area-inset-left, 0px))`,
             height:'100%',
             borderRight:`1px solid ${GOLD_DIM}`,
