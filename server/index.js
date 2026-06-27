@@ -1,3 +1,5 @@
+process.env.TZ = 'Asia/Ho_Chi_Minh'; // Bắt buộc đặt trước mọi require
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
