@@ -801,7 +801,7 @@ export default function ExportForm() {
               border: 'none', cursor: 'pointer', transition: 'background 0.2s',
             }}>
             <span style={{ color: '#c9a84c', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              🏪 Thiết bị ngoài
+              🏪 Nhà cung cấp mới
             </span>
             <span style={{ color: '#c9a84c', fontSize: '0.75rem' }}>{extOpen ? '▲ Thu lại' : '▼ Mở rộng'}</span>
           </button>
