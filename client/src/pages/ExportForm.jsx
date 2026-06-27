@@ -412,6 +412,7 @@ export default function ExportForm() {
                       setDeptFilter(d.value);
                       setItems(emptyRows(10));
                       setSearchTerms(Array(10).fill(''));
+                      setExpandedRows(new Set());
                     }
                   }}
                   style={{
@@ -827,12 +828,18 @@ export default function ExportForm() {
               {/* Danh sách thiết bị ngoài */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {extItems.map((row, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 38px', gap: '6px', alignItems: 'center' }}>
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 38px', gap: '6px', alignItems: 'center' }}>
                     <input className="input" placeholder="Tên thiết bị..."
                       value={row.name} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))} />
                     <input className="input" type="number" min="1" placeholder="SL"
                       value={row.quantity} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
                       style={{ textAlign: 'center' }} />
+                    <div style={{ position:'relative' }}>
+                      <input className="input" type="number" min="1" placeholder="Ngày"
+                        value={row.rental_days || 1} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: +e.target.value } : r))}
+                        style={{ textAlign: 'center', paddingBottom:'14px' }} />
+                      <span style={{ position:'absolute', bottom:'4px', left:0, right:0, textAlign:'center', fontSize:'0.55rem', color:'rgba(251,191,36,0.6)', pointerEvents:'none' }}>ngày</span>
+                    </div>
                     <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
                       style={{ width: '38px', height: '38px', background: 'rgba(229,62,62,0.12)', border: '1px solid rgba(229,62,62,0.25)', borderRadius: '6px', color: '#fc8181', cursor: 'pointer', fontSize: '0.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
                       ✕
