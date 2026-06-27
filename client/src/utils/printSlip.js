@@ -147,11 +147,11 @@ function buildSlipHTML(tx, preview = false) {
   @media print { .page-counter-cell::after { content: counter(page); } }
 
   /* ── Footer ── */
-  .footer-section { break-inside: avoid; page-break-inside: avoid; }
+  .footer-td { border:none !important; padding:0 !important; border-top:2px solid #000 !important; }
   .footer-wrap { text-align:center; margin-top:8px; margin-bottom:3px; }
   .footer-date { font-size:16pt; font-weight:bold; display:block; margin-bottom:2px; }
   .footer-note { font-size:9pt; font-weight:bold; display:block; }
-  .sig-row { display:flex; border:2px solid #000; }
+  .sig-row { display:flex; border:2px solid #000; border-top:none; }
   .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:10pt; padding:5px 0 40px; }
   .sig-cell:last-child { border-right:none; }
 
@@ -217,21 +217,21 @@ ${previewBar}
     ${itemRows}
     ${extRows}
     ${blankRows}
+    <tr style="break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid">
+      <td colspan="5" class="footer-td">
+        <div class="footer-wrap">
+          <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
+          <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
+        </div>
+        <div class="sig-row">
+          <div class="sig-cell">Quản lý kho</div>
+          <div class="sig-cell">Quản lý phòng ban</div>
+          <div class="sig-cell">Tổ bảo vệ</div>
+        </div>
+      </td>
+    </tr>
   </tbody>
 </table>
-
-<!-- FOOTER -->
-<div class="footer-section">
-  <div class="footer-wrap">
-    <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
-    <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
-  </div>
-  <div class="sig-row">
-    <div class="sig-cell">Quản lý kho</div>
-    <div class="sig-cell">Quản lý phòng ban</div>
-    <div class="sig-cell">Tổ bảo vệ</div>
-  </div>
-</div>
 
 </div>
 ${printScript}
