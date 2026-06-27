@@ -386,14 +386,19 @@ export default function Events() {
   };
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [showTrash, setShowTrash] = useState(false);
 
   const load = useCallback(() => {
     const params = statusFilter ? { status: statusFilter } : {};
-    api.getEvents(params).then(setEvents);
-  }, [statusFilter]);
+    if (showArchived) params.include_archived = 1;
+    api.getEvents(params).then(data => {
+      if (showArchived) setEvents(data.filter(e => e.archived_at));
+      else setEvents(data);
+    });
+  }, [statusFilter, showArchived]);
 
   useEffect(() => {
     load();
@@ -431,6 +436,12 @@ export default function Events() {
     catch (e) { alert(e.message); }
   };
 
+  const handleUnarchive = async (ev) => {
+    if (!confirm(`Bỏ lưu trữ sự kiện "${ev.name}"?\nSự kiện sẽ xuất hiện lại trong danh sách.`)) return;
+    try { await api.unarchiveEvent(ev.id); load(); }
+    catch (e) { alert(e.message); }
+  };
+
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
@@ -454,11 +465,19 @@ export default function Events() {
       <div className="flex flex-wrap gap-2 mb-4">
         {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành'], ['cancelled', 'Đã hủy']].map(([v, l]) => (
           <button key={v}
-            className={`btn btn-sm ${statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setStatusFilter(v)}>
+            className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { setShowArchived(false); setStatusFilter(v); }}>
             {l}
           </button>
         ))}
+        {user?.role === 'SUPER_ADMIN' && (
+          <button
+            className={`btn btn-sm ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
+            style={showArchived ? { background:'#7c3aed', borderColor:'#7c3aed' } : { borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
+            onClick={() => { setShowArchived(v => !v); setStatusFilter(''); }}>
+            📦 Đã lưu trữ
+          </button>
+        )}
       </div>
 
       <div className="grid gap-4">
@@ -476,6 +495,7 @@ export default function Events() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
                   <span className={s.cls}>{s.label}</span>
+                  {ev.archived_at && <span style={{ fontSize:'0.7rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>
@@ -498,7 +518,10 @@ export default function Events() {
                   <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
-                  <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu</button>
+                  <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>
+                )}
+                {user?.role === 'SUPER_ADMIN' && ev.archived_at && (
+                  <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
                   <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
