@@ -236,15 +236,15 @@ export default function Layout() {
             onClick={() => setDrawerOpen(true)}
             style={{
               background:'transparent', border:`1px solid ${GOLD_DIM}`,
-              borderRadius:'6px', padding:'6px 10px', cursor:'pointer',
+              borderRadius:'9px', padding:'9px 15px', cursor:'pointer',
               color: GOLD, lineHeight:1, display:'flex', alignItems:'center',
             }}
           >
-            <Menu size={18} />
+            <Menu size={27} />
           </button>
 
           {/* Logo */}
-          <Link to="/"><img src="/logo.png" alt="Khôi Minh" style={{ height:'28px', display:'block' }} /></Link>
+          <Link to="/"><img src="/logo.png" alt="Khôi Minh" style={{ height:'42px', display:'block' }} /></Link>
 
           {/* User avatar right */}
           <div style={{ marginLeft:'auto' }}>
