@@ -158,7 +158,7 @@ export default function ExportForm() {
         const found = catalog.find(c => c.name === it.ext_name.trim());
         return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: it.rental_days || 1 };
       });
-    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i })) : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái' })) : [];
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
@@ -865,7 +865,7 @@ export default function ExportForm() {
 
               <button type="button" onClick={() => setExtItems(prev => [...prev, emptyExtRow()])}
                 style={{ marginTop: '8px', fontSize: '0.8rem', color: '#c9a84c', background: 'none', border: '1px dashed rgba(201,168,76,0.3)', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', width: '100%' }}>
-                + Thêm thiết bị ngoài
+                + Thêm nhà cung cấp mới
               </button>
             </div>
           )}
