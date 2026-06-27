@@ -176,21 +176,27 @@ export default function ExportForm() {
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
-    if (!form.expected_return_date) { setDateError('Vui lòng chọn ngày dự kiến trả'); return; }
     const minReturn = getMinReturnDate(form.event_id);
-    if (form.expected_return_date < minReturn) {
-      const selEv = events.find(ev => String(ev.id) === String(form.event_id));
-      const filmingArr = parseFilmingDates(selEv);
-      const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
-      const fmtDate = d => d ? `${d.slice(8,10)}-${d.slice(5,7)}-${d.slice(2,4)}` : '';
-      const parts = [
-        lastFilming && `ngày ghi hình (${fmtDate(lastFilming)})`,
-        selEv?.end_date && `ngày kết thúc (${fmtDate(selEv.end_date)})`,
-      ].filter(Boolean);
-      setDateError(`Ngày trả phải từ ${parts.join(' và ')} trở đi`);
-      return;
+    if (isPendingExport) {
+      // Xuất tạm: không bắt buộc ngày trả, tự dùng ngày ghi hình nếu thiếu
+      if (!form.expected_return_date) setField('expected_return_date', minReturn);
+      setDateError('');
+    } else {
+      if (!form.expected_return_date) { setDateError('Vui lòng chọn ngày dự kiến trả'); return; }
+      if (form.expected_return_date < minReturn) {
+        const selEv = events.find(ev => String(ev.id) === String(form.event_id));
+        const filmingArr = parseFilmingDates(selEv);
+        const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
+        const fmtDate = d => d ? `${d.slice(8,10)}-${d.slice(5,7)}-${d.slice(2,4)}` : '';
+        const parts = [
+          lastFilming && `ngày ghi hình (${fmtDate(lastFilming)})`,
+          selEv?.end_date && `ngày kết thúc (${fmtDate(selEv.end_date)})`,
+        ].filter(Boolean);
+        setDateError(`Ngày trả phải từ ${parts.join(' và ')} trở đi`);
+        return;
+      }
+      setDateError('');
     }
-    setDateError('');
     if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
     savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
     setSubmitting(true);
