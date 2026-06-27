@@ -28,7 +28,7 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
-const emptyExtRow = () => ({ name: '', quantity: 1, notes: '', rental_days: 1 });
+const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
 
 export default function ExportForm() {
   const navigate = useNavigate();
@@ -158,8 +158,7 @@ export default function ExportForm() {
         const found = catalog.find(c => c.name === it.ext_name.trim());
         return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: it.rental_days || 1 };
       });
-    const supplier = extSupplier === '__custom__' ? extCustom.trim() : extSupplier;
-    const sectionExt = extOpen ? extItems.filter(i => i.name.trim()).map(i => ({ ...i, supplier })) : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i })) : [];
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
@@ -809,41 +808,57 @@ export default function ExportForm() {
 
           {extOpen && (
             <div style={{ padding: '14px 16px', background: 'rgba(0,0,0,0.15)', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
-              {/* Nhà cung cấp */}
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>
-                  Nhà cung cấp
-                </label>
-                <select className="input" value={extSupplier} onChange={e => setExtSupplier(e.target.value)}>
-                  <option value="">— Chọn nhà cung cấp —</option>
-                  {visibleNCC.map(s => <option key={s} value={s}>{s}</option>)}
-                  <option value="__custom__">✏️ Nhập thủ công...</option>
-                </select>
-                {extSupplier === '__custom__' && (
-                  <input className="input mt-2" placeholder="Tên nhà cung cấp..."
-                    value={extCustom} onChange={e => setExtCustom(e.target.value)} />
-                )}
-              </div>
-
-              {/* Danh sách thiết bị ngoài */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {extItems.map((row, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 38px', gap: '6px', alignItems: 'center' }}>
-                    <input className="input" placeholder="Tên thiết bị..."
-                      value={row.name} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))} />
-                    <input className="input" type="number" min="1" placeholder="SL"
-                      value={row.quantity} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
-                      style={{ textAlign: 'center' }} />
-                    <div style={{ position:'relative' }}>
-                      <input className="input" type="number" min="1" placeholder="Ngày"
-                        value={row.rental_days || 1} onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: +e.target.value } : r))}
-                        style={{ textAlign: 'center', paddingBottom:'14px' }} />
-                      <span style={{ position:'absolute', bottom:'4px', left:0, right:0, textAlign:'center', fontSize:'0.55rem', color:'rgba(251,191,36,0.6)', pointerEvents:'none' }}>ngày</span>
+                  <div key={i} style={{ background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'10px', padding:'10px' }}>
+                    {/* Dòng 1: NCC + Qty + Ngày + X */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' }}>
+                      <input
+                        placeholder="Nhà cung cấp *"
+                        value={row.supplier}
+                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, supplier: e.target.value } : r))}
+                        style={{
+                          flex:1, height:'36px', padding:'0 10px', boxSizing:'border-box',
+                          background: row.supplier ? 'rgba(96,165,250,0.07)' : 'rgba(255,255,255,0.04)',
+                          border:`1px solid ${row.supplier ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                          borderRadius:'8px', color: row.supplier ? '#93c5fd' : 'var(--text-muted)',
+                          fontWeight: row.supplier ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                        }}
+                      />
+                      {/* Qty */}
+                      <input type="number" min="1"
+                        value={row.quantity}
+                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
+                        style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                      />
+                      {/* Ngày */}
+                      <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden', gap:'1px' }}>
+                        <input type="number" min="1"
+                          value={row.rental_days || 1}
+                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: +e.target.value } : r))}
+                          style={{ width:'100%', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'0.95rem', fontWeight:800, padding:0, lineHeight:1 }}
+                        />
+                        <span style={{ fontSize:'0.55rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
+                      </div>
+                      {/* X */}
+                      <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
+                        style={{ flexShrink:0, width:'56px', height:'36px', background:'rgba(229,62,62,0.1)', border:'1px solid rgba(229,62,62,0.3)', borderRadius:'8px', color:'#fc8181', cursor:'pointer', fontSize:'0.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        ✕
+                      </button>
                     </div>
-                    <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
-                      style={{ width: '38px', height: '38px', background: 'rgba(229,62,62,0.12)', border: '1px solid rgba(229,62,62,0.25)', borderRadius: '6px', color: '#fc8181', cursor: 'pointer', fontSize: '0.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      ✕
-                    </button>
+                    {/* Dòng 2: Tên thiết bị */}
+                    <input
+                      placeholder="Tên thiết bị *"
+                      value={row.name}
+                      onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))}
+                      style={{
+                        width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
+                        background: row.name ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
+                        border:`1px solid ${row.name ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.15)'}`,
+                        borderRadius:'8px', color: row.name ? '#93c5fd' : 'var(--text-muted)',
+                        fontWeight: row.name ? 700 : 400, fontSize:'0.9rem', outline:'none',
+                      }}
+                    />
                   </div>
                 ))}
               </div>
