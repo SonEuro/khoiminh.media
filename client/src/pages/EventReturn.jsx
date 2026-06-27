@@ -57,6 +57,7 @@ export default function EventReturn() {
   const [outstanding,  setOutstanding]  = useState([]);
   const [quantities,   setQuantities]   = useState({});   // equipment_id → qty
   const [conditions,   setConditions]   = useState({});   // equipment_id → condition
+  const [itemNotes,    setItemNotes]    = useState({});   // equipment_id → notes
   const [checked,      setChecked]      = useState(new Set());
   const [loading,      setLoading]      = useState(false);
   const [submitting,   setSubmitting]   = useState(false);
@@ -119,6 +120,7 @@ export default function EventReturn() {
         equipment_id: r.equipment_id,
         quantity:     quantities[r.equipment_id],
         condition:    conditions[r.equipment_id] || 'good',
+        notes:        itemNotes[r.equipment_id] || '',
       }));
     setSubmitting(true);
     try {
@@ -405,6 +407,7 @@ export default function EventReturn() {
                   <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'90px' }}>Số nhập</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'130px' }}>Tình trạng</th>
+                  <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'140px' }}>Ghi chú</th>
                 </tr>
               </thead>
               <tbody>
@@ -456,6 +459,19 @@ export default function EventReturn() {
                       >
                         {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </select>
+                    </td>
+                    <td style={{ padding:'8px' }}>
+                      <input
+                        placeholder="Ghi chú..."
+                        value={itemNotes[r.equipment_id] || ''}
+                        onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                        style={{
+                          width:'100%', minWidth:'120px', padding:'4px 8px',
+                          background:'rgba(255,255,255,0.04)',
+                          border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px',
+                          color:'var(--text-primary)', fontSize:'0.8rem',
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
