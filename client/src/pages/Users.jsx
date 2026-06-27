@@ -211,11 +211,11 @@ export default function Users() {
                 const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
                 return (
                   <tr key={u.id}>
-                    <td className="px-4 py-3" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
-                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
-                    <td className="px-4 py-3" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
-                    <td className="px-4 py-3">
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <td className="px-4 py-3 text-center" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
+                    <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
+                    <td className="px-4 py-3 text-center" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center' }}>
                         <span style={{
                           padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
                           background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
@@ -228,12 +228,12 @@ export default function Users() {
                         ) : null}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center">
                       {u.is_active
                         ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
                         : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
                     </td>
-                    <td className="px-4 py-3" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
+                    <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
                         <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
