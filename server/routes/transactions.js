@@ -238,17 +238,14 @@ router.post('/out', canTransact, (req, res) => {
     for (const item of (items || [])) {
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      const freeQty = eq.qty_available - (eq.qty_reserved || 0);
-      if (freeQty < item.quantity)
-        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit}`);
       insertItem.run(txId, item.equipment_id, item.quantity, item.notes || null);
-      if (isPending) {
-        db.prepare(`UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?`)
-          .run(item.quantity, item.equipment_id);
-      } else {
+      if (!isPending) {
+        if (eq.qty_available < item.quantity)
+          throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}`);
         db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
           .run(item.quantity, item.quantity, item.equipment_id);
       }
+      // Pending: chỉ ghi nhận, không trừ kho, không reserve
     }
 
     const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
@@ -281,8 +278,8 @@ router.post('/confirm/:id', canTransact, (req, res) => {
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
       if (eq.qty_available < item.quantity)
         throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}, cần ${item.quantity}`);
-      db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ?, qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`)
-        .run(item.quantity, item.quantity, item.quantity, item.equipment_id);
+      db.prepare(`UPDATE equipment SET qty_available = qty_available - ?, qty_in_use = qty_in_use + ? WHERE id = ?`)
+        .run(item.quantity, item.quantity, item.equipment_id);
     }
     db.prepare(`UPDATE transactions SET status = 'completed', transaction_date = datetime('now','localtime') WHERE id = ?`)
       .run(tx.id);
@@ -440,28 +437,16 @@ router.put('/:id/items', canTransact, (req, res) => {
   }
 
   const doUpdate = db.transaction(() => {
-    // Hoàn trả qty_reserved cho các item cũ
-    const oldItems = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
-    for (const old of oldItems) {
-      db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?')
-        .run(old.quantity, old.equipment_id);
-    }
-
-    // Xóa items cũ
+    // Xóa items cũ (pending không đụng kho)
     db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
     db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
 
-    // Thêm items mới + đặt qty_reserved
+    // Thêm items mới (pending: chỉ ghi nhận, không reserve)
     const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
     for (const item of (items || [])) {
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      const freeQty = eq.qty_available - (eq.qty_reserved || 0);
-      if (freeQty < item.quantity)
-        throw new Error(`${eq.name}: chỉ còn ${freeQty} ${eq.unit} khả dụng`);
       insertItem.run(tx.id, item.equipment_id, item.quantity, item.notes || null);
-      db.prepare('UPDATE equipment SET qty_reserved = qty_reserved + ? WHERE id = ?')
-        .run(item.quantity, item.equipment_id);
     }
 
     // Thêm external items mới
@@ -495,8 +480,7 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
   const doDelete = db.transaction(() => {
     for (const item of items) {
       if (tx.type === 'OUT' && tx.status === 'pending') {
-        db.prepare('UPDATE equipment SET qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?')
-          .run(item.quantity, item.equipment_id);
+        // Pending không trừ kho trước → xóa xong không cần hoàn lại
       } else if (tx.type === 'OUT') {
         db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);

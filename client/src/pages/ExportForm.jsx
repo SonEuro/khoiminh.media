@@ -46,6 +46,7 @@ export default function ExportForm() {
 
   const [equipment, setEquipment] = useState([]);
   const [events, setEvents]       = useState([]);
+  const [reservedMap, setReservedMap] = useState({});
   const [deptFilter, setDeptFilter] = useState(defaultDept);
   const [form, setForm] = useState({
     event_id: '',
@@ -94,7 +95,11 @@ export default function ExportForm() {
   useEffect(() => {
     reloadEquipment();
     api.getEvents().then(data => setEvents((data || []).filter(e => ['planned','active'].includes(e.status))));
-    const onFocus = () => reloadEquipment();
+    api.getEquipmentReservedEvents().then(setReservedMap).catch(() => {});
+    const onFocus = () => {
+      reloadEquipment();
+      api.getEquipmentReservedEvents().then(setReservedMap).catch(() => {});
+    };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, []);
@@ -612,8 +617,9 @@ export default function ExportForm() {
               const eq = equipment.find(e => String(e.id) === String(item.equipment_id));
               const isOpen = expandedRows.has(idx);
               const filled = !!item.equipment_id;
-              const free = eq ? Math.max(0, eq.qty_available - (eq.qty_reserved || 0)) : 9999;
+              const free = eq ? Math.max(0, eq.qty_available) : 9999;
               const qtyOver = eq && item.quantity > free;
+              const pendingWarnings = eq ? (reservedMap[eq.id] || []) : [];
 
               const insertExtBelow = () => {
                 setItems(prev => {
@@ -697,10 +703,20 @@ export default function ExportForm() {
                       )}
                       {/* Info strip dưới search khi đã chọn */}
                       {eq && !isOpen && (
-                        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px' }}>
-                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
-                          <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit}</span>
-                          {eq.qty_reserved > 0 && <span style={{ fontSize:'0.65rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
+                        <div style={{ marginTop:'5px' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                            <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                            <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit} khả dụng</span>
+                          </div>
+                          {pendingWarnings.length > 0 && (
+                            <div style={{ marginTop:'4px', display:'flex', flexDirection:'column', gap:'2px' }}>
+                              {pendingWarnings.map((w, i) => (
+                                <span key={i} style={{ fontSize:'0.63rem', color:'#fbbf24', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.25)', borderRadius:'5px', padding:'2px 7px' }}>
+                                  ⏳ Tạm xuất {w.qty} {eq.unit} → {w.event_name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

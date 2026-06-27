@@ -165,4 +165,15 @@ if (!extCols.includes('rental_days')) {
   console.log('[DB] Migration: thêm cột rental_days vào external_items');
 }
 
+// Migration: reset qty_reserved = 0 (logic mới không dùng qty_reserved nữa)
+// Pending exports chỉ ghi nhận, không trừ/reserve kho
+const eqCols = db.pragma('table_info(equipment)').map(c => c.name);
+if (eqCols.includes('qty_reserved')) {
+  const hasReserved = db.prepare('SELECT SUM(qty_reserved) AS total FROM equipment').get();
+  if (hasReserved?.total > 0) {
+    db.prepare('UPDATE equipment SET qty_reserved = 0').run();
+    console.log('[DB] Migration: reset qty_reserved = 0 (pending không reserve kho)');
+  }
+}
+
 module.exports = db;
