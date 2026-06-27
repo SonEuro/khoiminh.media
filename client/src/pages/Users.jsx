@@ -197,12 +197,12 @@ export default function Users() {
           <table className="w-full text-sm" style={{ minWidth: '600px' }}>
             <thead>
               <tr>
-                <th className="text-left px-4 py-3">Họ tên</th>
-                <th className="text-left px-4 py-3">Chức vụ</th>
-                <th className="text-left px-4 py-3">Tên đăng nhập</th>
-                <th className="text-left px-4 py-3">Phòng ban</th>
-                <th className="text-left px-4 py-3">Trạng thái</th>
-                <th className="text-left px-4 py-3">Ngày tạo</th>
+                <th className="text-center px-4 py-3">Họ tên</th>
+                <th className="text-center px-4 py-3">Chức vụ</th>
+                <th className="text-center px-4 py-3">Tên đăng nhập</th>
+                <th className="text-center px-4 py-3">Phòng ban</th>
+                <th className="text-center px-4 py-3">Trạng thái</th>
+                <th className="text-center px-4 py-3">Ngày tạo</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
