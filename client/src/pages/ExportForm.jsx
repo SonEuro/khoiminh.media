@@ -519,8 +519,9 @@ export default function ExportForm() {
                         borderRadius:'8px', overflow:'hidden',
                       }}>
                         <input type="number" min="1"
-                          value={item.rental_days || 1}
-                          onChange={e => setItem(idx, 'rental_days', +e.target.value)}
+                          value={item.rental_days ?? 1}
+                          onChange={e => setItem(idx, 'rental_days', e.target.value)}
+                          onBlur={e => setItem(idx, 'rental_days', Math.max(1, parseInt(e.target.value) || 1))}
                           style={{
                             width:'100%', height:'20px', border:'none', background:'transparent', outline:'none',
                             textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800,
@@ -834,8 +835,9 @@ export default function ExportForm() {
                       {/* Ngày */}
                       <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
-                          value={row.rental_days || 1}
-                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: +e.target.value } : r))}
+                          value={row.rental_days ?? 1}
+                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: e.target.value } : r))}
+                          onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: Math.max(1, parseInt(e.target.value) || 1) } : r))}
                           style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
                         <span style={{ fontSize:'0.52rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
