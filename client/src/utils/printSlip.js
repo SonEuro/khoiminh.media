@@ -151,7 +151,7 @@ function buildSlipHTML(tx, preview = false) {
   .footer-wrap { text-align:center; margin-top:8px; margin-bottom:3px; }
   .footer-date { font-size:16pt; font-weight:bold; display:block; margin-bottom:2px; }
   .footer-note { font-size:9pt; font-weight:bold; display:block; }
-  .sig-row { display:flex; border:2px solid #000; border-top:none; }
+  .sig-row { display:flex; border:2px solid #000; }
   .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:10pt; padding:5px 0 40px; }
   .sig-cell:last-child { border-right:none; }
 
