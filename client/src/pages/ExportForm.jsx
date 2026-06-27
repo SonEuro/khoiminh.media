@@ -645,10 +645,11 @@ export default function ExportForm() {
                   padding:'10px',
                 }}>
 
-                  {/* ── Dòng chính: # + Search + Qty + ✏️ + THUÊ + X ── */}
-                  <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                  {/* ── Layout: [#] [Search flex:1] [2×2 grid: Qty/X trên, ✏️/THUÊ dưới] ── */}
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:'6px' }}>
                     <span style={{
                       fontSize:'0.72rem', fontWeight:700, flexShrink:0, minWidth:'20px', textAlign:'center',
+                      paddingTop:'10px',
                       color: filled ? 'var(--gold)' : 'var(--text-muted)',
                     }}>{khoSeq}</span>
 
@@ -697,78 +698,76 @@ export default function ExportForm() {
                           )}
                         </div>
                       )}
+                      {/* Info strip dưới search khi đã chọn */}
+                      {eq && !isOpen && (
+                        <div style={{ display:'flex', alignItems:'center', gap:'5px', marginTop:'5px' }}>
+                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                          <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.35)' }}>·</span>
+                          <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
+                          {(() => {
+                            const free = eq.qty_available - (eq.qty_reserved || 0);
+                            return (
+                              <>
+                                <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.35)', marginLeft:'auto' }}>còn</span>
+                                <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {eq.unit}</span>
+                                {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Qty — compact */}
-                    <input type="number" min="1"
-                      value={item.quantity}
-                      onChange={e => setItem(idx, 'quantity', +e.target.value)}
-                      style={{
-                        flexShrink:0, width:'62px', height:'38px', padding:'0',
-                        textAlign:'center', boxSizing:'border-box',
-                        background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
-                        borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
-                      }}
-                    />
-
-                    {/* Notes toggle */}
-                    <button type="button" onClick={() => toggleExpand(idx)}
-                      style={{
-                        flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
-                        border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.18)',
-                        background: isOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                        color: isOpen ? '#e8c97a' : '#5a5a7a',
-                        fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center',
-                      }}>
-                      ✏️
-                    </button>
-
-                    {/* THUÊ NCC */}
-                    <button type="button" onClick={insertExtBelow}
-                      style={{
-                        flexShrink:0, width:'48px', height:'38px', borderRadius:'8px', cursor:'pointer',
-                        border:'1px solid rgba(96,165,250,0.3)',
-                        background:'transparent', color:'rgba(96,165,250,0.6)',
-                        fontSize:'0.68rem', fontWeight:800, letterSpacing:'0.02em',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                      }}
-                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
-                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
-                      THUÊ
-                    </button>
-
-                    {/* Delete */}
-                    <button type="button" onClick={() => removeItem(idx)}
-                      style={{
-                        flexShrink:0, width:'36px', height:'38px', borderRadius:'8px', cursor:'pointer',
-                        border:'1px solid rgba(248,113,113,0.25)', background:'transparent',
-                        color:'rgba(248,113,113,0.6)', fontSize:'1rem',
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                      }}
-                      onMouseEnter={ev => { ev.currentTarget.style.background='rgba(248,113,113,0.12)'; ev.currentTarget.style.color='#f87171'; }}
-                      onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(248,113,113,0.6)'; }}>
-                      ✕
-                    </button>
+                    {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
+                    <div style={{ display:'grid', gridTemplateColumns:'68px 56px', gap:'5px', flexShrink:0 }}>
+                      {/* Qty */}
+                      <input type="number" min="1"
+                        value={item.quantity}
+                        onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                        style={{
+                          height:'38px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                          background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
+                          borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
+                        }}
+                      />
+                      {/* Delete X */}
+                      <button type="button" onClick={() => removeItem(idx)}
+                        style={{
+                          height:'38px', borderRadius:'8px', cursor:'pointer',
+                          border:'1px solid rgba(248,113,113,0.3)', background:'transparent',
+                          color:'rgba(248,113,113,0.65)', fontSize:'1rem',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}
+                        onMouseEnter={ev => { ev.currentTarget.style.background='rgba(248,113,113,0.12)'; ev.currentTarget.style.color='#f87171'; }}
+                        onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(248,113,113,0.65)'; }}>
+                        ✕
+                      </button>
+                      {/* Notes toggle ✏️ */}
+                      <button type="button" onClick={() => toggleExpand(idx)}
+                        style={{
+                          height:'34px', borderRadius:'8px', cursor:'pointer',
+                          border: isOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: isOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                          color: isOpen ? '#e8c97a' : '#4a4a6a',
+                          fontSize:'0.95rem', display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                        ✏️
+                      </button>
+                      {/* THUÊ NCC */}
+                      <button type="button" onClick={insertExtBelow}
+                        style={{
+                          height:'34px', borderRadius:'8px', cursor:'pointer',
+                          border:'1px solid rgba(96,165,250,0.3)',
+                          background:'transparent', color:'rgba(96,165,250,0.6)',
+                          fontSize:'0.67rem', fontWeight:800, letterSpacing:'0.02em',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}
+                        onMouseEnter={ev => { ev.currentTarget.style.background='rgba(96,165,250,0.12)'; ev.currentTarget.style.color='#60a5fa'; }}
+                        onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
+                        THUÊ
+                      </button>
+                    </div>
                   </div>
-
-                  {/* ── Info strip khi đã chọn ── */}
-                  {eq && !isOpen && (
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'6px', paddingLeft:'26px' }}>
-                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
-                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.4)' }}>·</span>
-                      <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{eq.category_code}</span>
-                      <span style={{ fontSize:'0.68rem', color:'rgba(201,168,76,0.4)', marginLeft:'auto' }}>còn</span>
-                      {(() => {
-                        const free = eq.qty_available - (eq.qty_reserved || 0);
-                        return (
-                          <>
-                            <span style={{ fontSize:'0.72rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>{free} {eq.unit}</span>
-                            {eq.qty_reserved > 0 && <span style={{ fontSize:'0.62rem', color:'#fbbf24' }}>({eq.qty_reserved} đặt)</span>}
-                          </>
-                        );
-                      })()}
-                    </div>
-                  )}
 
                   {/* ── Expanded edit panel ── */}
                   {isOpen && (
