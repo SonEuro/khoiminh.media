@@ -504,7 +504,7 @@ export default function EventReturn() {
                       style={{ width:'100%', padding:'8px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#4ade80', fontSize:'1.2rem', fontWeight:800 }}
                     />
                   </div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:2 }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
                     <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tình trạng</span>
                     <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
                       style={{ width:'100%', padding:'8px', background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#e8c97a', cursor:'pointer', fontSize:'0.88rem', fontWeight:600 }}>
