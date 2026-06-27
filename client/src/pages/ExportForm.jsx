@@ -26,7 +26,7 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
-const emptyRows = (n = 10) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
+const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
 
@@ -158,7 +158,7 @@ export default function ExportForm() {
         const found = catalog.find(c => c.name === it.ext_name.trim());
         return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: it.rental_days || 1 };
       });
-    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái' })) : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1) })) : [];
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
@@ -502,8 +502,9 @@ export default function ExportForm() {
 
                       {/* Qty blue compact */}
                       <input type="number" min="1"
-                        value={item.quantity}
-                        onChange={e => setItem(idx, 'quantity', +e.target.value)}
+                        value={item.quantity ?? 1}
+                        onChange={e => setItem(idx, 'quantity', e.target.value)}
+                        onBlur={e => setItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                         style={{
                           flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
                           background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
@@ -828,8 +829,9 @@ export default function ExportForm() {
                       />
                       {/* Qty */}
                       <input type="number" min="1"
-                        value={row.quantity}
-                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: +e.target.value } : r))}
+                        value={row.quantity ?? 1}
+                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: e.target.value } : r))}
+                        onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: Math.max(1, parseInt(e.target.value) || 1) } : r))}
                         style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                       />
                       {/* Ngày */}
