@@ -501,18 +501,18 @@ export default function EventReturn() {
                       value={quantities[r.equipment_id] ?? r.qty_pending}
                       onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
                       onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                      style={{ width:'100%', height:'52px', padding:'8px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#4ade80', fontSize:'1.2rem', fontWeight:800, boxSizing:'border-box' }}
+                      style={{ width:'100%', padding:'8px 10px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#4ade80', fontSize:'1.2rem', fontWeight:800, boxSizing:'border-box' }}
                     />
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
                     <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tình trạng</span>
                     <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                      style={{ width:'100%', height:'52px', padding:'8px', background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#e8c97a', cursor:'pointer', fontSize:'0.88rem', fontWeight:600, boxSizing:'border-box' }}>
+                      style={{ width:'100%', padding:'8px 10px', background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#e8c97a', cursor:'pointer', fontSize:'0.88rem', fontWeight:600, boxSizing:'border-box' }}>
                       {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
                   <button type="button" onClick={() => toggleCheck(r.equipment_id)}
-                    style={{ flex:1, height:'52px', borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.4rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                    style={{ flex:1, padding:'8px 0', borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.2rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
                     {checked.has(r.equipment_id) ? '✓' : ''}
                   </button>
                 </div>
