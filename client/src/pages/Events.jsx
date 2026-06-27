@@ -158,7 +158,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
-        <div>
+        <div style={{ gridColumn: 'span 2' }}>
           <label className="label">Trạng thái</label>
           <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
             {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
