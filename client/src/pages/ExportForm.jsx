@@ -510,7 +510,7 @@ export default function ExportForm() {
                         value={item.quantity}
                         onChange={e => setItem(idx, 'quantity', +e.target.value)}
                         style={{
-                          flexShrink:0, width:'56px', height:'38px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                          flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
                           background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
                           borderRadius:'8px', color:'#60a5fa', fontSize:'1.05rem', fontWeight:800, outline:'none',
                         }}
@@ -518,7 +518,7 @@ export default function ExportForm() {
 
                       {/* Rental days gold */}
                       <div style={{
-                        flexShrink:0, width:'56px', height:'38px', display:'flex', flexDirection:'column',
+                        flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column',
                         alignItems:'center', justifyContent:'center',
                         background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
                         borderRadius:'8px', overflow:'hidden', gap:'1px',
@@ -538,7 +538,7 @@ export default function ExportForm() {
                       {/* Notes toggle */}
                       <button type="button" onClick={() => toggleExpand(idx)}
                         style={{
-                          flexShrink:0, width:'56px', height:'38px', borderRadius:'8px', cursor:'pointer',
+                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
                           border: isExpanded ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
                           background: isExpanded ? 'rgba(96,165,250,0.2)' : 'transparent',
                           color: isExpanded ? '#60a5fa' : 'rgba(96,165,250,0.35)',
@@ -550,7 +550,7 @@ export default function ExportForm() {
                       {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{
-                          flexShrink:0, width:'56px', height:'38px', borderRadius:'8px', cursor:'pointer',
+                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
                           border:'1px solid rgba(248,113,113,0.3)', background:'transparent',
                           color:'rgba(248,113,113,0.7)', fontSize:'1rem',
                           display:'flex', alignItems:'center', justifyContent:'center',
