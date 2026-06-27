@@ -20,16 +20,11 @@ function parseFilmingDates(ev) {
   return ev.filming_date ? [ev.filming_date] : [];
 }
 
-function parseShowDates(ev) {
-  if (!ev) return [];
-  if (ev.show_dates) { try { return JSON.parse(ev.show_dates); } catch {} }
-  return [];
-}
 
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
   const [form, setForm] = useState(() => {
     const base = initial || { name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: '' };
-    return { ...base, filming_dates: parseFilmingDates(initial), show_dates: parseShowDates(initial) };
+    return { ...base, filming_dates: parseFilmingDates(initial), show_date: initial?.show_date || '' };
   });
   const [showSuggest, setShowSuggest] = useState(false);
   const [dateError, setDateError]     = useState(false);
@@ -66,7 +61,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       const data = { ...form };
       data.filming_dates = datesArr;
       data.filming_date = datesArr[datesArr.length - 1] || '';
-      data.show_dates = (form.show_dates || []).filter(Boolean).sort();
+      data.show_date = form.show_date || '';
       if (datesArr.length > 0) {
         if (!data.start_date) data.start_date = datesArr[0];
         if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
@@ -151,7 +146,8 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         </div>
         <div>
           <label className="label">Ngày chạy chương trình</label>
-          <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} />
+          <DateInput value={form.show_date || ''} onChange={v => set('show_date', v)}
+            style={form.show_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
           <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
@@ -206,17 +202,12 @@ function EventDetailModal({ eventId, onClose }) {
               </div>
             ) : null;
           })()}
-          {(() => {
-            const sdates = parseShowDates(ev);
-            return sdates.length > 0 ? (
-              <div style={{ gridColumn: sdates.length > 1 ? 'span 2' : undefined }}>
-                <span className="text-gray-500">Ngày chạy CT: </span>
-                {sdates.map((d, i) => (
-                  <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>
-                ))}
-              </div>
-            ) : null;
-          })()}
+          {ev.show_date && (
+            <div>
+              <span className="text-gray-500">Ngày chạy CT: </span>
+              <strong style={{ color:'#34d399' }}>🎪 {fmtD(ev.show_date)}</strong>
+            </div>
+          )}
           {ev.created_by && (
             <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
           )}
