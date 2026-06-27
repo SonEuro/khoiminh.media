@@ -150,13 +150,15 @@ export default function ExportForm() {
 
   const submit = async (e) => {
     e.preventDefault();
-    const validItems = items.filter(it => it.mode === 'kho' && it.equipment_id && it.quantity > 0);
+    const validItems = items
+      .filter(it => it.mode === 'kho' && it.equipment_id && it.quantity > 0)
+      .map(it => ({ ...it, quantity: Math.max(1, parseInt(it.quantity) || 1) }));
     const rowExt = items
       .filter(it => it.mode === 'ext' && it.ext_name.trim())
       .map(it => {
         const catalog = NCC_CATALOG[it.ext_supplier] || [];
         const found = catalog.find(c => c.name === it.ext_name.trim());
-        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: it.quantity, notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: it.rental_days || 1 };
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(1, parseInt(it.rental_days) || 1) };
       });
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1) })) : [];
     const validExt = [...rowExt, ...sectionExt];
@@ -376,7 +378,7 @@ export default function ExportForm() {
               <DateInput value={form.expected_return_date}
                 onChange={v => { setField('expected_return_date', v); if (v) setDateError(''); }}
                 min={getMinReturnDate(form.event_id)}
-                className={dateError ? 'input' : 'input'}
+                className="input"
                 style={ dateError ? { border:'1.5px solid #f87171', boxShadow:'0 0 0 2px rgba(248,113,113,0.18)' } : {} } />
               {dateError && (
                 <p style={{ color:'#f87171', fontSize:'0.72rem', fontWeight:600, marginTop:'4px' }}>
@@ -669,7 +671,7 @@ export default function ExportForm() {
                       {searchTerms[idx] && !item.equipment_id && (
                         <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:100, maxHeight:'260px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
                           {filteredEquip(searchTerms[idx], idx).map(e => {
-                            const free = e.qty_available - (e.qty_reserved || 0);
+                            const free = Math.max(0, e.qty_available - (e.qty_reserved || 0));
                             return (
                               <button type="button" key={e.id}
                                 style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.06)', cursor:'pointer', display:'block' }}
@@ -708,7 +710,7 @@ export default function ExportForm() {
                       {/* Qty */}
                       <input type="number" min="1" max={eq ? free : undefined}
                         value={item.quantity ?? 1}
-                        onChange={e => setItem(idx, 'quantity', Math.min(+e.target.value, eq ? free : 9999))}
+                        onChange={e => setItem(idx, 'quantity', e.target.value)}
                         onBlur={e => setItem(idx, 'quantity', Math.max(1, Math.min(parseInt(e.target.value) || 1, eq ? free : 9999)))}
                         title={eq ? `Tối đa: ${free} ${eq.unit}` : ''}
                         style={{

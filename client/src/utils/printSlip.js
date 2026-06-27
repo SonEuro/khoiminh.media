@@ -1,18 +1,24 @@
 function buildSlipHTML(tx, preview = false) {
-  const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
+  const typeLabel  = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
+  const slipLabel  = tx.type === 'OUT' ? 'Số phiếu xuất' : tx.type === 'RETURN' ? 'Số phiếu nhập' : 'Số phiếu';
+  const isReturn   = tx.type === 'RETURN';
+  const condMap    = { good: '', damaged: 'HỎNG', maintenance: 'CẦN SỬA', lost: 'MẤT' };
 
   const khoItems  = tx.items || [];
   const extItems  = tx.external_items || [];
 
-  const itemRows = khoItems.map((item, i) => `
+  const itemRows = khoItems.map((item, i) => {
+    const condNote = isReturn ? (condMap[item.condition] || '') : '';
+    const noteParts = [condNote, item.notes || ''].filter(Boolean);
+    return `
     <tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
       <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></div></td>
       <td style="text-align:center">${item.eq_code || ''}</td>
-      <td style="text-align:left;padding-left:6px">${item.notes || ''}</td>
-    </tr>
-  `).join('');
+      <td style="text-align:left;padding-left:6px">${noteParts.join(' · ')}</td>
+    </tr>`;
+  }).join('');
 
   const extRows = extItems.length > 0 ? `
     <tr>
@@ -37,7 +43,7 @@ function buildSlipHTML(tx, preview = false) {
   ` : '';
 
   const totalCount = khoItems.length + extItems.length;
-  const blankCount = Math.max(18 - totalCount, 4);
+  const blankCount = totalCount >= 20 ? 2 : Math.max(18 - totalCount, 4);
   const blankRows  = Array(blankCount).fill(
     '<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>'
   ).join('');
@@ -133,12 +139,19 @@ function buildSlipHTML(tx, preview = false) {
   .main-table th { border:1px solid #000; padding:5px 4px; font-size:11pt; font-weight:bold; text-align:center; background:#f0f0f0; }
   .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; font-weight:bold; }
 
+  /* ── Mini repeat header (lặp đầu trang 2+) ── */
+  .mini-hdr td { border:1px solid #999; padding:4px 8px; border-bottom:2px solid #000; }
+  .mh-lbl { display:block; font-size:7pt; color:#555; text-transform:uppercase; letter-spacing:0.3px; font-weight:bold; }
+  .mh-val { display:block; font-size:10pt; font-weight:bold; color:#000; }
+  .page-counter-cell::after { content: counter(page); }
+
   /* ── Footer ── */
-  .footer-wrap { text-align:center; margin-top:16px; margin-bottom:4px; }
-  .footer-date { font-size:22pt; font-weight:bold; display:block; margin-bottom:4px; }
-  .footer-note { font-size:10pt; font-weight:bold; display:block; }
+  .footer-section { break-inside: avoid; page-break-inside: avoid; }
+  .footer-wrap { text-align:center; margin-top:8px; margin-bottom:3px; }
+  .footer-date { font-size:16pt; font-weight:bold; display:block; margin-bottom:2px; }
+  .footer-note { font-size:9pt; font-weight:bold; display:block; }
   .sig-row { display:flex; border:2px solid #000; }
-  .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:11pt; padding:6px 0 70px; }
+  .sig-cell { flex:1; border-right:1px solid #000; text-align:center; font-weight:bold; font-size:10pt; padding:5px 0 40px; }
   .sig-cell:last-child { border-right:none; }
 
   ${previewStyle}
@@ -177,6 +190,20 @@ ${previewBar}
 <!-- ITEMS -->
 <table class="main-table">
   <thead>
+    <tr class="mini-hdr">
+      <td colspan="2">
+        <span class="mh-lbl">Tên sự kiện</span>
+        <span class="mh-val">${tx.event_name || ''}</span>
+      </td>
+      <td colspan="2">
+        <span class="mh-lbl">${slipLabel}</span>
+        <span class="mh-val">${tx.code}</span>
+      </td>
+      <td>
+        <span class="mh-lbl">Số thứ tự tờ</span>
+        <span class="mh-val page-counter-cell"></span>
+      </td>
+    </tr>
     <tr>
       <th style="width:7%">STT</th>
       <th style="width:42%">TÊN THIẾT BỊ</th>
@@ -193,14 +220,16 @@ ${previewBar}
 </table>
 
 <!-- FOOTER -->
-<div class="footer-wrap">
-  <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
-  <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
-</div>
-<div class="sig-row">
-  <div class="sig-cell">Quản lý kho</div>
-  <div class="sig-cell">Quản lý phòng ban</div>
-  <div class="sig-cell">Tổ bảo vệ</div>
+<div class="footer-section">
+  <div class="footer-wrap">
+    <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
+    <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
+  </div>
+  <div class="sig-row">
+    <div class="sig-cell">Quản lý kho</div>
+    <div class="sig-cell">Quản lý phòng ban</div>
+    <div class="sig-cell">Tổ bảo vệ</div>
+  </div>
 </div>
 
 </div>

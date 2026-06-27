@@ -245,10 +245,12 @@ router.get('/:id', (req, res) => {
   `).all(req.params.id);
 
   const external_items = db.prepare(`
-    SELECT ei.supplier, ei.name, ei.quantity, ei.unit, ei.notes, ei.rental_days
+    SELECT ei.supplier, ei.name, SUM(ei.quantity) AS quantity, ei.unit,
+           GROUP_CONCAT(ei.notes, ' / ') AS notes, MAX(ei.rental_days) AS rental_days
     FROM external_items ei
     JOIN transactions t ON t.id = ei.transaction_id
-    WHERE t.event_id = ? AND t.type = 'OUT'
+    WHERE t.event_id = ? AND t.type = 'OUT' AND t.status != 'pending'
+    GROUP BY ei.supplier, ei.name, ei.unit
   `).all(req.params.id);
 
   res.json({ ...ev, items, external_items });
@@ -285,6 +287,10 @@ router.post('/', canWrite, (req, res) => {
 });
 
 router.put('/:id', canWrite, (req, res) => {
+  const ev = db.prepare('SELECT status FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  if (ev.status === 'completed' && req.user.role !== 'SUPER_ADMIN')
+    return res.status(403).json({ error: 'Chỉ SUPER_ADMIN được chỉnh sửa sự kiện đã hoàn thành' });
   const { name, client, location, start_date, end_date, filming_date, filming_dates, status, notes } = req.body;
   const datesArrU = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
   const lastDateU = datesArrU[datesArrU.length - 1] || null;
@@ -320,6 +326,8 @@ router.post('/:id/cancel', canManage, (req, res) => {
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
   if (!checkTruongPhongDept(req, ev.created_by_id))
     return res.status(403).json({ error: 'Chỉ được hủy sự kiện của phòng ban mình' });
+  if (ev.status === 'completed' && req.user.role !== 'SUPER_ADMIN')
+    return res.status(403).json({ error: 'Chỉ SUPER_ADMIN được hủy sự kiện đã hoàn thành' });
   if (ev.status === 'cancelled') return res.status(400).json({ error: 'Sự kiện đã được hủy' });
   db.prepare("UPDATE events SET status = 'cancelled' WHERE id = ?").run(req.params.id);
   res.json({ ok: true });

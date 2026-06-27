@@ -134,7 +134,7 @@ export default function EventReturn() {
       .filter(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0)
       .map(r => ({
         equipment_id: r.equipment_id,
-        quantity:     quantities[r.equipment_id],
+        quantity:     Math.max(0, parseInt(quantities[r.equipment_id]) || 0),
         condition:    conditions[r.equipment_id] || 'good',
         notes:        itemNotes[r.equipment_id] || '',
       }));
@@ -143,7 +143,7 @@ export default function EventReturn() {
       .map(r => ({
         supplier:    r.supplier,
         name:        r.name,
-        quantity:    extQty[extKey(r)],
+        quantity:    Math.max(0, parseInt(extQty[extKey(r)]) || 0),
         unit:        r.unit || 'Cái',
         rental_days: r.rental_days || 1,
         notes:       extNotes[extKey(r)] || '',
@@ -408,8 +408,9 @@ export default function EventReturn() {
       )}
       {eventId && !loading && outstanding.length > 0 && visibleItems.length === 0 && (
         <div className="card text-center py-10">
-          <p className="text-3xl mb-2">✅</p>
-          <p style={{ color:'#4ade80', fontWeight:600 }}>Tất cả thiết bị đã được nhập kho!</p>
+          <p className="text-3xl mb-2">🔍</p>
+          <p style={{ color:'var(--text-muted)', fontWeight:600 }}>Không có thiết bị của bộ phận này cần nhập kho.</p>
+          <p style={{ color:'var(--text-muted)', fontSize:'0.8rem', marginTop:'4px' }}>Chọn bộ phận khác hoặc "Tất cả" để xem.</p>
         </div>
       )}
 
@@ -451,7 +452,8 @@ export default function EventReturn() {
                     <td style={{ textAlign:'center', padding:'8px' }}>
                       <input type="number" min="0" max={r.qty_pending}
                         value={quantities[r.equipment_id] ?? r.qty_pending}
-                        onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(+e.target.value, r.qty_pending) }))}
+                        onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                        onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
                         style={{
                           width:'70px', padding:'4px 6px', textAlign:'center',
                           background:'rgba(255,255,255,0.04)',
@@ -514,7 +516,12 @@ export default function EventReturn() {
           <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(96,165,250,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <span style={{ fontWeight:700, color:'#60a5fa', fontSize:'0.875rem' }}>🏪 Thiết bị NCC chưa trả — {outstandingExt.length} loại</span>
             <button type="button"
-              onClick={() => setCheckedExt(new Set(outstandingExt.map(extKey)))}
+              onClick={() => {
+                const eq = {};
+                outstandingExt.forEach(r => { eq[extKey(r)] = r.qty_pending; });
+                setExtQty(prev => ({ ...prev, ...eq }));
+                setCheckedExt(new Set(outstandingExt.map(extKey)));
+              }}
               style={{ fontSize:'0.75rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
               Chọn tất cả
             </button>
@@ -545,7 +552,8 @@ export default function EventReturn() {
                       <td style={{ textAlign:'center', padding:'8px' }}>
                         <input type="number" min="0" max={r.qty_pending}
                           value={extQty[k] ?? r.qty_pending}
-                          onChange={e => setExtQty(prev => ({ ...prev, [k]: Math.min(+e.target.value, r.qty_pending) }))}
+                          onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}
+                          onBlur={e => setExtQty(prev => ({ ...prev, [k]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
                           style={{ width:'70px', padding:'4px 6px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', color:'#60a5fa', fontSize:'1.1rem', fontWeight:700 }}
                         />
                       </td>

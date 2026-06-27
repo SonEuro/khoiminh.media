@@ -71,23 +71,38 @@ router.get('/pending-returns', (req, res) => {
       (SELECT GROUP_CONCAT(t2.code)
        FROM transactions t2
        WHERE t2.event_id = ev.id AND t2.type = 'OUT') AS out_codes,
-      COUNT(DISTINCT sub.equipment_id) AS item_types,
-      SUM(sub.qty_pending)             AS total_pending
-    FROM (
-      SELECT
-        t.event_id,
-        ti.equipment_id,
-        SUM(CASE WHEN t.type = 'OUT'    THEN ti.quantity ELSE 0 END) -
-        SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) AS qty_pending
+      COALESCE(kho.item_types, 0)    AS item_types,
+      COALESCE(kho.total_pending, 0) AS total_pending
+    FROM events ev
+    JOIN (
+      SELECT t.event_id
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
       WHERE t.event_id IS NOT NULL AND t.status != 'pending'
       GROUP BY t.event_id, ti.equipment_id
-      HAVING qty_pending > 0
-    ) sub
-    JOIN events ev ON ev.id = sub.event_id
+      HAVING SUM(CASE WHEN t.type='OUT' THEN ti.quantity ELSE 0 END) >
+             SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END)
+      UNION
+      SELECT t.event_id
+      FROM external_items ei
+      JOIN transactions t ON t.id = ei.transaction_id
+      WHERE t.event_id IS NOT NULL AND t.status != 'pending'
+      GROUP BY t.event_id, ei.supplier, ei.name
+      HAVING SUM(CASE WHEN t.type='OUT' THEN ei.quantity ELSE 0 END) >
+             SUM(CASE WHEN t.type='RETURN' THEN ei.quantity ELSE 0 END)
+    ) any_pend ON any_pend.event_id = ev.id
+    LEFT JOIN (
+      SELECT t.event_id,
+        COUNT(DISTINCT ti.equipment_id)                              AS item_types,
+        SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
+        SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END)  AS total_pending
+      FROM transaction_items ti
+      JOIN transactions t ON t.id = ti.transaction_id
+      WHERE t.event_id IS NOT NULL AND t.status != 'pending'
+      GROUP BY t.event_id
+      HAVING total_pending > 0
+    ) kho ON kho.event_id = ev.id
     WHERE ev.archived_at IS NULL AND ev.deleted_at IS NULL
-    GROUP BY ev.id
     ORDER BY ev.start_date DESC
   `).all();
   res.json(rows);

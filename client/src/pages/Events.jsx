@@ -509,12 +509,12 @@ export default function Events() {
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
                   Chi tiết
                 </button>
-                {canFullEdit && (
+                {(ev.status === 'completed' ? user?.role === 'SUPER_ADMIN' : canFullEdit) && (
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
                     ✏️
                   </button>
                 )}
-                {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (
+                {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN') && (
                   <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
