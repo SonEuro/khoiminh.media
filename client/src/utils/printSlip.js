@@ -143,7 +143,8 @@ function buildSlipHTML(tx, preview = false) {
   .mini-hdr td { border:1px solid #999; padding:4px 8px; border-bottom:2px solid #000; }
   .mh-lbl { display:block; font-size:7pt; color:#555; text-transform:uppercase; letter-spacing:0.3px; font-weight:bold; }
   .mh-val { display:block; font-size:10pt; font-weight:bold; color:#000; }
-  .page-counter-cell::after { content: counter(page); }
+  .page-counter-cell::after { content: "1"; }
+  @media print { .page-counter-cell::after { content: counter(page); } }
 
   /* ── Footer ── */
   .footer-section { break-inside: avoid; page-break-inside: avoid; }
