@@ -198,4 +198,15 @@ if (eqCols.includes('qty_reserved')) {
   }
 }
 
+// Seed admin mặc định nếu chưa có user nào
+const bcryptSeed = require('bcryptjs');
+const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
+if (userCount === 0) {
+  db.prepare(
+    `INSERT INTO users (username, password_hash, full_name, role, is_active)
+     VALUES (?, ?, ?, 'SUPER_ADMIN', 1)`
+  ).run('admin', bcryptSeed.hashSync('admin123', 10), 'Admin');
+  console.log('[DB] Seed: đã tạo user admin mặc định (admin/admin123)');
+}
+
 module.exports = db;
