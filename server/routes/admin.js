@@ -11,12 +11,18 @@ router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
   if (!events) return res.status(400).json({ error: 'Thiếu data' });
   try {
     const doRestore = db.transaction(() => {
+      // Tắt FK tạm thời để insert không bị conflict equipment IDs
+      db.pragma('foreign_keys = OFF');
+
       // Xóa data cũ (giữ lại equipment)
       try { db.prepare('DELETE FROM transaction_items').run(); } catch(_) {}
       try { db.prepare('DELETE FROM external_items').run(); } catch(_) {}
       try { db.prepare('DELETE FROM transactions').run(); } catch(_) {}
       try { db.prepare('DELETE FROM events').run(); } catch(_) {}
-      try { db.prepare('DELETE FROM users').run(); } catch(_) {}
+      // Giữ lại user "admin" seed, chỉ xóa nếu backup có users
+      if ((users || []).length > 0) {
+        try { db.prepare('DELETE FROM users').run(); } catch(_) {}
+      }
 
       // Reset sequences
       try { db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users','events','transactions','transaction_items','external_items')").run(); } catch(_) {}
@@ -42,25 +48,33 @@ router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
         db.prepare(`INSERT OR REPLACE INTO transactions (${cols}) VALUES (${placeholders})`).run(Object.values(t));
       }
 
-      // Insert transaction_items
+      // Insert transaction_items (bỏ qua lỗi FK với equipment_id không hợp lệ)
+      let itemsOk = 0;
       for (const ti of (transaction_items || [])) {
-        const cols = Object.keys(ti).join(',');
-        const placeholders = Object.keys(ti).map(() => '?').join(',');
-        db.prepare(`INSERT OR REPLACE INTO transaction_items (${cols}) VALUES (${placeholders})`).run(Object.values(ti));
+        try {
+          const cols = Object.keys(ti).join(',');
+          const placeholders = Object.keys(ti).map(() => '?').join(',');
+          db.prepare(`INSERT OR REPLACE INTO transaction_items (${cols}) VALUES (${placeholders})`).run(Object.values(ti));
+          itemsOk++;
+        } catch(_) {}
       }
 
       // Insert external_items
       for (const ei of (external_items || [])) {
-        const cols = Object.keys(ei).join(',');
-        const placeholders = Object.keys(ei).map(() => '?').join(',');
-        db.prepare(`INSERT OR REPLACE INTO external_items (${cols}) VALUES (${placeholders})`).run(Object.values(ei));
+        try {
+          const cols = Object.keys(ei).join(',');
+          const placeholders = Object.keys(ei).map(() => '?').join(',');
+          db.prepare(`INSERT OR REPLACE INTO external_items (${cols}) VALUES (${placeholders})`).run(Object.values(ei));
+        } catch(_) {}
       }
+
+      db.pragma('foreign_keys = ON');
 
       return {
         users: (users || []).length,
         events: (events || []).length,
         transactions: (transactions || []).length,
-        items: (transaction_items || []).length,
+        items: itemsOk,
       };
     });
 
