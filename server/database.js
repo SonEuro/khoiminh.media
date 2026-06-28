@@ -173,6 +173,20 @@ if (!extCols.includes('rental_days')) {
   console.log('[DB] Migration: thêm cột rental_days vào external_items');
 }
 
+// Bảng lịch sử chỉnh sửa phiếu xuất đã xác nhận
+db.exec(`
+  CREATE TABLE IF NOT EXISTS transaction_edits (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
+    edited_by_id   INTEGER,
+    edited_by_name TEXT,
+    reason         TEXT NOT NULL,
+    items_before   TEXT DEFAULT '[]',
+    items_after    TEXT DEFAULT '[]',
+    created_at     TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
+
 // Migration: reset qty_reserved = 0 (logic mới không dùng qty_reserved nữa)
 // Pending exports chỉ ghi nhận, không trừ/reserve kho
 const eqCols = db.pragma('table_info(equipment)').map(c => c.name);

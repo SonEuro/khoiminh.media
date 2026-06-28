@@ -196,7 +196,14 @@ router.get('/:id', (req, res) => {
     'SELECT * FROM external_items WHERE transaction_id = ?'
   ).all(req.params.id);
 
-  res.json({ ...tx, items, external_items });
+  let edits = [];
+  try {
+    edits = db.prepare(
+      'SELECT * FROM transaction_edits WHERE transaction_id = ? ORDER BY created_at ASC'
+    ).all(req.params.id);
+  } catch (_) {}
+
+  res.json({ ...tx, items, external_items, edits });
 });
 
 // Xuất kho (OUT)
@@ -471,6 +478,78 @@ router.put('/:id/items', canTransact, (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+});
+
+// Chỉnh sửa phiếu xuất đã xác nhận (SUPER_ADMIN / DIRECTOR / ACCOUNTING)
+router.put('/:id/edit-completed', requireRole('SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'), (req, res) => {
+  const { items, reason } = req.body;
+  if (!reason?.trim()) return res.status(400).json({ error: 'Vui lòng nhập lý do chỉnh sửa' });
+  if (!items || items.length === 0) return res.status(400).json({ error: 'Phiếu phải có ít nhất một thiết bị' });
+
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
+  if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
+  if (tx.type !== 'OUT' || tx.status !== 'completed')
+    return res.status(400).json({ error: 'Chỉ chỉnh sửa được phiếu xuất kho đã xác nhận' });
+
+  const doEdit = db.transaction(() => {
+    // Snapshot danh sách cũ
+    const oldItems = db.prepare(`
+      SELECT ti.equipment_id, ti.quantity, eq.name eq_name, eq.code eq_code, eq.unit
+      FROM transaction_items ti JOIN equipment eq ON eq.id = ti.equipment_id
+      WHERE ti.transaction_id = ?
+    `).all(tx.id);
+
+    // Tổng qty theo equipment_id (cũ vs mới)
+    const oldMap = {};
+    oldItems.forEach(i => { oldMap[i.equipment_id] = (oldMap[i.equipment_id] || 0) + i.quantity; });
+    const newMap = {};
+    items.forEach(i => { newMap[i.equipment_id] = (newMap[i.equipment_id] || 0) + (parseInt(i.quantity) || 1); });
+
+    // Cập nhật tồn kho theo diff
+    const allIds = new Set([...Object.keys(oldMap), ...Object.keys(newMap)].map(Number));
+    for (const eqId of allIds) {
+      const oldQty = oldMap[eqId] || 0;
+      const newQty = newMap[eqId] || 0;
+      const diff   = newQty - oldQty;
+      if (diff === 0) continue;
+      const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(eqId);
+      if (!eq) throw new Error(`Thiết bị ID ${eqId} không tồn tại`);
+      if (diff > 0) {
+        if (eq.qty_available < diff)
+          throw new Error(`${eq.name}: Không đủ tồn kho (còn ${eq.qty_available} ${eq.unit}, cần thêm ${diff})`);
+        db.prepare('UPDATE equipment SET qty_in_use = qty_in_use + ?, qty_available = qty_available - ? WHERE id = ?')
+          .run(diff, diff, eqId);
+      } else {
+        const ret = -diff;
+        db.prepare('UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_available = qty_available + ? WHERE id = ?')
+          .run(ret, ret, eqId);
+      }
+    }
+
+    // Snapshot danh sách mới (lấy tên từ DB)
+    const newItemsSnap = items.map(i => {
+      const eq = db.prepare('SELECT name, code, unit FROM equipment WHERE id = ?').get(i.equipment_id);
+      return { eq_name: eq?.name || '?', eq_code: eq?.code || '?', quantity: parseInt(i.quantity) || 1, unit: eq?.unit || '' };
+    });
+
+    // Thay thế transaction_items
+    db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
+    const ins = db.prepare('INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)');
+    items.forEach(i => ins.run(tx.id, i.equipment_id, parseInt(i.quantity) || 1, i.condition || 'good', i.notes || null));
+
+    // Ghi log
+    db.prepare(`
+      INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(tx.id, req.user.id, req.user.full_name, reason.trim(),
+      JSON.stringify(oldItems.map(i => ({ eq_name: i.eq_name, eq_code: i.eq_code, quantity: i.quantity, unit: i.unit }))),
+      JSON.stringify(newItemsSnap));
+
+    return { ok: true };
+  });
+
+  try { res.json(doEdit()); }
+  catch (e) { res.status(400).json({ error: e.message }); }
 });
 
 // Xóa phiếu — SUPER_ADMIN hoặc người tạo phiếu

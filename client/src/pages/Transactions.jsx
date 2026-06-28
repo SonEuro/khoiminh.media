@@ -40,7 +40,7 @@ function Badge({ color, bg, border, label }) {
 const fmtDate = fmtD;
 
 // ── TX detail modal ───────────────────────────────────────────────────────────
-function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
+function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEditCompleted }) {
   const [tx, setTx] = useState(null);
   const [err, setErr] = useState(false);
   useEffect(() => { api.getTransactionById(txId).then(setTx).catch(() => setErr(true)); }, [txId]);
@@ -58,6 +58,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
   const condColor = { good:'#4ade80', damaged:'#f87171', maintenance:'#fbbf24', lost:'#94a3b8' };
   const cfg = TX_CFG[tx.type] || { label: tx.type, color: GOLD, bg: 'rgba(201,168,76,0.12)', border: 'rgba(201,168,76,0.3)' };
   const isPending = tx.status === 'pending';
+  const isCompletedOut = tx.type === 'OUT' && tx.status === 'completed';
   return (
     <Modal title={tx.code} onClose={onClose} size="lg"
       extra={
@@ -65,6 +66,12 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
           {isPending && canEdit && (
             <button onClick={() => onEdit(tx.id)} className="btn-secondary btn-sm"
               style={{ display:'inline-flex', alignItems:'center', gap:'5px', borderColor:'rgba(251,191,36,0.5)', color:PENDING_COLOR }}>
+              ✏️ Chỉnh sửa
+            </button>
+          )}
+          {isCompletedOut && canEditCompleted && (
+            <button onClick={() => onEditCompleted(tx.id)} className="btn-secondary btn-sm"
+              style={{ display:'inline-flex', alignItems:'center', gap:'5px', borderColor:'rgba(251,191,36,0.4)', color:'#fbbf24' }}>
               ✏️ Chỉnh sửa
             </button>
           )}
@@ -150,6 +157,43 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Lịch sử chỉnh sửa */}
+        {tx.edits?.length > 0 && (
+          <div>
+            <h3 style={{ fontWeight:700, color:'#fbbf24', marginBottom:'8px', fontSize:'0.8rem', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              📝 Lịch sử chỉnh sửa ({tx.edits.length})
+            </h3>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+              {tx.edits.map((e, i) => {
+                let before = [], after = [];
+                try { before = JSON.parse(e.items_before || '[]'); } catch { before = []; }
+                try { after  = JSON.parse(e.items_after  || '[]'); } catch { after  = []; }
+                return (
+                  <div key={i} style={{ padding:'10px 12px', borderRadius:'8px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.2)' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px', flexWrap:'wrap', marginBottom:'6px' }}>
+                      <span style={{ fontWeight:700, color:'#fbbf24', fontSize:'0.8rem' }}>{e.edited_by_name}</span>
+                      <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>{fmtDT(e.created_at)}</span>
+                    </div>
+                    <p style={{ fontSize:'0.78rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'italic' }}>
+                      Lý do: {e.reason}
+                    </p>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px', fontSize:'0.72rem' }}>
+                      <div>
+                        <p style={{ color:'#f87171', fontWeight:600, margin:'0 0 3px' }}>Trước:</p>
+                        {before.map((b, j) => <p key={j} style={{ color:'#a0a0b8', margin:'1px 0' }}>{b.eq_name} × {b.quantity} {b.unit}</p>)}
+                      </div>
+                      <div>
+                        <p style={{ color:'#4ade80', fontWeight:600, margin:'0 0 3px' }}>Sau:</p>
+                        {after.map((a, j) => <p key={j} style={{ color:'#a0a0b8', margin:'1px 0' }}>{a.eq_name} × {a.quantity} {a.unit}</p>)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -391,6 +435,164 @@ function EditPendingModal({ txId, onClose, onSaved }) {
               background: saving ? 'rgba(201,168,76,0.4)' : 'linear-gradient(135deg,#c9a84c,#e8c97a)',
               color:'#08080e', fontWeight:700, fontSize:'0.85rem',
             }}>
+            {saving ? 'Đang lưu...' : '✅ Lưu thay đổi'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Edit completed OUT modal ──────────────────────────────────────────────────
+function EditCompletedModal({ txId, onClose, onSaved }) {
+  const [tx, setTx]               = useState(null);
+  const [equipment, setEquipment] = useState([]);
+  const [khoItems, setKhoItems]   = useState([]);
+  const [reason, setReason]       = useState('');
+  const [search, setSearch]       = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    Promise.all([api.getTransactionById(txId), api.getEquipment()]).then(([txData, eqList]) => {
+      if (!mounted.current) return;
+      setTx(txData);
+      setEquipment(eqList);
+      setKhoItems((txData.items || []).map(it => ({
+        equipment_id: it.equipment_id,
+        eq_name: it.eq_name,
+        eq_code: it.eq_code,
+        unit: it.unit,
+        quantity: it.quantity,
+      })));
+    }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
+  }, [txId]);
+
+  const filteredEq = search.length >= 1
+    ? equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()) || eq.code.toLowerCase().includes(search.toLowerCase())).slice(0, 8)
+    : [];
+
+  const addEquipment = (eq) => {
+    if (khoItems.some(i => i.equipment_id === eq.id)) return;
+    setKhoItems(prev => [...prev, { equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, quantity: 1 }]);
+    setSearch('');
+  };
+  const removeItem  = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
+  const updateQty   = (idx, qty, clamp = false) =>
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty } : it));
+
+  const handleSave = async () => {
+    if (!reason.trim()) { setError('Vui lòng nhập lý do chỉnh sửa'); return; }
+    const validItems = khoItems.filter(i => i.equipment_id && (parseInt(i.quantity) || 0) > 0);
+    if (!validItems.length) { setError('Phiếu phải có ít nhất một thiết bị'); return; }
+    setSaving(true); setError('');
+    try {
+      await api.editCompletedItems(txId, {
+        items: validItems.map(i => ({ equipment_id: i.equipment_id, quantity: Math.max(1, parseInt(i.quantity) || 1) })),
+        reason: reason.trim(),
+      });
+      if (mounted.current) onSaved();
+    } catch (err) { if (mounted.current) setError(err.message); }
+    finally { if (mounted.current) setSaving(false); }
+  };
+
+  const inputStyle = { padding:'7px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.83rem', width:'100%', boxSizing:'border-box' };
+
+  if (!tx) return (
+    <Modal title="Chỉnh sửa phiếu" onClose={onClose}>
+      <div style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>{error || 'Đang tải...'}</div>
+    </Modal>
+  );
+
+  return (
+    <Modal title={`Chỉnh sửa: ${tx.code}`} onClose={onClose} size="lg">
+      <div className="space-y-4">
+
+        {/* Lý do — bắt buộc */}
+        <div style={{ padding:'12px 14px', borderRadius:'10px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.3)' }}>
+          <p style={{ fontSize:'0.75rem', color:'#fbbf24', fontWeight:700, margin:'0 0 6px' }}>⚠ Lý do chỉnh sửa *</p>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Nhập lý do (bắt buộc)..."
+            rows={2}
+            style={{ ...inputStyle, borderColor:'rgba(251,191,36,0.4)', resize:'none' }}
+          />
+        </div>
+
+        {/* Tìm thiết bị */}
+        <div>
+          <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
+          <div style={{ position:'relative' }}>
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Tìm tên hoặc mã thiết bị..." style={inputStyle} />
+            {filteredEq.length > 0 && (
+              <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:50, marginTop:'3px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e', maxHeight:'176px', overflowY:'auto', boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
+                {filteredEq.map(eq => {
+                  const inList = khoItems.some(i => i.equipment_id === eq.id);
+                  return (
+                    <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
+                      style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center', opacity: inList ? 0.5 : 1 }}
+                      onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}>
+                      <div>
+                        <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                        <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                      </div>
+                      <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
+                        {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Danh sách thiết bị */}
+        {khoItems.length > 0 && (
+          <div>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị ({khoItems.length})</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {khoItems.map((it, idx) => {
+                const eq = equipment.find(e => e.id === it.equipment_id);
+                const qty = parseInt(it.quantity) || 0;
+                return (
+                  <div key={idx} style={{ display:'grid', gridTemplateColumns:'1fr auto auto', gap:'8px', alignItems:'center', padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
+                    <div>
+                      <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
+                      <p style={{ fontSize:'0.68rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+                      <input type="number" min="1" value={it.quantity}
+                        onChange={e => updateQty(idx, e.target.value)}
+                        onBlur={e => updateQty(idx, e.target.value, true)}
+                        style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                      />
+                      <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
+                    </div>
+                    <button onClick={() => removeItem(idx)}
+                      style={{ padding:'5px 8px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>✕</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
+
+        <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end', paddingTop:'4px' }}>
+          <button onClick={onClose} className="btn-secondary">Hủy</button>
+          <button onClick={handleSave} disabled={saving || !reason.trim()}
+            style={{ padding:'8px 22px', borderRadius:'8px', border:'none', cursor: (saving || !reason.trim()) ? 'not-allowed' : 'pointer', background: (saving || !reason.trim()) ? 'rgba(201,168,76,0.35)' : 'linear-gradient(135deg,#c9a84c,#e8c97a)', color:'#08080e', fontWeight:700, fontSize:'0.85rem' }}>
             {saving ? 'Đang lưu...' : '✅ Lưu thay đổi'}
           </button>
         </div>
@@ -644,13 +846,15 @@ export default function Transactions() {
   const [reports,    setReports]    = useState([]);
   const [violations, setViolations] = useState([]);
   const [loading,    setLoading]    = useState(true);
-  const [selectedTx, setSelectedTx] = useState(null);
-  const [editingTx,  setEditingTx]  = useState(null);
-  const [confirming, setConfirming] = useState(null);
+  const [selectedTx,          setSelectedTx]          = useState(null);
+  const [editingTx,           setEditingTx]           = useState(null);
+  const [editingCompletedTx,  setEditingCompletedTx]  = useState(null);
+  const [confirming,          setConfirming]          = useState(null);
 
-  const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
-  const canConfirm   = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
-  const canEdit      = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const canEdit           = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const canEditCompleted  = ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'].includes(user?.role);
 
   const load = useCallback(() => {
     if (!user) return;
@@ -750,6 +954,8 @@ export default function Transactions() {
           onClose={() => setSelectedTx(null)}
           canEdit={canEdit}
           onEdit={(id) => { setSelectedTx(null); setEditingTx(id); }}
+          canEditCompleted={canEditCompleted}
+          onEditCompleted={(id) => { setSelectedTx(null); setEditingCompletedTx(id); }}
         />
       )}
       {editingTx && (
@@ -757,6 +963,13 @@ export default function Transactions() {
           txId={editingTx}
           onClose={() => setEditingTx(null)}
           onSaved={() => { setEditingTx(null); load(); }}
+        />
+      )}
+      {editingCompletedTx && (
+        <EditCompletedModal
+          txId={editingCompletedTx}
+          onClose={() => setEditingCompletedTx(null)}
+          onSaved={() => { setEditingCompletedTx(null); load(); }}
         />
       )}
     </div>
