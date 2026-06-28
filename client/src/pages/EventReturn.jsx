@@ -493,52 +493,59 @@ export default function EventReturn() {
                           Tốt: {getGood(r.equipment_id, r.qty_pending)}
                         </span>
 
-                        {/* Non-good condition pills */}
+                        {/* Conditions đang active (val > 0 hoặc đang edit) */}
                         {NON_GOOD_CFG.map(({ cond, label, color, rgb }) => {
                           const val = condSplits[r.equipment_id]?.[cond] || 0;
                           const isOpen = editCond[r.equipment_id] === cond || val > 0;
-                          if (isOpen) {
-                            return (
-                              <div key={cond} style={{
-                                display:'inline-flex', alignItems:'center', gap:'3px',
-                                padding:'3px 5px 3px 9px', borderRadius:'20px',
-                                background:`rgba(${rgb},0.1)`, border:`1.5px solid ${color}`,
-                              }}>
-                                <span style={{ color, fontSize:'0.75rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
-                                <input
-                                  type="number" min="0"
-                                  autoFocus={editCond[r.equipment_id] === cond && val === 0}
-                                  value={val || ''}
-                                  placeholder="0"
-                                  onChange={e => setCondVal(r.equipment_id, cond, e.target.value, r.qty_pending)}
-                                  onBlur={() => { if (!val) setEditCond(prev => ({ ...prev, [r.equipment_id]: null })); }}
-                                  style={{ width:'36px', background:'transparent', border:'none', outline:'none', color, fontSize:'0.95rem', fontWeight:800, textAlign:'center', padding:'0' }}
-                                />
-                                <button type="button"
-                                  onMouseDown={e => e.preventDefault()}
-                                  onClick={() => {
-                                    setCondSplits(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: 0 } }));
-                                    setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
-                                  }}
-                                  style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'0.8rem', padding:'0 0 0 1px', lineHeight:1 }}>×</button>
-                              </div>
-                            );
-                          }
+                          if (!isOpen) return null;
                           return (
-                            <button key={cond} type="button"
-                              onClick={() => setEditCond(prev => ({ ...prev, [r.equipment_id]: cond }))}
-                              style={{
-                                display:'inline-flex', alignItems:'center', gap:'2px',
-                                padding:'3px 9px', borderRadius:'20px', cursor:'pointer',
-                                background:'transparent', border:`1px solid rgba(${rgb},0.28)`,
-                                color:`rgba(${rgb},0.5)`, fontSize:'0.75rem', fontWeight:600,
-                                transition:'all 0.15s',
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.borderColor=color; e.currentTarget.style.color=color; }}
-                              onMouseLeave={e => { e.currentTarget.style.borderColor=`rgba(${rgb},0.28)`; e.currentTarget.style.color=`rgba(${rgb},0.5)`; }}
-                            >+ {label}</button>
+                            <div key={cond} style={{
+                              display:'inline-flex', alignItems:'center', gap:'3px',
+                              padding:'3px 5px 3px 9px', borderRadius:'20px',
+                              background:`rgba(${rgb},0.1)`, border:`1.5px solid ${color}`,
+                            }}>
+                              <span style={{ color, fontSize:'0.75rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
+                              <input
+                                type="number" min="0"
+                                autoFocus={editCond[r.equipment_id] === cond && val === 0}
+                                value={val || ''}
+                                placeholder="0"
+                                onChange={e => setCondVal(r.equipment_id, cond, e.target.value, r.qty_pending)}
+                                onBlur={() => { if (!val) setEditCond(prev => ({ ...prev, [r.equipment_id]: null })); }}
+                                style={{ width:'36px', background:'transparent', border:'none', outline:'none', color, fontSize:'0.95rem', fontWeight:800, textAlign:'center', padding:'0' }}
+                              />
+                              <button type="button"
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => {
+                                  setCondSplits(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: 0 } }));
+                                  setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
+                                }}
+                                style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'0.8rem', padding:'0 0 0 1px', lineHeight:1 }}>×</button>
+                            </div>
                           );
                         })}
+                        {/* Dropdown chọn tình trạng chưa set */}
+                        {(() => {
+                          const unset = NON_GOOD_CFG.filter(({ cond }) => {
+                            const val = condSplits[r.equipment_id]?.[cond] || 0;
+                            return !val && editCond[r.equipment_id] !== cond;
+                          });
+                          if (!unset.length) return null;
+                          return (
+                            <select value=""
+                              onChange={e => { if (e.target.value) setEditCond(prev => ({ ...prev, [r.equipment_id]: e.target.value })); }}
+                              style={{
+                                padding:'3px 8px', borderRadius:'20px', cursor:'pointer',
+                                background:'transparent', border:'1px solid rgba(255,255,255,0.18)',
+                                color:'#8888a8', fontSize:'0.75rem', fontWeight:600,
+                                outline:'none', appearance:'none',
+                              }}
+                            >
+                              <option value="">+ Tình trạng</option>
+                              {unset.map(({ cond, label }) => <option key={cond} value={cond}>{label}</option>)}
+                            </select>
+                          );
+                        })()}
                       </div>
                     </td>
                     <td style={{ padding:'8px' }}>
@@ -579,49 +586,59 @@ export default function EventReturn() {
                       Tốt: {getGood(r.equipment_id, r.qty_pending)}
                     </span>
 
-                    {/* Non-good pills */}
+                    {/* Conditions đang active */}
                     {NON_GOOD_CFG.map(({ cond, label, color, rgb }) => {
                       const val = condSplits[r.equipment_id]?.[cond] || 0;
                       const isOpen = editCond[r.equipment_id] === cond || val > 0;
-                      if (isOpen) {
-                        return (
-                          <div key={cond} style={{
-                            display:'inline-flex', alignItems:'center', gap:'3px',
-                            padding:'7px 8px 7px 12px', borderRadius:'20px',
-                            background:`rgba(${rgb},0.1)`, border:`1.5px solid ${color}`,
-                          }}>
-                            <span style={{ color, fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
-                            <input
-                              type="number" min="0"
-                              autoFocus={editCond[r.equipment_id] === cond && val === 0}
-                              value={val || ''}
-                              placeholder="0"
-                              onChange={e => setCondVal(r.equipment_id, cond, e.target.value, r.qty_pending)}
-                              onBlur={() => { if (!val) setEditCond(prev => ({ ...prev, [r.equipment_id]: null })); }}
-                              style={{ width:'44px', background:'transparent', border:'none', outline:'none', color, fontSize:'1rem', fontWeight:800, textAlign:'center', padding:'0' }}
-                            />
-                            <button type="button"
-                              onMouseDown={e => e.preventDefault()}
-                              onClick={() => {
-                                setCondSplits(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: 0 } }));
-                                setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
-                              }}
-                              style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'1rem', padding:'2px 3px 2px 2px', lineHeight:1 }}>×</button>
-                          </div>
-                        );
-                      }
+                      if (!isOpen) return null;
                       return (
-                        <button key={cond} type="button"
-                          onClick={() => setEditCond(prev => ({ ...prev, [r.equipment_id]: cond }))}
-                          style={{
-                            display:'inline-flex', alignItems:'center', gap:'2px',
-                            padding:'8px 12px', borderRadius:'20px', cursor:'pointer',
-                            background:'transparent', border:`1px solid rgba(${rgb},0.28)`,
-                            color:`rgba(${rgb},0.5)`, fontSize:'0.82rem', fontWeight:600,
-                          }}
-                        >+ {label}</button>
+                        <div key={cond} style={{
+                          display:'inline-flex', alignItems:'center', gap:'3px',
+                          padding:'7px 8px 7px 12px', borderRadius:'20px',
+                          background:`rgba(${rgb},0.1)`, border:`1.5px solid ${color}`,
+                        }}>
+                          <span style={{ color, fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
+                          <input
+                            type="number" min="0"
+                            autoFocus={editCond[r.equipment_id] === cond && val === 0}
+                            value={val || ''}
+                            placeholder="0"
+                            onChange={e => setCondVal(r.equipment_id, cond, e.target.value, r.qty_pending)}
+                            onBlur={() => { if (!val) setEditCond(prev => ({ ...prev, [r.equipment_id]: null })); }}
+                            style={{ width:'44px', background:'transparent', border:'none', outline:'none', color, fontSize:'1rem', fontWeight:800, textAlign:'center', padding:'0' }}
+                          />
+                          <button type="button"
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => {
+                              setCondSplits(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: 0 } }));
+                              setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
+                            }}
+                            style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'1rem', padding:'2px 3px 2px 2px', lineHeight:1 }}>×</button>
+                        </div>
                       );
                     })}
+                    {/* Dropdown chọn tình trạng chưa set */}
+                    {(() => {
+                      const unset = NON_GOOD_CFG.filter(({ cond }) => {
+                        const val = condSplits[r.equipment_id]?.[cond] || 0;
+                        return !val && editCond[r.equipment_id] !== cond;
+                      });
+                      if (!unset.length) return null;
+                      return (
+                        <select value=""
+                          onChange={e => { if (e.target.value) setEditCond(prev => ({ ...prev, [r.equipment_id]: e.target.value })); }}
+                          style={{
+                            padding:'8px 12px', borderRadius:'20px', cursor:'pointer',
+                            background:'transparent', border:'1px solid rgba(255,255,255,0.18)',
+                            color:'#8888a8', fontSize:'0.82rem', fontWeight:600,
+                            outline:'none', appearance:'none',
+                          }}
+                        >
+                          <option value="">+ Tình trạng</option>
+                          {unset.map(({ cond, label }) => <option key={cond} value={cond}>{label}</option>)}
+                        </select>
+                      );
+                    })()}
                   </div>
                   <button type="button" onClick={() => toggleCheck(r.equipment_id)}
                     style={{ width:'52px', height:'40px', flexShrink:0, borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.3rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
