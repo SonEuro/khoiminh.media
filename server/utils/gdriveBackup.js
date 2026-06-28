@@ -62,6 +62,13 @@ function scheduleAutoBackup(db) {
   if (!isReady()) return;
 
   const run = () => {
+    // Không backup nếu DB rỗng — tránh ghi đè backup tốt trên Drive
+    let eventCount = 0;
+    try { eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c; } catch(_) {}
+    if (eventCount === 0) {
+      console.log('[AutoBackup] Bỏ qua — DB chưa có events, tránh ghi đè Drive.');
+      return;
+    }
     uploadBackupToDrive(db)
       .then(r => console.log(`[AutoBackup] ✅ ${r.name}`))
       .catch(e => console.error('[AutoBackup] ❌', e.message));

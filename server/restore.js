@@ -19,10 +19,18 @@ async function restore() {
     return;
   }
 
-  // Nếu DB đã có dữ liệu (> 50KB) thì không cần restore
-  if (fs.existsSync(DB_PATH) && fs.statSync(DB_PATH).size > 50000) {
-    console.log('[Restore] DB đã có dữ liệu, bỏ qua restore.');
-    return;
+  // Kiểm tra DB có events chưa (chính xác hơn kiểm tra kích thước file)
+  if (fs.existsSync(DB_PATH)) {
+    try {
+      const Database = require('better-sqlite3');
+      const checkDb = new Database(DB_PATH, { readonly: true });
+      const count = checkDb.prepare('SELECT COUNT(*) as c FROM events').get().c;
+      checkDb.close();
+      if (count > 0) {
+        console.log(`[Restore] DB đã có ${count} events, bỏ qua restore.`);
+        return;
+      }
+    } catch(_) {} // DB bị lỗi hoặc chưa có schema → tiến hành restore
   }
 
   console.log('[Restore] DB trống hoặc chưa có → tìm backup trên Google Drive...');
