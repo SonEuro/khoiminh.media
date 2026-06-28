@@ -188,6 +188,8 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         rental_days: it.rental_days || 1,
         notes:       it.notes       || '',
       })));
+    }).catch(() => {
+      if (mounted.current) setError('Không thể tải dữ liệu phiếu');
     });
   }, [txId]);
 
@@ -359,7 +361,8 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.73rem' }} />
                     </div>
                     <input type="number" min="1" value={it.quantity}
-                      onChange={e => updateExtItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                      onChange={e => updateExtItem(idx, 'quantity', e.target.value)}
+                      onBlur={e => updateExtItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                       style={{ padding:'5px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(96,165,250,0.2)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }} />
                     <button onClick={() => removeExtItem(idx)}
                       style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>
