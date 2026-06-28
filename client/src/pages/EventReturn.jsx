@@ -50,8 +50,9 @@ export default function EventReturn() {
 
   // Outstanding KHO items
   const [outstanding,  setOutstanding]  = useState([]);
-  // condSplits: { equipment_id: { damaged, maintenance, lost } }  — good is computed
+  // condSplits: { equipment_id: { damaged, maintenance, lost } }
   const [condSplits,   setCondSplits]   = useState({});
+  const [goodSplits,   setGoodSplits]   = useState({});  // { eqId: number } — user-editable good qty
   const [editCond,     setEditCond]     = useState({});  // { eqId: 'damaged'|'maintenance'|'lost'|null }
   const [condNotes,    setCondNotes]    = useState({});  // { eqId: { damaged:'', maintenance:'', lost:'' } }
   const [itemNotes,    setItemNotes]    = useState({});
@@ -85,20 +86,24 @@ export default function EventReturn() {
       api.getOutstandingExt(eventId),
     ]).then(([rows, extRows]) => {
       setOutstanding(rows);
-      const splits = {}, cn = {};
+      const splits = {}, cn = {}, gs = {};
       rows.forEach(r => {
         splits[r.equipment_id] = { damaged: 0, maintenance: 0, lost: 0 };
         cn[r.equipment_id]     = { damaged: '', maintenance: '', lost: '' };
+        gs[r.equipment_id]     = r.qty_pending;
       });
       setCondSplits(splits);
       setCondNotes(cn);
+      setGoodSplits(gs);
       setEditCond({});
+      setItemNotes({});
       setChecked(new Set(rows.map(r => r.equipment_id)));
 
       setOutstandingExt(extRows);
       const eq = {};
       extRows.forEach(r => { eq[extKey(r)] = r.qty_pending; });
       setExtQty(eq);
+      setExtNotes({});
       setCheckedExt(new Set(extRows.map(extKey)));
     }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
@@ -113,6 +118,11 @@ export default function EventReturn() {
     const otherNG = ['damaged','maintenance','lost'].filter(k => k !== cond).reduce((a, k) => a + (s[k] || 0), 0);
     const capped = Math.min(newVal, Math.max(0, qtyPending - otherNG));
     setCondSplits(prev => ({ ...prev, [eqId]: { ...(prev[eqId] || {}), [cond]: capped } }));
+    const newMaxGood = Math.max(0, qtyPending - otherNG - capped);
+    setGoodSplits(prev => {
+      const cur = prev[eqId] ?? qtyPending;
+      return cur > newMaxGood ? { ...prev, [eqId]: newMaxGood } : prev;
+    });
   };
 
   const NON_GOOD_CFG = [
@@ -155,7 +165,7 @@ export default function EventReturn() {
       .flatMap(r => {
         const s    = condSplits[r.equipment_id] || {};
         const cn   = condNotes[r.equipment_id]  || {};
-        const good = getGood(r.equipment_id, r.qty_pending);
+        const good = goodSplits[r.equipment_id] ?? getGood(r.equipment_id, r.qty_pending);
         const result = [];
         if (good > 0) result.push({ equipment_id: r.equipment_id, quantity: good, condition: 'good', notes: itemNotes[r.equipment_id] || '' });
         ['damaged','maintenance','lost'].forEach(cond => {
@@ -169,7 +179,7 @@ export default function EventReturn() {
       .map(r => ({
         supplier:    r.supplier,
         name:        r.name,
-        quantity:    Math.max(0, parseInt(extQty[extKey(r)]) || 0),
+        quantity:    Math.min(Math.max(0, parseInt(extQty[extKey(r)]) || 0), r.qty_pending),
         unit:        r.unit || 'Cái',
         rental_days: r.rental_days || 1,
         notes:       extNotes[extKey(r)] || '',
@@ -301,7 +311,9 @@ export default function EventReturn() {
                 background:'rgba(248,113,113,0.12)', color:'#f87171',
                 padding:'4px 12px', borderRadius:'9999px', whiteSpace:'nowrap',
               }}>
-                {row.item_types} loại · {row.total_pending} cái
+                {row.item_types > 0 && <>{row.item_types} KHO · {row.total_pending} cái</>}
+                {row.item_types > 0 && row.ncc_types > 0 && <> · </>}
+                {row.ncc_types > 0 && <>{row.ncc_types} NCC</>}
               </div>
             </button>
           ))}
@@ -381,7 +393,7 @@ export default function EventReturn() {
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
-            <DateInput value={returnDate} onChange={setReturnDate} min={todayVN} />
+            <DateInput value={returnDate} onChange={setReturnDate} />
           </div>
         </div>
 
@@ -446,13 +458,15 @@ export default function EventReturn() {
             <span style={{ fontWeight:700, color:'var(--gold)' }}>Thiết bị chưa trả — {visibleItems.length} loại</span>
             <button type="button"
               onClick={() => {
-                const sp = {}, cn = {};
+                const sp = {}, cn = {}, gs = {};
                 visibleItems.forEach(r => {
                   sp[r.equipment_id] = { damaged: 0, maintenance: 0, lost: 0 };
                   cn[r.equipment_id] = { damaged: '', maintenance: '', lost: '' };
+                  gs[r.equipment_id] = r.qty_pending;
                 });
                 setCondSplits(prev => ({ ...prev, ...sp }));
                 setCondNotes(prev => ({ ...prev, ...cn }));
+                setGoodSplits(prev => ({ ...prev, ...gs }));
                 setEditCond({});
                 setChecked(new Set(visibleItems.map(r => r.equipment_id)));
               }}
@@ -463,44 +477,63 @@ export default function EventReturn() {
 
           {/* ── Desktop: bảng ── */}
           <div className="return-table-wrap table-wrap">
-            <table style={{ width:'100%', minWidth:'580px' }}>
+            <table style={{ width:'100%', minWidth:'620px', tableLayout:'fixed' }}>
+              <colgroup>
+                <col style={{ width:'28%' }} />
+                <col style={{ width:'72px' }} />
+                <col style={{ width:'54px' }} />
+                <col style={{ width:'50px' }} />
+                <col />
+                <col style={{ width:'130px' }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th style={{ textAlign:'left', padding:'10px 14px' }}>Thiết bị</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Xuất</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Nợ</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'300px' }}>Tình trạng (số lượng)</th>
-                  <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'120px' }}>Ghi chú</th>
+                  <th style={{ textAlign:'center', padding:'10px 6px' }}>Xuất</th>
+                  <th style={{ textAlign:'center', padding:'10px 6px' }}>Nợ</th>
+                  <th style={{ textAlign:'center', padding:'10px 6px' }}>✓</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Tình trạng (số lượng)</th>
+                  <th style={{ textAlign:'left', padding:'10px 8px' }}>Ghi chú</th>
                 </tr>
               </thead>
               <tbody>
                 {visibleItems.map(r => (
                   <tr key={r.equipment_id}>
-                    <td style={{ padding:'10px 14px' }}>
-                      <p style={{ fontWeight:600, color:'#c9a84c' }}>{r.eq_name}</p>
-                      <p style={{ fontSize:'0.72rem', color:'#7878a0' }}>{r.eq_code} · {r.category_code}</p>
+                    <td style={{ padding:'10px 14px', maxWidth:0, overflow:'hidden' }}>
+                      <div style={{ fontWeight:600, color:'#c9a84c', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={r.eq_name}>{r.eq_name}</div>
+                      <div style={{ fontSize:'0.72rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
                     </td>
-                    <td style={{ textAlign:'center', padding:'10px 8px', color:'#f87171', fontWeight:700 }}>{r.qty_out} {r.unit}</td>
-                    <td style={{ textAlign:'center', padding:'10px 8px' }}>
+                    <td style={{ textAlign:'center', padding:'10px 6px', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>{r.qty_out} {r.unit}</td>
+                    <td style={{ textAlign:'center', padding:'10px 6px' }}>
                       <span style={{ color:'#fbbf24', fontWeight:700 }}>{r.qty_pending}</span>
                     </td>
-                    <td style={{ textAlign:'center', padding:'8px' }}>
+                    <td style={{ textAlign:'center', padding:'6px' }}>
                       <button type="button" onClick={() => toggleCheck(r.equipment_id)}
-                        style={{ width:'44px', height:'36px', textAlign:'center', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1rem', fontWeight:700, display:'block', margin:'0 auto' }}
+                        style={{ width:'38px', height:'34px', textAlign:'center', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1rem', fontWeight:700, display:'block', margin:'0 auto' }}
                       >{checked.has(r.equipment_id) ? '✓' : ''}</button>
                     </td>
-                    <td style={{ padding:'8px 12px' }}>
+                    <td style={{ padding:'8px' }}>
                       <div style={{ display:'flex', gap:'5px', alignItems:'center', flexWrap:'wrap' }}>
-                        {/* Tốt — auto-computed, read-only */}
-                        <span style={{
-                          display:'inline-flex', alignItems:'center',
+                        {/* Tốt — editable */}
+                        <div style={{
+                          display:'inline-flex', alignItems:'center', gap:'4px',
                           padding:'4px 10px', borderRadius:'20px',
                           background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)',
-                          color:'#4ade80', fontSize:'0.8rem', fontWeight:700, whiteSpace:'nowrap',
+                          whiteSpace:'nowrap',
                         }}>
-                          Tốt: {getGood(r.equipment_id, r.qty_pending)}
-                        </span>
+                          <input
+                            type="number" min="0"
+                            max={getGood(r.equipment_id, r.qty_pending)}
+                            value={goodSplits[r.equipment_id] ?? getGood(r.equipment_id, r.qty_pending)}
+                            onChange={e => {
+                              const max = getGood(r.equipment_id, r.qty_pending);
+                              const val = Math.max(0, Math.min(parseInt(e.target.value) || 0, max));
+                              setGoodSplits(prev => ({ ...prev, [r.equipment_id]: val }));
+                            }}
+                            style={{ width:'30px', background:'transparent', border:'none', outline:'none', color:'#4ade80', fontSize:'0.85rem', fontWeight:800, textAlign:'center', padding:0 }}
+                          />
+                          <span style={{ color:'#4ade80', fontSize:'0.8rem', fontWeight:700 }}>: Tốt</span>
+                        </div>
 
                         {/* Conditions đang active (val > 0 hoặc đang edit) */}
                         {NON_GOOD_CFG.map(({ cond, label, color, rgb }) => {
@@ -595,15 +628,26 @@ export default function EventReturn() {
                 {/* ── Condition pills + checkbox ── */}
                 <div style={{ display:'flex', gap:'8px', alignItems:'flex-start', marginBottom:'8px' }}>
                   <div style={{ flex:1, display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
-                    {/* Tốt — auto-computed */}
-                    <span style={{
-                      display:'inline-flex', alignItems:'center',
+                    {/* Tốt — editable */}
+                    <div style={{
+                      display:'inline-flex', alignItems:'center', gap:'4px',
                       padding:'8px 12px', borderRadius:'20px',
                       background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)',
-                      color:'#4ade80', fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap',
+                      whiteSpace:'nowrap',
                     }}>
-                      Tốt: {getGood(r.equipment_id, r.qty_pending)}
-                    </span>
+                      <input
+                        type="number" min="0"
+                        max={getGood(r.equipment_id, r.qty_pending)}
+                        value={goodSplits[r.equipment_id] ?? getGood(r.equipment_id, r.qty_pending)}
+                        onChange={e => {
+                          const max = getGood(r.equipment_id, r.qty_pending);
+                          const val = Math.max(0, Math.min(parseInt(e.target.value) || 0, max));
+                          setGoodSplits(prev => ({ ...prev, [r.equipment_id]: val }));
+                        }}
+                        style={{ width:'34px', background:'transparent', border:'none', outline:'none', color:'#4ade80', fontSize:'0.9rem', fontWeight:800, textAlign:'center', padding:0 }}
+                      />
+                      <span style={{ color:'#4ade80', fontSize:'0.82rem', fontWeight:700 }}>: Tốt</span>
+                    </div>
 
                     {/* Conditions đang active */}
                     {NON_GOOD_CFG.map(({ cond, label, color, rgb }) => {
@@ -693,6 +737,7 @@ export default function EventReturn() {
                 const eq = {};
                 outstandingExt.forEach(r => { eq[extKey(r)] = r.qty_pending; });
                 setExtQty(prev => ({ ...prev, ...eq }));
+                setExtNotes({});
                 setCheckedExt(new Set(outstandingExt.map(extKey)));
               }}
               style={{ fontSize:'0.75rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>

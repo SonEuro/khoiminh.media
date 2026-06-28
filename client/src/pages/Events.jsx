@@ -354,26 +354,29 @@ function TrashView({ onClose, canPermanentDelete, user }) {
             <div key={ev.id} style={{
               background:'var(--bg-card)', border:'1px solid rgba(248,113,113,0.25)',
               borderRadius:'10px', padding:'14px 16px',
-              display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'
+              display:'flex', flexDirection:'column', gap:'10px',
             }}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
-                  <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'var(--text-muted)' }}>{ev.code}</span>
-                  <span style={{
-                    fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
-                    background: ev.days_left <= 5 ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)',
-                    color: ev.days_left <= 5 ? '#f87171' : '#fbbf24',
-                    border: `1px solid ${ev.days_left <= 5 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)'}`,
-                  }}>
-                    còn {ev.days_left} ngày
-                  </span>
+              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px', flexWrap:'wrap' }}>
+                    <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'var(--text-muted)' }}>{ev.code}</span>
+                    <span style={{
+                      fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
+                      background: ev.days_left <= 5 ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)',
+                      color: ev.days_left <= 5 ? '#f87171' : '#fbbf24',
+                      border: `1px solid ${ev.days_left <= 5 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)'}`,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      còn {ev.days_left} ngày
+                    </span>
+                  </div>
+                  <p style={{ fontWeight:700, color:'var(--text-primary)', margin:'0 0 2px', wordBreak:'break-word' }}>{ev.name}</p>
+                  <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', margin:0 }}>
+                    Xóa lúc: {ev.deleted_at?.slice(0, 16)}
+                  </p>
                 </div>
-                <p style={{ fontWeight:600, color:'var(--text-primary)', marginBottom:'2px' }}>{ev.name}</p>
-                <p style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>
-                  Xóa lúc: {ev.deleted_at?.slice(0, 16)}
-                </p>
               </div>
-              <div style={{ display:'flex', gap:'8px', flexShrink:0, flexWrap:'wrap', justifyContent:'flex-end' }}>
+              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
                 {canRestoreEvent(ev) && (
                   <button className="btn-secondary btn-sm" onClick={() => handleRestore(ev)}>↩ Khôi phục</button>
                 )}

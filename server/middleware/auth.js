@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const db  = require('../database');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'khoiminh-dev-secret-2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('[FATAL] JWT_SECRET chưa được cấu hình trong môi trường!');
 
 // Categories each role can transact (null = all)
 const DEPT_CATS = {

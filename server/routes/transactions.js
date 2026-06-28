@@ -72,7 +72,8 @@ router.get('/pending-returns', (req, res) => {
        FROM transactions t2
        WHERE t2.event_id = ev.id AND t2.type = 'OUT') AS out_codes,
       COALESCE(kho.item_types, 0)    AS item_types,
-      COALESCE(kho.total_pending, 0) AS total_pending
+      COALESCE(kho.total_pending, 0) AS total_pending,
+      COALESCE(ncc.ncc_types, 0)     AS ncc_types
     FROM events ev
     JOIN (
       SELECT t.event_id
@@ -92,16 +93,30 @@ router.get('/pending-returns', (req, res) => {
              SUM(CASE WHEN t.type='RETURN' THEN ei.quantity ELSE 0 END)
     ) any_pend ON any_pend.event_id = ev.id
     LEFT JOIN (
-      SELECT t.event_id,
-        COUNT(DISTINCT ti.equipment_id)                              AS item_types,
-        SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
-        SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END)  AS total_pending
-      FROM transaction_items ti
-      JOIN transactions t ON t.id = ti.transaction_id
-      WHERE t.event_id IS NOT NULL AND t.status != 'pending'
-      GROUP BY t.event_id
-      HAVING total_pending > 0
+      SELECT event_id, COUNT(*) AS item_types, SUM(net_qty) AS total_pending
+      FROM (
+        SELECT t.event_id, ti.equipment_id,
+          SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
+          SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END) AS net_qty
+        FROM transaction_items ti
+        JOIN transactions t ON t.id = ti.transaction_id
+        WHERE t.event_id IS NOT NULL AND t.status != 'pending'
+        GROUP BY t.event_id, ti.equipment_id
+      ) per_eq WHERE net_qty > 0
+      GROUP BY event_id
     ) kho ON kho.event_id = ev.id
+    LEFT JOIN (
+      SELECT event_id, COUNT(*) AS ncc_types
+      FROM (
+        SELECT t.event_id, ei.supplier, ei.name
+        FROM external_items ei
+        JOIN transactions t ON t.id = ei.transaction_id
+        WHERE t.event_id IS NOT NULL AND t.status != 'pending'
+        GROUP BY t.event_id, ei.supplier, ei.name
+        HAVING SUM(CASE WHEN t.type='OUT' THEN ei.quantity ELSE 0 END) >
+               SUM(CASE WHEN t.type='RETURN' THEN ei.quantity ELSE 0 END)
+      ) GROUP BY event_id
+    ) ncc ON ncc.event_id = ev.id
     WHERE ev.archived_at IS NULL AND ev.deleted_at IS NULL
     ORDER BY ev.start_date DESC
   `).all();
