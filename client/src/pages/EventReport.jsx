@@ -525,12 +525,12 @@ export default function EventReport() {
   if (view === 'list') {
     return (
       <div className="p-6 max-w-3xl">
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px' }}>
-          <div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px', flexWrap:'wrap', gap:'12px' }}>
+          <div style={{ minWidth:0 }}>
             <h1 style={{ fontSize:'1.5rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Báo Cáo Thực Hiện Sự Kiện</h1>
             <p style={{ color:'#7878a0', fontSize:'0.82rem', margin:'4px 0 0' }}>Nhân viên Khôi Minh báo cáo sau mỗi sự kiện</p>
           </div>
-          <button onClick={() => setView('form')} className="btn-primary" style={{ whiteSpace:'nowrap' }}>
+          <button onClick={() => setView('form')} className="btn-primary btn-sm" style={{ whiteSpace:'nowrap', flexShrink:0 }}>
             + Tạo báo cáo
           </button>
         </div>
@@ -654,7 +654,7 @@ export default function EventReport() {
           <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Mốc Thời Gian
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 time-grid-keep-2">
             {[
               ['Thời gian có mặt', 'time_present'],
               ['Thời gian Onset', 'time_onset'],

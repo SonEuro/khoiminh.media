@@ -255,6 +255,15 @@
 
   /* EventReport timeline 4-col → 2 cột trên mobile */
   .time-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* EventReport form time inputs: giữ 2 cột cho HH:MM compact */
+  .time-grid-keep-2 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* ExportForm EXT NCC row: thu nhỏ các mini buttons để supplier rộng hơn */
+  .ext-btn-row { gap: 4px !important; }
+  .ext-btn-row > input[type="number"],
+  .ext-btn-row .ext-mini-btn,
+  .ext-btn-row > button { width: 44px !important; min-width: 44px !important; flex-shrink: 0; }
   /* Prevent iOS zoom on input focus — keep font ≥ 16px */
   input, select, textarea { font-size: 16px !important; }
 

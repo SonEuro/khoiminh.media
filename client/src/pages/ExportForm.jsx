@@ -503,7 +503,7 @@ export default function ExportForm() {
                   }}>
 
                     {/* ── Dòng 1: Badge + Nhà CC + Qty + Ngày + ✏️ + X ── */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
+                    <div className="ext-btn-row" style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
                       <span style={{ display:'none' }}>N{nccSeq}</span>
 
                       {/* Supplier search */}
@@ -551,7 +551,7 @@ export default function ExportForm() {
                       />
 
                       {/* Rental days gold */}
-                      <div style={{
+                      <div className="ext-mini-btn" style={{
                         flexShrink:0, width:'56px', height:'36px',
                         display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px',
                         background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',

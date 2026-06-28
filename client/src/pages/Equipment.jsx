@@ -287,7 +287,7 @@ export default function Equipment() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Tổng Thiết Bị Khôi Minh</h1>
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
