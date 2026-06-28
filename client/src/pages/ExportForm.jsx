@@ -74,21 +74,27 @@ export default function ExportForm() {
 
   const reloadEquipment = () => api.getEquipment().then(setEquipment);
 
+  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+
   // Tính ngày tối thiểu phải trả dựa trên sự kiện đang chọn
   const parseFilmingDates = (ev) => {
     if (!ev) return [];
+    const dates = [];
     try {
-      if (ev.filming_dates) return typeof ev.filming_dates === 'string' ? JSON.parse(ev.filming_dates) : ev.filming_dates;
-      return ev.filming_date ? [ev.filming_date] : [];
-    } catch { return ev.filming_date ? [ev.filming_date] : []; }
+      const arr = ev.filming_dates ? (typeof ev.filming_dates === 'string' ? JSON.parse(ev.filming_dates) : ev.filming_dates) : [];
+      dates.push(...arr);
+    } catch {}
+    if (ev.filming_date) dates.push(ev.filming_date);
+    if (ev.show_date)    dates.push(ev.show_date);
+    return [...new Set(dates.filter(Boolean))].sort();
   };
 
   const getMinReturnDate = (eventId) => {
     const ev = events.find(e => String(e.id) === String(eventId));
-    if (!ev) return new Date().toISOString().slice(0, 10);
+    if (!ev) return todayVN;
     const filmingArr = parseFilmingDates(ev);
     const lastFilming = filmingArr.length ? filmingArr[filmingArr.length - 1] : null;
-    const candidates = [lastFilming, ev.end_date, new Date().toISOString().slice(0, 10)].filter(Boolean);
+    const candidates = [lastFilming, ev.end_date, todayVN].filter(Boolean);
     return candidates.sort().pop();
   };
 
@@ -96,8 +102,7 @@ export default function ExportForm() {
   const selEvForPending = events.find(ev => String(ev.id) === String(form.event_id));
   const currentFilmingDates = parseFilmingDates(selEvForPending);
   const currentFilmingSet = new Set(currentFilmingDates);
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const isPendingExport = currentFilmingDates.length > 0 && [...currentFilmingDates].sort()[0] > todayStr;
+  const isPendingExport = currentFilmingDates.length > 0 && currentFilmingDates[0] > todayVN;
 
   useEffect(() => {
     reloadEquipment();
@@ -358,9 +363,8 @@ export default function ExportForm() {
                                 setDateError('');
                                 // Auto-set return date = ngày ghi hình nếu là sự kiện tương lai (xuất tạm)
                                 const evFilmDates = parseFilmingDates(ev);
-                                const earliest = [...evFilmDates].sort()[0] || null;
-                                const td = new Date().toISOString().slice(0, 10);
-                                if (earliest && earliest > td) {
+                                const earliest = evFilmDates[0] || null;
+                                if (earliest && earliest > todayVN) {
                                   setField('expected_return_date', getMinReturnDate(ev.id));
                                 } else {
                                   setField('expected_return_date', '');

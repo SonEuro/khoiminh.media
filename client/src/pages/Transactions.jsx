@@ -42,7 +42,13 @@ const fmtDate = fmtD;
 // ── TX detail modal ───────────────────────────────────────────────────────────
 function TxDetailModal({ txId, onClose, canEdit, onEdit }) {
   const [tx, setTx] = useState(null);
-  useEffect(() => { api.getTransactionById(txId).then(setTx); }, [txId]);
+  const [err, setErr] = useState(false);
+  useEffect(() => { api.getTransactionById(txId).then(setTx).catch(() => setErr(true)); }, [txId]);
+  if (err) return (
+    <Modal title="Phiếu" onClose={onClose}>
+      <div style={{ textAlign:'center', padding:'32px', color:'#f87171' }}>Không thể tải phiếu. Vui lòng thử lại.</div>
+    </Modal>
+  );
   if (!tx) return (
     <Modal title="Phiếu" onClose={onClose}>
       <div style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>Đang tải...</div>
@@ -570,7 +576,7 @@ function TxRows({ txs, onSelect, onDelete }) {
             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
               <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', display:'flex', alignItems:'center' }}
-                onClick={async () => { const full = await api.getTransactionById(tx.id); printSlip(full); }}><Printer size={14} /></button>
+                onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}><Printer size={14} /></button>
               {onDelete && (
                 <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
                   onClick={() => onDelete(tx)} title="Xóa phiếu">🗑</button>
@@ -658,7 +664,7 @@ export default function Transactions() {
     ]).then(([ev, pending, out, ret, rep, vio]) => {
       setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
       setReports(rep); setViolations(vio);
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
 
   useEffect(() => {

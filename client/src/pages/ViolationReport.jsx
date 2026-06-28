@@ -103,7 +103,7 @@ export default function ViolationReport() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    api.getEvents().then(setEvents);
+    api.getEvents().then(setEvents).catch(() => {});
     load();
     const timer = setInterval(load, 60_000);
     const onVisible = () => { if (!document.hidden) load(); };

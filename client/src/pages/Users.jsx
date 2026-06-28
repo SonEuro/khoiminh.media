@@ -47,8 +47,10 @@ export default function Users() {
   const [deleting, setDeleting]       = useState(false);
 
   async function load() {
-    const data = await api.getUsers();
-    setUsers(data);
+    try {
+      const data = await api.getUsers();
+      setUsers(data);
+    } catch {}
   }
   useEffect(() => { load(); }, []);
 
@@ -148,7 +150,7 @@ export default function Users() {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `kho-khoiminh-backup-${new Date().toISOString().slice(0,10)}.db`;
+                    a.download = `kho-khoiminh-backup-${new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}.db`;
                     a.click();
                     URL.revokeObjectURL(url);
                   } catch (err) { alert('Lỗi: ' + err.message); }

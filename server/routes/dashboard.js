@@ -4,8 +4,9 @@ const db = require('../database');
 const getFilmingDates = (ev) => {
   let dates = [];
   try { dates = JSON.parse(ev.filming_dates || '[]'); } catch {}
-  if (!dates.length && ev.filming_date) dates = [ev.filming_date];
-  return dates.filter(Boolean);
+  if (ev.filming_date) dates.push(ev.filming_date);
+  if (ev.show_date)    dates.push(ev.show_date);
+  return [...new Set(dates.filter(Boolean))].sort();
 };
 
 router.get('/', (req, res) => {
@@ -34,7 +35,7 @@ router.get('/', (req, res) => {
   const pendingTxs = db.prepare(`
     SELECT t.id, t.code, t.event_id, t.created_at,
       e.name AS event_name, e.code AS event_code,
-      e.filming_date, e.filming_dates, e.start_date,
+      e.filming_date, e.filming_dates, e.show_date, e.start_date,
       COUNT(ti.id) AS item_count
     FROM transactions t
     JOIN events e ON e.id = t.event_id

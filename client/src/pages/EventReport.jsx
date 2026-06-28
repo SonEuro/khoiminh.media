@@ -211,10 +211,10 @@ function TimeInput({ value, onChange, hasError }) {
   const display = raw.length > 2 ? `${raw.slice(0,2)}:${raw.slice(2)}` : raw;
 
   function apply(r) {
-    // Cap hh ≤ 24
-    if (r.length >= 2 && parseInt(r.slice(0,2), 10) > 24) r = '24' + r.slice(2);
-    // Cap mm ≤ 60
-    if (r.length >= 4 && parseInt(r.slice(2,4), 10) > 60) r = r.slice(0,2) + '60';
+    // Cap hh ≤ 23
+    if (r.length >= 2 && parseInt(r.slice(0,2), 10) > 23) r = '23' + r.slice(2);
+    // Cap mm ≤ 59
+    if (r.length >= 4 && parseInt(r.slice(2,4), 10) > 59) r = r.slice(0,2) + '59';
     if (r.length > 4) r = r.slice(0,4);
     setRaw(r);
     onChange(r ? `${r.slice(0,2)}:${r.slice(2,4)}` : '');
@@ -404,9 +404,11 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
+const todayVN = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+
 const makeEmptyForm = () => ({
   event_id: '', event_label: '', location: '',
-  report_date: new Date().toISOString().slice(0, 10),
+  report_date: todayVN(),
   km_staff: [], freelancer_staff: '',
   time_present: '', time_onset: '', time_off: '', time_end: '',
   incomplete: '', incidents: '',
@@ -511,8 +513,12 @@ export default function EventReport() {
   }
 
   async function handleDelete(id) {
-    await api.deleteEventReport(id);
-    setReports(r => r.filter(x => x.id !== id));
+    try {
+      await api.deleteEventReport(id);
+      setReports(r => r.filter(x => x.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   // ── List view ───────────────────────────────────────────────────────────────

@@ -48,7 +48,7 @@ function buildSlipHTML(tx, preview = false) {
     '<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>'
   ).join('');
 
-  const txDate = tx.transaction_date ? new Date(tx.transaction_date) : new Date();
+  const txDate = tx.transaction_date ? new Date(tx.transaction_date.replace(' ', 'T')) : new Date();
   const day    = txDate.getDate();
   const month  = txDate.getMonth() + 1;
   const year   = txDate.getFullYear();

@@ -6,7 +6,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getInventoryReport().then(setData).finally(() => setLoading(false));
+    api.getInventoryReport().then(setData).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const exportCSV = () => {
@@ -18,7 +18,7 @@ export default function Reports() {
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `bao-cao-ton-kho-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `bao-cao-ton-kho-${new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}.csv`;
     a.click();
   };
 

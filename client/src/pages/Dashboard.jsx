@@ -276,7 +276,7 @@ export default function Dashboard() {
       const [d, evs] = await Promise.all([api.getDashboard(), api.getEvents()]);
       setDash(d);
       setEvents(evs);
-    } finally {
+    } catch { /* dash stays null, handled in render */ } finally {
       setLoading(false);
     }
   }, []);
@@ -329,6 +329,8 @@ export default function Dashboard() {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</div>
+      ) : !dash ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#f87171' }}>Không thể tải dữ liệu. Vui lòng thử lại.</div>
       ) : (
         <>
           {/* ── Cảnh báo vận hành ── */}

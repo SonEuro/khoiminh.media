@@ -152,7 +152,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
 // ── Tab 1: Sửa xong ───────────────────────────────────────────────────────────
 function FixTab({ equipment, onDone }) {
   const { user } = useAuth();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
 
   const isDeptRole = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
   const myDept = isDeptRole ? (ROLE_TO_DEPT[user.role] || null) : null;
@@ -260,7 +260,7 @@ function FixTab({ equipment, onDone }) {
 function IntakeTab({ onDone }) {
   const { user, can } = useAuth();
   const canIntake = can('intake');
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
 
   const person = user?.full_name || '';
   const [department, setDepartment] = useState('');

@@ -120,7 +120,7 @@ function EquipmentForm({ categories, initial, onSave, onCancel }) {
 function QRModal({ equipment, onClose }) {
   const [qr, setQr] = useState(null);
   useEffect(() => {
-    QRCode.toDataURL(`EQUIP:${equipment.code}:${equipment.id}`, { width: 256 }).then(setQr);
+    QRCode.toDataURL(`EQUIP:${equipment.code}:${equipment.id}`, { width: 256 }).then(setQr).catch(() => {});
   }, [equipment.id, equipment.code]);
 
   return (
@@ -139,7 +139,7 @@ function QRModal({ equipment, onClose }) {
 
 function HistoryModal({ equipment, onClose }) {
   const [history, setHistory] = useState([]);
-  useEffect(() => { api.getEquipmentHistory(equipment.id).then(setHistory); }, [equipment.id]);
+  useEffect(() => { api.getEquipmentHistory(equipment.id).then(setHistory).catch(() => {}); }, [equipment.id]);
 
   const typeColors = { OUT: 'text-red-600', RETURN: 'text-green-600', FIX: 'text-blue-600' };
   const typeLabels = { OUT: 'Xuất', RETURN: 'Nhập', FIX: 'Sửa xong' };
@@ -193,13 +193,13 @@ export default function Equipment() {
   const [reservedEvents, setReservedEvents] = useState({});
 
   const load = useCallback(() => {
-    api.getEquipment({ limit: 9999 }).then(setEquipment).finally(() => setLoading(false));
-    api.getEquipmentTopUsed(5).then(setTopData);
+    api.getEquipment({ limit: 9999 }).then(setEquipment).catch(() => {}).finally(() => setLoading(false));
+    api.getEquipmentTopUsed(5).then(setTopData).catch(() => {});
     api.getEquipmentInUseEvents().then(setInUseEvents).catch(() => {});
     api.getEquipmentReservedEvents().then(setReservedEvents).catch(() => {});
   }, []);
 
-  useEffect(() => { api.getCategories().then(setCategories); }, []);
+  useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
   useEffect(() => {
     load();
     const timer = setInterval(load, 60_000);
@@ -255,7 +255,7 @@ export default function Equipment() {
       const result = await api.importEquipment();
       alert(result.message || 'Import thành công!');
       load();
-      api.getCategories().then(setCategories);
+      api.getCategories().then(setCategories).catch(() => {});
     } catch (e) {
       alert('Import thất bại: ' + e.message);
     }

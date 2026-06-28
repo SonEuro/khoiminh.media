@@ -43,7 +43,7 @@ app.post('/api/backup/gdrive', requireAuth, requireRole('SUPER_ADMIN'), async (r
 
 // Download backup locally — SUPER_ADMIN only
 app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res) => {
-  const date = new Date().toISOString().slice(0, 10);
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tmpFile = path.join(os.tmpdir(), `kho-backup-${date}.db`);
   try {
     await db.backup(tmpFile);

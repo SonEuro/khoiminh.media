@@ -47,7 +47,8 @@ export default function EventReturn() {
   const [showEvSuggest, setShowEvSuggest] = useState(false);
   const [deptFilter,    setDeptFilter]   = useState(defaultDept);
   const [person,        setPerson]       = useState(user?.full_name || '');
-  const [returnDate,    setReturnDate]   = useState(new Date().toISOString().slice(0,10));
+  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const [returnDate,    setReturnDate]   = useState(todayVN);
 
   // Pending returns list
   const [pendingReturns,  setPendingReturns]  = useState([]);
@@ -74,7 +75,7 @@ export default function EventReturn() {
 
   const loadPending = () => {
     setLoadingPending(true);
-    api.getPendingReturns().then(setPendingReturns).finally(() => setLoadingPending(false));
+    api.getPendingReturns().then(setPendingReturns).catch(() => {}).finally(() => setLoadingPending(false));
   };
 
   useEffect(() => { api.getEvents().then(setEvents); loadPending(); }, []);
@@ -98,7 +99,7 @@ export default function EventReturn() {
       extRows.forEach(r => { eq[extKey(r)] = r.qty_pending; });
       setExtQty(eq);
       setCheckedExt(new Set(extRows.map(extKey)));
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
 
   const deptCats = DEPT_OPTIONS.find(d => d.value === deptFilter)?.cats ?? null;
@@ -355,7 +356,7 @@ export default function EventReturn() {
           </div>
           <div>
             <label className="label">Ngày nhập kho</label>
-            <DateInput value={returnDate} onChange={setReturnDate} min={new Date().toISOString().slice(0,10)} />
+            <DateInput value={returnDate} onChange={setReturnDate} min={todayVN} />
           </div>
         </div>
 
