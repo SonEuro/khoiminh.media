@@ -22,12 +22,6 @@ const DEPT_OPTIONS = [
   { value: 'CSVC',  Icon: Package,      label: 'CSVC',     cats: ['CSVC'] },
 ];
 
-const COND_OPTS = [
-  { value: 'good',        label: '✅ Tốt' },
-  { value: 'damaged',     label: '⚠️ Hỏng' },
-  { value: 'maintenance', label: '🔧 Cần sửa' },
-  { value: 'lost',        label: '❌ Mất' },
-];
 
 export default function EventReturn() {
   const navigate   = useNavigate();
@@ -56,9 +50,9 @@ export default function EventReturn() {
 
   // Outstanding KHO items
   const [outstanding,  setOutstanding]  = useState([]);
-  const [quantities,   setQuantities]   = useState({});   // equipment_id → qty
-  const [conditions,   setConditions]   = useState({});   // equipment_id → condition
-  const [itemNotes,    setItemNotes]    = useState({});   // equipment_id → notes
+  // condSplits: { equipment_id: { good, damaged, maintenance, lost } }
+  const [condSplits,   setCondSplits]   = useState({});
+  const [itemNotes,    setItemNotes]    = useState({});
   const [checked,      setChecked]      = useState(new Set());
   const [loading,      setLoading]      = useState(false);
 
@@ -89,9 +83,9 @@ export default function EventReturn() {
       api.getOutstandingExt(eventId),
     ]).then(([rows, extRows]) => {
       setOutstanding(rows);
-      const q = {}, c = {};
-      rows.forEach(r => { q[r.equipment_id] = r.qty_pending; c[r.equipment_id] = 'good'; });
-      setQuantities(q); setConditions(c);
+      const splits = {};
+      rows.forEach(r => { splits[r.equipment_id] = { good: r.qty_pending, damaged: 0, maintenance: 0, lost: 0 }; });
+      setCondSplits(splits);
       setChecked(new Set(rows.map(r => r.equipment_id)));
 
       setOutstandingExt(extRows);
@@ -101,6 +95,28 @@ export default function EventReturn() {
       setCheckedExt(new Set(extRows.map(extKey)));
     }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
+
+  const totalSplit = (eqId) => {
+    const s = condSplits[eqId] || {};
+    return (s.good || 0) + (s.damaged || 0) + (s.maintenance || 0) + (s.lost || 0);
+  };
+  const setSplit = (eqId, cond, rawVal) => {
+    const val = Math.max(0, parseInt(rawVal) || 0);
+    setCondSplits(prev => ({ ...prev, [eqId]: { ...(prev[eqId] || {}), [cond]: val } }));
+  };
+  const capSplit = (eqId, cond, rawVal, maxTotal) => {
+    const newVal = Math.max(0, parseInt(rawVal) || 0);
+    const s = condSplits[eqId] || {};
+    const otherTotal = Object.entries(s).filter(([k]) => k !== cond).reduce((a, [, v]) => a + (parseInt(v) || 0), 0);
+    setSplit(eqId, cond, Math.min(newVal, Math.max(0, maxTotal - otherTotal)));
+  };
+
+  const COND_CFG = [
+    { cond:'good',        label:'Tốt',  short:'Tốt',  color:'#4ade80', rgb:'74,222,128'  },
+    { cond:'damaged',     label:'Hỏng', short:'Hỏng', color:'#f87171', rgb:'248,113,113' },
+    { cond:'maintenance', label:'Sửa',  short:'Sửa',  color:'#fbbf24', rgb:'251,191,36'  },
+    { cond:'lost',        label:'Mất',  short:'Mất',  color:'#94a3b8', rgb:'148,163,184' },
+  ];
 
   const deptCats = DEPT_OPTIONS.find(d => d.value === deptFilter)?.cats ?? null;
 
@@ -125,20 +141,29 @@ export default function EventReturn() {
 
   const toggleCheck = (id) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  const hasKhoItems = visibleItems.some(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0);
+  const hasKhoItems = visibleItems.some(r => checked.has(r.equipment_id) && totalSplit(r.equipment_id) > 0);
   const hasExtItems = outstandingExt.some(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0);
   const canSubmit = eventId && person && (hasKhoItems || hasExtItems);
 
   const submit = async () => {
     if (!canSubmit) return;
+    // Validate trước khi submit
+    for (const r of visibleItems.filter(r => checked.has(r.equipment_id))) {
+      const tot = totalSplit(r.equipment_id);
+      if (tot > r.qty_pending) {
+        alert(`${r.eq_name}: Tổng nhập (${tot}) vượt quá số còn nợ (${r.qty_pending} ${r.unit})`);
+        return;
+      }
+    }
     const items = visibleItems
-      .filter(r => checked.has(r.equipment_id) && (quantities[r.equipment_id] || 0) > 0)
-      .map(r => ({
-        equipment_id: r.equipment_id,
-        quantity:     Math.max(0, parseInt(quantities[r.equipment_id]) || 0),
-        condition:    conditions[r.equipment_id] || 'good',
-        notes:        itemNotes[r.equipment_id] || '',
-      }));
+      .filter(r => checked.has(r.equipment_id) && totalSplit(r.equipment_id) > 0)
+      .flatMap(r => {
+        const s = condSplits[r.equipment_id] || {};
+        const note = itemNotes[r.equipment_id] || '';
+        return ['good','damaged','maintenance','lost']
+          .map(cond => ({ equipment_id: r.equipment_id, quantity: parseInt(s[cond]) || 0, condition: cond, notes: note }))
+          .filter(i => i.quantity > 0);
+      });
     const external_items = outstandingExt
       .filter(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0)
       .map(r => ({
@@ -420,7 +445,12 @@ export default function EventReturn() {
           <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(201,168,76,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <span style={{ fontWeight:700, color:'var(--gold)' }}>Thiết bị chưa trả — {visibleItems.length} loại</span>
             <button type="button"
-              onClick={() => { const q = {}; visibleItems.forEach(r => q[r.equipment_id] = r.qty_pending); setQuantities(prev => ({...prev, ...q})); setChecked(new Set(visibleItems.map(r => r.equipment_id))); }}
+              onClick={() => {
+                const sp = {};
+                visibleItems.forEach(r => { sp[r.equipment_id] = { good: r.qty_pending, damaged: 0, maintenance: 0, lost: 0 }; });
+                setCondSplits(prev => ({ ...prev, ...sp }));
+                setChecked(new Set(visibleItems.map(r => r.equipment_id)));
+              }}
               style={{ fontSize:'0.75rem', color:'#c9a84c', background:'none', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
               Chọn tất cả
             </button>
@@ -432,12 +462,11 @@ export default function EventReturn() {
               <thead>
                 <tr>
                   <th style={{ textAlign:'left', padding:'10px 14px' }}>Thiết bị</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Đã xuất</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Còn nợ</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'90px' }}>Số nhập</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Xuất</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Nợ</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'130px' }}>Tình trạng</th>
-                  <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'140px' }}>Ghi chú</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'240px' }}>Tình trạng (số lượng)</th>
+                  <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'120px' }}>Ghi chú</th>
                 </tr>
               </thead>
               <tbody>
@@ -452,27 +481,47 @@ export default function EventReturn() {
                       <span style={{ color:'#fbbf24', fontWeight:700 }}>{r.qty_pending}</span>
                     </td>
                     <td style={{ textAlign:'center', padding:'8px' }}>
-                      <input type="number" min="0" max={r.qty_pending}
-                        value={quantities[r.equipment_id] ?? r.qty_pending}
-                        onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                        style={{ width:'70px', padding:'4px 6px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', color:'#4ade80', fontSize:'1.1rem', fontWeight:700 }}
-                      />
-                    </td>
-                    <td style={{ textAlign:'center', padding:'8px' }}>
                       <button type="button" onClick={() => toggleCheck(r.equipment_id)}
-                        style={{ width:'70px', padding:'4px 6px', textAlign:'center', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.1rem', fontWeight:700, lineHeight:'1.4', display:'block', margin:'0 auto' }}
+                        style={{ width:'44px', height:'36px', textAlign:'center', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1rem', fontWeight:700, display:'block', margin:'0 auto' }}
                       >{checked.has(r.equipment_id) ? '✓' : ''}</button>
                     </td>
-                    <td style={{ textAlign:'center', padding:'8px' }}>
-                      <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        style={{ padding:'4px 6px', fontSize:'0.78rem', fontWeight:600, background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', color:'#e8c97a', cursor:'pointer' }}>
-                        {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                      </select>
+                    <td style={{ padding:'8px' }}>
+                      <div style={{ display:'flex', gap:'5px', justifyContent:'center', alignItems:'flex-end' }}>
+                        {COND_CFG.map(({ cond, short, color, rgb }) => {
+                          const val = condSplits[r.equipment_id]?.[cond] || 0;
+                          const tot = totalSplit(r.equipment_id);
+                          const over = tot > r.qty_pending;
+                          return (
+                            <div key={cond} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>
+                              <span style={{ fontSize:'0.58rem', color: val > 0 ? color : '#555570', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.03em' }}>{short}</span>
+                              <input
+                                type="number" min="0"
+                                value={val === 0 ? '' : val}
+                                placeholder="0"
+                                onChange={e => setSplit(r.equipment_id, cond, e.target.value)}
+                                onBlur={e => capSplit(r.equipment_id, cond, e.target.value, r.qty_pending)}
+                                style={{
+                                  width:'52px', padding:'4px 0', textAlign:'center', boxSizing:'border-box',
+                                  background: val > 0 ? `rgba(${rgb},0.1)` : 'rgba(255,255,255,0.03)',
+                                  border:`1.5px solid ${val > 0 ? (over ? '#f87171' : color) : 'rgba(255,255,255,0.12)'}`,
+                                  borderRadius:'6px',
+                                  color: val > 0 ? color : '#555570',
+                                  fontSize:'1rem', fontWeight: val > 0 ? 700 : 400,
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {totalSplit(r.equipment_id) > r.qty_pending && (
+                        <p style={{ fontSize:'0.6rem', color:'#f87171', marginTop:'3px', textAlign:'center' }}>
+                          ⚠ Tổng &gt; {r.qty_pending} {r.unit}
+                        </p>
+                      )}
                     </td>
                     <td style={{ padding:'8px' }}>
                       <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
+                        style={{ width:'100%', minWidth:'100px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
                       />
                     </td>
                   </tr>
@@ -495,28 +544,45 @@ export default function EventReturn() {
                     <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
                   </div>
                 </div>
-                <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', marginBottom:'8px' }}>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
-                    <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số nhập</span>
-                    <input type="number" min="0" max={r.qty_pending}
-                      value={quantities[r.equipment_id] ?? r.qty_pending}
-                      onChange={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                      onBlur={e => setQuantities(prev => ({ ...prev, [r.equipment_id]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                      style={{ width:'100%', padding:'8px 10px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#4ade80', fontSize:'1.2rem', fontWeight:800, boxSizing:'border-box' }}
-                    />
-                  </div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
-                    <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tình trạng</span>
-                    <select value={conditions[r.equipment_id] || 'good'} onChange={e => setConditions(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                      style={{ width:'100%', padding:'8px 10px', background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'8px', color:'#e8c97a', cursor:'pointer', fontSize:'0.88rem', fontWeight:600, boxSizing:'border-box' }}>
-                      {COND_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
+                {/* ── Condition split 2×2 grid + checkbox ── */}
+                <div style={{ display:'flex', gap:'8px', alignItems:'stretch', marginBottom:'8px' }}>
+                  <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
+                    {COND_CFG.map(({ cond, label, color, rgb }) => {
+                      const val = condSplits[r.equipment_id]?.[cond] || 0;
+                      const tot = totalSplit(r.equipment_id);
+                      const over = tot > r.qty_pending;
+                      return (
+                        <div key={cond} style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
+                          <span style={{ fontSize:'0.62rem', color: val > 0 ? color : '#7878a0', fontWeight:700, letterSpacing:'0.03em' }}>{label}</span>
+                          <input
+                            type="number" min="0"
+                            value={val === 0 ? '' : val}
+                            placeholder="0"
+                            onChange={e => setSplit(r.equipment_id, cond, e.target.value)}
+                            onBlur={e => capSplit(r.equipment_id, cond, e.target.value, r.qty_pending)}
+                            style={{
+                              width:'100%', padding:'8px 0', textAlign:'center', boxSizing:'border-box',
+                              background: val > 0 ? `rgba(${rgb},0.1)` : 'rgba(255,255,255,0.03)',
+                              border:`1.5px solid ${val > 0 ? (over ? '#f87171' : color) : 'rgba(255,255,255,0.12)'}`,
+                              borderRadius:'8px',
+                              color: val > 0 ? color : '#7878a0',
+                              fontSize:'1.15rem', fontWeight: val > 0 ? 800 : 400,
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                   <button type="button" onClick={() => toggleCheck(r.equipment_id)}
-                    style={{ flex:1, padding:'8px 0', borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.2rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                    style={{ width:'52px', flexShrink:0, borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.3rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
                     {checked.has(r.equipment_id) ? '✓' : ''}
                   </button>
                 </div>
+                {totalSplit(r.equipment_id) > r.qty_pending && (
+                  <p style={{ fontSize:'0.65rem', color:'#f87171', marginBottom:'8px' }}>
+                    ⚠ Tổng nhập vượt quá {r.qty_pending} {r.unit} còn nợ
+                  </p>
+                )}
                 <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
                   style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
                 />
