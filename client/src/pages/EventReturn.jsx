@@ -102,10 +102,6 @@ export default function EventReturn() {
     const s = condSplits[eqId] || {};
     return Math.max(0, qtyPending - (s.damaged || 0) - (s.maintenance || 0) - (s.lost || 0));
   };
-  const getNonGood = (eqId) => {
-    const s = condSplits[eqId] || {};
-    return (s.damaged || 0) + (s.maintenance || 0) + (s.lost || 0);
-  };
   const setCondVal = (eqId, cond, rawVal, qtyPending) => {
     const newVal = Math.max(0, parseInt(rawVal) || 0);
     const s = condSplits[eqId] || {};
@@ -195,7 +191,7 @@ export default function EventReturn() {
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Nhập kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
             Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{done.code}</strong> —{' '}
-            <strong style={{ color:'var(--text-primary)' }}>{(done.items?.length || 0) + (done.external_items?.length || 0)}</strong> loại thiết bị
+            <strong style={{ color:'var(--text-primary)' }}>{new Set(done.items?.map(i => i.equipment_id) || []).size + (done.external_items?.length || 0)}</strong> loại thiết bị
             {done.external_items?.length > 0 ? ` (${done.external_items.length} NCC)` : ''}.
           </p>
           <div className="flex gap-3 justify-center">
