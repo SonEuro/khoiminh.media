@@ -5,17 +5,67 @@ const db = require('../database');
 const fs = require('fs');
 const path = require('path');
 
-// Restore toàn bộ database từ file backup (base64) — SUPER_ADMIN only, xóa sau khi dùng
+// Restore data từ JSON backup — SUPER_ADMIN only, xóa sau khi dùng
 router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
-  const { data } = req.body;
-  if (!data) return res.status(400).json({ error: 'Thiếu data' });
+  const { users, events, transactions, transaction_items, external_items } = req.body;
+  if (!events) return res.status(400).json({ error: 'Thiếu data' });
   try {
-    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '..', 'kho.db');
-    const buf = Buffer.from(data, 'base64');
-    db.close();
-    fs.writeFileSync(dbPath, buf);
-    res.json({ ok: true, message: 'Đã restore database, server đang khởi động lại...' });
-    setTimeout(() => process.exit(0), 500);
+    const doRestore = db.transaction(() => {
+      // Xóa data cũ (giữ lại equipment)
+      try { db.prepare('DELETE FROM transaction_items').run(); } catch(_) {}
+      try { db.prepare('DELETE FROM external_items').run(); } catch(_) {}
+      try { db.prepare('DELETE FROM transactions').run(); } catch(_) {}
+      try { db.prepare('DELETE FROM events').run(); } catch(_) {}
+      try { db.prepare('DELETE FROM users').run(); } catch(_) {}
+
+      // Reset sequences
+      try { db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users','events','transactions','transaction_items','external_items')").run(); } catch(_) {}
+
+      // Insert users
+      for (const u of (users || [])) {
+        const cols = Object.keys(u).join(',');
+        const placeholders = Object.keys(u).map(() => '?').join(',');
+        db.prepare(`INSERT OR REPLACE INTO users (${cols}) VALUES (${placeholders})`).run(Object.values(u));
+      }
+
+      // Insert events
+      for (const e of (events || [])) {
+        const cols = Object.keys(e).join(',');
+        const placeholders = Object.keys(e).map(() => '?').join(',');
+        db.prepare(`INSERT OR REPLACE INTO events (${cols}) VALUES (${placeholders})`).run(Object.values(e));
+      }
+
+      // Insert transactions
+      for (const t of (transactions || [])) {
+        const cols = Object.keys(t).join(',');
+        const placeholders = Object.keys(t).map(() => '?').join(',');
+        db.prepare(`INSERT OR REPLACE INTO transactions (${cols}) VALUES (${placeholders})`).run(Object.values(t));
+      }
+
+      // Insert transaction_items
+      for (const ti of (transaction_items || [])) {
+        const cols = Object.keys(ti).join(',');
+        const placeholders = Object.keys(ti).map(() => '?').join(',');
+        db.prepare(`INSERT OR REPLACE INTO transaction_items (${cols}) VALUES (${placeholders})`).run(Object.values(ti));
+      }
+
+      // Insert external_items
+      for (const ei of (external_items || [])) {
+        const cols = Object.keys(ei).join(',');
+        const placeholders = Object.keys(ei).map(() => '?').join(',');
+        db.prepare(`INSERT OR REPLACE INTO external_items (${cols}) VALUES (${placeholders})`).run(Object.values(ei));
+      }
+
+      return {
+        users: (users || []).length,
+        events: (events || []).length,
+        transactions: (transactions || []).length,
+        items: (transaction_items || []).length,
+      };
+    });
+
+    const result = doRestore();
+    res.json({ ok: true, ...result, message: 'Đã restore data thành công!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
