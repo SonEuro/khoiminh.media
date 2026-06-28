@@ -486,27 +486,32 @@ export default function EventReturn() {
                       >{checked.has(r.equipment_id) ? '✓' : ''}</button>
                     </td>
                     <td style={{ padding:'8px' }}>
-                      <div style={{ display:'flex', gap:'5px', justifyContent:'center', alignItems:'flex-end' }}>
+                      <div style={{ display:'flex', gap:'5px', justifyContent:'center', alignItems:'center' }}>
                         {COND_CFG.map(({ cond, short, color, rgb }) => {
                           const val = condSplits[r.equipment_id]?.[cond] || 0;
-                          const tot = totalSplit(r.equipment_id);
-                          const over = tot > r.qty_pending;
+                          const active = val > 0;
+                          const over = totalSplit(r.equipment_id) > r.qty_pending;
                           return (
-                            <div key={cond} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>
-                              <span style={{ fontSize:'0.58rem', color: val > 0 ? color : '#555570', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.03em' }}>{short}</span>
+                            <div key={cond} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px' }}>
+                              <span style={{
+                                fontSize:'0.6rem', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em',
+                                color: active ? color : `rgba(${rgb},0.45)`,
+                                transition:'color 0.15s',
+                              }}>{short}</span>
                               <input
                                 type="number" min="0"
-                                value={val === 0 ? '' : val}
+                                value={val || ''}
                                 placeholder="0"
                                 onChange={e => setSplit(r.equipment_id, cond, e.target.value)}
                                 onBlur={e => capSplit(r.equipment_id, cond, e.target.value, r.qty_pending)}
                                 style={{
-                                  width:'52px', padding:'4px 0', textAlign:'center', boxSizing:'border-box',
-                                  background: val > 0 ? `rgba(${rgb},0.1)` : 'rgba(255,255,255,0.03)',
-                                  border:`1.5px solid ${val > 0 ? (over ? '#f87171' : color) : 'rgba(255,255,255,0.12)'}`,
-                                  borderRadius:'6px',
-                                  color: val > 0 ? color : '#555570',
-                                  fontSize:'1rem', fontWeight: val > 0 ? 700 : 400,
+                                  width:'54px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                                  background: active ? `rgba(${rgb},0.12)` : 'rgba(255,255,255,0.03)',
+                                  border:`1.5px solid ${active ? (over ? '#f87171' : color) : `rgba(${rgb},0.28)`}`,
+                                  borderRadius:'8px',
+                                  color: active ? color : `rgba(${rgb},0.38)`,
+                                  fontSize:'1rem', fontWeight:700,
+                                  transition:'all 0.15s',
                                 }}
                               />
                             </div>
@@ -546,27 +551,32 @@ export default function EventReturn() {
                 </div>
                 {/* ── Condition split 2×2 grid + checkbox ── */}
                 <div style={{ display:'flex', gap:'8px', alignItems:'stretch', marginBottom:'8px' }}>
-                  <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
+                  <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
                     {COND_CFG.map(({ cond, label, color, rgb }) => {
                       const val = condSplits[r.equipment_id]?.[cond] || 0;
-                      const tot = totalSplit(r.equipment_id);
-                      const over = tot > r.qty_pending;
+                      const active = val > 0;
+                      const over = totalSplit(r.equipment_id) > r.qty_pending;
                       return (
                         <div key={cond} style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
-                          <span style={{ fontSize:'0.62rem', color: val > 0 ? color : '#7878a0', fontWeight:700, letterSpacing:'0.03em' }}>{label}</span>
+                          <span style={{
+                            fontSize:'0.62rem', fontWeight:700, letterSpacing:'0.04em',
+                            color: active ? color : `rgba(${rgb},0.45)`,
+                            transition:'color 0.15s',
+                          }}>{label}</span>
                           <input
                             type="number" min="0"
-                            value={val === 0 ? '' : val}
+                            value={val || ''}
                             placeholder="0"
                             onChange={e => setSplit(r.equipment_id, cond, e.target.value)}
                             onBlur={e => capSplit(r.equipment_id, cond, e.target.value, r.qty_pending)}
                             style={{
-                              width:'100%', padding:'8px 0', textAlign:'center', boxSizing:'border-box',
-                              background: val > 0 ? `rgba(${rgb},0.1)` : 'rgba(255,255,255,0.03)',
-                              border:`1.5px solid ${val > 0 ? (over ? '#f87171' : color) : 'rgba(255,255,255,0.12)'}`,
+                              width:'100%', height:'44px', padding:'0', textAlign:'center', boxSizing:'border-box',
+                              background: active ? `rgba(${rgb},0.12)` : 'rgba(255,255,255,0.03)',
+                              border:`1.5px solid ${active ? (over ? '#f87171' : color) : `rgba(${rgb},0.28)`}`,
                               borderRadius:'8px',
-                              color: val > 0 ? color : '#7878a0',
-                              fontSize:'1.15rem', fontWeight: val > 0 ? 800 : 400,
+                              color: active ? color : `rgba(${rgb},0.38)`,
+                              fontSize:'1.2rem', fontWeight:700,
+                              transition:'all 0.15s',
                             }}
                           />
                         </div>
