@@ -298,22 +298,31 @@ function EditPendingModal({ txId, onClose, onSaved }) {
           <div>
             <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị KHO ({khoItems.length})</p>
             <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-              {khoItems.map((it, idx) => (
+              {khoItems.map((it, idx) => {
+                const eq = equipment.find(e => e.id === it.equipment_id);
+                const free = eq?.qty_available ?? 0;
+                const qty = parseInt(it.quantity) || 0;
+                const over = qty > free;
+                return (
                 <div key={idx} style={{
                   display:'grid', gridTemplateColumns:'1fr auto auto',
                   gap:'8px', alignItems:'center',
                   padding:'8px 10px', borderRadius:'8px',
-                  background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)',
+                  background: over ? 'rgba(248,113,113,0.06)' : 'rgba(201,168,76,0.05)',
+                  border: `1px solid ${over ? 'rgba(248,113,113,0.4)' : 'rgba(201,168,76,0.15)'}`,
                 }}>
                   <div>
                     <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
-                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}</p>
+                    <p style={{ fontSize:'0.68rem', margin:'2px 0 0', color: over ? '#f87171' : '#7878a0' }}>
+                      {it.eq_code}{eq ? ` · còn ${free} ${it.unit}` : ''}
+                      {over && <span style={{ marginLeft:'5px' }}>⚠ vượt tồn kho</span>}
+                    </p>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateKhoQty(idx, e.target.value, false)}
                       onBlur={e => updateKhoQty(idx, e.target.value, true)}
-                      style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                      style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:`1px solid ${over ? 'rgba(248,113,113,0.6)' : 'rgba(201,168,76,0.3)'}`, color: over ? '#f87171' : '#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
                     />
                     <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
                   </div>
@@ -322,7 +331,8 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                     ✕
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
