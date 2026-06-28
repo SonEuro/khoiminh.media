@@ -207,8 +207,10 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   };
 
   const removeKhoItem = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
-  const updateKhoQty  = (idx, qty) =>
-    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: Math.max(1, parseInt(qty) || 1) } : it));
+  const updateKhoQty = (idx, qty, clamp = false) =>
+    setKhoItems(prev => prev.map((it, i) => i === idx
+      ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty }
+      : it));
 
   const addExtItem    = () => setExtItems(prev => [...prev, { name: '', supplier: '', quantity: 1, unit: 'Cái', rental_days: 1 }]);
   const removeExtItem = (idx) => setExtItems(prev => prev.filter((_, i) => i !== idx));
@@ -222,7 +224,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
     setSaving(true); setError('');
     try {
       await api.updatePendingItems(txId, {
-        items: validKho.map(i => ({ equipment_id: i.equipment_id, quantity: i.quantity })),
+        items: validKho.map(i => ({ equipment_id: i.equipment_id, quantity: Math.max(1, parseInt(i.quantity) || 1) })),
         external_items: validExt,
       });
       if (mounted.current) onSaved();
@@ -309,7 +311,8 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
                     <input type="number" min="1" value={it.quantity}
-                      onChange={e => updateKhoQty(idx, e.target.value)}
+                      onChange={e => updateKhoQty(idx, e.target.value, false)}
+                      onBlur={e => updateKhoQty(idx, e.target.value, true)}
                       style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
                     />
                     <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
