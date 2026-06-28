@@ -446,9 +446,13 @@ export default function EventReturn() {
             <span style={{ fontWeight:700, color:'var(--gold)' }}>Thiết bị chưa trả — {visibleItems.length} loại</span>
             <button type="button"
               onClick={() => {
-                const sp = {};
-                visibleItems.forEach(r => { sp[r.equipment_id] = { damaged: 0, maintenance: 0, lost: 0 }; });
+                const sp = {}, cn = {};
+                visibleItems.forEach(r => {
+                  sp[r.equipment_id] = { damaged: 0, maintenance: 0, lost: 0 };
+                  cn[r.equipment_id] = { damaged: '', maintenance: '', lost: '' };
+                });
                 setCondSplits(prev => ({ ...prev, ...sp }));
+                setCondNotes(prev => ({ ...prev, ...cn }));
                 setEditCond({});
                 setChecked(new Set(visibleItems.map(r => r.equipment_id)));
               }}
