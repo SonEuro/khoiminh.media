@@ -10,9 +10,9 @@ router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
   const { users, events, transactions, transaction_items, external_items } = req.body;
   if (!events) return res.status(400).json({ error: 'Thiếu data' });
   try {
+    // Tắt FK TRƯỚC transaction (SQLite không cho đổi pragma trong transaction)
+    db.pragma('foreign_keys = OFF');
     const doRestore = db.transaction(() => {
-      // Tắt FK tạm thời để insert không bị conflict equipment IDs
-      db.pragma('foreign_keys = OFF');
 
       // Xóa data cũ (giữ lại equipment)
       try { db.prepare('DELETE FROM transaction_items').run(); } catch(_) {}
@@ -68,8 +68,6 @@ router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
         } catch(_) {}
       }
 
-      db.pragma('foreign_keys = ON');
-
       return {
         users: (users || []).length,
         events: (events || []).length,
@@ -79,6 +77,7 @@ router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
     });
 
     const result = doRestore();
+    db.pragma('foreign_keys = ON');
     res.json({ ok: true, ...result, message: 'Đã restore data thành công!' });
   } catch (err) {
     res.status(500).json({ error: err.message });
