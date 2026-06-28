@@ -36,45 +36,6 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, time: new Date().toISOString(), users: userCount, events: eventCount });
 });
 
-// Emergency restore — không cần auth, cần secret key
-app.post('/api/emergency-restore', (req, res) => {
-  if (req.body.secret !== 'KM_RESTORE_2026') return res.status(403).json({ error: 'forbidden' });
-  const { users = [], events = [], transactions = [] } = req.body;
-  try {
-    db.pragma('foreign_keys = OFF');
-    const doRestore = db.transaction(() => {
-      if (users.length > 0) {
-        db.prepare('DELETE FROM users').run();
-        for (const u of users) {
-          const cols = Object.keys(u).join(','), ph = Object.keys(u).map(() => '?').join(',');
-          try { db.prepare(`INSERT OR REPLACE INTO users (${cols}) VALUES (${ph})`).run(Object.values(u)); } catch(_) {}
-        }
-      }
-      if (events.length > 0) {
-        db.prepare('DELETE FROM events').run();
-        for (const e of events) {
-          const cols = Object.keys(e).join(','), ph = Object.keys(e).map(() => '?').join(',');
-          try { db.prepare(`INSERT OR REPLACE INTO events (${cols}) VALUES (${ph})`).run(Object.values(e)); } catch(_) {}
-        }
-      }
-      if (transactions.length > 0) {
-        try { db.prepare('DELETE FROM transactions').run(); } catch(_) {}
-        for (const t of transactions) {
-          const cols = Object.keys(t).join(','), ph = Object.keys(t).map(() => '?').join(',');
-          try { db.prepare(`INSERT OR REPLACE INTO transactions (${cols}) VALUES (${ph})`).run(Object.values(t)); } catch(_) {}
-        }
-      }
-      return { users: users.length, events: events.length };
-    });
-    const result = doRestore();
-    db.pragma('foreign_keys = ON');
-    res.json({ ok: true, ...result });
-  } catch(err) {
-    db.pragma('foreign_keys = ON');
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Backup to Google Drive — SUPER_ADMIN only
 app.post('/api/backup/gdrive', requireAuth, requireRole('SUPER_ADMIN'), async (req, res) => {
   try {
