@@ -2,6 +2,24 @@ const router = require('express').Router();
 const { requireRole } = require('../middleware/auth');
 const { doImport } = require('../import-equipment');
 const db = require('../database');
+const fs = require('fs');
+const path = require('path');
+
+// Restore toàn bộ database từ file backup (base64) — SUPER_ADMIN only, xóa sau khi dùng
+router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
+  const { data } = req.body;
+  if (!data) return res.status(400).json({ error: 'Thiếu data' });
+  try {
+    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '..', 'kho.db');
+    const buf = Buffer.from(data, 'base64');
+    db.close();
+    fs.writeFileSync(dbPath, buf);
+    res.json({ ok: true, message: 'Đã restore database, server đang khởi động lại...' });
+    setTimeout(() => process.exit(0), 500);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.post('/import-equipment', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   try {
