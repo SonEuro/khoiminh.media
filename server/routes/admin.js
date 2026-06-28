@@ -3,6 +3,40 @@ const { requireRole } = require('../middleware/auth');
 const { doImport } = require('../import-equipment');
 const db = require('../database');
 
+// Temp: restore data từ JSON backup — xóa sau khi dùng
+router.post('/restore-db', requireRole('SUPER_ADMIN'), (req, res) => {
+  const { users, events, transactions } = req.body;
+  if (!events || !events.length) return res.status(400).json({ error: 'Thiếu events' });
+  try {
+    db.pragma('foreign_keys = OFF');
+    const doRestore = db.transaction(() => {
+      try { db.prepare('DELETE FROM transactions').run(); } catch(_) {}
+      try { db.prepare('DELETE FROM events').run(); } catch(_) {}
+      if ((users||[]).length > 0) try { db.prepare('DELETE FROM users').run(); } catch(_) {}
+      try { db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('users','events','transactions')").run(); } catch(_) {}
+      for (const u of (users||[])) {
+        const cols=Object.keys(u).join(','), ph=Object.keys(u).map(()=>'?').join(',');
+        try { db.prepare(`INSERT OR REPLACE INTO users(${cols})VALUES(${ph})`).run(Object.values(u)); } catch(_) {}
+      }
+      for (const e of events) {
+        const cols=Object.keys(e).join(','), ph=Object.keys(e).map(()=>'?').join(',');
+        try { db.prepare(`INSERT OR REPLACE INTO events(${cols})VALUES(${ph})`).run(Object.values(e)); } catch(_) {}
+      }
+      for (const t of (transactions||[])) {
+        const cols=Object.keys(t).join(','), ph=Object.keys(t).map(()=>'?').join(',');
+        try { db.prepare(`INSERT OR REPLACE INTO transactions(${cols})VALUES(${ph})`).run(Object.values(t)); } catch(_) {}
+      }
+      return { users:(users||[]).length, events:events.length, transactions:(transactions||[]).length };
+    });
+    const result = doRestore();
+    db.pragma('foreign_keys = ON');
+    res.json({ ok: true, ...result });
+  } catch(err) {
+    db.pragma('foreign_keys = ON');
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/import-equipment', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   try {
     const result = doImport();
