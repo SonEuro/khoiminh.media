@@ -4,12 +4,14 @@ const os   = require('os');
 const path = require('path');
 
 function getAuth() {
-  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!keyJson) throw new Error('Chưa cấu hình GOOGLE_SERVICE_ACCOUNT_KEY');
-  return new google.auth.GoogleAuth({
-    credentials: JSON.parse(keyJson),
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+  const clientId     = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+  if (!clientId || !clientSecret || !refreshToken)
+    throw new Error('Chưa cấu hình OAuth Google Drive');
+  const oauth2 = new google.auth.OAuth2(clientId, clientSecret, 'http://localhost');
+  oauth2.setCredentials({ refresh_token: refreshToken });
+  return oauth2;
 }
 
 function getFolderId() {
@@ -34,7 +36,6 @@ async function uploadBackupToDrive(db) {
     requestBody: { name: filename, parents: [folderId] },
     media: { mimeType: 'application/octet-stream', body: fs.createReadStream(tmpFile) },
     fields: 'id,name,webViewLink',
-    supportsAllDrives: true,
   });
 
   try { fs.unlinkSync(tmpFile); } catch (_) {}
@@ -53,7 +54,8 @@ async function uploadBackupToDrive(db) {
 }
 
 function isReady() {
-  return !!(process.env.GOOGLE_SERVICE_ACCOUNT_KEY && process.env.GOOGLE_DRIVE_FOLDER_ID);
+  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET &&
+            process.env.GOOGLE_REFRESH_TOKEN && process.env.GOOGLE_DRIVE_FOLDER_ID);
 }
 
 function scheduleAutoBackup(db) {
@@ -109,8 +111,7 @@ async function restoreFromDriveIfNeeded(db) {
       try { backupEventCount = backupDb.prepare('SELECT COUNT(*) as c FROM events').get().c; } catch(_) {}
 
       if (backupEventCount === 0) {
-        backupDb.close();
-        fs.unlinkSync(tmpFile);
+        backupDb.close(); fs.unlinkSync(tmpFile);
         console.log(`[Restore] ${file.name}: không có events, thử file cũ hơn...`);
         continue;
       }
