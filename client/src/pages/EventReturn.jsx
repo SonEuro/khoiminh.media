@@ -461,7 +461,7 @@ export default function EventReturn() {
                   <th style={{ textAlign:'center', padding:'10px 8px' }}>Xuất</th>
                   <th style={{ textAlign:'center', padding:'10px 8px' }}>Nợ</th>
                   <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'240px' }}>Tình trạng (số lượng)</th>
+                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'300px' }}>Tình trạng (số lượng)</th>
                   <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'120px' }}>Ghi chú</th>
                 </tr>
               </thead>
@@ -572,7 +572,7 @@ export default function EventReturn() {
                     {/* Tốt — auto-computed */}
                     <span style={{
                       display:'inline-flex', alignItems:'center',
-                      padding:'5px 11px', borderRadius:'20px',
+                      padding:'8px 12px', borderRadius:'20px',
                       background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)',
                       color:'#4ade80', fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap',
                     }}>
@@ -587,10 +587,10 @@ export default function EventReturn() {
                         return (
                           <div key={cond} style={{
                             display:'inline-flex', alignItems:'center', gap:'3px',
-                            padding:'4px 6px 4px 10px', borderRadius:'20px',
+                            padding:'7px 8px 7px 12px', borderRadius:'20px',
                             background:`rgba(${rgb},0.1)`, border:`1.5px solid ${color}`,
                           }}>
-                            <span style={{ color, fontSize:'0.8rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
+                            <span style={{ color, fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
                             <input
                               type="number" min="0"
                               autoFocus={editCond[r.equipment_id] === cond && val === 0}
@@ -606,7 +606,7 @@ export default function EventReturn() {
                                 setCondSplits(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: 0 } }));
                                 setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
                               }}
-                              style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'0.9rem', padding:'0 2px 0 1px', lineHeight:1 }}>×</button>
+                              style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'1rem', padding:'2px 3px 2px 2px', lineHeight:1 }}>×</button>
                           </div>
                         );
                       }
@@ -615,9 +615,9 @@ export default function EventReturn() {
                           onClick={() => setEditCond(prev => ({ ...prev, [r.equipment_id]: cond }))}
                           style={{
                             display:'inline-flex', alignItems:'center', gap:'2px',
-                            padding:'4px 11px', borderRadius:'20px', cursor:'pointer',
+                            padding:'8px 12px', borderRadius:'20px', cursor:'pointer',
                             background:'transparent', border:`1px solid rgba(${rgb},0.28)`,
-                            color:`rgba(${rgb},0.5)`, fontSize:'0.78rem', fontWeight:600,
+                            color:`rgba(${rgb},0.5)`, fontSize:'0.82rem', fontWeight:600,
                           }}
                         >+ {label}</button>
                       );
