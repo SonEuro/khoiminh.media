@@ -9,13 +9,10 @@ const path = require('path');
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'kho.db');
 
 async function restore() {
-  const clientId     = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-  const rawFolder    = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
+  const keyJson   = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  const rawFolder = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
 
-  // Nếu chưa cấu hình Google Drive thì bỏ qua
-  if (!clientId || !clientSecret || !refreshToken || !rawFolder) {
+  if (!keyJson || !rawFolder) {
     console.log('[Restore] Google Drive chưa cấu hình, bỏ qua.');
     return;
   }
@@ -32,15 +29,19 @@ async function restore() {
     ? rawFolder.split('/folders/')[1]?.split(/[?&]/)[0]?.trim()
     : rawFolder;
 
-  const oauth2 = new google.auth.OAuth2(clientId, clientSecret, 'http://localhost');
-  oauth2.setCredentials({ refresh_token: refreshToken });
-  const drive = google.drive({ version: 'v3', auth: oauth2 });
+  const auth = new google.auth.GoogleAuth({
+    credentials: JSON.parse(keyJson),
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  });
+  const drive = google.drive({ version: 'v3', auth });
 
   const list = await drive.files.list({
     q: `'${folderId}' in parents and name contains 'kho-khoiminh-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
     pageSize: 1,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
   });
 
   const files = list.data.files || [];
@@ -52,12 +53,11 @@ async function restore() {
   const latest = files[0];
   console.log(`[Restore] Đang tải ${latest.name}...`);
 
-  // Tạo thư mục nếu chưa có
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
   const res = await drive.files.get(
-    { fileId: latest.id, alt: 'media' },
+    { fileId: latest.id, alt: 'media', supportsAllDrives: true },
     { responseType: 'stream' }
   );
 
@@ -77,7 +77,7 @@ restore()
       const { runOnce } = require('./import-equipment');
       runOnce();
     } catch (e) {
-      console.warn('[Restore] runOnce bỏ qua (lỗi không nghiêm trọng):', e.message);
+      console.warn('[Restore] runOnce bỏ qua:', e.message);
     }
   })
   .catch(err => {

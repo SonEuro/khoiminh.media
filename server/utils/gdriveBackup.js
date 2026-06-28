@@ -8,7 +8,7 @@ function getAuth() {
   if (!keyJson) throw new Error('Chưa cấu hình GOOGLE_SERVICE_ACCOUNT_KEY');
   return new google.auth.GoogleAuth({
     credentials: JSON.parse(keyJson),
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
+    scopes: ['https://www.googleapis.com/auth/drive'],
   });
 }
 
@@ -34,6 +34,7 @@ async function uploadBackupToDrive(db) {
     requestBody: { name: filename, parents: [folderId] },
     media: { mimeType: 'application/octet-stream', body: fs.createReadStream(tmpFile) },
     fields: 'id,name,webViewLink',
+    supportsAllDrives: true,
   });
 
   try { fs.unlinkSync(tmpFile); } catch (_) {}
