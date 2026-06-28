@@ -11,7 +11,7 @@ try { require('./import-equipment').runOnce(); } catch (e) { console.error('[Imp
 
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
-const { uploadBackupToDrive, scheduleAutoBackup } = require('./utils/gdriveBackup');
+const { uploadBackupToDrive, scheduleAutoBackup, restoreFromDriveIfNeeded } = require('./utils/gdriveBackup');
 
 const app = express();
 app.use(cors());
@@ -100,8 +100,15 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  // Restore từ Drive trước (nếu DB rỗng), sau đó mới bắt đầu auto-backup
+  // để tránh auto-backup ghi đè Drive bằng DB rỗng
+  try {
+    await restoreFromDriveIfNeeded(db);
+  } catch (e) {
+    console.error('[Restore] Lỗi khi restore từ Drive:', e.message);
+  }
   scheduleAutoBackup(db);
 });
 
