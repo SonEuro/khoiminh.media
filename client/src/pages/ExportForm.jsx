@@ -734,7 +734,28 @@ export default function ExportForm() {
                             );
                           })}
                           {filteredEquip(searchTerms[idx], idx).length === 0 && (
-                            <p style={{ padding:'12px 14px', fontSize:'0.85rem', color:'#7878a0' }}>Không tìm thấy</p>
+                            <div style={{ padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.05)' }}>
+                              <p style={{ fontSize:'0.8rem', color:'#7878a0', marginBottom:'8px' }}>Không có trong kho Khôi Minh</p>
+                              <button type="button"
+                                onClick={() => {
+                                  const name = searchTerms[idx].trim();
+                                  setItems(prev => prev.map((it, j) => j === idx
+                                    ? { ...it, mode:'ext', ext_name: name, ext_supplier:'' }
+                                    : it));
+                                  const t = [...searchTerms]; t[idx] = ''; setSearchTerms(t);
+                                }}
+                                style={{
+                                  width:'100%', padding:'9px 12px', borderRadius:'8px', cursor:'pointer',
+                                  background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.4)',
+                                  color:'#93c5fd', fontSize:'0.85rem', fontWeight:600, textAlign:'left',
+                                  display:'flex', alignItems:'center', gap:'8px',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background='rgba(96,165,250,0.18)'}
+                                onMouseLeave={e => e.currentTarget.style.background='rgba(96,165,250,0.1)'}>
+                                <span style={{ fontSize:'1rem' }}>✏️</span>
+                                <span>Thêm <strong>"{searchTerms[idx].trim()}"</strong> thủ công</span>
+                              </button>
+                            </div>
                           )}
                         </div>
                       )}

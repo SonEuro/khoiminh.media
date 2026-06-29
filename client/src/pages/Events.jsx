@@ -143,7 +143,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
         </div>
         <div>
-          <label className="label">Ngày chạy chương trình</label>
+          <label className="label">Ngày Rehearsal</label>
           <DateInput value={form.show_date || ''} onChange={v => set('show_date', v)}
             min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
             style={form.show_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
@@ -209,7 +209,7 @@ function EventDetailModal({ eventId, onClose }) {
           })()}
           {ev.show_date && (
             <div>
-              <span className="text-gray-500">Ngày chạy CT: </span>
+              <span className="text-gray-500">Ngày Rehearsal: </span>
               <strong style={{ color:'#34d399' }}>🎪 {fmtD(ev.show_date)}</strong>
             </div>
           )}
