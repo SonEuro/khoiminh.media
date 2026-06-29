@@ -5,8 +5,8 @@ const { requireRole } = require('../middleware/auth');
 const canWrite  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 const adminOnly = requireRole('SUPER_ADMIN');
 function canManage(req, res, next) {
-  const { role, is_truong_phong } = req.user || {};
-  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_truong_phong) return next();
+  const { role } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role)) return next();
   return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
 }
 

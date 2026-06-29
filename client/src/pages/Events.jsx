@@ -394,7 +394,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
 
 export default function Events() {
   const { user } = useAuth();
-  const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_truong_phong;
+  const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const isFullAdmin = canFullEdit;
 
@@ -530,7 +530,9 @@ export default function Events() {
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
                   Chi tiết
                 </button>
-                {(ev.status === 'completed' ? user?.role === 'SUPER_ADMIN' : canFullEdit) && (
+                {(ev.status === 'completed'
+                  ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong)
+                  : (canFullEdit || !!user?.is_truong_phong)) && (
                   <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
                     ✏️
                   </button>
