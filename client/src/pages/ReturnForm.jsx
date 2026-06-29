@@ -139,15 +139,18 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
           )}
         </div>
 
-        {/* Quantity */}
-        <div style={{ width: '80px' }}>
+        {/* Quantity + Unit */}
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', flexShrink:0 }}>
           <input type="number" min="1" className="input"
             placeholder="SL"
             value={row.quantity}
             onChange={e => onChange({ ...row, quantity: e.target.value === '' ? '' : +e.target.value })}
             onBlur={e => { if (!row.quantity || +row.quantity < 1) onChange({ ...row, quantity: 1 }); }}
-            style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
+            style={{ width:'70px', textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
           />
+          <span style={{ fontSize:'0.78rem', color:'#7878a0', whiteSpace:'nowrap', minWidth:'28px' }}>
+            {equipment.find(e => e.id === row.equipment_id)?.unit || ''}
+          </span>
         </div>
 
         {/* Remove */}
