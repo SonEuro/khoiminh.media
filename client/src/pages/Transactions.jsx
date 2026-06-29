@@ -912,7 +912,7 @@ export default function Transactions() {
 
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-6">
       <div style={{ marginBottom:'22px' }}>
         <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Lịch Sử Vận Hành</h1>
         <p style={{ color:'#7878a0', fontSize:'0.82rem', margin:'4px 0 0' }}>Toàn bộ hoạt động của Khôi Minh</p>

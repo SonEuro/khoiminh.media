@@ -524,7 +524,7 @@ export default function EventReport() {
   // ── List view ───────────────────────────────────────────────────────────────
   if (view === 'list') {
     return (
-      <div className="p-6 max-w-3xl">
+      <div className="p-6">
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px', flexWrap:'wrap', gap:'12px' }}>
           <div style={{ minWidth:0 }}>
             <h1 style={{ fontSize:'1.5rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Báo Cáo Thực Hiện Sự Kiện</h1>
@@ -554,7 +554,7 @@ export default function EventReport() {
 
   // ── Form view ───────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-6">
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
         <button onClick={() => setView('list')} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
         <div>

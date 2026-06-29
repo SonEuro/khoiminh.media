@@ -156,7 +156,7 @@ export default function ViolationReport() {
   }
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Báo Cáo Vi Phạm Nội Quy</h1>
