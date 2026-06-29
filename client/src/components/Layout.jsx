@@ -1,10 +1,11 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../api';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, History,
-  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu,
+  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu, KeyRound,
 } from 'lucide-react';
 
 const GOLD         = '#c9a84c';
@@ -137,10 +138,81 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
   );
 }
 
+function ChangePasswordModal({ onClose }) {
+  const [cur, setCur] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [err, setErr] = useState('');
+  const [ok, setOk] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setErr('');
+    if (next.length < 6) return setErr('Mật khẩu mới phải ít nhất 6 ký tự');
+    if (next !== confirm) return setErr('Xác nhận mật khẩu không khớp');
+    setLoading(true);
+    try {
+      await api.changePassword({ current_password: cur, new_password: next });
+      setOk(true);
+    } catch (e) { setErr(e.message); }
+    finally { setLoading(false); }
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:2000, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+      <div style={{ background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'16px', padding:'28px', width:'100%', maxWidth:'380px', boxShadow:'0 20px 60px rgba(0,0,0,0.7)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
+          <KeyRound size={18} color={GOLD} />
+          <h2 style={{ margin:0, fontSize:'1.05rem', fontWeight:700, color: GOLD }}>Đổi mật khẩu</h2>
+          <button onClick={onClose} style={{ marginLeft:'auto', background:'none', border:'none', color:'#7878a0', cursor:'pointer', fontSize:'1.3rem', lineHeight:1 }}>×</button>
+        </div>
+        {ok ? (
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ fontSize:'2rem', marginBottom:'10px' }}>✅</div>
+            <p style={{ color:'#4ade80', fontWeight:600, marginBottom:'16px' }}>Đổi mật khẩu thành công!</p>
+            <button onClick={onClose} className="btn-primary" style={{ padding:'10px 28px' }}>Đóng</button>
+          </div>
+        ) : (
+          <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
+            <div>
+              <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, color:GOLD, letterSpacing:'0.06em', marginBottom:'5px', textTransform:'uppercase' }}>Mật khẩu hiện tại</label>
+              <input type="password" className="input" value={cur} onChange={e => setCur(e.target.value)} placeholder="••••••••" required />
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, color:GOLD, letterSpacing:'0.06em', marginBottom:'5px', textTransform:'uppercase' }}>Mật khẩu mới</label>
+              <input type="password" className="input" value={next} onChange={e => setNext(e.target.value)} placeholder="Tối thiểu 6 ký tự" required />
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:'0.72rem', fontWeight:700, color:GOLD, letterSpacing:'0.06em', marginBottom:'5px', textTransform:'uppercase' }}>Xác nhận mật khẩu mới</label>
+              <input type="password" className="input" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Nhập lại mật khẩu mới" required />
+            </div>
+            {err && <div style={{ background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'8px', padding:'10px 14px', color:'#f87171', fontSize:'0.85rem' }}>{err}</div>}
+            <button type="submit" disabled={loading} className="btn-primary" style={{ padding:'12px', marginTop:'4px' }}>
+              {loading ? 'Đang xử lý...' : '🔑 Đổi mật khẩu'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Layout() {
   const { user, can, logout, ROLE_LABELS } = useAuth();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [avatarMenu, setAvatarMenu] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
+  const avatarRef = useRef(null);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) setAvatarMenu(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const nav = [
     { to: '/events',       Icon: CalendarDays,     label: 'Sự Kiện',              always: true },
@@ -247,16 +319,44 @@ export default function Layout() {
           <Link to="/"><img src="/logo.png" alt="Khôi Minh" style={{ height:'42px', display:'block' }} /></Link>
 
           {/* User avatar right */}
-          <div style={{ marginLeft:'auto' }}>
-            <div style={{
-              width:'30px', height:'30px',
-              background:'linear-gradient(135deg,#b8922e,#e8c97a)',
-              borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
-              fontSize:'0.75rem', fontWeight:800, color:'#08080e',
-              boxShadow:'0 0 8px rgba(201,168,76,0.4)',
-            }}>
-              {user?.full_name?.[0] || '?'}
-            </div>
+          <div style={{ marginLeft:'auto', position:'relative' }} ref={avatarRef}>
+            <button onClick={() => setAvatarMenu(v => !v)}
+              style={{ background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center' }}>
+              <div style={{
+                width:'34px', height:'34px',
+                background:'linear-gradient(135deg,#b8922e,#e8c97a)',
+                borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:'0.8rem', fontWeight:800, color:'#08080e',
+                boxShadow:'0 0 8px rgba(201,168,76,0.4)',
+              }}>
+                {user?.full_name?.[0] || '?'}
+              </div>
+            </button>
+            {avatarMenu && (
+              <div style={{
+                position:'absolute', top:'calc(100% + 8px)', right:0, zIndex:500,
+                background:'#13131d', border:'1px solid rgba(201,168,76,0.25)',
+                borderRadius:'12px', boxShadow:'0 8px 32px rgba(0,0,0,0.6)',
+                minWidth:'180px', overflow:'hidden',
+              }}>
+                <div style={{ padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+                  <p style={{ margin:0, fontWeight:700, color:'#e8c97a', fontSize:'0.85rem' }}>{user?.full_name}</p>
+                  <p style={{ margin:'2px 0 0', fontSize:'0.7rem', color:'#7878a0' }}>{ROLE_LABELS?.[user?.role] || user?.role}</p>
+                </div>
+                <button onClick={() => { setAvatarMenu(false); setShowChangePw(true); }}
+                  style={{ width:'100%', textAlign:'left', padding:'11px 14px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', color:'#c9c9e8', fontSize:'0.85rem' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}>
+                  <KeyRound size={15} color={GOLD} /> Đổi mật khẩu
+                </button>
+                <button onClick={() => { setAvatarMenu(false); handleLogout(); }}
+                  style={{ width:'100%', textAlign:'left', padding:'11px 14px', background:'none', border:'none', borderTop:'1px solid rgba(255,255,255,0.06)', cursor:'pointer', display:'flex', alignItems:'center', gap:'9px', color:'#f87171', fontSize:'0.85rem' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(248,113,113,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background='none'}>
+                  <LogOut size={15} /> Đăng xuất
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -289,6 +389,8 @@ export default function Layout() {
         /* Smooth scrolling */
         main { -webkit-overflow-scrolling: touch; }
       `}</style>
+
+      {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </div>
   );
 }
