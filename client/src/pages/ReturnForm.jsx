@@ -77,16 +77,21 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
       .filter(e => !q || e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q))
       .slice(0, 8);
     if (filtered.length > 0 || !q) return filtered.map(e => ({ ...e, _fallback: false }));
-    // Không tìm thấy trong filter → tìm toàn bộ kho
     return equipment
       .filter(e => e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q))
       .slice(0, 8)
       .map(e => ({ ...e, _fallback: true }));
   })() : [];
 
+  const isManual = !!row.manual_name;
+  const displayValue = row.equipment_id
+    ? (equipment.find(e => e.id === row.equipment_id)?.name || search)
+    : (isManual ? row.manual_name : search);
+
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+      background: isManual ? 'rgba(96,165,250,0.04)' : 'rgba(255,255,255,0.02)',
+      border: `1px solid ${isManual ? 'rgba(96,165,250,0.3)' : 'rgba(255,255,255,0.07)'}`,
       borderRadius: '10px', padding: '12px', position: 'relative',
     }}>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -95,12 +100,16 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
           <input
             className="input"
             placeholder={placeholder || 'Tìm thiết bị...'}
-            value={row.equipment_id ? (equipment.find(e => e.id === row.equipment_id)?.name || search) : search}
+            value={displayValue}
             autoComplete="off"
-            onChange={e => { setSearch(e.target.value); onChange({ ...row, equipment_id: '' }); setShow(true); }}
-            onFocus={() => setShow(true)}
+            onChange={e => {
+              setSearch(e.target.value);
+              onChange({ ...row, equipment_id: '', manual_name: '' });
+              setShow(true);
+            }}
+            onFocus={() => { if (!isManual) setShow(true); }}
             onBlur={() => setTimeout(() => setShow(false), 150)}
-            style={{ fontSize: '0.85rem' }}
+            style={{ fontSize: '0.85rem', borderColor: isManual ? 'rgba(96,165,250,0.5)' : undefined }}
           />
           {row.equipment_id && (
             <p style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '3px' }}>
@@ -108,11 +117,16 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
               {filterFn && ` · Đang bảo trì: ${equipment.find(e => e.id === row.equipment_id)?.qty_maintenance ?? 0}`}
             </p>
           )}
-          {show && suggestions.length > 0 && (
+          {isManual && (
+            <p style={{ fontSize: '0.7rem', color: '#93c5fd', marginTop: '3px' }}>
+              ✏️ Nhập thủ công — không cập nhật tồn kho
+            </p>
+          )}
+          {show && (suggestions.length > 0 || search.trim()) && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, marginTop: '3px',
               background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
-              borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: '200px', overflowY: 'auto',
+              borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: '220px', overflowY: 'auto',
             }}>
               {suggestions[0]?._fallback && (
                 <div style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#7878a0', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
@@ -121,7 +135,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
               )}
               {suggestions.map(eq => (
                 <button key={eq.id} type="button"
-                  onMouseDown={() => { onChange({ ...row, equipment_id: eq.id }); setSearch(eq.name); setShow(false); }}
+                  onMouseDown={() => { onChange({ ...row, equipment_id: eq.id, manual_name: '' }); setSearch(eq.name); setShow(false); }}
                   style={{
                     width: '100%', textAlign: 'left', padding: '8px 12px',
                     background: 'transparent', border: 'none', cursor: 'pointer',
@@ -135,6 +149,27 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
                   <span style={{ color: '#7878a0', fontSize: '0.7rem' }}>{eq.code}</span>
                 </button>
               ))}
+              {search.trim() && (
+                <button type="button"
+                  onMouseDown={() => {
+                    onChange({ ...row, equipment_id: '', manual_name: search.trim() });
+                    setShow(false);
+                  }}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '9px 12px',
+                    background: 'rgba(96,165,250,0.08)', border: 'none', cursor: 'pointer',
+                    borderTop: '1px solid rgba(96,165,250,0.15)',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(96,165,250,0.16)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(96,165,250,0.08)'}
+                >
+                  <span style={{ fontSize: '0.9rem' }}>✏️</span>
+                  <span style={{ color: '#93c5fd', fontSize: '0.82rem', fontWeight: 600 }}>
+                    Nhập thủ công: <strong>"{search.trim()}"</strong>
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -176,20 +211,20 @@ function FixTab({ equipment, onDone }) {
 
   const [department, setDepartment] = useState(myDept || '');
   const [person, setPerson] = useState('');
-  const [items, setItems] = useState([{ equipment_id: '', quantity: 1 }]);
+  const [items, setItems] = useState([{ equipment_id: '', manual_name: '', quantity: 1 }]);
   const [submitting, setSubmitting] = useState(false);
 
   const maintenanceEq = equipment.filter(e =>
     e.qty_maintenance > 0 && (!myCats || myCats.includes(e.category_code))
   );
 
-  function addRow() { setItems(p => [...p, { equipment_id: '', quantity: 1 }]); }
+  function addRow() { setItems(p => [...p, { equipment_id: '', manual_name: '', quantity: 1 }]); }
   function updateRow(i, v) { setItems(p => p.map((r, j) => j === i ? v : r)); }
   function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
 
   async function submit(e) {
     e.preventDefault();
-    const validItems = items.filter(r => r.equipment_id && r.quantity > 0);
+    const validItems = items.filter(r => (r.equipment_id || r.manual_name?.trim()) && r.quantity > 0);
     if (!validItems.length) return alert('Chưa chọn thiết bị nào');
     if (!person) return alert('Chưa chọn người nhận');
     setSubmitting(true);

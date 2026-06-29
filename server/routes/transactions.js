@@ -430,12 +430,17 @@ router.post('/fix', canFix, (req, res) => {
     for (const item of items) {
       const qty = parseInt(item.quantity) || 0;
       if (qty <= 0) throw new Error(`Số lượng thiết bị phải lớn hơn 0`);
-      const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
-      if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      if (eq.qty_maintenance < qty)
-        throw new Error(`${eq.name}: chỉ có ${eq.qty_maintenance} đang bảo trì, không thể nhập ${qty}`);
-      db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, qty);
-      db.prepare(`UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_available = qty_available + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+      if (item.manual_name) {
+        // Nhập thủ công — chỉ ghi nhận, không cập nhật tồn kho
+        db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, NULL, ?, 'good', ?)`).run(txId, qty, `[Thủ công] ${item.manual_name}`);
+      } else {
+        const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
+        if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
+        if (eq.qty_maintenance < qty)
+          throw new Error(`${eq.name}: chỉ có ${eq.qty_maintenance} đang bảo trì, không thể nhập ${qty}`);
+        db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition) VALUES (?, ?, ?, 'good')`).run(txId, item.equipment_id, qty);
+        db.prepare(`UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_available = qty_available + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+      }
     }
 
     return { id: txId, code };
