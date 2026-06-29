@@ -21,10 +21,11 @@ function requireAuth(req, res, next) {
   if (!token) return res.status(401).json({ error: 'Chưa đăng nhập' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
-    const dbUser = db.prepare('SELECT is_active FROM users WHERE id = ?').get(req.user.id);
+    const dbUser = db.prepare('SELECT is_active, is_truong_phong FROM users WHERE id = ?').get(req.user.id);
     if (!dbUser || !dbUser.is_active) {
       return res.status(401).json({ error: 'Tài khoản đã bị vô hiệu hóa' });
     }
+    req.user.is_truong_phong = !!dbUser.is_truong_phong;
     req.user.deptCats = DEPT_CATS[req.user.role] ?? null;
     next();
   } catch {

@@ -30,6 +30,21 @@ export function AuthProvider({ children }) {
   });
   const [token, setToken] = useState(() => localStorage.getItem('km_token'));
 
+  // Refresh user data from server on startup to pick up permission changes (e.g. is_truong_phong)
+  useEffect(() => {
+    const t = localStorage.getItem('km_token');
+    if (!t) return;
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(fresh => {
+        if (!fresh) return;
+        const updated = { ...JSON.parse(localStorage.getItem('km_user') || '{}'), ...fresh };
+        localStorage.setItem('km_user', JSON.stringify(updated));
+        setUser(updated);
+      })
+      .catch(() => {});
+  }, []);
+
   function login(tokenVal, userData) {
     localStorage.setItem('km_token', tokenVal);
     localStorage.setItem('km_user', JSON.stringify(userData));
