@@ -324,10 +324,13 @@ function IntakeTab({ onDone }) {
 
   const person = user?.full_name || '';
   const [department, setDepartment] = useState('');
-  const [items, setItems] = useState([{ name: '', unit: 'Cái', quantity: 1 }]);
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([{ name: '', unit: 'Cái', quantity: 1, category_id: '' }]);
   const [submitting, setSubmitting] = useState(false);
 
-  function addRow()       { setItems(p => [...p, { name: '', unit: 'Cái', quantity: 1 }]); }
+  useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
+
+  function addRow()       { setItems(p => [...p, { name: '', unit: 'Cái', quantity: 1, category_id: '' }]); }
   function removeRow(i)   { setItems(p => p.filter((_, j) => j !== i)); }
   function updateRow(i, k, v) { setItems(p => p.map((r, j) => j === i ? { ...r, [k]: v } : r)); }
 
@@ -420,7 +423,21 @@ function IntakeTab({ onDone }) {
                     ×
                   </button>
                 </div>
-                {/* Dòng 2: Đơn vị + Số lượng */}
+                {/* Dòng 2: Danh mục */}
+                <div style={{ marginBottom: '8px' }}>
+                  <select
+                    className="input"
+                    value={row.category_id}
+                    onChange={e => updateRow(i, 'category_id', e.target.value)}
+                    style={{ fontSize: '0.88rem', height: '40px', width: '100%' }}
+                  >
+                    <option value="">-- Chọn danh mục --</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.icon} {c.name} ({c.code})</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Dòng 3: Đơn vị + Số lượng */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '8px' }}>
                   <input
                     className="input" placeholder="Đơn vị (Cái, Bộ...)"

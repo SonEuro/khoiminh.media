@@ -391,18 +391,27 @@ router.post('/intake', canIntake, (req, res) => {
     for (const item of validItems) {
       const name = item.name.trim();
       const unit = (item.unit || 'Cái').trim();
+      const categoryId = item.category_id ? parseInt(item.category_id) || null : null;
 
       // Tìm thiết bị theo tên (không phân biệt hoa thường)
       let eq = db.prepare(`SELECT * FROM equipment WHERE LOWER(TRIM(name)) = LOWER(?) LIMIT 1`).get(name.toLowerCase());
 
       if (!eq) {
-        // Tạo thiết bị mới với mã tự động
-        const newCodes = db.prepare(`SELECT code FROM equipment WHERE code LIKE 'NEW-%'`).all();
-        const newCode = findNextSeq(newCodes, seq => `NEW-${String(seq).padStart(3, '0')}`);
+        // Tạo mã theo danh mục nếu có, ngược lại dùng NEW-XXX
+        let newCode;
+        if (categoryId) {
+          const cat = db.prepare('SELECT code FROM categories WHERE id = ?').get(categoryId);
+          const prefix = cat ? cat.code : 'NEW';
+          const existingCodes = db.prepare(`SELECT code FROM equipment WHERE code LIKE ?`).all(`${prefix}-%`);
+          newCode = findNextSeq(existingCodes, seq => `${prefix}-${String(seq).padStart(3, '0')}`);
+        } else {
+          const newCodes = db.prepare(`SELECT code FROM equipment WHERE code LIKE 'NEW-%'`).all();
+          newCode = findNextSeq(newCodes, seq => `NEW-${String(seq).padStart(3, '0')}`);
+        }
         const ins = db.prepare(`
-          INSERT INTO equipment (code, name, unit, qty_total, qty_available, qty_in_use, qty_maintenance, qty_damaged, qty_lost)
-          VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0)
-        `).run(newCode, name, unit);
+          INSERT INTO equipment (code, name, category_id, unit, qty_total, qty_available, qty_in_use, qty_maintenance, qty_damaged, qty_lost)
+          VALUES (?, ?, ?, ?, 0, 0, 0, 0, 0, 0)
+        `).run(newCode, name, categoryId, unit);
         eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(ins.lastInsertRowid);
       }
 
