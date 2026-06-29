@@ -484,7 +484,7 @@ export default function EventReturn() {
                 <col style={{ width:'54px' }} />
                 <col style={{ width:'50px' }} />
                 <col />
-                <col style={{ width:'130px' }} />
+                <col />
               </colgroup>
               <thead>
                 <tr>
