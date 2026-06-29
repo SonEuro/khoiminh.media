@@ -132,7 +132,8 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
           <input type="number" min="1" className="input"
             placeholder="SL"
             value={row.quantity}
-            onChange={e => onChange({ ...row, quantity: Math.max(1, +e.target.value) })}
+            onChange={e => onChange({ ...row, quantity: e.target.value === '' ? '' : +e.target.value })}
+            onBlur={e => { if (!row.quantity || +row.quantity < 1) onChange({ ...row, quantity: 1 }); }}
             style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
           />
         </div>
@@ -369,7 +370,9 @@ function IntakeTab({ onDone }) {
                   />
                   <input
                     type="number" min="1" className="input"
-                    value={row.quantity} onChange={e => updateRow(i, 'quantity', Math.max(1, +e.target.value))}
+                    value={row.quantity}
+                    onChange={e => updateRow(i, 'quantity', e.target.value === '' ? '' : +e.target.value)}
+                    onBlur={() => { if (!row.quantity || +row.quantity < 1) updateRow(i, 'quantity', 1); }}
                     style={{ textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem', height: '40px' }}
                   />
                 </div>
