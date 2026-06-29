@@ -502,7 +502,11 @@ router.put('/:id/items', canTransact, (req, res) => {
 });
 
 // Chỉnh sửa phiếu xuất đã xác nhận (SUPER_ADMIN / DIRECTOR / ACCOUNTING)
-router.put('/:id/edit-completed', requireRole('SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'), (req, res) => {
+router.put('/:id/edit-completed', (req, res, next) => {
+  const { role, is_truong_phong } = req.user || {};
+  if (['SUPER_ADMIN','DIRECTOR','ACCOUNTING'].includes(role) || is_truong_phong) return next();
+  return res.status(403).json({ error: 'Không có quyền chỉnh sửa phiếu xuất đã xác nhận' });
+}, (req, res) => {
   const { items, reason } = req.body;
   if (!reason?.trim()) return res.status(400).json({ error: 'Vui lòng nhập lý do chỉnh sửa' });
   if (!items || items.length === 0) return res.status(400).json({ error: 'Phiếu phải có ít nhất một thiết bị' });

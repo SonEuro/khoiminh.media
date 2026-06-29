@@ -853,8 +853,8 @@ export default function Transactions() {
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
-  const canEdit           = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
-  const canEditCompleted  = ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'].includes(user?.role);
+  const canEdit           = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
+  const canEditCompleted  = ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'].includes(user?.role) || !!user?.is_truong_phong;
 
   const load = useCallback(() => {
     if (!user) return;

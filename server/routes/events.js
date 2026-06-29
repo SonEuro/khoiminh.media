@@ -286,11 +286,16 @@ router.post('/', canWrite, (req, res) => {
   res.json({ id: r.lastInsertRowid, code, name: finalName });
 });
 
-router.put('/:id', canWrite, (req, res) => {
-  const ev = db.prepare('SELECT status FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+router.put('/:id', (req, res, next) => {
+  const { role, is_truong_phong } = req.user || {};
+  const allowed = ['SUPER_ADMIN','DIRECTOR','PRODUCTION','TECHNICAL','ATAS','STAGE','CSVC'];
+  if (allowed.includes(role) || is_truong_phong) return next();
+  return res.status(403).json({ error: 'Không có quyền chỉnh sửa sự kiện' });
+}, (req, res) => {
+  const ev = db.prepare('SELECT status, created_by_id FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
-  if (ev.status === 'completed' && req.user.role !== 'SUPER_ADMIN')
-    return res.status(403).json({ error: 'Chỉ SUPER_ADMIN được chỉnh sửa sự kiện đã hoàn thành' });
+  if (ev.status === 'completed' && !['SUPER_ADMIN','DIRECTOR'].includes(req.user.role) && !req.user.is_truong_phong)
+    return res.status(403).json({ error: 'Chỉ SUPER_ADMIN/DIRECTOR/Trưởng phòng được chỉnh sửa sự kiện đã hoàn thành' });
   const { name, client, location, start_date, end_date, filming_date, filming_dates, show_date, status, notes } = req.body;
   const datesArrU = Array.isArray(filming_dates) ? filming_dates.filter(Boolean).sort() : (filming_date ? [filming_date] : []);
   const lastDateU = datesArrU[datesArrU.length - 1] || null;
