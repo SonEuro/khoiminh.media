@@ -613,26 +613,51 @@ export default function EventReturn() {
 
           {/* ── Mobile: cards ── */}
           <div className="return-card-list" style={{ padding:'10px 14px' }}>
-            {visibleItems.map(r => (
-              <div key={r.equipment_id} style={{ background:'rgba(201,168,76,0.04)', border:`1px solid ${checked.has(r.equipment_id) ? 'rgba(74,222,128,0.4)' : 'rgba(201,168,76,0.18)'}`, borderRadius:'10px', padding:'12px', transition:'border-color 0.15s' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.88rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
-                    <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0' }}>{r.eq_code} · {r.category_code}</p>
+            {visibleItems.map(r => {
+              const isChecked = checked.has(r.equipment_id);
+              return (
+                <div key={r.equipment_id} style={{
+                  background: isChecked ? 'rgba(74,222,128,0.04)' : 'rgba(255,255,255,0.02)',
+                  border:`1.5px solid ${isChecked ? 'rgba(74,222,128,0.4)' : 'rgba(201,168,76,0.15)'}`,
+                  borderRadius:'14px', padding:'12px 14px', transition:'all 0.15s',
+                }}>
+
+                  {/* ── Header: tên + checkbox ── */}
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:'10px', marginBottom:'6px' }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.92rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px', flexWrap:'wrap' }}>
+                        <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace' }}>{r.eq_code}</span>
+                        <span style={{ fontSize:'0.65rem', color:'#44445a' }}>·</span>
+                        <span style={{ fontSize:'0.68rem', color:'#555570' }}>{r.category_code}</span>
+                        <span style={{ fontSize:'0.65rem', color:'#44445a' }}>·</span>
+                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#fbbf24' }}>Nợ {r.qty_pending} {r.unit}</span>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => toggleCheck(r.equipment_id)}
+                      style={{
+                        width:'46px', height:'46px', flexShrink:0, borderRadius:'12px', cursor:'pointer',
+                        background: isChecked ? 'rgba(74,222,128,0.18)' : 'rgba(255,255,255,0.04)',
+                        border:`2px solid ${isChecked ? '#4ade80' : 'rgba(255,255,255,0.12)'}`,
+                        color: isChecked ? '#4ade80' : '#444460',
+                        fontSize:'1.5rem', fontWeight:800,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        transition:'all 0.15s',
+                      }}>
+                      {isChecked ? '✓' : ''}
+                    </button>
                   </div>
-                  <div style={{ textAlign:'right', flexShrink:0, marginLeft:'10px' }}>
-                    <p style={{ fontSize:'0.6rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
-                    <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
-                  </div>
-                </div>
-                {/* ── Condition pills + checkbox ── */}
-                <div style={{ display:'flex', gap:'8px', alignItems:'flex-start', marginBottom:'8px' }}>
-                  <div style={{ flex:1, display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
+
+                  {/* ── Divider ── */}
+                  <div style={{ height:'1px', background:'rgba(201,168,76,0.1)', margin:'8px 0' }} />
+
+                  {/* ── Pills: Tốt + conditions + dropdown ── */}
+                  <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center', marginBottom:'8px' }}>
                     {/* Tốt — editable */}
                     <div style={{
                       display:'inline-flex', alignItems:'center', gap:'4px',
-                      padding:'8px 12px', borderRadius:'20px',
-                      background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.3)',
+                      padding:'7px 12px', borderRadius:'20px',
+                      background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.35)',
                       whiteSpace:'nowrap',
                     }}>
                       <input
@@ -644,7 +669,7 @@ export default function EventReturn() {
                           const val = Math.max(0, Math.min(parseInt(e.target.value) || 0, max));
                           setGoodSplits(prev => ({ ...prev, [r.equipment_id]: val }));
                         }}
-                        style={{ width:'34px', background:'transparent', border:'none', outline:'none', color:'#4ade80', fontSize:'0.9rem', fontWeight:800, textAlign:'center', padding:0 }}
+                        style={{ width:'34px', background:'transparent', border:'none', outline:'none', color:'#4ade80', fontSize:'0.92rem', fontWeight:800, textAlign:'center', padding:0 }}
                       />
                       <span style={{ color:'#4ade80', fontSize:'0.82rem', fontWeight:700 }}>: Tốt</span>
                     </div>
@@ -690,6 +715,7 @@ export default function EventReturn() {
                         </div>
                       );
                     })}
+
                     {/* Dropdown chọn tình trạng chưa set */}
                     {(() => {
                       const unset = NON_GOOD_CFG.filter(({ cond }) => {
@@ -701,9 +727,9 @@ export default function EventReturn() {
                         <select value=""
                           onChange={e => { if (e.target.value) setEditCond(prev => ({ ...prev, [r.equipment_id]: e.target.value })); }}
                           style={{
-                            padding:'8px 12px', borderRadius:'20px', cursor:'pointer',
-                            background:'transparent', border:'1px solid rgba(255,255,255,0.18)',
-                            color:'#8888a8', fontSize:'0.82rem', fontWeight:600,
+                            padding:'7px 12px', borderRadius:'20px', cursor:'pointer',
+                            background:'transparent', border:'1px solid rgba(255,255,255,0.15)',
+                            color:'#7878a0', fontSize:'0.82rem', fontWeight:600,
                             outline:'none', appearance:'none',
                           }}
                         >
@@ -713,16 +739,14 @@ export default function EventReturn() {
                       );
                     })()}
                   </div>
-                  <button type="button" onClick={() => toggleCheck(r.equipment_id)}
-                    style={{ width:'52px', height:'40px', flexShrink:0, borderRadius:'8px', cursor:'pointer', background: checked.has(r.equipment_id) ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checked.has(r.equipment_id) ? '#4ade80' : 'rgba(201,168,76,0.3)'}`, color: checked.has(r.equipment_id) ? '#4ade80' : '#555570', fontSize:'1.3rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
-                    {checked.has(r.equipment_id) ? '✓' : ''}
-                  </button>
+
+                  {/* ── Ghi chú ── */}
+                  <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
+                    style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
+                  />
                 </div>
-                <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                  style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
