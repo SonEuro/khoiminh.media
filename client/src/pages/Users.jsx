@@ -26,7 +26,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -92,7 +92,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -577,6 +577,15 @@ export default function Users() {
                 🏅 Trưởng phòng <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
               </span>
             </label>
+
+            <div>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
+                Zalo User ID <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 400, textTransform: 'none' }}>(để nhận thông báo Zalo)</span>
+              </label>
+              <input className="input" placeholder="Nhập Zalo User ID..."
+                value={form.zalo_uid || ''} onChange={e => set('zalo_uid', e.target.value)}
+                style={{ fontSize: '0.88rem' }} />
+            </div>
 
             {error && (
               <p style={{ color: '#f87171', fontSize: '0.85rem', background: 'rgba(248,113,113,0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.3)' }}>

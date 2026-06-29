@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
+const { notifyAll } = require('../services/zaloNotify');
 
 const canWrite  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 const adminOnly = requireRole('SUPER_ADMIN');
@@ -284,6 +285,7 @@ router.post('/', canWrite, (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(code, finalName, client, location, start_date, end_date, lastDate, datesJson, show_date || null, notes, initialStatus, req.user?.full_name || '', req.user?.id || null);
   res.json({ id: r.lastInsertRowid, code, name: finalName });
+  notifyAll(`🗓 Sự kiện mới: ${finalName}\n📍 ${location || '—'}\n📅 ${start_date || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
 });
 
 router.put('/:id', (req, res, next) => {
@@ -304,6 +306,7 @@ router.put('/:id', (req, res, next) => {
     UPDATE events SET name=?, client=?, location=?, start_date=?, end_date=?, filming_date=?, filming_dates=?, show_date=?, status=?, notes=? WHERE id=?
   `).run(name, client, location, start_date, end_date, lastDateU, datesJsonU, show_date || null, status, notes, req.params.id);
   res.json({ ok: true });
+  notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${start_date || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
 });
 
 // Soft delete → trash (chỉ sự kiện đã hủy)

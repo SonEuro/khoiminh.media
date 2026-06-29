@@ -7,7 +7,7 @@ router.use(requireAuth, requireRole('SUPER_ADMIN'));
 
 router.get('/', (req, res) => {
   const users = db.prepare(
-    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, created_at FROM users ORDER BY created_at DESC'
+    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, zalo_uid, created_at FROM users ORDER BY created_at DESC'
   ).all();
   res.json(users);
 });
@@ -29,17 +29,18 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-  const { username, full_name, position, role, is_active, password, is_truong_phong } = req.body;
+  const { username, full_name, position, role, is_active, password, is_truong_phong, zalo_uid } = req.body;
   if (!username?.trim() || !full_name?.trim() || !role)
     return res.status(400).json({ error: 'Tên đăng nhập, họ tên và vai trò là bắt buộc' });
   const id = req.params.id;
   const tp = is_truong_phong ? 1 : 0;
+  const zalo = zalo_uid?.trim() || null;
   if (password) {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, password_hash=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, bcrypt.hashSync(password, 10), id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, zalo_uid=?, password_hash=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, zalo, bcrypt.hashSync(password, 10), id);
   } else {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, zalo_uid=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, zalo, id);
   }
   res.json({ ok: true });
 });
