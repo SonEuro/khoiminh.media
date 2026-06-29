@@ -223,7 +223,7 @@ export default function EventReturn() {
   }
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Nhập Kho Sự Kiện</h1>
         <p style={{ color:'var(--text-muted)', fontSize:'0.85rem' }}>Trả thiết bị sau sự kiện về kho</p>
