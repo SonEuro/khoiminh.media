@@ -27,6 +27,7 @@ app.use('/api/reports',      requireAuth, require('./routes/reports'));
 app.use('/api/violations',     requireAuth, require('./routes/violations'));
 app.use('/api/event-reports', requireAuth, require('./routes/eventReports'));
 app.use('/api/admin',        requireAuth, require('./routes/admin'));
+app.use('/api/zalo',         requireAuth, require('./routes/zalo'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
 
 app.get('/api/health', (req, res) => {
