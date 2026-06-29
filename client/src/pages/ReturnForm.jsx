@@ -70,12 +70,19 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
   const [search, setSearch] = useState('');
   const [show, setShow] = useState(false);
 
-  const suggestions = show
-    ? equipment
-        .filter(e => filterFn ? filterFn(e) : true)
-        .filter(e => !search.trim() || e.name.toLowerCase().includes(search.toLowerCase()) || e.code.toLowerCase().includes(search.toLowerCase()))
-        .slice(0, 8)
-    : [];
+  const suggestions = show ? (() => {
+    const q = search.trim().toLowerCase();
+    const filtered = equipment
+      .filter(e => filterFn ? filterFn(e) : true)
+      .filter(e => !q || e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q))
+      .slice(0, 8);
+    if (filtered.length > 0 || !q) return filtered.map(e => ({ ...e, _fallback: false }));
+    // Không tìm thấy trong filter → tìm toàn bộ kho
+    return equipment
+      .filter(e => e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map(e => ({ ...e, _fallback: true }));
+  })() : [];
 
   return (
     <div style={{
@@ -107,6 +114,11 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
               background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
               borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: '200px', overflowY: 'auto',
             }}>
+              {suggestions[0]?._fallback && (
+                <div style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#7878a0', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                  Không có trong danh sách bảo trì — tìm toàn bộ kho:
+                </div>
+              )}
               {suggestions.map(eq => (
                 <button key={eq.id} type="button"
                   onMouseDown={() => { onChange({ ...row, equipment_id: eq.id }); setSearch(eq.name); setShow(false); }}
@@ -119,7 +131,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <span style={{ color: '#e8c97a', fontSize: '0.82rem', fontWeight: 600 }}>{eq.name}</span>
+                  <span style={{ color: eq._fallback ? '#93c5fd' : '#e8c97a', fontSize: '0.82rem', fontWeight: 600 }}>{eq.name}</span>
                   <span style={{ color: '#7878a0', fontSize: '0.7rem' }}>{eq.code}</span>
                 </button>
               ))}
