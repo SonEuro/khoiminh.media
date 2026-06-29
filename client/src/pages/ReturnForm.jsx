@@ -183,9 +183,18 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
             onBlur={e => { if (!row.quantity || +row.quantity < 1) onChange({ ...row, quantity: 1 }); }}
             style={{ width:'70px', textAlign: 'center', fontWeight: 700, color: '#4ade80', fontSize: '1rem' }}
           />
-          <span style={{ fontSize:'0.78rem', color:'#7878a0', whiteSpace:'nowrap', minWidth:'28px' }}>
-            {equipment.find(e => e.id === row.equipment_id)?.unit || ''}
-          </span>
+          {isManual ? (
+            <input className="input"
+              placeholder="Đvt"
+              value={row.unit || ''}
+              onChange={e => onChange({ ...row, unit: e.target.value })}
+              style={{ width:'60px', fontSize:'0.82rem', textAlign:'center', color:'#93c5fd' }}
+            />
+          ) : (
+            <span style={{ fontSize:'0.78rem', color:'#7878a0', whiteSpace:'nowrap', minWidth:'28px' }}>
+              {equipment.find(e => e.id === row.equipment_id)?.unit || ''}
+            </span>
+          )}
         </div>
 
         {/* Remove */}

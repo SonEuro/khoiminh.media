@@ -432,7 +432,8 @@ router.post('/fix', canFix, (req, res) => {
       if (qty <= 0) throw new Error(`Số lượng thiết bị phải lớn hơn 0`);
       if (item.manual_name) {
         // Nhập thủ công — chỉ ghi nhận, không cập nhật tồn kho
-        db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, NULL, ?, 'good', ?)`).run(txId, qty, `[Thủ công] ${item.manual_name}`);
+        const unitStr = item.unit ? ` (${item.unit})` : '';
+        db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, NULL, ?, 'good', ?)`).run(txId, qty, `[Thủ công] ${item.manual_name}${unitStr}`);
       } else {
         const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
         if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
