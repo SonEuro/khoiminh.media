@@ -1,32 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { KM_STAFF_GROUPS } from '../constants/staff';
 
 const GOLD = '#c9a84c';
-
-const KM_STAFF_GROUPS = [
-  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hào'] },
-  { dept: 'Âm Thanh Ánh Sáng', members: [
-    'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
-    'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
-  ]},
-  { dept: 'Sân Khấu', members: [
-    'Trần Duy Hùng', 'Nguyễn Trường Chinh', 'Hứa Khắc Cần',
-    'Phạm Đăng Sinh', 'Nguyễn Ngọc Ly', 'Phạm Hữu Phúc Khang',
-  ]},
-  { dept: 'Kỹ Thuật', members: [
-    'Nguyễn Văn Linh', 'Nguyễn Trí Tài', 'Võ Chí Thiện',
-    'Lê Anh Kiệt', 'Nguyễn Thanh Sang', 'Phan Khắc Luyện',
-    'Vũ Đức Tài', 'Đỗ Quý Vượng', 'Nguyễn Thành Trung',
-    'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
-    'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
-  ]},
-  { dept: 'Kế Toán', members: [
-    'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
-    'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',
-  ]},
-  { dept: 'Kinh Doanh', members: ['Nguyễn Thế Sơn', 'Lâm Tấn Nhân', 'Đào Nguyên Sơn'] },
-];
 
 const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Hoàn thành sớm', 'Chậm tiến độ', 'Trễ tiến độ'];
 const COMPLETED_CHIPS  = ['Hoàn thành tất cả hạng mục', 'Hoàn thành với điều chỉnh nhỏ', 'Hoàn thành một phần', 'Chưa hoàn thành'];
@@ -465,6 +442,26 @@ export default function EventReport() {
     setEvSearch(ev.name);
     setShowEvDrop(false);
   }
+
+  // Gợi ý nhân sự đã lên lịch làm việc cho ngày báo cáo đã chọn (vẫn cho sửa thủ công)
+  useEffect(() => {
+    if (!form.event_id || !form.report_date) return;
+    api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
+      const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+      const names = new Set();
+      let freelancerText = '';
+      for (const s of scheds) {
+        for (const key of phaseKeys) {
+          if (s[`${key}_date`] !== form.report_date) continue;
+          (s[`${key}_leads`] || []).forEach(l => l.name && names.add(l.name));
+          (s[`${key}_km_staff`] || []).forEach(n => names.add(n));
+          if (s[`${key}_freelancers`]) freelancerText = freelancerText ? `${freelancerText}, ${s[`${key}_freelancers`]}` : s[`${key}_freelancers`];
+        }
+      }
+      if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
+      if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
+    }).catch(() => {});
+  }, [form.event_id, form.report_date]);
 
   const evSuggestions = showEvDrop
     ? (evSearch.trim()

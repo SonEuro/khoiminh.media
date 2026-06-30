@@ -99,6 +99,39 @@ try { db.prepare("ALTER TABLE events ADD COLUMN created_by_id INTEGER DEFAULT NU
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN reporter_user_id INTEGER DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN zalo_uid TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE events ADD COLUMN created_by_role TEXT DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN is_phan_lich INTEGER DEFAULT 0").run(); } catch (_) {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS work_schedules (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id            INTEGER REFERENCES events(id),
+    event_name          TEXT NOT NULL,
+    scheduler_user_id   INTEGER REFERENCES users(id),
+    scheduler_name      TEXT,
+    client              TEXT,
+    location            TEXT,
+    setup_date          TEXT,
+    teardown_date       TEXT,
+    rehearsal_date      TEXT,
+    filming_date        TEXT,
+    setup_leads         TEXT DEFAULT '[]',
+    setup_km_staff      TEXT DEFAULT '[]',
+    setup_freelancers   TEXT DEFAULT '',
+    teardown_leads       TEXT DEFAULT '[]',
+    teardown_km_staff    TEXT DEFAULT '[]',
+    teardown_freelancers TEXT DEFAULT '',
+    rehearsal_leads       TEXT DEFAULT '[]',
+    rehearsal_km_staff    TEXT DEFAULT '[]',
+    rehearsal_freelancers TEXT DEFAULT '',
+    filming_leads       TEXT DEFAULT '[]',
+    filming_km_staff    TEXT DEFAULT '[]',
+    filming_freelancers TEXT DEFAULT '',
+    status              TEXT DEFAULT 'draft',
+    confirmed_at        TEXT,
+    confirmed_by_id     INTEGER REFERENCES users(id),
+    created_at          TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS event_reports (

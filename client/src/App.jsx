@@ -13,6 +13,7 @@ import Reports from './pages/Reports';
 import Users from './pages/Users';
 import ViolationReport from './pages/ViolationReport';
 import EventReport from './pages/EventReport';
+import WorkSchedule from './pages/WorkSchedule';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="reports"    element={<Reports />} />
         <Route path="violations"    element={<ViolationReport />} />
         <Route path="event-report" element={<EventReport />} />
+        <Route path="work-schedule" element={<WorkSchedule />} />
         <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

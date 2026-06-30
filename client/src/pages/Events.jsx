@@ -7,6 +7,51 @@ import { useAuth } from '../contexts/AuthContext';
 
 import { fmtD } from '../utils/fmt';
 
+const GOLD = '#c9a84c';
+const PHASES = [
+  { key: 'setup',     label: '🏗 Setup' },
+  { key: 'teardown',  label: '📦 Tháo dỡ' },
+  { key: 'rehearsal', label: '🎤 Rehearsal' },
+  { key: 'filming',   label: '🎬 Ghi hình' },
+];
+
+function StaffScheduleModal({ event, onClose }) {
+  const [schedules, setSchedules] = useState(null);
+  useEffect(() => { api.getWorkSchedules({ event_id: event.id }).then(setSchedules).catch(() => setSchedules([])); }, [event.id]);
+
+  return (
+    <Modal title={`Nhân sự làm việc — ${event.name}`} onClose={onClose} size="lg">
+      {schedules === null && <p style={{ textAlign: 'center', color: '#7878a0', padding: '20px' }}>Đang tải...</p>}
+      {schedules?.length === 0 && <p style={{ textAlign: 'center', color: '#7878a0', padding: '20px' }}>Chưa có lịch làm việc cho sự kiện này</p>}
+      {schedules?.map(s => (
+        <div key={s.id} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{ fontSize: '0.8rem', color: '#7878a0', marginBottom: '8px' }}>
+            👤 Người phân lịch: <strong style={{ color: GOLD }}>{s.scheduler_name}</strong> ·{' '}
+            <span style={{ color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24' }}>
+              {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
+            </span>
+          </p>
+          {PHASES.map(phase => {
+            const leads = s[`${phase.key}_leads`] || [];
+            const staff = s[`${phase.key}_km_staff`] || [];
+            const free = s[`${phase.key}_freelancers`];
+            const date = s[`${phase.key}_date`];
+            if (!date && !leads.length && !staff.length && !free) return null;
+            return (
+              <div key={phase.key} style={{ marginBottom: '8px', fontSize: '0.82rem' }}>
+                <span style={{ fontWeight: 700, color: GOLD }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</span>
+                {leads.length > 0 && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>👑 {leads.map(l => `${l.name} (${l.department})`).join(', ')}</p>}
+                {staff.length > 0 && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>👥 {staff.join(', ')}</p>}
+                {free && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>🧑‍💼 {free}</p>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </Modal>
+  );
+}
+
 const STATUS_MAP = {
   planned:   { label: 'Lên kế hoạch', cls: 'badge-maintenance' },
   active:    { label: 'Đang diễn ra', cls: 'badge-available' },
@@ -530,6 +575,9 @@ export default function Events() {
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
                   Chi tiết
                 </button>
+                <button className="btn-secondary btn-sm" title="Xem nhân sự làm việc" onClick={() => { setSelected(ev); setModal('staff'); }}>
+                  👥 Nhân sự làm việc
+                </button>
                 {(ev.status === 'completed'
                   ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong)
                   : (canFullEdit || !!user?.is_truong_phong)) && (
@@ -554,6 +602,10 @@ export default function Events() {
           );
         })}
       </div>
+
+      {modal === 'staff' && selected && (
+        <StaffScheduleModal event={selected} onClose={() => setModal(null)} />
+      )}
 
       {modal === 'form' && (
         <Modal title={selected ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'} onClose={() => setModal(null)} size="lg">

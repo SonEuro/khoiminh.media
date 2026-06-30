@@ -26,7 +26,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, zalo_uid: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -92,7 +92,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, zalo_uid: u.zalo_uid || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -228,6 +228,9 @@ export default function Users() {
                         {u.is_truong_phong ? (
                           <span style={{ fontSize: '0.65rem', color: '#2dd4bf', fontWeight: 600 }}>🏅 Trưởng phòng</span>
                         ) : null}
+                        {u.is_phan_lich ? (
+                          <span style={{ fontSize: '0.65rem', color: '#60a5fa', fontWeight: 600 }}>🗓 Phân lịch</span>
+                        ) : null}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -283,6 +286,7 @@ export default function Users() {
                   {ROLE_LABELS[u.role] || u.role}
                 </span>
                 {u.is_truong_phong && <span style={{ fontSize:'0.65rem', color:'#2dd4bf', fontWeight:600 }}>🏅</span>}
+                {u.is_phan_lich && <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:600 }}>🗓</span>}
               </div>
               {/* Dòng 3: Chức vụ (nếu có) */}
               {u.position && <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginBottom:'10px' }}>{u.position}</p>}
@@ -575,6 +579,15 @@ export default function Users() {
                 style={{ width: '16px', height: '16px', accentColor: '#2dd4bf' }} />
               <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                 🏅 Trưởng phòng <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
+              </span>
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.is_phan_lich}
+                onChange={e => set('is_phan_lich', e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#60a5fa' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                🗓 Phân lịch làm việc <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền tạo &amp; sửa lịch làm việc nhân sự)</span>
               </span>
             </label>
 

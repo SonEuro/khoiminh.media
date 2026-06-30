@@ -7,7 +7,7 @@ router.use(requireAuth, requireRole('SUPER_ADMIN'));
 
 router.get('/', (req, res) => {
   const users = db.prepare(
-    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, zalo_uid, created_at FROM users ORDER BY created_at DESC'
+    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, is_phan_lich, zalo_uid, created_at FROM users ORDER BY created_at DESC'
   ).all();
   res.json(users);
 });
@@ -29,18 +29,19 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-  const { username, full_name, position, role, is_active, password, is_truong_phong, zalo_uid } = req.body;
+  const { username, full_name, position, role, is_active, password, is_truong_phong, is_phan_lich, zalo_uid } = req.body;
   if (!username?.trim() || !full_name?.trim() || !role)
     return res.status(400).json({ error: 'Tên đăng nhập, họ tên và vai trò là bắt buộc' });
   const id = req.params.id;
   const tp = is_truong_phong ? 1 : 0;
+  const pl = is_phan_lich ? 1 : 0;
   const zalo = zalo_uid?.trim() || null;
   if (password) {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, zalo_uid=?, password_hash=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, zalo, bcrypt.hashSync(password, 10), id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, is_phan_lich=?, zalo_uid=?, password_hash=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, pl, zalo, bcrypt.hashSync(password, 10), id);
   } else {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, zalo_uid=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, zalo, id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, is_phan_lich=?, zalo_uid=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, pl, zalo, id);
   }
   res.json({ ok: true });
 });

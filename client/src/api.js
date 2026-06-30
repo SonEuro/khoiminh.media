@@ -125,4 +125,15 @@ export const api = {
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),
   archiveEvent:   (id) => request(`/events/${id}/archive`,   { method: 'POST' }),
   unarchiveEvent: (id) => request(`/events/${id}/unarchive`, { method: 'POST' }),
+
+  // Work Schedules (Lịch làm việc)
+  getWorkSchedules: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/work-schedules${q ? '?' + q : ''}`);
+  },
+  getWorkScheduleById: (id) => request(`/work-schedules/${id}`),
+  createWorkSchedule: (data) => request('/work-schedules', { method: 'POST', body: data }),
+  updateWorkSchedule: (id, data) => request(`/work-schedules/${id}`, { method: 'PUT', body: data }),
+  confirmWorkSchedule: (id) => request(`/work-schedules/${id}/confirm`, { method: 'POST' }),
+  deleteWorkSchedule: (id) => request(`/work-schedules/${id}`, { method: 'DELETE' }),
 };
