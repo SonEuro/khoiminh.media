@@ -250,8 +250,16 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
               value={form.event_name} onChange={e => setForm(f => ({ ...f, event_name: e.target.value }))} />
           ) : (
             <select className="input" value={form.event_id || ''}
-              onChange={e => applyEvent(events.find(ev => ev.id === +e.target.value))}>
+              onChange={e => {
+                const val = e.target.value;
+                if (!val) { setForm(f => ({ ...f, event_id: null, event_name: '' })); return; }
+                const ev = events.find(ev => ev.id === +val);
+                if (ev) applyEvent(ev);
+              }}>
               <option value="">-- Chọn sự kiện --</option>
+              {form.event_id && !events.some(ev => ev.id === form.event_id) && (
+                <option value={form.event_id}>{form.event_name} (sự kiện cũ, không còn trong danh sách)</option>
+              )}
               {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} {ev.start_date ? `(${fmtD(ev.start_date)})` : ''}</option>)}
             </select>
           )}

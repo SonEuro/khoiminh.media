@@ -375,6 +375,7 @@ router.delete('/:id/permanent', adminOnly, (req, res) => {
     // Xóa dữ liệu liên quan
     try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
     try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+    try { db.prepare('UPDATE work_schedules SET event_id = NULL WHERE event_id = ?').run(id); } catch (_) {}
     db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
     try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
     db.prepare('DELETE FROM transactions WHERE event_id = ?').run(id);

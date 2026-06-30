@@ -53,6 +53,7 @@ router.post('/clear-all-events', requireRole('SUPER_ADMIN'), (req, res) => {
   const doClear = db.transaction(() => {
     try { db.prepare('DELETE FROM violations').run(); } catch (_) {}
     try { db.prepare('DELETE FROM event_reports').run(); } catch (_) {}
+    try { db.prepare('UPDATE work_schedules SET event_id = NULL').run(); } catch (_) {}
     db.prepare('DELETE FROM transaction_items').run();
     try { db.prepare('DELETE FROM external_items').run(); } catch (_) {}
     db.prepare('DELETE FROM transactions').run();
@@ -132,6 +133,7 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
 
       try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(eventId); } catch (_) {}
       try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(eventId); } catch (_) {}
+      try { db.prepare('UPDATE work_schedules SET event_id = NULL WHERE event_id = ?').run(eventId); } catch (_) {}
       try {
         db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(eventId);
       } catch (_) {}

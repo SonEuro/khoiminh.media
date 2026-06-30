@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
-import { DEPARTMENTS, KM_STAFF_GROUPS, ALL_KM_STAFF as ALL_STAFF } from '../constants/staff';
+import { DEPARTMENTS, KM_STAFF_GROUPS } from '../constants/staff';
 
 const GOLD = '#c9a84c';
 

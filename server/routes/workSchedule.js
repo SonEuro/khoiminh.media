@@ -61,7 +61,7 @@ router.post('/', canPhanLich, (req, res) => {
   res.json({ id: r.lastInsertRowid });
 });
 
-router.put('/:id', canPhanLich, (req, res) => {
+router.put('/:id', (req, res) => {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
   if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Lịch đã xác nhận, không có quyền sửa' });
@@ -91,7 +91,7 @@ router.post('/:id/confirm', canPhanLich, (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete('/:id', canPhanLich, (req, res) => {
+router.delete('/:id', (req, res) => {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
   if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch đã xác nhận' });

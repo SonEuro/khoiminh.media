@@ -57,6 +57,8 @@ router.delete('/:id', (req, res) => {
   if (String(req.params.id) === String(req.user.id)) {
     return res.status(400).json({ error: 'Không thể xóa tài khoản đang đăng nhập' });
   }
+  try { db.prepare('UPDATE work_schedules SET scheduler_user_id = NULL WHERE scheduler_user_id = ?').run(req.params.id); } catch (_) {}
+  try { db.prepare('UPDATE work_schedules SET confirmed_by_id = NULL WHERE confirmed_by_id = ?').run(req.params.id); } catch (_) {}
   db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
