@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { KM_STAFF_GROUPS } from '../constants/staff';
+import FreelancerPicker from '../components/FreelancerPicker';
 
 const GOLD = '#c9a84c';
 
@@ -641,8 +642,8 @@ export default function EventReport() {
           </div>
           <div>
             <label style={labelStyle}>Nhân sự Freelancer</label>
-            <input className="input" placeholder="Tên nhân sự freelancer (nếu có)..."
-              value={form.freelancer_staff} onChange={e => setField('freelancer_staff', e.target.value)} />
+            <FreelancerPicker value={form.freelancer_staff} onChange={v => setField('freelancer_staff', v)}
+              priorityDepts={KM_STAFF_GROUPS.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept)} />
           </div>
         </div>
 

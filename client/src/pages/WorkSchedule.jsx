@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
+import FreelancerPicker from '../components/FreelancerPicker';
 import { DEPARTMENTS, KM_STAFF_GROUPS } from '../constants/staff';
 import { fmtD } from '../utils/fmt';
 
@@ -189,9 +190,7 @@ function PhaseBlock({ phase, form, setForm }) {
 
       <div>
         <label style={labelStyle}>Nhân sự Freelancer</label>
-        <textarea className="input" rows={2} placeholder="Nhập tên freelancer, cách nhau bằng dấu phẩy..."
-          value={freelancers} onChange={e => set(`${phase.key}_freelancers`, e.target.value)}
-          style={{ fontSize: '0.85rem', resize: 'vertical' }} />
+        <FreelancerPicker value={freelancers} onChange={v => set(`${phase.key}_freelancers`, v)} priorityDepts={priorityDepts} />
       </div>
     </div>
   );
