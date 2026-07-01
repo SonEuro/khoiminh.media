@@ -30,13 +30,25 @@ function serializeDate(val) {
   return val;
 }
 
+function parseKmStaffField(raw) {
+  if (!raw) return { flat: [], map: null };
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v)) return { flat: v, map: null };
+    if (v && typeof v === 'object') return { flat: Object.values(v).flat().filter(Boolean), map: v };
+  } catch {}
+  return { flat: [], map: null };
+}
+
 function parseRow(row) {
   const out = { ...row };
   for (const p of PHASES) {
     try { out[`${p}_leads`] = JSON.parse(row[`${p}_leads`] || '[]'); } catch { out[`${p}_leads`] = []; }
-    try { out[`${p}_km_staff`] = JSON.parse(row[`${p}_km_staff`] || '[]'); } catch { out[`${p}_km_staff`] = []; }
+    const { flat, map } = parseKmStaffField(row[`${p}_km_staff`]);
+    out[`${p}_km_staff`]     = flat;  // flat array for backward compat (display, mySchedules)
+    out[`${p}_km_staff_map`] = map;   // per-date object (null = old format)
     out[`${p}_dates`] = parseDatesField(row[`${p}_date`]);
-    out[`${p}_date`] = out[`${p}_dates`][0] || null; // first date for backward compat
+    out[`${p}_date`] = out[`${p}_dates`][0] || null;
   }
   return out;
 }

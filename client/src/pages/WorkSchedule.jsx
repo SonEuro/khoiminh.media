@@ -60,11 +60,21 @@ const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
   setup_date: [], teardown_date: [], rehearsal_date: [], filming_date: [],
-  setup_leads: [], setup_km_staff: [], setup_freelancers: '',
-  teardown_leads: [], teardown_km_staff: [], teardown_freelancers: '',
-  rehearsal_leads: [], rehearsal_km_staff: [], rehearsal_freelancers: '',
-  filming_leads: [], filming_km_staff: [], filming_freelancers: '',
+  setup_leads: [], setup_km_staff: {}, setup_freelancers: '',
+  teardown_leads: [], teardown_km_staff: {}, teardown_freelancers: '',
+  rehearsal_leads: [], rehearsal_km_staff: {}, rehearsal_freelancers: '',
+  filming_leads: [], filming_km_staff: {}, filming_freelancers: '',
 };
+
+// Chuyển km_staff (flat array cũ hoặc map mới) sang dạng per-date object
+function initKmStaffMap(map, flatArr, dates) {
+  if (map && typeof map === 'object') return map;
+  const flat = Array.isArray(flatArr) ? flatArr : [];
+  if (flat.length === 0 || dates.length === 0) return {};
+  const result = {};
+  for (const d of dates) result[d] = [...flat];
+  return result;
+}
 
 // ── KM Staff multi-select (ưu tiên bộ phận đã chọn nhóm trưởng) ────────────────
 function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [], restrictDept = null }) {
@@ -203,20 +213,25 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null }) {
-  const leads = form[`${phase.key}_leads`];
-  const kmStaff = form[`${phase.key}_km_staff`];
+  const leads    = form[`${phase.key}_leads`];
+  const kmMap    = form[`${phase.key}_km_staff`] || {};   // per-date object
   const freelancers = form[`${phase.key}_freelancers`];
+  const dates    = form[`${phase.key}_date`] || [];
   const priorityDepts = [...new Set(leads.map(l => l.department).filter(Boolean))];
   const leadNames = leads.map(l => l.name).filter(Boolean);
   const freelancerDeptRestrict = userDept ? [userDept] : null;
+  const multiDate = dates.length > 1;
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
+  function setKmForDate(dateKey, staff) {
+    set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: staff });
+  }
 
   return (
     <div style={sectionStyle}>
       <div style={{ marginBottom: '12px' }}>
         <label style={labelStyle}>{phase.label}</label>
-        <MultiDatePicker value={form[`${phase.key}_date`] || []} onChange={v => set(`${phase.key}_date`, v)} />
+        <MultiDatePicker value={dates} onChange={v => set(`${phase.key}_date`, v)} placeholder="Chọn ngày..." />
       </div>
 
       <div style={{ marginBottom: '10px' }}>
@@ -225,8 +240,33 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
       </div>
 
       <div style={{ marginBottom: '10px' }}>
-        <label style={labelStyle}>Nhân sự Khôi Minh</label>
-        <StaffMultiSelect selected={kmStaff} onChange={v => set(`${phase.key}_km_staff`, v)} priorityDepts={priorityDepts} excluded={leadNames} restrictDept={userDept} />
+        <label style={labelStyle}>Nhân sự Khôi Minh{multiDate ? ' (theo ngày)' : ''}</label>
+        {multiDate ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {dates.map(date => (
+              <div key={date}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#fbbf24', marginBottom: '4px', letterSpacing: '0.05em' }}>
+                  📅 {fmtD(date)}
+                </div>
+                <StaffMultiSelect
+                  selected={kmMap[date] || []}
+                  onChange={staff => setKmForDate(date, staff)}
+                  priorityDepts={priorityDepts}
+                  excluded={leadNames}
+                  restrictDept={userDept}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <StaffMultiSelect
+            selected={kmMap[dates[0] || '_all'] || []}
+            onChange={staff => setKmForDate(dates[0] || '_all', staff)}
+            priorityDepts={priorityDepts}
+            excluded={leadNames}
+            restrictDept={userDept}
+          />
+        )}
       </div>
 
       <div>
@@ -249,22 +289,29 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
     rehearsal_date:initial.rehearsal_dates|| [],
     filming_date:  initial.filming_dates  || [],
     manualEvent: !initial.event_id,
+    ...Object.fromEntries(PHASES.map(p => [
+      `${p.key}_km_staff`,
+      initKmStaffMap(initial[`${p.key}_km_staff_map`], initial[`${p.key}_km_staff`], initial[`${p.key}_dates`] || []),
+    ])),
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   function applyEvent(ev) {
     if (!ev) { setForm(f => ({ ...f, event_id: null, event_name: '' })); return; }
-    let filming = ev.filming_date || '';
-    if (!filming) { try { filming = (JSON.parse(ev.filming_dates || '[]'))[0] || ''; } catch { filming = ''; } }
+    function evDates(multiKey, singleKey) {
+      if (ev[multiKey]) { try { const p = JSON.parse(ev[multiKey]); if (Array.isArray(p) && p.length) return p; } catch {} }
+      return ev[singleKey] ? [ev[singleKey]] : null;
+    }
+    const filmDates = evDates('filming_dates', 'filming_date');
     setForm(f => ({
       ...f,
       event_id: ev.id, event_name: ev.name,
       client: ev.client || f.client, location: ev.location || f.location,
-      setup_date:    ev.start_date ? [ev.start_date] : f.setup_date,
-      teardown_date: ev.end_date   ? [ev.end_date]   : f.teardown_date,
-      rehearsal_date:ev.show_date  ? [ev.show_date]  : f.rehearsal_date,
-      filming_date:  filming       ? [filming]        : f.filming_date,
+      setup_date:    evDates('start_dates', 'start_date') || f.setup_date,
+      teardown_date: evDates('end_dates',   'end_date')   || f.teardown_date,
+      rehearsal_date:evDates('show_dates',  'show_date')  || f.rehearsal_date,
+      filming_date:  filmDates                            || f.filming_date,
     }));
   }
 
@@ -603,15 +650,32 @@ export default function WorkSchedule() {
                     )}
                     {staff.length > 0 && (
                       <div style={{ marginBottom: '6px' }}>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 3px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                        {Object.entries(staff.reduce((acc, n) => {
-                          const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                          (acc[d] = acc[d] || []).push(n); return acc;
-                        }, {})).map(([dept, members]) => (
-                          <p key={dept} style={{ fontSize: '0.82rem', color: '#a0a0b8', margin: '1px 0' }}>
-                            <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem' }}>{dept}:</span> {members.join(', ')}
-                          </p>
-                        ))}
+                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 5px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                        {(() => {
+                          const kmMap = selected[`${phase.key}_km_staff_map`];
+                          if (kmMap && dates.length > 1) {
+                            // Per-date display
+                            return dates.map(date => {
+                              const dayStaff = (kmMap[date] || []).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                              if (!dayStaff.length) return null;
+                              return (
+                                <div key={date} style={{ marginBottom: '4px' }}>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fbbf24' }}>📅 {fmtD(date)}: </span>
+                                  <span style={{ fontSize: '0.82rem', color: '#a0a0b8' }}>{dayStaff.join(', ')}</span>
+                                </div>
+                              );
+                            });
+                          }
+                          // Flat display (old format or single date)
+                          return Object.entries(staff.reduce((acc, n) => {
+                            const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                            (acc[d] = acc[d] || []).push(n); return acc;
+                          }, {})).map(([dept, members]) => (
+                            <p key={dept} style={{ fontSize: '0.82rem', color: '#a0a0b8', margin: '1px 0' }}>
+                              <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem' }}>{dept}:</span> {members.join(', ')}
+                            </p>
+                          ));
+                        })()}
                       </div>
                     )}
                     {freelancerGroups.length > 0 && (

@@ -1,13 +1,27 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 const MONTH_NAMES = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const DAY_NAMES   = ['CN','T2','T3','T4','T5','T6','T7'];
 
-export default function MultiDatePicker({ value = [], onChange, error = false }) {
+export default function MultiDatePicker({ value = [], onChange, error = false, placeholder = 'Chọn ngày...' }) {
   const today = new Date().toISOString().slice(0, 10);
   const [open, setOpen]           = useState(false);
+  const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 270 });
   const [viewYear, setViewYear]   = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
+  const triggerRef = useRef(null);
+
+  const openPanel = useCallback(() => {
+    if (triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPanelPos({
+        top: r.bottom + 6,
+        left: r.left,
+        width: Math.max(r.width, 270),
+      });
+    }
+    setOpen(true);
+  }, []);
 
   const toStr = (d) =>
     `${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -34,13 +48,13 @@ export default function MultiDatePicker({ value = [], onChange, error = false })
 
   // Display text
   const displayText = value.length > 0
-    ? value.map(d => { const [y,m,day] = d.split('-'); return `${day}-${m}`; }).join('  ·  ')
-    : 'Chọn ngày ghi hình...';
+    ? value.map(d => { const [,m,day] = d.split('-'); return `${day}-${m}`; }).join('  ·  ')
+    : placeholder;
 
   return (
     <div style={{ position:'relative' }}>
       {/* Trigger */}
-      <div onClick={() => setOpen(o => !o)} className="input"
+      <div ref={triggerRef} onClick={() => open ? setOpen(false) : openPanel()} className="input"
         style={{ cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', userSelect:'none', border: error ? '1px solid #f87171' : undefined }}>
         <span style={{ flex:1, color: value.length ? '#a78bfa' : 'var(--text-muted)', fontWeight: value.length ? 700 : 400, fontSize: value.length ? '0.95rem' : undefined, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {displayText}
@@ -51,15 +65,16 @@ export default function MultiDatePicker({ value = [], onChange, error = false })
       {open && (
         <>
           {/* Backdrop */}
-          <div style={{ position:'fixed', inset:0, zIndex:299 }} onClick={() => setOpen(false)} />
+          <div style={{ position:'fixed', inset:0, zIndex:1299 }} onClick={() => setOpen(false)} />
 
-          {/* Calendar panel */}
+          {/* Calendar panel — fixed positioning to escape modal overflow clipping */}
           <div style={{
-            position:'absolute', top:'calc(100% + 6px)', left:0, zIndex:300,
+            position:'fixed', top: panelPos.top, left: panelPos.left, zIndex:1300,
+            width: panelPos.width,
             background:'#0e0e1a', border:'1px solid rgba(167,139,250,0.45)',
             borderRadius:'14px', padding:'14px 12px 10px',
             boxShadow:'0 20px 60px rgba(0,0,0,0.95)',
-            minWidth:'270px', maxWidth:'calc(100vw - 32px)',
+            maxWidth:'calc(100vw - 32px)',
           }}>
             {/* Month navigation */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>

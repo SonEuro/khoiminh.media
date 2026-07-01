@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import Modal from '../components/Modal';
-import DateInput from '../components/DateInput';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
 import { KM_STAFF_GROUPS } from '../constants/staff';
@@ -100,12 +99,23 @@ function parseFilmingDates(ev) {
   if (ev.filming_dates) { try { return JSON.parse(ev.filming_dates); } catch {} }
   return ev.filming_date ? [ev.filming_date] : [];
 }
+function parseDatesField(ev, multiKey, singleKey) {
+  if (!ev) return [];
+  if (ev[multiKey]) { try { const p = JSON.parse(ev[multiKey]); if (Array.isArray(p)) return p; } catch {} }
+  return ev[singleKey] ? [ev[singleKey]] : [];
+}
 
 
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
   const [form, setForm] = useState(() => {
-    const base = initial || { name: '', client: '', location: '', start_date: '', end_date: '', status: 'planned', notes: '' };
-    return { ...base, filming_dates: parseFilmingDates(initial), show_date: initial?.show_date || '' };
+    const base = initial || { name: '', client: '', location: '', status: 'planned', notes: '' };
+    return {
+      ...base,
+      start_dates: parseDatesField(initial, 'start_dates', 'start_date'),
+      end_dates:   parseDatesField(initial, 'end_dates',   'end_date'),
+      show_dates:  parseDatesField(initial, 'show_dates',  'show_date'),
+      filming_dates: parseFilmingDates(initial),
+    };
   });
   const [showSuggest, setShowSuggest] = useState(false);
   const [dateError, setDateError]     = useState(false);
@@ -139,12 +149,13 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       e.preventDefault();
       const datesArr = (form.filming_dates || []).filter(Boolean).sort();
       if (!initial && datesArr.length === 0) { setDateError(true); return; }
-      const data = { ...form };
-      data.filming_dates = datesArr;
-      if (datesArr.length > 0) {
-        if (!data.start_date) data.start_date = datesArr[0];
-        if (!data.end_date)   data.end_date   = datesArr[datesArr.length - 1];
-      }
+      const data = {
+        ...form,
+        filming_dates: datesArr,
+        start_dates: (form.start_dates || []).filter(Boolean).sort(),
+        end_dates:   (form.end_dates   || []).filter(Boolean).sort(),
+        show_dates:  (form.show_dates  || []).filter(Boolean).sort(),
+      };
       await onSave(data);
     }} className="space-y-4">
       <div style={{ position: 'relative' }}>
@@ -213,25 +224,19 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
-          <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)}
-            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
-            style={form.start_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
+          <MultiDatePicker value={form.start_dates || []} onChange={v => set('start_dates', v)} placeholder="Chọn ngày bắt đầu..." />
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
-          <DateInput value={form.end_date || ''} onChange={v => set('end_date', v)}
-            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
-            style={form.end_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
+          <MultiDatePicker value={form.end_dates || []} onChange={v => set('end_dates', v)} placeholder="Chọn ngày kết thúc..." />
         </div>
         <div>
           <label className="label">Ngày Rehearsal</label>
-          <DateInput value={form.show_date || ''} onChange={v => set('show_date', v)}
-            min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date())}
-            style={form.show_date ? { color:'#f87171', fontWeight:700, fontSize:'1.1rem' } : {}} />
+          <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} placeholder="Chọn ngày rehearsal..." />
         </div>
         <div>
           <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
-          <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} />
+          <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} placeholder="Chọn ngày ghi hình..." />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
         <div style={{ gridColumn: 'span 2' }}>
@@ -275,8 +280,24 @@ function EventDetailModal({ eventId, onClose }) {
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div><span className="text-gray-500">Khách hàng: </span><strong>{ev.client || '—'}</strong></div>
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
-          <div><span className="text-gray-500">Từ: </span><strong>{fmtD(ev.start_date)}</strong></div>
-          <div><span className="text-gray-500">Đến: </span><strong>{fmtD(ev.end_date)}</strong></div>
+          {(() => {
+            const startDates = parseDatesField(ev, 'start_dates', 'start_date');
+            return startDates.length > 0 ? (
+              <div style={{ gridColumn: startDates.length > 1 ? 'span 2' : undefined }}>
+                <span className="text-gray-500">Ngày bắt đầu: </span>
+                {startDates.map((d, i) => <strong key={i} style={{ color:'#f87171', marginRight:'10px' }}>📅 {fmtD(d)}</strong>)}
+              </div>
+            ) : null;
+          })()}
+          {(() => {
+            const endDates = parseDatesField(ev, 'end_dates', 'end_date');
+            return endDates.length > 0 ? (
+              <div style={{ gridColumn: endDates.length > 1 ? 'span 2' : undefined }}>
+                <span className="text-gray-500">Ngày kết thúc: </span>
+                {endDates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'10px' }}>🏁 {fmtD(d)}</strong>)}
+              </div>
+            ) : null;
+          })()}
           {(() => {
             const dates = parseFilmingDates(ev);
             return dates.length > 0 ? (
@@ -288,12 +309,15 @@ function EventDetailModal({ eventId, onClose }) {
               </div>
             ) : null;
           })()}
-          {ev.show_date && (
-            <div>
-              <span className="text-gray-500">Ngày Rehearsal: </span>
-              <strong style={{ color:'#34d399' }}>🎪 {fmtD(ev.show_date)}</strong>
-            </div>
-          )}
+          {(() => {
+            const showDates = parseDatesField(ev, 'show_dates', 'show_date');
+            return showDates.length > 0 ? (
+              <div style={{ gridColumn: showDates.length > 1 ? 'span 2' : undefined }}>
+                <span className="text-gray-500">Ngày Rehearsal: </span>
+                {showDates.map((d, i) => <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>)}
+              </div>
+            ) : null;
+          })()}
           {ev.created_by && (
             <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
           )}

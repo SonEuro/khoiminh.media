@@ -203,6 +203,14 @@ if (!eventCols.includes('show_date')) {
   db.exec("ALTER TABLE events ADD COLUMN show_date TEXT DEFAULT NULL");
   console.log('[DB] Migration: thêm cột show_date vào events');
 }
+if (!eventCols.includes('start_dates')) {
+  db.exec("ALTER TABLE events ADD COLUMN start_dates TEXT");
+  console.log('[DB] Migration: thêm cột start_dates vào events');
+}
+if (!eventCols.includes('end_dates')) {
+  db.exec("ALTER TABLE events ADD COLUMN end_dates TEXT");
+  console.log('[DB] Migration: thêm cột end_dates vào events');
+}
 
 // Migration: thêm cột unit + rental_days vào external_items nếu chưa có
 const extCols = db.pragma('table_info(external_items)').map(c => c.name);
