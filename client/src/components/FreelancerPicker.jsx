@@ -41,6 +41,14 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
       return aP - bP;
     });
 
+  // Chỉ hiện chips của dept được phép — các dept khác ẩn nhưng vẫn giữ trong state
+  const visibleSelected = restrictDepts
+    ? selected.filter(s =>
+        !KNOWN_FREELANCERS.has(s) || // tên nhập tay: luôn hiện
+        FREELANCER_GROUPS.some(g => restrictDepts.includes(g.dept) && g.members.includes(s))
+      )
+    : selected;
+
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button type="button" onClick={() => setOpen(v => !v)}
@@ -49,15 +57,15 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
           background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)',
           borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          color: selected.length ? '#e8c97a' : '#7878a0',
+          color: visibleSelected.length ? '#e8c97a' : '#7878a0',
         }}>
-        <span>{selected.length === 0 ? 'Chọn freelancer...' : `Đã chọn ${selected.length} người`}</span>
+        <span>{visibleSelected.length === 0 ? 'Chọn freelancer...' : `Đã chọn ${visibleSelected.length} người`}</span>
         <span style={{ color: GOLD, fontSize: '0.75rem' }}>{open ? '▲' : '▼'}</span>
       </button>
 
-      {selected.length > 0 && (
+      {visibleSelected.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
-          {selected.map(s => (
+          {visibleSelected.map(s => (
             <span key={s} style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
               padding: '3px 8px', borderRadius: '9999px',
