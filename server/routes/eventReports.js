@@ -43,7 +43,7 @@ router.post('/', requireAuth, (req, res) => {
     km_staff, freelancer_staff,
     time_present, time_onset, time_off, time_end,
     incomplete, incidents, progress, completed_work, service_quality,
-    images, reporter_name,
+    images, reporter_name, job_content,
   } = req.body;
 
   const result = db.prepare(`
@@ -51,8 +51,8 @@ router.post('/', requireAuth, (req, res) => {
       (event_id, event_label, location, report_date, km_staff, freelancer_staff,
        time_present, time_onset, time_off, time_end,
        incomplete, incidents, progress, completed_work, service_quality,
-       images, reporter_name, reporter_user_id)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       images, reporter_name, reporter_user_id, job_content)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     event_id || null, event_label || '', location || '', report_date || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
@@ -60,6 +60,7 @@ router.post('/', requireAuth, (req, res) => {
     incomplete || '', incidents || '', progress || '', completed_work || '', service_quality || '',
     JSON.stringify(images || []), reporter_name || '',
     req.user?.id || null,
+    job_content || '',
   );
   res.json({ id: result.lastInsertRowid });
 });

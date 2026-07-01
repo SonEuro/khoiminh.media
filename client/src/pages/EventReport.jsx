@@ -254,7 +254,7 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
           <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:'3px 0 0' }}>
             {report.location && <span style={{ marginRight:'10px' }}>📍 {report.location}</span>}
             {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
-            {report.reporter_name && <span style={{ marginLeft:'10px' }}>👤 {report.reporter_name}</span>}
+            {report.reporter_name && <span style={{ marginLeft:'10px' }}>👤 {report.reporter_name}{KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept ? ` · ${KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept}` : ''}</span>}
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
@@ -314,6 +314,7 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
 
           {/* Text fields */}
           {[
+            ['Nội dung công việc', report.job_content],
             ['Tiến độ công việc', report.progress],
             ['Công việc hoàn thành', report.completed_work],
             ['Chất lượng dịch vụ', report.service_quality],
@@ -388,6 +389,7 @@ const makeEmptyForm = () => ({
   event_id: '', event_label: '', location: '',
   report_date: todayVN(),
   km_staff: [], freelancer_staff: '',
+  job_content: '',
   time_present: '', time_onset: '', time_off: '', time_end: '',
   incomplete: '', incidents: '',
   progress: '', completed_work: '', service_quality: '',
@@ -624,10 +626,18 @@ export default function EventReport() {
             </div>
           </div>
 
-          <div style={{ marginTop:'14px' }}>
-            <label style={labelStyle}>Nhân sự báo cáo</label>
-            <input className="input" readOnly value={user?.full_name || ''}
-              style={{ opacity:0.7, cursor:'not-allowed', color: GOLD, fontWeight:600 }} />
+          <div className="grid grid-cols-2 gap-4" style={{ marginTop:'14px' }}>
+            <div>
+              <label style={labelStyle}>Nhân sự báo cáo</label>
+              <input className="input" readOnly value={user?.full_name || ''}
+                style={{ opacity:0.7, cursor:'not-allowed', color: GOLD, fontWeight:600 }} />
+            </div>
+            <div>
+              <label style={labelStyle}>Bộ phận</label>
+              <input className="input" readOnly
+                value={KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''))?.dept || (user?.position || '—')}
+                style={{ opacity:0.7, cursor:'not-allowed', color:'#93c5fd', fontWeight:600 }} />
+            </div>
           </div>
         </div>
 
@@ -674,6 +684,12 @@ export default function EventReport() {
             Đánh Giá & Kết Quả
           </h3>
           <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+            <div>
+              <label style={labelStyle}>Nội dung công việc</label>
+              <textarea className="input" rows={3} placeholder="Mô tả nội dung công việc đã thực hiện..."
+                value={form.job_content} onChange={e => setField('job_content', e.target.value)}
+                style={{ resize:'vertical', minHeight:'70px' }} />
+            </div>
             <div>
               <ChipInput label={<>Tiến độ công việc <span style={{ color:'#f87171' }}>*</span></>} value={form.progress}
                 onChange={v => setField('progress', v)} chips={PROGRESS_CHIPS} />

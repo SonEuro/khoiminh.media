@@ -21,10 +21,10 @@ const sectionStyle = {
 };
 
 const PHASES = [
-  { key: 'setup',     label: '🏗 Ngày Bắt Đầu / Setup',     eventField: 'start_date' },
-  { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
-  { key: 'rehearsal', label: '🎤 Ngày Rehearsal',           eventField: 'show_date' },
   { key: 'filming',   label: '🎬 Ngày Ghi Hình',            eventField: 'filming_date' },
+  { key: 'setup',     label: '🏗 Ngày Bắt Đầu / Setup',     eventField: 'start_date' },
+  { key: 'rehearsal', label: '🎤 Ngày Rehearsal',           eventField: 'show_date' },
+  { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
 ];
 
 const EMPTY_FORM = {
@@ -38,7 +38,7 @@ const EMPTY_FORM = {
 };
 
 // ── KM Staff multi-select (ưu tiên bộ phận đã chọn nhóm trưởng) ────────────────
-function StaffMultiSelect({ selected, onChange, priorityDepts = [] }) {
+function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -105,7 +105,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [] }) {
               }}>
                 {priorityDepts.includes(g.dept) ? '⭐ ' : ''}{g.dept.toUpperCase()}
               </div>
-              {g.members.map(m => {
+              {g.members.filter(m => !excluded.includes(m)).map(m => {
                 const active = selected.includes(m);
                 return (
                   <label key={m} style={{
@@ -168,6 +168,7 @@ function PhaseBlock({ phase, form, setForm }) {
   const kmStaff = form[`${phase.key}_km_staff`];
   const freelancers = form[`${phase.key}_freelancers`];
   const priorityDepts = [...new Set(leads.map(l => l.department).filter(Boolean))];
+  const leadNames = leads.map(l => l.name).filter(Boolean);
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
 
@@ -185,7 +186,7 @@ function PhaseBlock({ phase, form, setForm }) {
 
       <div style={{ marginBottom: '10px' }}>
         <label style={labelStyle}>Nhân sự Khôi Minh</label>
-        <StaffMultiSelect selected={kmStaff} onChange={v => set(`${phase.key}_km_staff`, v)} priorityDepts={priorityDepts} />
+        <StaffMultiSelect selected={kmStaff} onChange={v => set(`${phase.key}_km_staff`, v)} priorityDepts={priorityDepts} excluded={leadNames} />
       </div>
 
       <div>

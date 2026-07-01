@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const GOLD = '#c9a84c';
 
@@ -264,9 +265,73 @@ function EventGroup({ status, events }) {
   );
 }
 
+// ── Section: Lịch làm việc sắp tới ───────────────────────────────────────────
+const PHASE_LABELS = { filming: '🎬 Ghi hình', setup: '🏗 Setup', rehearsal: '🎤 Rehearsal', teardown: '📦 Tháo dỡ' };
+
+function UpcomingScheduleSection({ userName }) {
+  const [upcoming, setUpcoming] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!userName) return;
+    api.getWorkSchedules({}).then(schedules => {
+      const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+      const cutoff = new Date(todayVN);
+      cutoff.setDate(cutoff.getDate() + 14);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      const phases = ['filming', 'setup', 'rehearsal', 'teardown'];
+      const found = [];
+      for (const s of schedules) {
+        for (const p of phases) {
+          const date = s[`${p}_date`];
+          if (!date || date < todayVN || date > cutoffStr) continue;
+          const leads = (s[`${p}_leads`] || []).map(l => l.name);
+          const staff = s[`${p}_km_staff`] || [];
+          if (!leads.includes(userName) && !staff.includes(userName)) continue;
+          found.push({ date, phase: p, eventName: s.event_name, schedId: s.id });
+        }
+      }
+      found.sort((a, b) => a.date.localeCompare(b.date));
+      setUpcoming(found);
+    }).catch(() => {});
+  }, [userName]);
+
+  if (upcoming.length === 0) return null;
+
+  return (
+    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(167,139,250,0.35)', marginBottom: '10px' }}>
+      <SectionHeader title="Lịch làm việc của bạn (14 ngày tới)" color="#a78bfa" colorRgb="167,139,250" count={upcoming.length} />
+      <div style={{ background: '#13131d' }}>
+        {upcoming.map((item, i) => (
+          <div key={`${item.schedId}-${item.phase}`}
+            onClick={() => navigate('/work-schedule')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '10px 16px', cursor: 'pointer',
+              borderTop: i > 0 ? '1px solid rgba(167,139,250,0.08)' : 'none',
+              transition: 'background 0.13s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', flexShrink: 0, boxShadow: '0 0 6px rgba(167,139,250,0.8)' }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {PHASE_LABELS[item.phase]} — {item.eventName}
+              </p>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [dash, setDash]   = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -333,6 +398,9 @@ export default function Dashboard() {
         <div style={{ textAlign: 'center', padding: '40px', color: '#f87171' }}>Không thể tải dữ liệu. Vui lòng thử lại.</div>
       ) : (
         <>
+          {/* ── Lịch làm việc sắp tới ── */}
+          <UpcomingScheduleSection userName={user?.full_name || ''} />
+
           {/* ── Cảnh báo vận hành ── */}
           <div id="alerts-section">
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a0a0b8', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>

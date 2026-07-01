@@ -264,7 +264,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
       ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty }
       : it));
 
-  const addExtItem    = () => setExtItems(prev => [...prev, { name: '', supplier: '', quantity: 1, unit: 'Cái', rental_days: 1 }]);
+  const addExtItem    = () => setExtItems(prev => [...prev, { name: '', supplier: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '' }]);
   const removeExtItem = (idx) => setExtItems(prev => prev.filter((_, i) => i !== idx));
   const updateExtItem = (idx, field, val) =>
     setExtItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it));
@@ -409,6 +409,9 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                       <input placeholder="Nhà cung cấp" value={it.supplier}
                         onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
                         style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.73rem' }} />
+                      <input placeholder="Ghi chú..." value={it.notes || ''}
+                        onChange={e => updateExtItem(idx, 'notes', e.target.value)}
+                        style={{ ...extInputStyle, color:'#7878a0', fontSize:'0.72rem', fontStyle:'italic' }} />
                     </div>
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', e.target.value)}

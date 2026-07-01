@@ -4,6 +4,7 @@ import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
+import { KM_STAFF_GROUPS } from '../constants/staff';
 
 import { fmtD } from '../utils/fmt';
 
@@ -14,6 +15,16 @@ const PHASES = [
   { key: 'rehearsal', label: '🎤 Rehearsal' },
   { key: 'filming',   label: '🎬 Ghi hình' },
 ];
+
+function groupStaffByDept(names) {
+  const groups = {};
+  for (const name of (names || [])) {
+    const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || 'Khác';
+    if (!groups[dept]) groups[dept] = [];
+    groups[dept].push(name);
+  }
+  return Object.entries(groups);
+}
 
 function StaffScheduleModal({ event, onClose }) {
   const [schedules, setSchedules] = useState(null);
@@ -37,12 +48,37 @@ function StaffScheduleModal({ event, onClose }) {
             const free = s[`${phase.key}_freelancers`];
             const date = s[`${phase.key}_date`];
             if (!date && !leads.length && !staff.length && !free) return null;
+            const staffByDept = groupStaffByDept(staff);
             return (
-              <div key={phase.key} style={{ marginBottom: '8px', fontSize: '0.82rem' }}>
+              <div key={phase.key} style={{ marginBottom: '10px', fontSize: '0.82rem' }}>
                 <span style={{ fontWeight: 700, color: GOLD }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</span>
-                {leads.length > 0 && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>👑 {leads.map(l => `${l.name} (${l.department})`).join(', ')}</p>}
-                {staff.length > 0 && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>👥 {staff.join(', ')}</p>}
-                {free && <p style={{ margin: '2px 0', color: '#a0a0b8' }}>🧑‍💼 {free}</p>}
+                {leads.length > 0 && (
+                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: GOLD, letterSpacing: '0.06em' }}>NHÓM TRƯỞNG</span>
+                    {leads.map((l, i) => (
+                      <p key={i} style={{ margin: '1px 0', color: '#e8c97a', fontSize: '0.8rem' }}>
+                        👑 {l.name} <span style={{ color: '#7878a0', fontWeight: 400 }}>({l.department})</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {staffByDept.length > 0 && (
+                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(96,165,250,0.3)' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</span>
+                    {staffByDept.map(([dept, members]) => (
+                      <p key={dept} style={{ margin: '2px 0', color: '#a0a0b8', fontSize: '0.8rem' }}>
+                        <span style={{ color: '#7878a0', fontWeight: 700, fontSize: '0.7rem' }}>{dept}:</span>{' '}
+                        {members.join(', ')}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {free && (
+                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(96,165,250,0.15)' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', letterSpacing: '0.06em' }}>FREELANCER</span>
+                    <p style={{ margin: '1px 0', color: '#a0a0b8', fontSize: '0.8rem' }}>{free}</p>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -573,7 +609,7 @@ export default function Events() {
               </div>
               <div className="flex gap-2 flex-wrap">
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
-                  Chi tiết
+                  Danh mục thiết bị
                 </button>
                 <button className="btn-secondary btn-sm" title="Xem nhân sự làm việc" onClick={() => { setSelected(ev); setModal('staff'); }}>
                   👥 Nhân sự làm việc
