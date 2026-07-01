@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
 import FreelancerPicker from '../components/FreelancerPicker';
-import { DEPARTMENTS, KM_STAFF_GROUPS } from '../constants/staff';
+import { DEPARTMENTS, KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
 import { fmtD } from '../utils/fmt';
 
 const GOLD = '#c9a84c';
@@ -27,6 +27,21 @@ const PHASES = [
   { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
 ];
 
+function getUserDept(fullName) {
+  return KM_STAFF_GROUPS.find(g => g.members.includes(fullName || ''))?.dept || null;
+}
+
+function groupFreelancersByDept(commaStr) {
+  const names = (commaStr || '').split(',').map(s => s.trim()).filter(Boolean);
+  const groups = {};
+  for (const name of names) {
+    const dept = FREELANCER_GROUPS.find(g => g.members.includes(name))?.dept || 'Khác';
+    if (!groups[dept]) groups[dept] = [];
+    groups[dept].push(name);
+  }
+  return Object.entries(groups);
+}
+
 const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
@@ -38,7 +53,7 @@ const EMPTY_FORM = {
 };
 
 // ── KM Staff multi-select (ưu tiên bộ phận đã chọn nhóm trưởng) ────────────────
-function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [] }) {
+function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [], restrictDept = null }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -52,11 +67,13 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
   }
 
-  const sortedGroups = [...KM_STAFF_GROUPS].sort((a, b) => {
-    const aP = priorityDepts.includes(a.dept) ? 0 : 1;
-    const bP = priorityDepts.includes(b.dept) ? 0 : 1;
-    return aP - bP;
-  });
+  const sortedGroups = [...KM_STAFF_GROUPS]
+    .filter(g => !restrictDept || g.dept === restrictDept)
+    .sort((a, b) => {
+      const aP = priorityDepts.includes(a.dept) ? 0 : 1;
+      const bP = priorityDepts.includes(b.dept) ? 0 : 1;
+      return aP - bP;
+    });
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -128,8 +145,9 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
 }
 
 // ── Khối nhóm trưởng (mỗi dòng = 1 bộ phận + 1 người) ──────────────────────────
-function LeadsEditor({ leads, onChange }) {
-  function addRow() { onChange([...leads, { department: DEPARTMENTS[0], name: '' }]); }
+function LeadsEditor({ leads, onChange, restrictDept = null }) {
+  const deptOptions = restrictDept ? DEPARTMENTS.filter(d => d === restrictDept) : DEPARTMENTS;
+  function addRow() { onChange([...leads, { department: restrictDept || DEPARTMENTS[0], name: '' }]); }
   function updateRow(i, k, v) { onChange(leads.map((r, j) => j === i ? { ...r, [k]: v, ...(k === 'department' ? { name: '' } : {}) } : r)); }
   function removeRow(i) { onChange(leads.filter((_, j) => j !== i)); }
 
@@ -139,10 +157,12 @@ function LeadsEditor({ leads, onChange }) {
         {leads.map((row, i) => {
           const members = KM_STAFF_GROUPS.find(g => g.dept === row.department)?.members || [];
           return (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 32px', gap: '6px' }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: restrictDept ? '1fr 32px' : '1fr 1fr 32px', gap: '6px' }}>
+              {!restrictDept && (
               <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ fontSize: '0.82rem', height: '36px' }}>
-                {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
+              )}
               <select className="input" value={row.name} onChange={e => updateRow(i, 'name', e.target.value)} style={{ fontSize: '0.82rem', height: '36px' }}>
                 <option value="">-- Chọn nhóm trưởng --</option>
                 {members.map(m => <option key={m} value={m}>{m}</option>)}
@@ -163,12 +183,13 @@ function LeadsEditor({ leads, onChange }) {
 }
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
-function PhaseBlock({ phase, form, setForm }) {
+function PhaseBlock({ phase, form, setForm, userDept = null }) {
   const leads = form[`${phase.key}_leads`];
   const kmStaff = form[`${phase.key}_km_staff`];
   const freelancers = form[`${phase.key}_freelancers`];
   const priorityDepts = [...new Set(leads.map(l => l.department).filter(Boolean))];
   const leadNames = leads.map(l => l.name).filter(Boolean);
+  const freelancerDeptRestrict = userDept ? [userDept] : null;
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
 
@@ -181,17 +202,17 @@ function PhaseBlock({ phase, form, setForm }) {
 
       <div style={{ marginBottom: '10px' }}>
         <label style={labelStyle}>Nhóm trưởng (theo bộ phận)</label>
-        <LeadsEditor leads={leads} onChange={v => set(`${phase.key}_leads`, v)} />
+        <LeadsEditor leads={leads} onChange={v => set(`${phase.key}_leads`, v)} restrictDept={userDept} />
       </div>
 
       <div style={{ marginBottom: '10px' }}>
         <label style={labelStyle}>Nhân sự Khôi Minh</label>
-        <StaffMultiSelect selected={kmStaff} onChange={v => set(`${phase.key}_km_staff`, v)} priorityDepts={priorityDepts} excluded={leadNames} />
+        <StaffMultiSelect selected={kmStaff} onChange={v => set(`${phase.key}_km_staff`, v)} priorityDepts={priorityDepts} excluded={leadNames} restrictDept={userDept} />
       </div>
 
       <div>
         <label style={labelStyle}>Nhân sự Freelancer</label>
-        <FreelancerPicker value={freelancers} onChange={v => set(`${phase.key}_freelancers`, v)} priorityDepts={priorityDepts} />
+        <FreelancerPicker value={freelancers} onChange={v => set(`${phase.key}_freelancers`, v)} priorityDepts={priorityDepts} restrictDepts={freelancerDeptRestrict} />
       </div>
     </div>
   );
@@ -200,6 +221,10 @@ function PhaseBlock({ phase, form, setForm }) {
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
 function ScheduleForm({ initial, events, onSaved, onClose }) {
   const { user } = useAuth();
+  // Trưởng phòng chỉ được chỉnh sửa nhân sự bộ phận của mình
+  const userDept = user?.is_truong_phong && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
+    ? getUserDept(user?.full_name)
+    : null;
   const [form, setForm] = useState(() => initial ? {
     ...EMPTY_FORM, ...initial,
     manualEvent: !initial.event_id,
@@ -282,7 +307,7 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
           </div>
         </div>
 
-        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} />)}
+        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} />)}
 
         {error && (
           <p style={{ color: '#f87171', fontSize: '0.85rem', background: 'rgba(248,113,113,0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.3)' }}>
@@ -423,21 +448,60 @@ export default function WorkSchedule() {
               🏢 Khách hàng: {selected.client || '—'}<br />
               📍 Địa điểm: {selected.location || '—'}
             </p>
-            {PHASES.map(phase => {
-              const leads = selected[`${phase.key}_leads`] || [];
-              const staff = selected[`${phase.key}_km_staff`] || [];
-              const free = selected[`${phase.key}_freelancers`];
-              const date = selected[`${phase.key}_date`];
-              if (!date && !leads.length && !staff.length && !free) return null;
-              return (
-                <div key={phase.key} style={sectionStyle}>
-                  <p style={{ fontWeight: 700, color: GOLD, marginBottom: '6px' }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</p>
-                  {leads.length > 0 && <p style={{ fontSize: '0.82rem', color: '#a0a0b8' }}>👑 Nhóm trưởng: {leads.map(l => `${l.name} (${l.department})`).join(', ')}</p>}
-                  {staff.length > 0 && <p style={{ fontSize: '0.82rem', color: '#a0a0b8' }}>👥 Nhân sự KM: {staff.join(', ')}</p>}
-                  {free && <p style={{ fontSize: '0.82rem', color: '#a0a0b8' }}>🧑‍💼 Freelancer: {free}</p>}
-                </div>
-              );
-            })}
+            {(() => {
+              const viewerDept = user?.is_truong_phong && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
+                ? getUserDept(user?.full_name) : null;
+              return PHASES.map(phase => {
+                const leads = (selected[`${phase.key}_leads`] || [])
+                  .filter(l => !viewerDept || l.department === viewerDept);
+                let staff = (selected[`${phase.key}_km_staff`] || [])
+                  .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                const date = selected[`${phase.key}_date`];
+                const freeStr = selected[`${phase.key}_freelancers`] || '';
+                const freeNames = freeStr.split(',').map(s => s.trim()).filter(Boolean);
+                const filteredFree = viewerDept
+                  ? freeNames.filter(n => FREELANCER_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)))
+                  : freeNames;
+                // Logic 2: ẩn phase nếu không có nhân sự (dù có ngày hay không)
+                if (!leads.length && !staff.length && !filteredFree.length) return null;
+                const freelancerGroups = groupFreelancersByDept(filteredFree.join(', '));
+                return (
+                  <div key={phase.key} style={sectionStyle}>
+                    <p style={{ fontWeight: 700, color: GOLD, marginBottom: '6px' }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</p>
+                    {leads.length > 0 && (
+                      <div style={{ marginBottom: '6px' }}>
+                        {leads.map((l, i) => (
+                          <p key={i} style={{ fontSize: '0.82rem', color: '#e8c97a', margin: '1px 0' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></p>
+                        ))}
+                      </div>
+                    )}
+                    {staff.length > 0 && (
+                      <div style={{ marginBottom: '6px' }}>
+                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 3px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                        {Object.entries(staff.reduce((acc, n) => {
+                          const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                          (acc[d] = acc[d] || []).push(n); return acc;
+                        }, {})).map(([dept, members]) => (
+                          <p key={dept} style={{ fontSize: '0.82rem', color: '#a0a0b8', margin: '1px 0' }}>
+                            <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem' }}>{dept}:</span> {members.join(', ')}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {freelancerGroups.length > 0 && (
+                      <div>
+                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 3px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                        {freelancerGroups.map(([dept, members]) => (
+                          <p key={dept} style={{ fontSize: '0.82rem', color: '#a0a0b8', margin: '1px 0' }}>
+                            <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem' }}>{dept}:</span> {members.join(', ')}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </Modal>
       )}

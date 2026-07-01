@@ -10,7 +10,7 @@ function parseList(str) {
 
 // Chọn freelancer từ danh sách có sẵn (ưu tiên theo bộ phận) + cho thêm tên thủ công.
 // Lưu trữ dưới dạng chuỗi text phân tách bằng dấu phẩy (tương thích với freelancer_staff cũ).
-export default function FreelancerPicker({ value, onChange, priorityDepts = [] }) {
+export default function FreelancerPicker({ value, onChange, priorityDepts = [], restrictDepts = null }) {
   const [open, setOpen] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const ref = useRef(null);
@@ -33,11 +33,13 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [] }
     setCustomInput('');
   }
 
-  const sortedGroups = [...FREELANCER_GROUPS].sort((a, b) => {
-    const aP = priorityDepts.includes(a.dept) ? 0 : 1;
-    const bP = priorityDepts.includes(b.dept) ? 0 : 1;
-    return aP - bP;
-  });
+  const sortedGroups = [...FREELANCER_GROUPS]
+    .filter(g => !restrictDepts || restrictDepts.includes(g.dept))
+    .sort((a, b) => {
+      const aP = priorityDepts.includes(a.dept) ? 0 : 1;
+      const bP = priorityDepts.includes(b.dept) ? 0 : 1;
+      return aP - bP;
+    });
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
