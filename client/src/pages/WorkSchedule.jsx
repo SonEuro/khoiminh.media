@@ -27,8 +27,22 @@ const PHASES = [
   { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
 ];
 
+const ROLE_DEPT_MAP = {
+  TECHNICAL:  'Kỹ Thuật',
+  ATAS:       'Âm Thanh Ánh Sáng',
+  STAGE:      'Sân Khấu',
+  CSVC:       'Cơ Sở Vật Chất',
+  ACCOUNTING: 'Kế Toán',
+  PRODUCTION: 'Kinh Doanh',
+};
+
 function getUserDept(fullName) {
   return KM_STAFF_GROUPS.find(g => g.members.includes(fullName || ''))?.dept || null;
+}
+
+function getTruongPhongDept(user) {
+  if (!user?.is_truong_phong || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return null;
+  return getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null;
 }
 
 function groupFreelancersByDept(commaStr) {
@@ -222,9 +236,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
 function ScheduleForm({ initial, events, onSaved, onClose }) {
   const { user } = useAuth();
   // Trưởng phòng chỉ được chỉnh sửa nhân sự bộ phận của mình
-  const userDept = user?.is_truong_phong && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
-    ? getUserDept(user?.full_name)
-    : null;
+  const userDept = getTruongPhongDept(user);
   const [form, setForm] = useState(() => initial ? {
     ...EMPTY_FORM, ...initial,
     manualEvent: !initial.event_id,
@@ -548,8 +560,7 @@ export default function WorkSchedule() {
               📍 Địa điểm: {selected.location || '—'}
             </p>
             {(() => {
-              const viewerDept = user?.is_truong_phong && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
-                ? getUserDept(user?.full_name) : null;
+              const viewerDept = getTruongPhongDept(user);
               return PHASES.map(phase => {
                 const leads = (selected[`${phase.key}_leads`] || [])
                   .filter(l => !viewerDept || l.department === viewerDept);
