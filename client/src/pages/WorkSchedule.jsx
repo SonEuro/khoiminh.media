@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
-import DateInput from '../components/DateInput';
+import MultiDatePicker from '../components/MultiDatePicker';
 import FreelancerPicker from '../components/FreelancerPicker';
 import { DEPARTMENTS, KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
 import { fmtD } from '../utils/fmt';
@@ -59,7 +59,7 @@ function groupFreelancersByDept(commaStr) {
 const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
-  setup_date: '', teardown_date: '', rehearsal_date: '', filming_date: '',
+  setup_date: [], teardown_date: [], rehearsal_date: [], filming_date: [],
   setup_leads: [], setup_km_staff: [], setup_freelancers: '',
   teardown_leads: [], teardown_km_staff: [], teardown_freelancers: '',
   rehearsal_leads: [], rehearsal_km_staff: [], rehearsal_freelancers: '',
@@ -109,18 +109,17 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
       </button>
 
       {visibleSelected.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '6px' }}>
           {visibleSelected.map(s => (
-            <span key={s} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '3px 8px', borderRadius: '9999px',
-              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.35)',
-              color: GOLD, fontSize: '0.72rem', fontWeight: 600,
+            <div key={s} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 10px', borderRadius: '7px',
+              background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.18)',
             }}>
-              {s}
+              <span style={{ fontSize: '0.82rem', color: '#e8c97a' }}>{s}</span>
               <button type="button" onClick={() => toggle(s)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>×</button>
-            </span>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+            </div>
           ))}
         </div>
       )}
@@ -215,9 +214,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
 
   return (
     <div style={sectionStyle}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: '10px', marginBottom: '12px', alignItems: 'end' }}>
-        <label style={{ ...labelStyle, marginBottom: 0 }}>{phase.label}</label>
-        <DateInput value={form[`${phase.key}_date`]} onChange={v => set(`${phase.key}_date`, v)} />
+      <div style={{ marginBottom: '12px' }}>
+        <label style={labelStyle}>{phase.label}</label>
+        <MultiDatePicker value={form[`${phase.key}_date`] || []} onChange={v => set(`${phase.key}_date`, v)} />
       </div>
 
       <div style={{ marginBottom: '10px' }}>
@@ -245,6 +244,10 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
   const userDept = getTruongPhongDept(user);
   const [form, setForm] = useState(() => initial ? {
     ...EMPTY_FORM, ...initial,
+    setup_date:    initial.setup_dates    || [],
+    teardown_date: initial.teardown_dates || [],
+    rehearsal_date:initial.rehearsal_dates|| [],
+    filming_date:  initial.filming_dates  || [],
     manualEvent: !initial.event_id,
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -258,10 +261,10 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
       ...f,
       event_id: ev.id, event_name: ev.name,
       client: ev.client || f.client, location: ev.location || f.location,
-      setup_date: ev.start_date || f.setup_date,
-      teardown_date: ev.end_date || f.teardown_date,
-      rehearsal_date: ev.show_date || f.rehearsal_date,
-      filming_date: filming || f.filming_date,
+      setup_date:    ev.start_date ? [ev.start_date] : f.setup_date,
+      teardown_date: ev.end_date   ? [ev.end_date]   : f.teardown_date,
+      rehearsal_date:ev.show_date  ? [ev.show_date]  : f.rehearsal_date,
+      filming_date:  filming       ? [filming]        : f.filming_date,
     }));
   }
 
@@ -364,12 +367,12 @@ function MySchedulesSection({ schedules, user, onSelect }) {
   }
 
   function nearestDate(s) {
-    const dates = PHASES.map(p => s[`${p.key}_date`]).filter(Boolean).sort();
+    const dates = PHASES.flatMap(p => s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : [])).sort();
     return dates.find(d => d >= today) || null;
   }
 
   function isOngoing(s) {
-    return PHASES.some(p => s[`${p.key}_date`] === today);
+    return PHASES.some(p => (s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : [])).includes(today));
   }
 
   const mine = schedules.filter(s => isMySchedule(s));
@@ -393,10 +396,10 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       >
         <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
-          {s.setup_date && <span>🏗 {fmtD(s.setup_date)}</span>}
-          {s.teardown_date && <span>📦 {fmtD(s.teardown_date)}</span>}
-          {s.rehearsal_date && <span>🎤 {fmtD(s.rehearsal_date)}</span>}
-          {s.filming_date && <span>🎬 {fmtD(s.filming_date)}</span>}
+          {s.setup_dates?.length > 0 && <span>🏗 {s.setup_dates.map(d => fmtD(d)).join(' · ')}</span>}
+          {s.teardown_dates?.length > 0 && <span>📦 {s.teardown_dates.map(d => fmtD(d)).join(' · ')}</span>}
+          {s.rehearsal_dates?.length > 0 && <span>🎤 {s.rehearsal_dates.map(d => fmtD(d)).join(' · ')}</span>}
+          {s.filming_dates?.length > 0 && <span>🎬 {s.filming_dates.map(d => fmtD(d)).join(' · ')}</span>}
           {s.location && <span>📍 {s.location}</span>}
         </div>
       </div>
@@ -530,10 +533,10 @@ export default function WorkSchedule() {
             </div>
 
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
-              {s.setup_date && <span>🏗 {fmtD(s.setup_date)}</span>}
-              {s.teardown_date && <span>📦 {fmtD(s.teardown_date)}</span>}
-              {s.rehearsal_date && <span>🎤 {fmtD(s.rehearsal_date)}</span>}
-              {s.filming_date && <span>🎬 {fmtD(s.filming_date)}</span>}
+              {s.setup_dates?.length > 0 && <span>🏗 {s.setup_dates.map(d => fmtD(d)).join(' · ')}</span>}
+              {s.teardown_dates?.length > 0 && <span>📦 {s.teardown_dates.map(d => fmtD(d)).join(' · ')}</span>}
+              {s.rehearsal_dates?.length > 0 && <span>🎤 {s.rehearsal_dates.map(d => fmtD(d)).join(' · ')}</span>}
+              {s.filming_dates?.length > 0 && <span>🎬 {s.filming_dates.map(d => fmtD(d)).join(' · ')}</span>}
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -541,7 +544,7 @@ export default function WorkSchedule() {
               {canEdit(s) && (
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>
               )}
-              {s.status === 'draft' && canEdit(s) && (
+              {s.status === 'draft' && (!!user?.is_phan_lich || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) && (
                 <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>
               )}
               {canDelete(s) && (
@@ -579,7 +582,7 @@ export default function WorkSchedule() {
                   .filter(l => !viewerDept || l.department === viewerDept);
                 let staff = (selected[`${phase.key}_km_staff`] || [])
                   .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
-                const date = selected[`${phase.key}_date`];
+                const dates = selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : []);
                 const freeStr = selected[`${phase.key}_freelancers`] || '';
                 const freeNames = freeStr.split(',').map(s => s.trim()).filter(Boolean);
                 const filteredFree = viewerDept
@@ -590,7 +593,7 @@ export default function WorkSchedule() {
                 const freelancerGroups = groupFreelancersByDept(filteredFree.join(', '));
                 return (
                   <div key={phase.key} style={sectionStyle}>
-                    <p style={{ fontWeight: 700, color: GOLD, marginBottom: '6px' }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</p>
+                    <p style={{ fontWeight: 700, color: GOLD, marginBottom: '6px' }}>{phase.label}{dates.length ? ` — ${dates.map(d => fmtD(d)).join(' · ')}` : ''}</p>
                     {leads.length > 0 && (
                       <div style={{ marginBottom: '6px' }}>
                         {leads.map((l, i) => (

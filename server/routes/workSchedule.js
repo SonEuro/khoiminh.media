@@ -9,18 +9,34 @@ function canPhanLich(req, res, next) {
 
 function canEditSchedule(sched, user) {
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
+  if (!!user.is_truong_phong) return true;
   if (sched.status === 'draft') return !!user.is_phan_lich;
-  // Đã xác nhận → chỉ admin hoặc người tạo
   return sched.scheduler_user_id === user.id;
 }
 
 const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
+
+function parseDatesField(val) {
+  if (!val) return [];
+  if (typeof val === 'string' && val.startsWith('[')) {
+    try { return JSON.parse(val); } catch { return []; }
+  }
+  return [val]; // backward compat: old single-date string
+}
+
+function serializeDate(val) {
+  if (!val) return null;
+  if (Array.isArray(val)) return val.length ? JSON.stringify(val) : null;
+  return val;
+}
 
 function parseRow(row) {
   const out = { ...row };
   for (const p of PHASES) {
     try { out[`${p}_leads`] = JSON.parse(row[`${p}_leads`] || '[]'); } catch { out[`${p}_leads`] = []; }
     try { out[`${p}_km_staff`] = JSON.parse(row[`${p}_km_staff`] || '[]'); } catch { out[`${p}_km_staff`] = []; }
+    out[`${p}_dates`] = parseDatesField(row[`${p}_date`]);
+    out[`${p}_date`] = out[`${p}_dates`][0] || null; // first date for backward compat
   }
   return out;
 }
@@ -50,7 +66,8 @@ router.post('/', canPhanLich, (req, res) => {
   const vals = [
     b.event_id || null, b.event_name.trim(), req.user.id, req.user.full_name,
     b.client || null, b.location || null,
-    b.setup_date || null, b.teardown_date || null, b.rehearsal_date || null, b.filming_date || null,
+    serializeDate(b.setup_date), serializeDate(b.teardown_date),
+    serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);
@@ -71,7 +88,8 @@ router.put('/:id', (req, res) => {
   const vals = [
     b.event_id || null, b.event_name?.trim() || sched.event_name,
     b.client || null, b.location || null,
-    b.setup_date || null, b.teardown_date || null, b.rehearsal_date || null, b.filming_date || null,
+    serializeDate(b.setup_date), serializeDate(b.teardown_date),
+    serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);

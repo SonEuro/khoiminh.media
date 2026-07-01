@@ -64,18 +64,19 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
       </button>
 
       {visibleSelected.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '6px' }}>
           {visibleSelected.map(s => (
-            <span key={s} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '3px 8px', borderRadius: '9999px',
-              background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.35)',
-              color: '#60a5fa', fontSize: '0.72rem', fontWeight: 600,
+            <div key={s} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 10px', borderRadius: '7px',
+              background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.18)',
             }}>
-              {!KNOWN_FREELANCERS.has(s) && '✏️ '}{s}
+              <span style={{ fontSize: '0.82rem', color: '#93c5fd' }}>
+                {!KNOWN_FREELANCERS.has(s) && '✏️ '}{s}
+              </span>
               <button type="button" onClick={() => toggle(s)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>×</button>
-            </span>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+            </div>
           ))}
         </div>
       )}
