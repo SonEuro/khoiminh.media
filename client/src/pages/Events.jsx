@@ -474,7 +474,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
 }
 
 export default function Events() {
-  const { user } = useAuth();
+  const { user, can } = useAuth();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const isFullAdmin = canFullEdit;
@@ -556,7 +556,7 @@ export default function Events() {
           {canManage && (
             <button className="btn-secondary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
           )}
-          {!['ACCOUNTING'].includes(user?.role) && (
+          {can('createEvent') && (
             <button className="btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => { setSelected(null); setModal('form'); }}>
               + Tạo sự kiện
             </button>

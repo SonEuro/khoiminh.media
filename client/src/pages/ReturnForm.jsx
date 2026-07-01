@@ -440,15 +440,16 @@ export default function ReturnForm() {
   const navigate = useNavigate();
   const canFix = can('confirmFix');
 
-  const [tab, setTab] = useState(() => canFix ? 'fix' : 'intake');
+  const [tab, setTab] = useState(() => canFix ? 'fix' : (can('intake') ? 'intake' : 'fix'));
   const [equipment, setEquipment] = useState([]);
   const [done, setDone] = useState(null);
 
   useEffect(() => { api.getEquipment({ limit: 9999 }).then(d => setEquipment(d.items || d)); }, []);
 
+  const canIntakeTab = can('intake');
   const tabs = [
     ...(canFix ? [{ key: 'fix', label: '🔧 Sửa xong – Cập nhật tình trạng' }] : []),
-    { key: 'intake', label: '📦 Nhập mới thiết bị' },
+    ...(canIntakeTab ? [{ key: 'intake', label: '📦 Nhập mới thiết bị' }] : []),
   ];
 
   if (done) return (

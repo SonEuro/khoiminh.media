@@ -29,9 +29,9 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="equipment" element={<Equipment />} />
-        <Route path="export"   element={can('transact') ? <ExportForm /> : <Navigate to="/" replace />} />
-        <Route path="return"        element={can('transact') || can('intake') || can('confirmFix') ? <ReturnForm /> : <Navigate to="/" replace />} />
-        <Route path="event-return"  element={can('transact') ? <EventReturn /> : <Navigate to="/" replace />} />
+        <Route path="export"   element={can('exportEvent') ? <ExportForm /> : <Navigate to="/" replace />} />
+        <Route path="return"        element={can('intake') || can('confirmFix') ? <ReturnForm /> : <Navigate to="/" replace />} />
+        <Route path="event-return"  element={can('returnEvent') ? <EventReturn /> : <Navigate to="/" replace />} />
         <Route path="events"   element={<Events />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="reports"    element={<Reports />} />

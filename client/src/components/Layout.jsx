@@ -216,14 +216,14 @@ export default function Layout() {
 
   const nav = [
     { to: '/events',       Icon: CalendarDays,     label: 'Sự Kiện',              always: true },
-    { to: '/export',       Icon: ArrowUpFromLine,  label: 'Xuất Thiết Bị\nSự Kiện',  show: can('transact') },
-    { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị\nSự Kiện',  show: can('transact') },
+    { to: '/export',       Icon: ArrowUpFromLine,  label: 'Xuất Thiết Bị\nSự Kiện',  show: can('exportEvent') },
+    { to: '/event-return', Icon: ArrowDownToLine,  label: 'Nhập Thiết Bị\nSự Kiện',  show: can('returnEvent') },
     { to: '/event-report', Icon: ClipboardList,    label: 'Báo Cáo Sự Kiện',       always: true },
     { to: '/work-schedule', Icon: CalendarCog,     label: 'Lịch Làm Việc',         always: true },
     { to: '/violations',   Icon: ShieldAlert,      label: 'Vi Phạm Nội Quy',        always: true },
     { to: '/transactions', Icon: History,          label: 'Lịch Sử Vận Hành', always: true },
     { to: '/equipment',    Icon: Warehouse,        label: 'Tổng Kho Khôi Minh', always: true },
-    { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('transact') || can('intake') || can('confirmFix') },
+    { to: '/return',       Icon: PackagePlus,      label: 'Nhập Kho Thiết Bị',      show: can('intake') || can('confirmFix') },
     { to: '/users',        Icon: Users,            label: 'Người Dùng',           show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 

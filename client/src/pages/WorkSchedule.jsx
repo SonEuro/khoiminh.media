@@ -326,6 +326,98 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
   );
 }
 
+// ── Section: Lịch của tôi (đang diễn ra + sắp tới) ─────────────────────────────
+function MySchedulesSection({ schedules, user, onSelect }) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const userName = user?.full_name || '';
+  const userId = user?.id;
+
+  function isMySchedule(s) {
+    if (s.scheduler_user_id === userId) return true;
+    for (const phase of PHASES) {
+      const leads = s[`${phase.key}_leads`] || [];
+      if (leads.some(l => l.name === userName)) return true;
+      const km = s[`${phase.key}_km_staff`] || [];
+      if (km.includes(userName)) return true;
+      const free = (s[`${phase.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+      if (free.includes(userName)) return true;
+    }
+    return false;
+  }
+
+  function nearestDate(s) {
+    const dates = PHASES.map(p => s[`${p.key}_date`]).filter(Boolean).sort();
+    return dates.find(d => d >= today) || null;
+  }
+
+  function isOngoing(s) {
+    return PHASES.some(p => s[`${p.key}_date`] === today);
+  }
+
+  const mine = schedules.filter(s => isMySchedule(s));
+  const ongoing = mine.filter(s => isOngoing(s));
+  const upcoming = mine
+    .filter(s => !isOngoing(s) && nearestDate(s) !== null)
+    .sort((a, b) => (nearestDate(a) || '').localeCompare(nearestDate(b) || ''));
+
+  if (!ongoing.length && !upcoming.length) return null;
+
+  function MiniCard({ s }) {
+    const near = nearestDate(s);
+    return (
+      <div onClick={() => onSelect(s)}
+        style={{
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '10px', padding: '12px 14px', cursor: 'pointer',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.08)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+      >
+        <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
+          {s.setup_date && <span>🏗 {fmtD(s.setup_date)}</span>}
+          {s.teardown_date && <span>📦 {fmtD(s.teardown_date)}</span>}
+          {s.rehearsal_date && <span>🎤 {fmtD(s.rehearsal_date)}</span>}
+          {s.filming_date && <span>🎬 {fmtD(s.filming_date)}</span>}
+          {s.location && <span>📍 {s.location}</span>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(96,165,250,0.04) 100%)',
+      border: '1px solid rgba(167,139,250,0.25)', borderRadius: '14px',
+      padding: '16px', marginBottom: '20px',
+    }}>
+      <h2 style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 800, color: '#a78bfa', letterSpacing: '0.04em' }}>
+        📅 Lịch làm việc của bạn
+      </h2>
+      {ongoing.length > 0 && (
+        <div style={{ marginBottom: upcoming.length ? '14px' : 0 }}>
+          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            ● Đang diễn ra hôm nay
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {ongoing.map(s => <MiniCard key={s.id} s={s} />)}
+          </div>
+        </div>
+      )}
+      {upcoming.length > 0 && (
+        <div>
+          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            ● Sắp tới
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {upcoming.map(s => <MiniCard key={s.id} s={s} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Trang chính ──────────────────────────────────────────────────────────────────
 export default function WorkSchedule() {
   const { user } = useAuth();
@@ -384,6 +476,12 @@ export default function WorkSchedule() {
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#60a5fa' }}>Bạn chỉ có thể xem lịch làm việc, không có quyền tạo/sửa.</p>
         </div>
       )}
+
+      <MySchedulesSection
+        schedules={schedules}
+        user={user}
+        onSelect={(s) => { setSelected(s); setModal('detail'); }}
+      />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {schedules.map(s => (
