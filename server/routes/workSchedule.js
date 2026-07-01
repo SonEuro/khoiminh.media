@@ -30,7 +30,7 @@ function serializeDate(val) {
   return val;
 }
 
-function parseKmStaffField(raw) {
+function parseJsonMapField(raw) {
   if (!raw) return { flat: [], map: null };
   try {
     const v = JSON.parse(raw);
@@ -40,15 +40,42 @@ function parseKmStaffField(raw) {
   return { flat: [], map: null };
 }
 
+function parseFreelancersField(raw) {
+  if (!raw) return { flat: '', map: null };
+  if (raw.startsWith('{')) {
+    try {
+      const v = JSON.parse(raw);
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        return { flat: Object.values(v).filter(Boolean).join(', '), map: v };
+      }
+    } catch {}
+  }
+  return { flat: raw, map: null };
+}
+
+function serializeFieldValue(v) {
+  if (!v) return typeof v === 'string' ? '' : null;
+  if (typeof v === 'object') return JSON.stringify(v);
+  return v;
+}
+
 function parseRow(row) {
   const out = { ...row };
   for (const p of PHASES) {
-    try { out[`${p}_leads`] = JSON.parse(row[`${p}_leads`] || '[]'); } catch { out[`${p}_leads`] = []; }
-    const { flat, map } = parseKmStaffField(row[`${p}_km_staff`]);
-    out[`${p}_km_staff`]     = flat;  // flat array for backward compat (display, mySchedules)
-    out[`${p}_km_staff_map`] = map;   // per-date object (null = old format)
+    const { flat: flatLeads, map: leadsMap } = parseJsonMapField(row[`${p}_leads`]);
+    out[`${p}_leads`]     = flatLeads;
+    out[`${p}_leads_map`] = leadsMap;
+
+    const { flat: flatKm, map: kmMap } = parseJsonMapField(row[`${p}_km_staff`]);
+    out[`${p}_km_staff`]     = flatKm;
+    out[`${p}_km_staff_map`] = kmMap;
+
+    const { flat: flatFree, map: freeMap } = parseFreelancersField(row[`${p}_freelancers`]);
+    out[`${p}_freelancers`]     = flatFree;
+    out[`${p}_freelancers_map`] = freeMap;
+
     out[`${p}_dates`] = parseDatesField(row[`${p}_date`]);
-    out[`${p}_date`] = out[`${p}_dates`][0] || null;
+    out[`${p}_date`]  = out[`${p}_dates`][0] || null;
   }
   return out;
 }
@@ -83,7 +110,7 @@ router.post('/', canPhanLich, (req, res) => {
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || []), JSON.stringify(b[`${p}_km_staff`] || []), b[`${p}_freelancers`] || '');
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '');
   }
   const placeholders = cols.map(() => '?').join(',');
   const r = db.prepare(`INSERT INTO work_schedules (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
@@ -105,7 +132,7 @@ router.put('/:id', (req, res) => {
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || []), JSON.stringify(b[`${p}_km_staff`] || []), b[`${p}_freelancers`] || '');
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '');
   }
   const setSql = cols.map(c => `${c} = ?`).join(', ');
   db.prepare(`UPDATE work_schedules SET ${setSql} WHERE id = ?`).run(...vals, req.params.id);
