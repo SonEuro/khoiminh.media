@@ -2,14 +2,23 @@ const router = require('express').Router();
 const db = require('../database');
 
 function canPhanLich(req, res, next) {
-  const { role, is_phan_lich } = req.user || {};
-  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_phan_lich) return next();
+  const { role, is_phan_lich, is_phan_lich_all } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_phan_lich || is_phan_lich_all) return next();
   return res.status(403).json({ error: 'Không có quyền phân lịch làm việc' });
 }
 
 function canEditSchedule(sched, user) {
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
+  if (!!user.is_phan_lich_all) return true;
   if (!!user.is_truong_phong) return true;
+  if (sched.status === 'draft') return !!user.is_phan_lich;
+  return sched.scheduler_user_id === user.id;
+}
+
+function canDeleteSchedule(sched, user) {
+  if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
+  if (!!user.is_phan_lich_all) return sched.status === 'draft';
+  if (!!user.is_truong_phong) return sched.status === 'draft';
   if (sched.status === 'draft') return !!user.is_phan_lich;
   return sched.scheduler_user_id === user.id;
 }
@@ -151,7 +160,7 @@ router.post('/:id/confirm', canPhanLich, (req, res) => {
 router.delete('/:id', (req, res) => {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
-  if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch đã xác nhận' });
+  if (!canDeleteSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch đã xác nhận' });
   db.prepare('DELETE FROM work_schedules WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

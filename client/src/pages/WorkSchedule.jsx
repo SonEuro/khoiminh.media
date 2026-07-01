@@ -41,7 +41,7 @@ function getUserDept(fullName) {
 }
 
 function getTruongPhongDept(user) {
-  if (!user?.is_truong_phong || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return null;
+  if (!user?.is_truong_phong || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || user?.is_phan_lich_all) return null;
   return getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null;
 }
 
@@ -520,7 +520,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
 // ── Trang chính ──────────────────────────────────────────────────────────────────
 export default function WorkSchedule() {
   const { user } = useAuth();
-  const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich;
+  const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
 
   const [schedules, setSchedules] = useState([]);
   const [events, setEvents] = useState([]);
@@ -548,6 +548,7 @@ export default function WorkSchedule() {
 
   function canEdit(s) {
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
+    if (!!user?.is_phan_lich_all) return true;
     if (!!user?.is_truong_phong) return !isPastSchedule(s);
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
@@ -555,6 +556,7 @@ export default function WorkSchedule() {
 
   function canDelete(s) {
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
+    if (!!user?.is_phan_lich_all) return s.status === 'draft';
     if (!!user?.is_truong_phong) return s.status === 'draft' && !isPastSchedule(s);
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
@@ -629,7 +631,7 @@ export default function WorkSchedule() {
               {canEdit(s) && (
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>
               )}
-              {s.status === 'draft' && (!!user?.is_phan_lich || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) && (
+              {s.status === 'draft' && (canPhanLich) && (
                 <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>
               )}
               {canDelete(s) && (

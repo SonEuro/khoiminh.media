@@ -13,13 +13,13 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Sai tên đăng nhập hoặc mật khẩu' });
   }
 
-  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: !!user.is_truong_phong, is_phan_lich: !!user.is_phan_lich };
+  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: !!user.is_truong_phong, is_phan_lich: !!user.is_phan_lich, is_phan_lich_all: !!user.is_phan_lich_all };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
   res.json({ token, user: payload });
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_truong_phong, is_phan_lich FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all FROM users WHERE id = ?').get(req.user.id);
   if (!user || !user.is_active) return res.status(401).json({ error: 'Tài khoản không hợp lệ' });
   res.json(user);
 });

@@ -26,7 +26,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, zalo_uid: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -92,7 +92,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, zalo_uid: u.zalo_uid || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -230,6 +230,9 @@ export default function Users() {
                         ) : null}
                         {u.is_phan_lich ? (
                           <span style={{ fontSize: '0.65rem', color: '#60a5fa', fontWeight: 600 }}>🗓 Phân lịch</span>
+                        ) : null}
+                        {u.is_phan_lich_all ? (
+                          <span style={{ fontSize: '0.65rem', color: '#f97316', fontWeight: 600 }}>📋 Phân lịch tất cả</span>
                         ) : null}
                       </div>
                     </td>
@@ -587,7 +590,16 @@ export default function Users() {
                 onChange={e => set('is_phan_lich', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#60a5fa' }} />
               <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                🗓 Phân lịch làm việc <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền tạo &amp; sửa lịch làm việc nhân sự)</span>
+                🗓 Phân lịch làm việc <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(tạo &amp; sửa lịch nháp bộ phận mình)</span>
+              </span>
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.is_phan_lich_all}
+                onChange={e => set('is_phan_lich_all', e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#f97316' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                📋 Phân lịch tất cả <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(tạo, sửa, xác nhận tất cả lịch + chọn nhân sự tất cả bộ phận)</span>
               </span>
             </label>
 
