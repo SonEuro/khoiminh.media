@@ -212,6 +212,53 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
   );
 }
 
+// ── Autocomplete input cho freelancer theo bộ phận ──────────────────────────────
+function FreelancerDeptInput({ dept, value, onChange }) {
+  const members = FREELANCER_GROUPS.find(g => g.dept === dept)?.members || [];
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef(null);
+
+  const parts = value.split(',');
+  const currentWord = parts[parts.length - 1].trim().toLowerCase();
+  const already = parts.slice(0, -1).map(p => p.trim()).filter(Boolean);
+
+  const suggestions = members.filter(m =>
+    !already.includes(m) && (currentWord.length === 0 || m.toLowerCase().includes(currentWord))
+  );
+
+  function pick(name) {
+    onChange([...already, name].join(', '));
+    setOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        ref={inputRef}
+        value={value}
+        placeholder={`Tên freelancer ${dept}... (cách nhau dấu phẩy)`}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        style={{ width:'100%', height:'30px', padding:'0 8px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#c0c0d8', fontSize:'0.8rem', outline:'none' }}
+      />
+      {open && suggestions.length > 0 && (
+        <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:300, background:'#1a1a2e', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'8px', maxHeight:'160px', overflowY:'auto', marginTop:'2px', boxShadow:'0 8px 24px rgba(0,0,0,0.6)' }}>
+          {suggestions.map(name => (
+            <div key={name} onMouseDown={() => pick(name)}
+              style={{ padding:'6px 12px', cursor:'pointer', fontSize:'0.82rem', color:'#c0c0d8' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.15)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              {name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null }) {
   const leadsMap       = form[`${phase.key}_leads`]       || {};
@@ -255,11 +302,10 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
               {visibleFreeDepts.map(dept => (
                 <div key={dept}>
                   <span style={deptLbl}>{dept}</span>
-                  <input
-                    placeholder="Tên freelancer... (cách nhau bằng dấu phẩy)"
+                  <FreelancerDeptInput
+                    dept={dept}
                     value={freeDeptObj[dept] || ''}
-                    onChange={e => setFree(dateKey, dept, e.target.value)}
-                    style={deptInput}
+                    onChange={v => setFree(dateKey, dept, v)}
                   />
                 </div>
               ))}
