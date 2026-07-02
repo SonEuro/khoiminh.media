@@ -611,8 +611,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
 function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
   const { user } = useAuth();
-  // Trưởng phòng chỉ được chỉnh sửa nhân sự bộ phận của mình
-  const userDept = getTruongPhongDept(user);
+  const isPhanLich = !!user?.is_phan_lich && !user?.is_phan_lich_all && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const userDept = getTruongPhongDept(user) ||
+    (isPhanLich ? getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null : null);
   const [form, setForm] = useState(() => initial ? {
     ...EMPTY_FORM, ...initial,
     setup_date:    initial.setup_dates    || [],
@@ -743,7 +744,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
           </div>
         </div>
 
-        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all} />)}
+        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all || isPhanLich} />)}
 
         {conflicts.length > 0 && (
           <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
