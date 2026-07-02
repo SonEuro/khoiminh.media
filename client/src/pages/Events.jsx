@@ -659,9 +659,9 @@ export default function Events() {
           const isTomorrow = zone === 'tomorrow';
           const isPast     = zone === 'past';
           const cardStyle = isToday
-            ? { borderColor: 'rgba(74,222,128,0.45)', background: 'rgba(74,222,128,0.04)', boxShadow: '0 0 18px rgba(74,222,128,0.08)' }
+            ? { borderColor: 'rgba(248,113,113,0.45)', background: 'rgba(248,113,113,0.04)', boxShadow: '0 0 18px rgba(248,113,113,0.08)' }
             : isTomorrow
-            ? { borderColor: 'rgba(96,165,250,0.35)', background: 'rgba(96,165,250,0.03)', boxShadow: '0 0 14px rgba(96,165,250,0.06)' }
+            ? { borderColor: 'rgba(74,222,128,0.35)', background: 'rgba(74,222,128,0.03)', boxShadow: '0 0 14px rgba(74,222,128,0.06)' }
             : isPast ? { opacity: 0.55 } : {};
           const startDates  = parseDatesField(ev, 'start_dates',   'start_date');
           const endDates    = parseDatesField(ev, 'end_dates',     'end_date');
@@ -732,11 +732,11 @@ export default function Events() {
         return (
           <div className="grid gap-4">
             {todayZone.length > 0 && <>
-              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={todayZone.length} />
+              <ZoneHeader color="#f87171" bg="rgba(248,113,113,0.1)" border="rgba(248,113,113,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={todayZone.length} />
               {todayZone.map(ev => renderCard(ev, 'today'))}
             </>}
             {tomorrowZone.length > 0 && <>
-              <ZoneHeader color="#60a5fa" bg="rgba(96,165,250,0.1)" border="rgba(96,165,250,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={tomorrowZone.length} />
+              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={tomorrowZone.length} />
               {tomorrowZone.map(ev => renderCard(ev, 'tomorrow'))}
             </>}
             {upcomingZone.length > 0 && <>

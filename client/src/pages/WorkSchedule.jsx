@@ -708,7 +708,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       </h2>
       {ongoing.length > 0 && (
         <div style={{ marginBottom: upcoming.length ? '14px' : 0 }}>
-          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#f87171', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             ● Đang diễn ra hôm nay
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -840,10 +840,10 @@ export default function WorkSchedule() {
           const isPast     = zone === 'past';
           return (
             <div key={s.id} style={{
-              background: isToday ? 'rgba(74,222,128,0.04)' : isTomorrow ? 'rgba(96,165,250,0.03)' : 'var(--bg-card)',
-              border: isToday ? '1px solid rgba(74,222,128,0.45)' : isTomorrow ? '1px solid rgba(96,165,250,0.3)' : '1px solid rgba(255,255,255,0.08)',
+              background: isToday ? 'rgba(248,113,113,0.04)' : isTomorrow ? 'rgba(74,222,128,0.03)' : 'var(--bg-card)',
+              border: isToday ? '1px solid rgba(248,113,113,0.45)' : isTomorrow ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(255,255,255,0.08)',
               borderRadius: '12px', padding: '16px',
-              boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : isTomorrow ? '0 0 14px rgba(96,165,250,0.07)' : 'none',
+              boxShadow: isToday ? '0 0 18px rgba(248,113,113,0.1)' : isTomorrow ? '0 0 14px rgba(74,222,128,0.07)' : 'none',
               opacity: isPast ? 0.5 : 1,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
@@ -909,12 +909,12 @@ export default function WorkSchedule() {
             {schedules.length === 0 && <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Chưa có lịch làm việc nào</p>}
 
             {zones.today.length > 0 && <>
-              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={zones.today.length} />
+              <ZoneHeader color="#f87171" bg="rgba(248,113,113,0.1)" border="rgba(248,113,113,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={zones.today.length} />
               {zones.today.map(s => renderCard(s, 'today'))}
             </>}
 
             {zones.tomorrow.length > 0 && <>
-              <ZoneHeader color="#60a5fa" bg="rgba(96,165,250,0.1)" border="rgba(96,165,250,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={zones.tomorrow.length} />
+              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={zones.tomorrow.length} />
               {zones.tomorrow.map(s => renderCard(s, 'tomorrow'))}
             </>}
 
