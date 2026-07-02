@@ -3,7 +3,6 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import MultiDatePicker from '../components/MultiDatePicker';
-import FreelancerPicker from '../components/FreelancerPicker';
 import { DEPARTMENTS, KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
 import { fmtD } from '../utils/fmt';
 
@@ -26,6 +25,8 @@ const PHASES = [
   { key: 'rehearsal', label: '🎤 Ngày Rehearsal',           eventField: 'show_date' },
   { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
 ];
+
+const FREELANCER_DEPT_LIST = FREELANCER_GROUPS.map(g => g.dept);
 
 const ROLE_DEPT_MAP = {
   TECHNICAL:  'Kỹ Thuật',
@@ -220,13 +221,72 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
   const dates          = form[`${phase.key}_date`]        || [];
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
-  const deptRestrict   = userDept ? [userDept] : null;
   const allLeads       = Object.values(leadsMap).flat();
   const priorityDepts  = [...new Set(allLeads.map(l => l.department).filter(Boolean))];
 
+  // Depts visible to this user (restricted if Trưởng phòng)
+  const visibleFreeDepts  = userDept ? FREELANCER_DEPT_LIST.filter(d => d === userDept) : FREELANCER_DEPT_LIST;
+  const visibleNoteDepts  = userDept ? DEPARTMENTS.filter(d => d === userDept) : DEPARTMENTS;
+
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
 
-  const subLabel = { ...labelStyle, fontSize: '0.62rem', color: '#a0a0b8', marginBottom: '4px' };
+  const subLabel  = { ...labelStyle, fontSize: '0.62rem', color: '#a0a0b8', marginBottom: '4px' };
+  const deptLbl   = { fontSize: '0.6rem', color: '#6b7280', fontWeight: 700, display: 'block', marginBottom: '2px', letterSpacing: '0.04em' };
+  const deptInput = { width: '100%', height: '30px', padding: '0 8px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none' };
+
+  function setFree(dateKey, dept, val) {
+    const cur = typeof freelancersMap[dateKey] === 'object' ? (freelancersMap[dateKey] || {}) : {};
+    set(`${phase.key}_freelancers`, { ...freelancersMap, [dateKey]: { ...cur, [dept]: val } });
+  }
+  function setNote(dateKey, dept, val) {
+    const cur = typeof notesMap[dateKey] === 'object' ? (notesMap[dateKey] || {}) : {};
+    set(`${phase.key}_notes`, { ...notesMap, [dateKey]: { ...cur, [dept]: val } });
+  }
+
+  function renderFreelancerNotes(dateKey) {
+    const freeDeptObj  = (typeof freelancersMap[dateKey] === 'object' ? freelancersMap[dateKey] : {}) || {};
+    const notesDeptObj = (typeof notesMap[dateKey] === 'object'       ? notesMap[dateKey]       : {}) || {};
+    return (
+      <>
+        {visibleFreeDepts.length > 0 && (
+          <div style={{ marginBottom: '8px' }}>
+            <label style={subLabel}>Freelancer (theo bộ phận)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {visibleFreeDepts.map(dept => (
+                <div key={dept}>
+                  <span style={deptLbl}>{dept}</span>
+                  <input
+                    placeholder="Tên freelancer... (cách nhau bằng dấu phẩy)"
+                    value={freeDeptObj[dept] || ''}
+                    onChange={e => setFree(dateKey, dept, e.target.value)}
+                    style={deptInput}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {visibleNoteDepts.length > 0 && (
+          <div>
+            <label style={subLabel}>Ghi chú (theo bộ phận)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {visibleNoteDepts.map(dept => (
+                <div key={dept}>
+                  <span style={deptLbl}>{dept}</span>
+                  <input
+                    placeholder="Ghi chú... (không bắt buộc)"
+                    value={notesDeptObj[dept] || ''}
+                    onChange={e => setNote(dateKey, dept, e.target.value)}
+                    style={{ ...deptInput, color: '#c9b98a', fontStyle: 'italic' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   function renderDateSection(dateKey) {
     const dayLeads    = leadsMap[dateKey] || [];
@@ -245,23 +305,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
             priorityDepts={priorityDepts} excluded={dayExcluded} restrictDept={userDept}
           />
         </div>
-        <div style={{ marginBottom: '8px' }}>
-          <label style={subLabel}>Freelancer</label>
-          <FreelancerPicker
-            value={freelancersMap[dateKey] || ''}
-            onChange={v => set(`${phase.key}_freelancers`, { ...freelancersMap, [dateKey]: v })}
-            priorityDepts={priorityDepts} restrictDepts={deptRestrict}
-          />
-        </div>
-        <div>
-          <label style={subLabel}>Ghi chú</label>
-          <input
-            placeholder="Ghi chú ngày này... (không bắt buộc)"
-            value={notesMap[dateKey] || ''}
-            onChange={e => set(`${phase.key}_notes`, { ...notesMap, [dateKey]: e.target.value })}
-            style={{ width:'100%', padding:'7px 10px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#c9b98a', fontSize:'0.82rem', outline:'none', fontStyle:'italic' }}
-          />
-        </div>
+        {renderFreelancerNotes(dateKey)}
       </>
     );
   }
@@ -276,13 +320,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
       {multiDate ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {dates.map(d => (
-            <div key={d} style={{
-              padding: '10px 12px', borderRadius: '8px',
-              background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)',
-            }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em' }}>
-                📅 {fmtD(d)}
-              </div>
+            <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em' }}>📅 {fmtD(d)}</div>
               {renderDateSection(d)}
             </div>
           ))}
@@ -303,23 +342,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
               restrictDept={userDept}
             />
           </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label style={labelStyle}>Nhân sự Freelancer</label>
-            <FreelancerPicker
-              value={freelancersMap[singleKey] || ''}
-              onChange={v => set(`${phase.key}_freelancers`, { ...freelancersMap, [singleKey]: v })}
-              priorityDepts={priorityDepts} restrictDepts={deptRestrict}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Ghi chú</label>
-            <input
-              placeholder="Ghi chú... (không bắt buộc)"
-              value={notesMap[singleKey] || ''}
-              onChange={e => set(`${phase.key}_notes`, { ...notesMap, [singleKey]: e.target.value })}
-              style={{ width:'100%', padding:'7px 10px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#c9b98a', fontSize:'0.82rem', outline:'none', fontStyle:'italic' }}
-            />
-          </div>
+          {renderFreelancerNotes(singleKey)}
         </>
       )}
     </div>
@@ -341,7 +364,7 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
     ...Object.fromEntries(PHASES.flatMap(p => [
       [`${p.key}_km_staff`,    initPerDateMap(initial[`${p.key}_km_staff_map`],    initial[`${p.key}_km_staff`],    initial[`${p.key}_dates`] || [], false)],
       [`${p.key}_leads`,       initPerDateMap(initial[`${p.key}_leads_map`],       initial[`${p.key}_leads`],       initial[`${p.key}_dates`] || [], false)],
-      [`${p.key}_freelancers`, initPerDateMap(initial[`${p.key}_freelancers_map`], initial[`${p.key}_freelancers`], initial[`${p.key}_dates`] || [], true)],
+      [`${p.key}_freelancers`, (() => { const m = initial[`${p.key}_freelancers_map`]; if (!m) return {}; const vals = Object.values(m); return (vals.length && vals[0] && typeof vals[0] === 'object') ? m : {}; })()],
       [`${p.key}_notes`,       initial[`${p.key}_notes`] || {}],
     ])),
   } : EMPTY_FORM);
@@ -690,18 +713,30 @@ export default function WorkSchedule() {
                 const staff = (selected[`${phase.key}_km_staff`] || [])
                   .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
                 const dates = selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : []);
-                const freeStr = selected[`${phase.key}_freelancers`] || '';
-                const freeNames = freeStr.split(',').map(s => s.trim()).filter(Boolean);
-                const filteredFree = viewerDept
+                const freeMapD   = selected[`${phase.key}_freelancers_map`];
+                const isNewFree  = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
+                // Old format fallback
+                const freeStr    = selected[`${phase.key}_freelancers`] || '';
+                const freeNames  = freeStr.split(',').map(s => s.trim()).filter(Boolean);
+                const filteredFree = (!isNewFree && viewerDept)
                   ? freeNames.filter(n => FREELANCER_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)))
-                  : freeNames;
+                  : isNewFree ? [] : freeNames;
+                // New format: check if any dept has data (filtered by viewerDept)
+                const hasNewFree = isNewFree && Object.values(freeMapD || {}).some(dateVal => {
+                  if (!dateVal || typeof dateVal !== 'object') return false;
+                  return viewerDept ? !!dateVal[viewerDept]?.trim() : Object.values(dateVal).some(v => v?.trim());
+                });
                 const notesMapD  = selected[`${phase.key}_notes`] || {};
-                const hasNotes   = Object.values(notesMapD).some(v => v?.trim());
-                if (!flatLeads.length && !staff.length && !filteredFree.length && !hasNotes) return null;
+                const isNewNotes = Object.values(notesMapD).some(v => v && typeof v === 'object');
+                const hasNotes   = Object.values(notesMapD).some(v => {
+                  if (typeof v === 'string') return v.trim();
+                  if (v && typeof v === 'object') return viewerDept ? !!v[viewerDept]?.trim() : Object.values(v).some(n => n?.trim());
+                  return false;
+                });
+                if (!flatLeads.length && !staff.length && !filteredFree.length && !hasNewFree && !hasNotes) return null;
                 const freelancerGroups = groupFreelancersByDept(filteredFree.join(', '));
                 const leadsMapD  = selected[`${phase.key}_leads_map`];
                 const kmMapD     = selected[`${phase.key}_km_staff_map`];
-                const freeMapD   = selected[`${phase.key}_freelancers_map`];
                 const perDate    = dates.length > 1;
                 const itemStyle  = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
                 const dateHdr    = { fontSize: '0.68rem', fontWeight: 800, color: '#fbbf24', display: 'block', marginBottom: '3px', marginTop: '6px' };
@@ -762,26 +797,26 @@ export default function WorkSchedule() {
                     )}
 
                     {/* Freelancer */}
-                    {freelancerGroups.length > 0 && (
+                    {(hasNewFree || filteredFree.length > 0) && (
                       <div style={{ marginBottom: '8px' }}>
                         <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
-                        {perDate && freeMapD ? dates.map(date => {
-                          const dayNames = (freeMapD[date] || '').split(',').map(s => s.trim()).filter(Boolean);
-                          const filtered = viewerDept ? dayNames.filter(n => FREELANCER_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n))) : dayNames;
-                          if (!filtered.length) return null;
-                          const byDept2 = filtered.reduce((acc, n) => {
-                            const d = FREELANCER_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                            (acc[d] = acc[d] || []).push(n); return acc;
-                          }, {});
+                        {isNewFree ? dates.map(date => {
+                          const dateVal = freeMapD[date] || {};
+                          const depts = Object.entries(dateVal)
+                            .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
+                          if (!depts.length) return null;
                           return (
                             <div key={date}>
-                              <span style={dateHdr}>📅 {fmtD(date)}</span>
-                              {Object.entries(byDept2).map(([dept, members]) => (
-                                <div key={dept} style={{ marginBottom: '2px' }}>
-                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                  {members.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
-                                </div>
-                              ))}
+                              {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                              {depts.map(([dept, names]) => {
+                                const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
+                                return nameList.length ? (
+                                  <div key={dept} style={{ marginBottom: '2px' }}>
+                                    <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
+                                    {nameList.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
+                                  </div>
+                                ) : null;
+                              })}
                             </div>
                           );
                         }) : freelancerGroups.map(([dept, members]) => (
@@ -797,17 +832,32 @@ export default function WorkSchedule() {
                     {hasNotes && (
                       <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                         <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
-                        {dates.length > 1 ? dates.map(date => {
-                          const note = notesMapD[date]?.trim();
-                          return note ? (
+                        {dates.map(date => {
+                          const val = notesMapD[date];
+                          if (!val) return null;
+                          if (isNewNotes && typeof val === 'object') {
+                            const depts = Object.entries(val)
+                              .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
+                            return depts.length ? (
+                              <div key={date}>
+                                {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                                {depts.map(([dept, note]) => (
+                                  <div key={dept}>
+                                    <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
+                                    <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'18px' }}>{note}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null;
+                          }
+                          // Old format: string
+                          return val?.trim() ? (
                             <div key={date}>
-                              <span style={dateHdr}>📅 {fmtD(date)}</span>
-                              <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{note}</p>
+                              {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                              <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p>
                             </div>
                           ) : null;
-                        }) : Object.values(notesMapD).filter(v => v?.trim()).map((note, i) => (
-                          <p key={i} style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{note}</p>
-                        ))}
+                        })}
                       </div>
                     )}
                   </div>

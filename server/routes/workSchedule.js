@@ -55,7 +55,16 @@ function parseFreelancersField(raw) {
     try {
       const v = JSON.parse(raw);
       if (v && typeof v === 'object' && !Array.isArray(v)) {
-        return { flat: Object.values(v).filter(Boolean).join(', '), map: v };
+        const firstVal = Object.values(v)[0];
+        if (firstVal && typeof firstVal === 'object') {
+          // New format: {date: {dept: "names"}}
+          const allNames = Object.values(v).flatMap(dObj =>
+            Object.values(dObj || {}).flatMap(s => (s || '').split(',').map(n => n.trim())).filter(Boolean)
+          );
+          return { flat: allNames.join(', '), map: v };
+        }
+        // Old format: {date: "string"}
+        return { flat: Object.values(v).filter(Boolean).join(', '), map: null };
       }
     } catch {}
   }
