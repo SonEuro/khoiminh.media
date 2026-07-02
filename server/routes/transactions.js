@@ -521,15 +521,15 @@ router.put('/:id/items', canTransact, (req, res) => {
   }
 });
 
-// Chỉnh sửa phiếu xuất đã xác nhận (SUPER_ADMIN / DIRECTOR / ACCOUNTING)
+// Chỉnh sửa phiếu xuất đã xác nhận (SUPER_ADMIN / DIRECTOR / ACCOUNTING / is_truong_phong)
 router.put('/:id/edit-completed', (req, res, next) => {
   const { role, is_truong_phong } = req.user || {};
   if (['SUPER_ADMIN','DIRECTOR','ACCOUNTING'].includes(role) || is_truong_phong) return next();
   return res.status(403).json({ error: 'Không có quyền chỉnh sửa phiếu xuất đã xác nhận' });
 }, (req, res) => {
-  const { items, reason } = req.body;
+  const { items, external_items, reason } = req.body;
   if (!reason?.trim()) return res.status(400).json({ error: 'Vui lòng nhập lý do chỉnh sửa' });
-  if (!items || items.length === 0) return res.status(400).json({ error: 'Phiếu phải có ít nhất một thiết bị' });
+  if (!items || items.length === 0) return res.status(400).json({ error: 'Phiếu phải có ít nhất một thiết bị kho' });
 
   const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
   if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
@@ -582,6 +582,14 @@ router.put('/:id/edit-completed', (req, res, next) => {
     const ins = db.prepare('INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)');
     items.forEach(i => ins.run(tx.id, i.equipment_id, parseInt(i.quantity) || 1, i.condition || 'good', i.notes || null));
 
+    // Thay thế external_items (NCC)
+    if (external_items !== undefined) {
+      const validExt = (external_items || []).filter(i => i.name?.trim());
+      db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
+      const insExt = db.prepare('INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      validExt.forEach(e => insExt.run(tx.id, e.supplier || '', e.name.trim(), e.quantity || 1, e.notes || null, e.unit || 'Cái', e.rental_days || 1));
+    }
+
     // Ghi log
     db.prepare(`
       INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after)
@@ -604,6 +612,12 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
   if (!isSuperAdmin && tx.created_by_id !== req.user.id) {
     return res.status(403).json({ error: 'Bạn không có quyền xóa phiếu này' });
+  }
+
+  // Phiếu xuất đã xác nhận: bắt buộc nhập lý do
+  const { reason } = req.body || {};
+  if (tx.type === 'OUT' && tx.status === 'completed' && !reason?.trim()) {
+    return res.status(400).json({ error: 'Vui lòng nhập lý do xóa phiếu đã xuất kho' });
   }
 
   const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
@@ -637,6 +651,13 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
         db.prepare('UPDATE equipment SET qty_total = MAX(0, qty_total - ?), qty_available = MAX(0, qty_available - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       }
+    }
+    // Ghi log lý do xóa (phiếu xuất đã xác nhận)
+    if (tx.type === 'OUT' && tx.status === 'completed' && reason?.trim()) {
+      db.prepare(`INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after) VALUES (?, ?, ?, ?, ?, ?)`)
+        .run(tx.id, req.user.id, req.user.full_name, `[XÓA PHIẾU] ${reason.trim()}`,
+          JSON.stringify(items.map(i => ({ equipment_id: i.equipment_id, quantity: i.quantity }))),
+          JSON.stringify([]));
     }
     db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
     db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);

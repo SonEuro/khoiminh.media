@@ -446,11 +446,49 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   );
 }
 
+// ── Delete completed OUT with reason modal ────────────────────────────────────
+function DeleteReasonModal({ tx, onClose, onDeleted }) {
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState('');
+  const inputStyle = { width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1px solid rgba(248,113,113,0.35)', background: 'rgba(255,255,255,0.05)', color: '#e0e0ee', fontSize: '0.83rem', boxSizing: 'border-box', resize: 'none' };
+  async function handleDelete() {
+    if (!reason.trim()) { setError('Vui lòng nhập lý do xóa'); return; }
+    setSaving(true); setError('');
+    try {
+      await api.deleteTransaction(tx.id, reason.trim());
+      onDeleted();
+    } catch (err) { setError(err.message); setSaving(false); }
+  }
+  return (
+    <Modal title={`Xóa phiếu ${tx.code}`} onClose={onClose} size="sm">
+      <div className="space-y-4">
+        <p style={{ fontSize: '0.85rem', color: '#f87171', background: 'rgba(248,113,113,0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.25)' }}>
+          ⚠️ Thao tác này sẽ <strong>hoàn tác tồn kho</strong> và không thể khôi phục.
+        </p>
+        <div>
+          <p style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, marginBottom: '6px' }}>Lý do xóa *</p>
+          <textarea rows={3} value={reason} onChange={e => setReason(e.target.value)} placeholder="Nhập lý do (bắt buộc)..." style={inputStyle} />
+        </div>
+        {error && <p style={{ color: '#f87171', fontSize: '0.82rem', margin: 0 }}>⚠️ {error}</p>}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} className="btn-secondary">Hủy</button>
+          <button onClick={handleDelete} disabled={saving || !reason.trim()}
+            style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: (saving || !reason.trim()) ? 'not-allowed' : 'pointer', background: (saving || !reason.trim()) ? 'rgba(248,113,113,0.3)' : '#f87171', color: '#fff', fontWeight: 700, fontSize: '0.85rem' }}>
+            {saving ? 'Đang xóa...' : '🗑 Xác nhận xóa'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // ── Edit completed OUT modal ──────────────────────────────────────────────────
 function EditCompletedModal({ txId, onClose, onSaved }) {
   const [tx, setTx]               = useState(null);
   const [equipment, setEquipment] = useState([]);
   const [khoItems, setKhoItems]   = useState([]);
+  const [extItems, setExtItems]   = useState([]);
   const [reason, setReason]       = useState('');
   const [search, setSearch]       = useState('');
   const [saving, setSaving]       = useState(false);
@@ -474,6 +512,14 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         unit: it.unit,
         quantity: it.quantity,
       })));
+      setExtItems((txData.external_items || []).map(it => ({
+        supplier: it.supplier || '',
+        name: it.name || '',
+        quantity: it.quantity || 1,
+        unit: it.unit || 'Cái',
+        rental_days: it.rental_days || 1,
+        notes: it.notes || '',
+      })));
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
   }, [txId]);
 
@@ -490,14 +536,19 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const updateQty   = (idx, qty, clamp = false) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty } : it));
 
+  const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '' }]);
+  const removeExtItem = (i) => setExtItems(p => p.filter((_, j) => j !== i));
+  const updateExtItem = (i, k, v) => setExtItems(p => p.map((it, j) => j === i ? { ...it, [k]: v } : it));
+
   const handleSave = async () => {
     if (!reason.trim()) { setError('Vui lòng nhập lý do chỉnh sửa'); return; }
     const validItems = khoItems.filter(i => i.equipment_id && (parseInt(i.quantity) || 0) > 0);
-    if (!validItems.length) { setError('Phiếu phải có ít nhất một thiết bị'); return; }
+    if (!validItems.length) { setError('Phiếu phải có ít nhất một thiết bị kho'); return; }
     setSaving(true); setError('');
     try {
       await api.editCompletedItems(txId, {
         items: validItems.map(i => ({ equipment_id: i.equipment_id, quantity: Math.max(1, parseInt(i.quantity) || 1) })),
+        external_items: extItems.filter(i => i.name?.trim()),
         reason: reason.trim(),
       });
       if (mounted.current) onSaved();
@@ -589,6 +640,27 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
             </div>
           </div>
         )}
+
+        {/* NCC section */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>Nhà cung cấp / NCC ({extItems.length})</p>
+            <button onClick={addExtItem} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.08)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
+          </div>
+          {extItems.map((it, idx) => (
+            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '5px', marginBottom: '5px', padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.15)' }}>
+              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <button onClick={() => removeExtItem(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', cursor: 'pointer' }}>✕</button>
+              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
+                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
+                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.78rem' }} />
+              </div>
+            </div>
+          ))}
+        </div>
 
         {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
 
@@ -852,6 +924,7 @@ export default function Transactions() {
   const [selectedTx,          setSelectedTx]          = useState(null);
   const [editingTx,           setEditingTx]           = useState(null);
   const [editingCompletedTx,  setEditingCompletedTx]  = useState(null);
+  const [deletingCompletedTx, setDeletingCompletedTx] = useState(null);
   const [confirming,          setConfirming]          = useState(null);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -883,6 +956,10 @@ export default function Transactions() {
   }, [load]);
 
   async function handleDeleteTx(tx) {
+    if (tx.type === 'OUT' && tx.status === 'completed') {
+      setDeletingCompletedTx(tx);
+      return;
+    }
     const msg = tx.status === 'pending'
       ? `Hủy phiếu xuất kho tạm ${tx.code}?\nThiết bị chưa bị trừ kho, phiếu sẽ bị xóa.`
       : `Xóa phiếu ${tx.code}?\nThao tác này sẽ hoàn tác tồn kho tương ứng.`;
@@ -973,6 +1050,13 @@ export default function Transactions() {
           txId={editingCompletedTx}
           onClose={() => setEditingCompletedTx(null)}
           onSaved={() => { setEditingCompletedTx(null); load(); }}
+        />
+      )}
+      {deletingCompletedTx && (
+        <DeleteReasonModal
+          tx={deletingCompletedTx}
+          onClose={() => setDeletingCompletedTx(null)}
+          onDeleted={() => { setDeletingCompletedTx(null); load(); }}
         />
       )}
     </div>
