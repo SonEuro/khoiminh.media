@@ -381,15 +381,15 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
     return (
       <div style={{ marginBottom: '8px' }}>
         <label style={subLabel}>⏰ Giờ bắt đầu (theo bộ phận)</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '6px 10px' }}>
           {visibleDepts.map(dept => (
-            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.62rem', color: '#7878a0', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
+            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+              <span style={{ fontSize: '0.68rem', color: '#7878a0', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
               <input
                 type="time"
                 value={timesObj[dept] ?? '08:30'}
                 onChange={e => setStartTime(dateKey, dept, e.target.value)}
-                style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.8rem', outline: 'none', flexShrink: 0 }}
+                style={{ width: '92px', height: '30px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', outline: 'none', flexShrink: 0 }}
               />
             </div>
           ))}
