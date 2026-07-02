@@ -745,6 +745,15 @@ export default function WorkSchedule() {
   }, [load]);
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tomorrowStr = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d);
+  })();
+
+  function nearestUpcoming(s) {
+    const all = PHASES.flatMap(p => s[`${p.key}_dates`] || []).sort();
+    return all.find(d => d >= todayStr) || null;
+  }
 
   function isPastSchedule(s) {
     const allDates = PHASES.flatMap(p => s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []));
@@ -805,14 +814,24 @@ export default function WorkSchedule() {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {schedules.map(s => {
-          const isToday = PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr));
+        {[...schedules].sort((a, b) => {
+          const na = nearestUpcoming(a), nb = nearestUpcoming(b);
+          if (!na && !nb) return 0;
+          if (!na) return 1;
+          if (!nb) return -1;
+          return na.localeCompare(nb);
+        }).map(s => {
+          const isToday    = PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr));
+          const isTomorrow = !isToday && PHASES.some(p => (s[`${p.key}_dates`] || []).includes(tomorrowStr));
           const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
           function renderDates(key, datesArr) {
             if (!datesArr?.length) return null;
             return (
               <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
-                <span key={d} style={d === todayStr ? { color: '#4ade80', fontWeight: 800 } : undefined}>
+                <span key={d} style={
+                  d === todayStr    ? { color: '#4ade80', fontWeight: 800 } :
+                  d === tomorrowStr ? { color: '#60a5fa', fontWeight: 800 } : undefined
+                }>
                   {i > 0 && ' · '}{fmtD(d)}
                 </span>
               ))}</span>
@@ -820,10 +839,10 @@ export default function WorkSchedule() {
           }
           return (
           <div key={s.id} style={{
-            background: isToday ? 'rgba(74,222,128,0.04)' : 'var(--bg-card)',
-            border: isToday ? '1px solid rgba(74,222,128,0.45)' : '1px solid rgba(255,255,255,0.08)',
+            background: isToday ? 'rgba(74,222,128,0.04)' : isTomorrow ? 'rgba(96,165,250,0.03)' : 'var(--bg-card)',
+            border: isToday ? '1px solid rgba(74,222,128,0.45)' : isTomorrow ? '1px solid rgba(96,165,250,0.3)' : '1px solid rgba(255,255,255,0.08)',
             borderRadius: '12px', padding: '16px',
-            boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : 'none',
+            boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : isTomorrow ? '0 0 14px rgba(96,165,250,0.07)' : 'none',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
               <div>
@@ -832,6 +851,11 @@ export default function WorkSchedule() {
                   {isToday && (
                     <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80' }}>
                       HÔM NAY
+                    </span>
+                  )}
+                  {isTomorrow && (
+                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa' }}>
+                      NGÀY MAI
                     </span>
                   )}
                 </div>
@@ -930,11 +954,30 @@ export default function WorkSchedule() {
                 const itemStyle      = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
                 const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
                 const freeItemStyle = { ...itemStyle, color: '#f87171' };
-                const dateHdr    = { fontSize: '0.68rem', fontWeight: 800, color: '#fbbf24', display: 'block', marginBottom: '3px', marginTop: '6px' };
+                function dateHdrStyle(d) {
+                  return { fontSize: '0.68rem', fontWeight: 800, display: 'block', marginBottom: '3px', marginTop: '6px',
+                    color: d === todayStr ? '#4ade80' : d === tomorrowStr ? '#60a5fa' : '#fbbf24' };
+                }
+                function dateBadge(d) {
+                  if (d === todayStr)    return <span style={{ marginLeft:'5px', fontSize:'0.58rem', background:'rgba(74,222,128,0.2)', border:'1px solid rgba(74,222,128,0.45)', borderRadius:'4px', padding:'1px 5px', color:'#4ade80', fontWeight:800, letterSpacing:'0.05em' }}>HÔM NAY</span>;
+                  if (d === tomorrowStr) return <span style={{ marginLeft:'5px', fontSize:'0.58rem', background:'rgba(96,165,250,0.2)', border:'1px solid rgba(96,165,250,0.45)', borderRadius:'4px', padding:'1px 5px', color:'#60a5fa', fontWeight:800, letterSpacing:'0.05em' }}>NGÀY MAI</span>;
+                  return null;
+                }
 
                 return (
                   <div key={phase.key} style={sectionStyle}>
-                    <p style={{ fontWeight: 700, color: GOLD, marginBottom: '6px' }}>{phase.label}{dates.length ? ` — ${dates.map(d => fmtD(d)).join(' · ')}` : ''}</p>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'8px' }}>
+                      <p style={{ fontWeight:700, color:GOLD, margin:0 }}>
+                        {phase.label}{dates.length ? ' — ' : ''}
+                        {dates.map((d, i) => (
+                          <span key={d} style={d === todayStr ? {color:'#4ade80'} : d === tomorrowStr ? {color:'#60a5fa'} : undefined}>
+                            {i > 0 && ' · '}{fmtD(d)}
+                          </span>
+                        ))}
+                      </p>
+                      {dates.some(d => d === todayStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>HÔM NAY</span>}
+                      {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#60a5fa', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                    </div>
 
                     {/* Nhóm trưởng */}
                     {flatLeads.length > 0 && (
@@ -943,7 +986,7 @@ export default function WorkSchedule() {
                           const dLeads = (leadsMapD[date] || []).filter(l => !viewerDept || l.department === viewerDept);
                           return dLeads.length ? (
                             <div key={date}>
-                              <span style={dateHdr}>📅 {fmtD(date)}</span>
+                              <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>
                               {dLeads.map((l, i) => <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>)}
                             </div>
                           ) : null;
@@ -966,7 +1009,7 @@ export default function WorkSchedule() {
                           }, {});
                           return (
                             <div key={date}>
-                              <span style={dateHdr}>📅 {fmtD(date)}</span>
+                              <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>
                               {Object.entries(byDept).map(([dept, members]) => (
                                 <div key={dept} style={{ marginBottom: '2px' }}>
                                   <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
@@ -998,7 +1041,7 @@ export default function WorkSchedule() {
                           if (!depts.length) return null;
                           return (
                             <div key={date}>
-                              {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                              {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
                               {depts.map(([dept, names]) => {
                                 const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
                                 return nameList.length ? (
@@ -1031,7 +1074,7 @@ export default function WorkSchedule() {
                               .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
                             return depts.length ? (
                               <div key={date}>
-                                {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                                {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
                                 {depts.map(([dept, note]) => (
                                   <div key={dept}>
                                     <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
@@ -1044,7 +1087,7 @@ export default function WorkSchedule() {
                           // Old format: string
                           return val?.trim() ? (
                             <div key={date}>
-                              {perDate && <span style={dateHdr}>📅 {fmtD(date)}</span>}
+                              {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
                               <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p>
                             </div>
                           ) : null;
