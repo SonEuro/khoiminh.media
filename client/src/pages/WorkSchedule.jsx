@@ -297,15 +297,52 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
   );
 }
 
+// ── Thêm nhân sự KM (chọn bộ phận + tên, 1 người/lần) ──────────────────────────
+function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
+  const kmDepts = availableDepts.length ? availableDepts : KM_STAFF_GROUPS.map(g => g.dept);
+  const [dept, setDept] = useState(kmDepts[0] || '');
+  const [name, setName] = useState('');
+  const members = (KM_STAFF_GROUPS.find(g => g.dept === dept)?.members || []).filter(m => !excluded.includes(m));
+
+  return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', padding: '7px 8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
+      {kmDepts.length > 1 ? (
+        <select value={dept} onChange={e => { setDept(e.target.value); setName(''); }}
+          style={{ height: '30px', padding: '0 4px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.75rem', outline: 'none', flexShrink: 0, cursor: 'pointer' }}>
+          {kmDepts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      ) : (
+        <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, flexShrink: 0, padding: '0 2px' }}>{dept}</span>
+      )}
+      <select value={name} onChange={e => setName(e.target.value)}
+        style={{ flex: 1, height: '30px', padding: '0 6px', background: '#161628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
+        <option value="">-- Chọn nhân sự --</option>
+        {members.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+      <button
+        onMouseDown={e => { e.preventDefault(); if (!name) return; onAdd(name); setName(''); }}
+        style={{ height: '30px', padding: '0 10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+        + Thêm
+      </button>
+      <button
+        onMouseDown={e => { e.preventDefault(); onCancel(); }}
+        style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
-function PhaseBlock({ phase, form, setForm, userDept = null }) {
+function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false }) {
   const leadsMap        = form[`${phase.key}_leads`]        || {};
   const kmMap           = form[`${phase.key}_km_staff`]     || {};
   const freelancersMap  = form[`${phase.key}_freelancers`]  || {};
   const notesMap        = form[`${phase.key}_notes`]        || {};
   const startTimesMap   = form[`${phase.key}_start_times`]  || {};
   const dates           = form[`${phase.key}_date`]         || [];
-  const [showAddRow, setShowAddRow] = useState({});
+  const [showAddRow, setShowAddRow]     = useState({});
+  const [showKMAddRow, setShowKMAddRow] = useState({});
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
   const allLeads       = Object.values(leadsMap).flat();
@@ -378,35 +415,52 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
         {visibleFreeDepts.length > 0 && (
           <div style={{ marginBottom: '8px' }}>
             <label style={subLabel}>Freelancer (theo bộ phận)</label>
-            {nameEntries.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
-                {nameEntries.map(({ dept, name }) => (
-                  <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: '6px' }}>
-                    <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
-                    <span style={{ fontSize: '0.82rem', color: '#f87171', flex: 1 }}>{name}</span>
-                    <button
-                      onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+            {isPhanLichAll ? (
+              <>
+                {nameEntries.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
+                    {nameEntries.map(({ dept, name }) => (
+                      <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
+                        <span style={{ fontSize: '0.82rem', color: '#f87171', flex: 1 }}>{name}</span>
+                        <button
+                          onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {showAddRow[dateKey] ? (
+                  <AddFreelancerRow
+                    availableDepts={visibleFreeDepts}
+                    onAdd={(dept, name) => {
+                      const existing = (freeDeptObj[dept] || '').trim().replace(/,\s*$/, '');
+                      setFree(dateKey, dept, existing ? `${existing}, ${name}` : name);
+                      setShowAddRow(p => ({ ...p, [dateKey]: false }));
+                    }}
+                    onCancel={() => setShowAddRow(p => ({ ...p, [dateKey]: false }))}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setShowAddRow(p => ({ ...p, [dateKey]: true }))}
+                    style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
+                    + Thêm nhân sự freelancer
+                  </button>
+                )}
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                {visibleFreeDepts.map(dept => (
+                  <div key={dept}>
+                    <span style={deptLbl}>{dept}</span>
+                    <FreelancerDeptInput
+                      dept={dept}
+                      value={freeDeptObj[dept] || ''}
+                      onChange={val => setFree(dateKey, dept, val)}
+                    />
                   </div>
                 ))}
               </div>
-            )}
-            {showAddRow[dateKey] ? (
-              <AddFreelancerRow
-                availableDepts={visibleFreeDepts}
-                onAdd={(dept, name) => {
-                  const existing = (freeDeptObj[dept] || '').trim().replace(/,\s*$/, '');
-                  setFree(dateKey, dept, existing ? `${existing}, ${name}` : name);
-                  setShowAddRow(p => ({ ...p, [dateKey]: false }));
-                }}
-                onCancel={() => setShowAddRow(p => ({ ...p, [dateKey]: false }))}
-              />
-            ) : (
-              <button
-                onClick={() => setShowAddRow(p => ({ ...p, [dateKey]: true }))}
-                style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
-                + Thêm nhân sự freelancer
-              </button>
             )}
           </div>
         )}
@@ -432,6 +486,71 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
     );
   }
 
+  const kmDeptList = userDept
+    ? KM_STAFF_GROUPS.filter(g => g.dept === userDept).map(g => g.dept)
+    : KM_STAFF_GROUPS.map(g => g.dept);
+
+  function renderKMStaff(dateKey) {
+    const selected = kmMap[dateKey] || [];
+    const dayLeads = leadsMap[dateKey] || [];
+    const excluded = dayLeads.map(l => l.name).filter(Boolean);
+
+    if (!isPhanLichAll) {
+      return (
+        <div style={{ marginBottom: '8px' }}>
+          <label style={subLabel}>Nhân sự Khôi Minh</label>
+          <StaffMultiSelect
+            selected={selected}
+            onChange={v => set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: v })}
+            priorityDepts={priorityDepts} excluded={excluded} restrictDept={userDept}
+          />
+        </div>
+      );
+    }
+
+    function removeName(name) {
+      set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) });
+    }
+    return (
+      <div style={{ marginBottom: '8px' }}>
+        <label style={subLabel}>Nhân sự Khôi Minh</label>
+        {selected.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
+            {selected.map(name => {
+              const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
+              return (
+                <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
+                  <span style={{ fontSize: '0.82rem', color: '#93c5fd', flex: 1 }}>{name}</span>
+                  <button
+                    onMouseDown={e => { e.preventDefault(); removeName(name); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {showKMAddRow[dateKey] ? (
+          <AddKMStaffRow
+            availableDepts={kmDeptList}
+            excluded={[...excluded, ...selected]}
+            onAdd={name => {
+              set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: [...selected, name] });
+              setShowKMAddRow(p => ({ ...p, [dateKey]: false }));
+            }}
+            onCancel={() => setShowKMAddRow(p => ({ ...p, [dateKey]: false }))}
+          />
+        ) : (
+          <button
+            onClick={() => setShowKMAddRow(p => ({ ...p, [dateKey]: true }))}
+            style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(96,165,250,0.05)', border: '1px dashed rgba(96,165,250,0.25)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}>
+            + Thêm nhân sự Khôi Minh
+          </button>
+        )}
+      </div>
+    );
+  }
+
   function renderDateSection(dateKey) {
     const dayLeads    = leadsMap[dateKey] || [];
     const dayExcluded = dayLeads.map(l => l.name).filter(Boolean);
@@ -442,14 +561,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
           <label style={subLabel}>Nhóm trưởng</label>
           <LeadsEditor leads={dayLeads} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [dateKey]: v })} restrictDept={userDept} />
         </div>
-        <div style={{ marginBottom: '8px' }}>
-          <label style={subLabel}>Nhân sự Khôi Minh</label>
-          <StaffMultiSelect
-            selected={kmMap[dateKey] || []}
-            onChange={v => set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: v })}
-            priorityDepts={priorityDepts} excluded={dayExcluded} restrictDept={userDept}
-          />
-        </div>
+        {renderKMStaff(dateKey)}
         {renderFreelancerNotes(dateKey)}
       </>
     );
@@ -478,16 +590,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
             <label style={labelStyle}>Nhóm trưởng (theo bộ phận)</label>
             <LeadsEditor leads={leadsMap[singleKey] || []} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [singleKey]: v })} restrictDept={userDept} />
           </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label style={labelStyle}>Nhân sự Khôi Minh</label>
-            <StaffMultiSelect
-              selected={kmMap[singleKey] || []}
-              onChange={v => set(`${phase.key}_km_staff`, { ...kmMap, [singleKey]: v })}
-              priorityDepts={priorityDepts}
-              excluded={(leadsMap[singleKey] || []).map(l => l.name).filter(Boolean)}
-              restrictDept={userDept}
-            />
-          </div>
+          {renderKMStaff(singleKey)}
           {renderFreelancerNotes(singleKey)}
         </>
       )}
@@ -630,7 +733,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
           </div>
         </div>
 
-        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} />)}
+        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all} />)}
 
         {conflicts.length > 0 && (
           <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
