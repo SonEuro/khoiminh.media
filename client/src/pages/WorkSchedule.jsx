@@ -600,7 +600,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
               {form.event_id && !events.some(ev => ev.id === form.event_id) && (
                 <option value={form.event_id}>{form.event_name}</option>
               )}
-              {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} {ev.start_date ? `(${fmtD(ev.start_date)})` : ''}</option>)}
+              {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
             </select>
           </div>
 
