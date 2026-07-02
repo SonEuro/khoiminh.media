@@ -211,7 +211,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Khách hàng</label>
           <input className="input bold-input" value={form.client || ''} onChange={e => set('client', e.target.value)} />
@@ -221,7 +221,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <input className="input bold-input" value={form.location || ''} onChange={e => set('location', e.target.value)} />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Ngày bắt đầu</label>
           <MultiDatePicker value={form.start_dates || []} onChange={v => set('start_dates', v)} placeholder="Chọn ngày bắt đầu..." />
@@ -239,7 +239,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} placeholder="Chọn ngày ghi hình..." />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
-        <div style={{ gridColumn: 'span 2' }}>
+        <div className="sm:col-span-2">
           <label className="label">Trạng thái</label>
           <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
             {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
@@ -277,7 +277,7 @@ function EventDetailModal({ eventId, onClose }) {
   return (
     <Modal title={`${ev.code} · ${ev.name}`} onClose={onClose} size="lg">
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div><span className="text-gray-500">Khách hàng: </span><strong>{ev.client || '—'}</strong></div>
           <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
           {(() => {
@@ -501,7 +501,7 @@ function ZoneHeader({ color, bg, border, label, count }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
-      <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
       </span>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />

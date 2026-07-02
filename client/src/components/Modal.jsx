@@ -36,7 +36,7 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
             >&times;</button>
           </div>
         </div>
-        <div style={{ overflowY: 'auto', flex: 1, padding: '20px' }}>{children}</div>
+        <div className="p-3 sm:p-5" style={{ overflowY: 'auto', flex: 1 }}>{children}</div>
       </div>
     </div>
   );

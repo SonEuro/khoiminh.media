@@ -187,18 +187,20 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
           if (restrictDept && row.department !== restrictDept) return null;
           const members = KM_STAFF_GROUPS.find(g => g.dept === row.department)?.members || [];
           return (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: restrictDept ? '1fr 32px' : '1fr 1fr 32px', gap: '6px' }}>
-              {!restrictDept && (
-              <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ fontSize: '0.82rem', height: '36px' }}>
-                {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-              )}
-              <select className="input" value={row.name} onChange={e => updateRow(i, 'name', e.target.value)} style={{ fontSize: '0.82rem', height: '36px' }}>
-                <option value="">-- Chọn nhóm trưởng --</option>
-                {members.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <div style={{ flex: 1, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {!restrictDept && (
+                <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ flex: '1 1 110px', fontSize: '0.82rem', height: '36px' }}>
+                  {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+                )}
+                <select className="input" value={row.name} onChange={e => updateRow(i, 'name', e.target.value)} style={{ flex: '1 1 110px', fontSize: '0.82rem', height: '36px' }}>
+                  <option value="">-- Chọn nhóm trưởng --</option>
+                  {members.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
               <button type="button" onClick={() => removeRow(i)}
-                style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '7px', color: '#f87171', cursor: 'pointer' }}>×</button>
+                style={{ width: '32px', flexShrink: 0, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '7px', color: '#f87171', cursor: 'pointer' }}>×</button>
             </div>
           );
         })}
@@ -578,7 +580,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
             </select>
           )}
 
-          <div className="grid grid-cols-2 gap-3" style={{ marginTop: '12px' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ marginTop: '12px' }}>
             <div>
               <label style={labelStyle}>Người phân lịch</label>
               <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.22)', color: '#e8c97a', fontWeight: 700, fontSize: '0.88rem' }}>
@@ -873,7 +875,7 @@ export default function WorkSchedule() {
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
               <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
-              <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
               </span>
               <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />
