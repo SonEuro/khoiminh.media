@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Modal({ title, onClose, children, size = 'md', extra }) {
   useEffect(() => {
@@ -9,7 +10,7 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
 
   const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
       <div
         className={`w-full ${widths[size]} max-h-[90vh] flex flex-col`}
@@ -38,6 +39,7 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
         </div>
         <div className="p-3 sm:p-5" style={{ overflowY: 'auto', flex: 1 }}>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
