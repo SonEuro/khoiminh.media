@@ -611,7 +611,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 }
 
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
-function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
+function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwitchToEdit }) {
   const { user } = useAuth();
   const isPhanLich = !!user?.is_phan_lich && !user?.is_phan_lich_all && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const userDept = getTruongPhongDept(user) ||
@@ -633,6 +633,26 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Phát hiện sự kiện đã có lịch (chỉ check khi tạo mới)
+  const existingForEvent = useMemo(() => {
+    if (initial?.id || !form.event_id) return null;
+    return schedules.find(s => s.event_id === form.event_id) || null;
+  }, [form.event_id, schedules, initial?.id]);
+
+  const isDeptAssignedInExisting = useMemo(() => {
+    if (!existingForEvent || !userDept) return false;
+    return PHASES.some(p => {
+      const km = existingForEvent[`${p.key}_km_staff`] || [];
+      if (km.some(name => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(name)))) return true;
+      const leads = existingForEvent[`${p.key}_leads`] || [];
+      if (leads.some(l => l.department === userDept)) return true;
+      return false;
+    });
+  }, [existingForEvent, userDept]);
+
+  // Có cần chặn tạo mới không?
+  const blockCreate = existingForEvent && (!!user?.is_phan_lich_all || isDeptAssignedInExisting || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role));
 
   // Phát hiện trùng lịch: (tên nhân sự, ngày) đã có trong lịch khác
   const conflicts = useMemo(() => {
@@ -698,6 +718,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
 
   async function submit() {
     if (!form.event_id) { setError('Vui lòng chọn sự kiện trước khi tạo lịch'); return; }
+    if (blockCreate) { setError('Sự kiện này đã có lịch làm việc. Vui lòng chuyển sang chỉnh sửa.'); return; }
     setSaving(true); setError('');
     try {
       if (initial?.id) await api.updateWorkSchedule(initial.id, form);
@@ -727,6 +748,24 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
               {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
             </select>
           </div>
+
+          {existingForEvent && (
+            <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${blockCreate ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.4)'}`, background: blockCreate ? 'rgba(248,113,113,0.07)' : 'rgba(251,191,36,0.06)' }}>
+              <p style={{ fontSize: '0.82rem', color: blockCreate ? '#f87171' : '#fbbf24', marginBottom: blockCreate ? '8px' : 0, fontWeight: 600 }}>
+                {blockCreate
+                  ? `⚠️ Sự kiện này đã có lịch làm việc${isDeptAssignedInExisting && userDept ? ` (bộ phận ${userDept} đã được phân công)` : ''}. Vui lòng chỉnh sửa thay vì tạo mới.`
+                  : `ℹ️ Sự kiện đã có lịch làm việc, nhưng bộ phận ${userDept || 'của bạn'} chưa được phân công.`}
+              </p>
+              {blockCreate && onSwitchToEdit && (
+                <button
+                  type="button"
+                  onClick={() => onSwitchToEdit(existingForEvent)}
+                  style={{ padding: '6px 14px', borderRadius: '7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+                  ✏️ Chuyển sang chỉnh sửa
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ marginTop: '12px' }}>
             <div>
@@ -1086,6 +1125,7 @@ export default function WorkSchedule() {
           schedules={schedules}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); load(); }}
+          onSwitchToEdit={s => setSelected(s)}
         />
       )}
 
