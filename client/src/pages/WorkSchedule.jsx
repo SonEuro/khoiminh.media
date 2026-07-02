@@ -259,6 +259,45 @@ function FreelancerDeptInput({ dept, value, onChange }) {
   );
 }
 
+// ── Thêm nhân sự freelancer thủ công (chọn bộ phận + nhập tên) ─────────────────
+function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
+  const [dept, setDept] = useState(availableDepts[0] || '');
+  const [name, setName] = useState('');
+
+  function handleAdd() {
+    const trimmed = name.trim().replace(/,\s*$/, '');
+    if (!trimmed || !dept) return;
+    onAdd(dept, trimmed);
+    setName('');
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', padding: '7px 8px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: '8px' }}>
+      {availableDepts.length > 1 ? (
+        <select value={dept} onChange={e => setDept(e.target.value)}
+          style={{ height: '30px', padding: '0 4px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.75rem', outline: 'none', flexShrink: 0, cursor: 'pointer' }}>
+          {availableDepts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      ) : (
+        <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0, padding: '0 2px' }}>{dept}</span>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <FreelancerDeptInput dept={dept} value={name} onChange={setName} />
+      </div>
+      <button
+        onMouseDown={e => { e.preventDefault(); handleAdd(); }}
+        style={{ height: '30px', padding: '0 10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+        + Thêm
+      </button>
+      <button
+        onMouseDown={e => { e.preventDefault(); onCancel(); }}
+        style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null }) {
   const leadsMap       = form[`${phase.key}_leads`]       || {};
@@ -266,6 +305,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
   const freelancersMap = form[`${phase.key}_freelancers`] || {};
   const notesMap       = form[`${phase.key}_notes`]       || {};
   const dates          = form[`${phase.key}_date`]        || [];
+  const [showAddRow, setShowAddRow] = useState({});
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
   const allLeads       = Object.values(leadsMap).flat();
@@ -310,6 +350,23 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
                 </div>
               ))}
             </div>
+            {showAddRow[dateKey] ? (
+              <AddFreelancerRow
+                availableDepts={visibleFreeDepts}
+                onAdd={(dept, names) => {
+                  const cur = typeof freelancersMap[dateKey] === 'object' ? (freelancersMap[dateKey] || {}) : {};
+                  const existing = (cur[dept] || '').trim().replace(/,\s*$/, '');
+                  setFree(dateKey, dept, existing ? `${existing}, ${names}` : names);
+                }}
+                onCancel={() => setShowAddRow(p => ({ ...p, [dateKey]: false }))}
+              />
+            ) : (
+              <button
+                onClick={() => setShowAddRow(p => ({ ...p, [dateKey]: true }))}
+                style={{ marginTop: '6px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
+                + Thêm nhân sự freelancer
+              </button>
+            )}
           </div>
         )}
         {visibleNoteDepts.length > 0 && (
