@@ -525,7 +525,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
       );
     }
 
-    const deptList = KM_STAFF_GROUPS.map(g => g.dept);
+    const deptList = userDept
+      ? KM_STAFF_GROUPS.filter(g => g.dept === userDept).map(g => g.dept)
+      : KM_STAFF_GROUPS.map(g => g.dept);
     const activeDept = kmDeptFilter[dateKey] || deptList[0] || '';
     return (
       <div style={{ marginBottom: '8px' }}>
