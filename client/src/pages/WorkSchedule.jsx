@@ -813,99 +813,115 @@ export default function WorkSchedule() {
         onSelect={(s) => { setSelected(s); setModal('detail'); }}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {[...schedules].sort((a, b) => {
+      {(() => {
+        const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
+        function renderDates(key, datesArr) {
+          if (!datesArr?.length) return null;
+          return (
+            <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
+              <span key={d} style={
+                d === todayStr    ? { color: '#4ade80', fontWeight: 800 } :
+                d === tomorrowStr ? { color: '#60a5fa', fontWeight: 800 } : undefined
+              }>{i > 0 && ' · '}{fmtD(d)}</span>
+            ))}</span>
+          );
+        }
+        function renderCard(s, zone) {
+          const isToday    = zone === 'today';
+          const isTomorrow = zone === 'tomorrow';
+          const isPast     = zone === 'past';
+          return (
+            <div key={s.id} style={{
+              background: isToday ? 'rgba(74,222,128,0.04)' : isTomorrow ? 'rgba(96,165,250,0.03)' : 'var(--bg-card)',
+              border: isToday ? '1px solid rgba(74,222,128,0.45)' : isTomorrow ? '1px solid rgba(96,165,250,0.3)' : '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px', padding: '16px',
+              boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : isTomorrow ? '0 0 14px rgba(96,165,250,0.07)' : 'none',
+              opacity: isPast ? 0.5 : 1,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#7878a0' }}>
+                    👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
+                  </p>
+                </div>
+                <span style={{
+                  padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
+                  background: s.status === 'confirmed' ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)',
+                  color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24',
+                  border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`,
+                }}>
+                  {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
+                {renderDates('filming',   s.filming_dates)}
+                {renderDates('setup',     s.setup_dates)}
+                {renderDates('rehearsal', s.rehearsal_dates)}
+                {renderDates('teardown',  s.teardown_dates)}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+                <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); }}>Chi tiết</button>
+                {canEdit(s) && <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
+                {s.status === 'draft' && canPhanLich && <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>}
+                {canDelete(s) && <button className="btn-danger btn-sm" onClick={() => handleDelete(s)}>🗑</button>}
+              </div>
+            </div>
+          );
+        }
+        function ZoneHeader({ color, bg, border, label, count }) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
+              <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap' }}>
+                {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
+              </span>
+              <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />
+            </div>
+          );
+        }
+
+        const sorted = [...schedules].sort((a, b) => {
           const na = nearestUpcoming(a), nb = nearestUpcoming(b);
           if (!na && !nb) return 0;
           if (!na) return 1;
           if (!nb) return -1;
           return na.localeCompare(nb);
-        }).map(s => {
-          const isToday    = PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr));
-          const isTomorrow = !isToday && PHASES.some(p => (s[`${p.key}_dates`] || []).includes(tomorrowStr));
-          const isPast     = !isToday && nearestUpcoming(s) === null;
-          const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
-          function renderDates(key, datesArr) {
-            if (!datesArr?.length) return null;
-            return (
-              <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
-                <span key={d} style={
-                  d === todayStr    ? { color: '#4ade80', fontWeight: 800 } :
-                  d === tomorrowStr ? { color: '#60a5fa', fontWeight: 800 } : undefined
-                }>
-                  {i > 0 && ' · '}{fmtD(d)}
-                </span>
-              ))}</span>
-            );
-          }
-          return (
-          <div key={s.id} style={{
-            background: isToday ? 'rgba(74,222,128,0.04)' : isTomorrow ? 'rgba(96,165,250,0.03)' : 'var(--bg-card)',
-            border: isToday ? '1px solid rgba(74,222,128,0.45)' : isTomorrow ? '1px solid rgba(96,165,250,0.3)' : '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px', padding: '16px',
-            boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : isTomorrow ? '0 0 14px rgba(96,165,250,0.07)' : 'none',
-            opacity: isPast ? 0.5 : 1,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                  <h3 style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                  {isToday && (
-                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80' }}>
-                      HÔM NAY
-                    </span>
-                  )}
-                  {isTomorrow && (
-                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa' }}>
-                      NGÀY MAI
-                    </span>
-                  )}
-                  {isPast && (
-                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.06em', background: 'rgba(120,120,160,0.12)', border: '1px solid rgba(120,120,160,0.25)', color: '#7878a0' }}>
-                      ĐÃ QUA
-                    </span>
-                  )}
-                </div>
-                <p style={{ margin: 0, fontSize: '0.78rem', color: '#7878a0' }}>
-                  👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
-                </p>
-              </div>
-              <span style={{
-                padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
-                background: s.status === 'confirmed' ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)',
-                color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24',
-                border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`,
-              }}>
-                {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
-              </span>
-            </div>
+        });
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
-              {renderDates('filming',   s.filming_dates)}
-              {renderDates('setup',     s.setup_dates)}
-              {renderDates('rehearsal', s.rehearsal_dates)}
-              {renderDates('teardown',  s.teardown_dates)}
-            </div>
+        const zones = {
+          today:    sorted.filter(s => PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr))),
+          tomorrow: sorted.filter(s => !PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr)) && PHASES.some(p => (s[`${p.key}_dates`] || []).includes(tomorrowStr))),
+          upcoming: sorted.filter(s => { const n = nearestUpcoming(s); return n && n > tomorrowStr; }),
+          past:     sorted.filter(s => nearestUpcoming(s) === null),
+        };
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-              <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); }}>Chi tiết</button>
-              {canEdit(s) && (
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>
-              )}
-              {s.status === 'draft' && (canPhanLich) && (
-                <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>
-              )}
-              {canDelete(s) && (
-                <button className="btn-danger btn-sm" onClick={() => handleDelete(s)}>🗑</button>
-              )}
-            </div>
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {schedules.length === 0 && <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Chưa có lịch làm việc nào</p>}
+
+            {zones.today.length > 0 && <>
+              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={zones.today.length} />
+              {zones.today.map(s => renderCard(s, 'today'))}
+            </>}
+
+            {zones.tomorrow.length > 0 && <>
+              <ZoneHeader color="#60a5fa" bg="rgba(96,165,250,0.1)" border="rgba(96,165,250,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={zones.tomorrow.length} />
+              {zones.tomorrow.map(s => renderCard(s, 'tomorrow'))}
+            </>}
+
+            {zones.upcoming.length > 0 && <>
+              <ZoneHeader color="#fbbf24" bg="rgba(251,191,36,0.08)" border="rgba(251,191,36,0.3)" label="SẮP TỚI" count={zones.upcoming.length} />
+              {zones.upcoming.map(s => renderCard(s, 'upcoming'))}
+            </>}
+
+            {zones.past.length > 0 && <>
+              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA" count={zones.past.length} />
+              {zones.past.map(s => renderCard(s, 'past'))}
+            </>}
           </div>
-          );
-        })}
-        {schedules.length === 0 && (
-          <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Chưa có lịch làm việc nào</p>
-        )}
-      </div>
+        );
+      })()}
 
       {modal === 'form' && (
         <ScheduleForm
