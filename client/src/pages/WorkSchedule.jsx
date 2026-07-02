@@ -341,8 +341,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
   const notesMap        = form[`${phase.key}_notes`]        || {};
   const startTimesMap   = form[`${phase.key}_start_times`]  || {};
   const dates           = form[`${phase.key}_date`]         || [];
-  const [showAddRow, setShowAddRow]     = useState({});
-  const [showKMAddRow, setShowKMAddRow] = useState({});
+  const [showAddRow, setShowAddRow]       = useState({});
+  const [kmDeptFilter, setKMDeptFilter]   = useState({});
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
   const allLeads       = Object.values(leadsMap).flat();
@@ -508,14 +508,13 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
       );
     }
 
-    function removeName(name) {
-      set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) });
-    }
+    const deptList = KM_STAFF_GROUPS.map(g => g.dept);
+    const activeDept = kmDeptFilter[dateKey] || deptList[0] || '';
     return (
       <div style={{ marginBottom: '8px' }}>
         <label style={subLabel}>Nhân sự Khôi Minh</label>
         {selected.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
             {selected.map(name => {
               const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
               return (
@@ -523,30 +522,24 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                   <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
                   <span style={{ fontSize: '0.82rem', color: '#93c5fd', flex: 1 }}>{name}</span>
                   <button
-                    onMouseDown={e => { e.preventDefault(); removeName(name); }}
+                    onMouseDown={e => { e.preventDefault(); set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) }); }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                 </div>
               );
             })}
           </div>
         )}
-        {showKMAddRow[dateKey] ? (
-          <AddKMStaffRow
-            availableDepts={kmDeptList}
-            excluded={[...excluded, ...selected]}
-            onAdd={name => {
-              set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: [...selected, name] });
-              setShowKMAddRow(p => ({ ...p, [dateKey]: false }));
-            }}
-            onCancel={() => setShowKMAddRow(p => ({ ...p, [dateKey]: false }))}
-          />
-        ) : (
-          <button
-            onClick={() => setShowKMAddRow(p => ({ ...p, [dateKey]: true }))}
-            style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(96,165,250,0.05)', border: '1px dashed rgba(96,165,250,0.25)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}>
-            + Thêm nhân sự Khôi Minh
-          </button>
-        )}
+        <select
+          value={activeDept}
+          onChange={e => setKMDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
+          style={{ width: '100%', height: '30px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#93c5fd', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+          {deptList.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <StaffMultiSelect
+          selected={selected}
+          onChange={v => set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: v })}
+          priorityDepts={priorityDepts} excluded={excluded} restrictDept={activeDept}
+        />
       </div>
     );
   }
