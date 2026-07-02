@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -453,7 +453,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
 }
 
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
-function ScheduleForm({ initial, events, onSaved, onClose }) {
+function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
   const { user } = useAuth();
   // Trưởng phòng chỉ được chỉnh sửa nhân sự bộ phận của mình
   const userDept = getTruongPhongDept(user);
@@ -473,6 +473,50 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Phát hiện trùng lịch: (tên nhân sự, ngày) đã có trong lịch khác
+  const conflicts = useMemo(() => {
+    if (!schedules.length) return [];
+    const seen = new Map();
+    for (const phase of PHASES) {
+      const dates = form[`${phase.key}_date`] || [];
+      const kmMap  = form[`${phase.key}_km_staff`]    || {};
+      const ldsMap = form[`${phase.key}_leads`]        || {};
+      const freMap = form[`${phase.key}_freelancers`]  || {};
+      for (const date of dates) {
+        const kmNames   = Array.isArray(kmMap[date]) ? kmMap[date] : [];
+        const ldNames   = (ldsMap[date] || []).map(l => l.name).filter(Boolean);
+        const freRaw    = freMap[date];
+        const freNames  = freRaw && typeof freRaw === 'object'
+          ? Object.values(freRaw).flatMap(v => (v||'').split(',').map(n=>n.trim())).filter(Boolean)
+          : typeof freRaw === 'string' ? freRaw.split(',').map(n=>n.trim()).filter(Boolean) : [];
+        const allNames  = [...new Set([...kmNames, ...ldNames, ...freNames])];
+        if (!allNames.length) continue;
+        for (const other of schedules) {
+          if (other.id === initial?.id) continue;
+          for (const op of PHASES) {
+            if (!(other[`${op.key}_dates`] || []).includes(date)) continue;
+            const oKmMap = other[`${op.key}_km_staff_map`] || {};
+            const oKm    = Array.isArray(oKmMap[date]) ? oKmMap[date] : (Array.isArray(other[`${op.key}_km_staff`]) ? other[`${op.key}_km_staff`] : []);
+            const oLdMap = other[`${op.key}_leads_map`] || {};
+            const oLd    = (Array.isArray(oLdMap[date]) ? oLdMap[date] : (other[`${op.key}_leads`] || [])).map(l=>l.name).filter(Boolean);
+            const oFrM   = other[`${op.key}_freelancers_map`];
+            const oFrRaw = oFrM ? (oFrM[date] || {}) : {};
+            const oFr    = oFrRaw && typeof oFrRaw === 'object'
+              ? Object.values(oFrRaw).flatMap(v=>(v||'').split(',').map(n=>n.trim())).filter(Boolean)
+              : typeof oFrRaw === 'string' ? oFrRaw.split(',').map(n=>n.trim()).filter(Boolean) : [];
+            const oSet   = new Set([...oKm, ...oLd, ...oFr]);
+            for (const name of allNames) {
+              if (!oSet.has(name)) continue;
+              const key = `${name}|${date}|${other.id}`;
+              if (!seen.has(key)) seen.set(key, { name, date, otherEvent: other.event_name });
+            }
+          }
+        }
+      }
+    }
+    return [...seen.values()];
+  }, [form, schedules, initial?.id]);
 
   function applyEvent(ev) {
     if (!ev) { setForm(f => ({ ...f, event_id: null, event_name: '' })); return; }
@@ -553,6 +597,21 @@ function ScheduleForm({ initial, events, onSaved, onClose }) {
         </div>
 
         {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} />)}
+
+        {conflicts.length > 0 && (
+          <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '0.72rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.06em' }}>
+              ⚠️ CẢNH BÁO TRÙNG LỊCH — chỉ để tham khảo, vẫn có thể lưu
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {conflicts.map((c, i) => (
+                <p key={i} style={{ margin: 0, fontSize: '0.8rem', color: '#fde68a' }}>
+                  • <strong>{c.name}</strong> đã có lịch ngày <strong>{fmtD(c.date)}</strong> trong "<em>{c.otherEvent}</em>"
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {error && (
           <p style={{ color: '#f87171', fontSize: '0.85rem', background: 'rgba(248,113,113,0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.3)' }}>
@@ -746,12 +805,37 @@ export default function WorkSchedule() {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {schedules.map(s => (
-          <div key={s.id} style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
+        {schedules.map(s => {
+          const isToday = PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr));
+          const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
+          function renderDates(key, datesArr) {
+            if (!datesArr?.length) return null;
+            return (
+              <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
+                <span key={d} style={d === todayStr ? { color: '#4ade80', fontWeight: 800 } : undefined}>
+                  {i > 0 && ' · '}{fmtD(d)}
+                </span>
+              ))}</span>
+            );
+          }
+          return (
+          <div key={s.id} style={{
+            background: isToday ? 'rgba(74,222,128,0.04)' : 'var(--bg-card)',
+            border: isToday ? '1px solid rgba(74,222,128,0.45)' : '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px', padding: '16px',
+            boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : 'none',
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <h3 style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#7878a0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                  <h3 style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
+                  {isToday && (
+                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80' }}>
+                      HÔM NAY
+                    </span>
+                  )}
+                </div>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#7878a0' }}>
                   👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
                 </p>
               </div>
@@ -766,10 +850,10 @@ export default function WorkSchedule() {
             </div>
 
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
-              {s.setup_dates?.length > 0 && <span>🏗 {s.setup_dates.map(d => fmtD(d)).join(' · ')}</span>}
-              {s.teardown_dates?.length > 0 && <span>📦 {s.teardown_dates.map(d => fmtD(d)).join(' · ')}</span>}
-              {s.rehearsal_dates?.length > 0 && <span>🎤 {s.rehearsal_dates.map(d => fmtD(d)).join(' · ')}</span>}
-              {s.filming_dates?.length > 0 && <span>🎬 {s.filming_dates.map(d => fmtD(d)).join(' · ')}</span>}
+              {renderDates('filming',   s.filming_dates)}
+              {renderDates('setup',     s.setup_dates)}
+              {renderDates('rehearsal', s.rehearsal_dates)}
+              {renderDates('teardown',  s.teardown_dates)}
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -785,7 +869,8 @@ export default function WorkSchedule() {
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
         {schedules.length === 0 && (
           <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Chưa có lịch làm việc nào</p>
         )}
@@ -795,6 +880,7 @@ export default function WorkSchedule() {
         <ScheduleForm
           initial={selected}
           events={events}
+          schedules={schedules}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); load(); }}
         />
