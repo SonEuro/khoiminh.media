@@ -379,17 +379,20 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
       : START_TIME_DEPTS;
     if (!visibleDepts.length) return null;
     return (
-      <div style={{ marginBottom: '8px' }}>
-        <label style={subLabel}>⏰ Giờ bắt đầu (theo bộ phận)</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '6px 10px' }}>
+      <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.18)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.06em' }}>⏰ GIỜ BẮT ĐẦU</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(96,165,250,0.2)' }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '6px 12px' }}>
           {visibleDepts.map(dept => (
-            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-              <span style={{ fontSize: '0.68rem', color: '#7878a0', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
+            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.12)', borderRadius: '7px', padding: '5px 8px' }}>
+              <span style={{ fontSize: '0.65rem', color: '#93c5fd', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
               <input
                 type="time"
                 value={timesObj[dept] ?? '08:30'}
                 onChange={e => setStartTime(dateKey, dept, e.target.value)}
-                style={{ width: '92px', height: '30px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', outline: 'none', flexShrink: 0 }}
+                style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
               />
             </div>
           ))}
