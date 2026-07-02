@@ -37,6 +37,20 @@ const ROLE_DEPT_MAP = {
   PRODUCTION: 'Kinh Doanh',
 };
 
+const DEPT_COLORS = {
+  'Âm Thanh Ánh Sáng': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
+  'Sân Khấu':          { color: '#fb923c', bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.22)' },
+  'Kỹ Thuật':          { color: '#38bdf8', bg: 'rgba(56,189,248,0.08)',   border: 'rgba(56,189,248,0.22)' },
+  'Cơ Sở Vật Chất':   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.22)' },
+  'Kế Toán':           { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',   border: 'rgba(251,191,36,0.22)' },
+  'Kinh Doanh':        { color: '#f472b6', bg: 'rgba(244,114,182,0.08)',  border: 'rgba(244,114,182,0.22)' },
+  'Quay Phim':         { color: '#e879f9', bg: 'rgba(232,121,249,0.08)',  border: 'rgba(232,121,249,0.22)' },
+  'Sản Xuất':          { color: '#34d399', bg: 'rgba(52,211,153,0.08)',   border: 'rgba(52,211,153,0.22)' },
+};
+function getDeptColor(dept) {
+  return DEPT_COLORS[dept] || { color: '#7878a0', bg: 'rgba(120,120,160,0.06)', border: 'rgba(120,120,160,0.18)' };
+}
+
 function getUserDept(fullName) {
   return KM_STAFF_GROUPS.find(g => g.members.includes(fullName || ''))?.dept || null;
 }
@@ -385,17 +399,20 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
           <div style={{ flex: 1, height: '1px', background: 'rgba(96,165,250,0.2)' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '6px 12px' }}>
-          {visibleDepts.map(dept => (
-            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.12)', borderRadius: '7px', padding: '5px 8px' }}>
-              <span style={{ fontSize: '0.65rem', color: '#93c5fd', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
-              <input
-                type="time"
-                value={timesObj[dept] ?? '08:30'}
-                onChange={e => setStartTime(dateKey, dept, e.target.value)}
-                style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
-              />
-            </div>
-          ))}
+          {visibleDepts.map(dept => {
+            const dc = getDeptColor(dept);
+            return (
+              <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '7px', padding: '5px 8px' }}>
+                <span style={{ fontSize: '0.65rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
+                <input
+                  type="time"
+                  value={timesObj[dept] ?? '08:30'}
+                  onChange={e => setStartTime(dateKey, dept, e.target.value)}
+                  style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${dc.border}`, borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -423,15 +440,18 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
               <>
                 {nameEntries.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
-                    {nameEntries.map(({ dept, name }) => (
-                      <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: '6px' }}>
-                        <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
-                        <span style={{ fontSize: '0.82rem', color: '#f87171', flex: 1 }}>{name}</span>
-                        <button
-                          onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
-                      </div>
-                    ))}
+                    {nameEntries.map(({ dept, name }) => {
+                      const dc = getDeptColor(dept);
+                      return (
+                        <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                          <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{dept}</span>
+                          <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
+                          <button
+                            onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {showAddRow[dateKey] ? (
@@ -476,15 +496,18 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
               <label style={subLabel}>Ghi chú (theo bộ phận)</label>
               {filledNotes.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
-                  {filledNotes.map(dept => (
-                    <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '6px' }}>
-                      <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
-                      <span style={{ fontSize: '0.8rem', color: '#c9b98a', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
-                      <button
-                        onMouseDown={e => { e.preventDefault(); setNote(dateKey, dept, ''); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7878a0', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
-                    </div>
-                  ))}
+                  {filledNotes.map(dept => {
+                    const dc = getDeptColor(dept);
+                    return (
+                      <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{dept}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#d4c8a0', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
+                        <button
+                          onMouseDown={e => { e.preventDefault(); setNote(dateKey, dept, ''); }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <select
@@ -543,13 +566,14 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
               {displayRows.map(name => {
                 const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
+                const dc = getDeptColor(dept);
                 return (
-                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '6px' }}>
-                    <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
-                    <span style={{ fontSize: '0.82rem', color: '#93c5fd', flex: 1 }}>{name}</span>
+                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                    <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{dept}</span>
+                    <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
                     <button
                       onMouseDown={e => { e.preventDefault(); set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) }); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                   </div>
                 );
               })}
@@ -1261,48 +1285,63 @@ export default function WorkSchedule() {
                         <div key={date}>
                           {renderDateHdr(date)}
                           {timeDepts.length > 0 && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 12px', marginBottom:'6px', paddingLeft:'4px' }}>
-                              {timeDepts.map(([dept, time]) => (
-                                <span key={dept} style={{ fontSize:'0.72rem', color:'#e8c97a', fontWeight:700 }}>
-                                  ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
-                                </span>
-                              ))}
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 10px', marginBottom:'6px', paddingLeft:'4px' }}>
+                              {timeDepts.map(([dept, time]) => {
+                                const dc = getDeptColor(dept);
+                                return (
+                                  <span key={dept} style={{ fontSize:'0.7rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'2px 8px' }}>
+                                    ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
+                                  </span>
+                                );
+                              })}
                             </div>
                           )}
-                          {dLeads.map((l, i) => (
-                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
-                          ))}
+                          {dLeads.map((l, i) => {
+                            const dc = getDeptColor(l.department);
+                            return (
+                              <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.7rem' }}>({l.department})</span></div>
+                            );
+                          })}
                           {dayStaff.length > 0 && (
                             <div style={{ marginTop: '4px' }}>
                               <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                              {Object.entries(byDeptKM).map(([dept, members]) => (
-                                <div key={dept} style={{ marginBottom: '2px' }}>
-                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                  {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
-                                </div>
-                              ))}
+                              {Object.entries(byDeptKM).map(([dept, members]) => {
+                                const dc = getDeptColor(dept);
+                                return (
+                                  <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           {freeDepts.length > 0 && (
                             <div style={{ marginTop: '4px' }}>
                               <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
-                              {freeDepts.map(([dept, nameList]) => (
-                                <div key={dept} style={{ marginBottom: '2px' }}>
-                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                  {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
-                                </div>
-                              ))}
+                              {freeDepts.map(([dept, nameList]) => {
+                                const dc = getDeptColor(dept);
+                                return (
+                                  <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           {hasNote && (
                             <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                               <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
-                              {noteDepts.map(([dept, note]) => (
-                                <div key={dept}>
-                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                  <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'18px' }}>{note}</p>
-                                </div>
-                              ))}
+                              {noteDepts.map(([dept, note]) => {
+                                const dc = getDeptColor(dept);
+                                return (
+                                  <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
+                                  </div>
+                                );
+                              })}
                               {noteStr && <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{noteStr}</p>}
                             </div>
                           )}
@@ -1311,21 +1350,27 @@ export default function WorkSchedule() {
                     }) : (
                       /* Một ngày: hiển thị flat không có date header */
                       <>
-                        {flatLeads.length > 0 && flatLeads.map((l, i) => (
-                          <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
-                        ))}
+                        {flatLeads.length > 0 && flatLeads.map((l, i) => {
+                          const dc = getDeptColor(l.department);
+                          return (
+                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.7rem' }}>({l.department})</span></div>
+                          );
+                        })}
                         {staff.length > 0 && (
                           <div style={{ marginBottom: '8px', marginTop: flatLeads.length ? '4px' : 0 }}>
                             <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
                             {Object.entries(staff.reduce((acc, n) => {
                               const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
                               (acc[d] = acc[d] || []).push(n); return acc;
-                            }, {})).map(([dept, members]) => (
-                              <div key={dept} style={{ marginBottom: '3px' }}>
-                                <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                                {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
-                              </div>
-                            ))}
+                            }, {})).map(([dept, members]) => {
+                              const dc = getDeptColor(dept);
+                              return (
+                                <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                  {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                         {(hasNewFree || filteredFree.length > 0) && (
@@ -1337,19 +1382,23 @@ export default function WorkSchedule() {
                                 .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
                                 .map(([dept, names]) => {
                                   const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
+                                  const dc = getDeptColor(dept);
                                   return nameList.length ? (
-                                    <div key={dept} style={{ marginBottom: '2px' }}>
-                                      <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                      {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
+                                    <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                      {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                     </div>
                                   ) : null;
                                 });
-                            }) : freelancerGroups.map(([dept, members]) => (
-                              <div key={dept} style={{ marginBottom: '3px' }}>
-                                <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                                {members.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
-                              </div>
-                            ))}
+                            }) : freelancerGroups.map(([dept, members]) => {
+                              const dc = getDeptColor(dept);
+                              return (
+                                <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                  {members.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                         {hasNotes && (
@@ -1360,12 +1409,15 @@ export default function WorkSchedule() {
                               if (!val) return null;
                               if (typeof val === 'object') {
                                 const depts = Object.entries(val).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
-                                return depts.map(([dept, note]) => (
-                                  <div key={dept}>
-                                    <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                    <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'18px' }}>{note}</p>
-                                  </div>
-                                ));
+                                return depts.map(([dept, note]) => {
+                                  const dc = getDeptColor(dept);
+                                  return (
+                                    <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                      <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
+                                    </div>
+                                  );
+                                });
                               }
                               return val?.trim() ? <p key={date} style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p> : null;
                             })}
