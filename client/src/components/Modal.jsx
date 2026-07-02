@@ -5,7 +5,6 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', esc);
-    // Prevent body scroll while modal open
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -18,25 +17,52 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
 
   return createPortal(
     <div
+      className="modal-overlay"
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         background: 'rgba(0,0,0,0.6)',
         display: 'flex',
-        // mobile: bottom sheet / desktop: centered
         alignItems: 'flex-end',
         justifyContent: 'center',
+        /* safe area padding: tránh Dynamic Island và home indicator mọi hướng */
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
-      {/* Desktop centering wrapper */}
       <style>{`
-        @media (min-width: 768px) {
-          .modal-positioner { align-self: center !important; border-radius: 1rem !important; max-height: 90vh !important; }
+        /* Portrait mobile: bottom sheet */
+        @media (max-width: 767px) and (orientation: portrait) {
+          .modal-positioner {
+            border-radius: 1rem 1rem 0 0 !important;
+            max-height: 92dvh !important;
+          }
         }
-        @media (max-width: 767px) {
-          .modal-positioner { border-radius: 1rem 1rem 0 0 !important; max-height: 92dvh !important; }
+        /* Landscape mobile: centered sheet với safe area */
+        @media (max-width: 900px) and (orientation: landscape) {
+          .modal-overlay {
+            align-items: center !important;
+            padding: env(safe-area-inset-top, 8px) calc(env(safe-area-inset-right, 0px) + 12px) env(safe-area-inset-bottom, 8px) calc(env(safe-area-inset-left, 0px) + 12px) !important;
+          }
+          .modal-positioner {
+            border-radius: 1rem !important;
+            max-height: 88dvh !important;
+          }
+          .modal-drag-handle { display: none !important; }
+        }
+        /* Desktop: centered */
+        @media (min-width: 768px) and (orientation: portrait),
+               (min-width: 901px) {
+          .modal-overlay { align-items: center !important; padding: 16px !important; }
+          .modal-positioner {
+            border-radius: 1rem !important;
+            max-height: 90dvh !important;
+          }
+          .modal-drag-handle { display: none !important; }
         }
       `}</style>
+
       <div
         className="modal-positioner"
         onClick={(e) => e.stopPropagation()}
@@ -51,15 +77,15 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
           overflow: 'hidden',
         }}
       >
-        {/* Drag handle on mobile */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 2px' }} className="md:hidden">
+        {/* Drag handle — portrait mobile only */}
+        <div className="modal-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 2px' }}>
           <div style={{ width: '36px', height: '4px', borderRadius: '9999px', background: 'rgba(255,255,255,0.18)' }} />
         </div>
 
         {/* Header */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
-          padding: '12px 20px 12px',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '12px 16px',
           borderBottom: '1px solid var(--gold-dim)',
           flexShrink: 0,
         }}>
@@ -77,7 +103,7 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
           {children}
         </div>
 
-        {/* iOS safe area bottom */}
+        {/* Safe area bottom (portrait) */}
         <div style={{ height: 'env(safe-area-inset-bottom, 0px)', flexShrink: 0 }} />
       </div>
     </div>,
