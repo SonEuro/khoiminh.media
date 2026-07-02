@@ -497,11 +497,50 @@ function TrashView({ onClose, canPermanentDelete, user }) {
   );
 }
 
+function ZoneHeader({ color, bg, border, label, count }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
+      <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
+      <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap' }}>
+        {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
+      </span>
+      <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />
+    </div>
+  );
+}
+
 export default function Events() {
   const { user, can } = useAuth();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const isFullAdmin = canFullEdit;
+
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tomorrowStr = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d);
+  })();
+
+  function getAllDates(ev) {
+    return [
+      ...parseDatesField(ev, 'start_dates', 'start_date'),
+      ...parseDatesField(ev, 'end_dates', 'end_date'),
+      ...parseDatesField(ev, 'filming_dates', 'filming_date'),
+      ...parseDatesField(ev, 'show_dates', 'show_date'),
+    ].filter(Boolean);
+  }
+  function isEventOnDate(ev, d) {
+    const dates = getAllDates(ev);
+    if (dates.includes(d)) return true;
+    const starts = parseDatesField(ev, 'start_dates', 'start_date').sort();
+    const ends   = parseDatesField(ev, 'end_dates', 'end_date').sort();
+    if (starts.length && ends.length && starts[0] <= d && d <= ends[ends.length - 1]) return true;
+    return false;
+  }
+  function nearestUpcomingEvent(ev) {
+    const all = getAllDates(ev).sort();
+    return all.find(d => d >= todayStr) || null;
+  }
 
   // TRUONG_PHONG chỉ hủy/khôi phục sự kiện do người cùng phòng tạo
   const canManageEvent = (ev) => {
@@ -606,62 +645,111 @@ export default function Events() {
         )}
       </div>
 
-      <div className="grid gap-4">
-        {events.length === 0 && (
+      {(() => {
+        if (events.length === 0) return (
           <div className="card text-center py-12 text-gray-400">
             <p className="text-4xl mb-2">🎭</p>
             <p>Chưa có sự kiện nào</p>
           </div>
-        )}
-        {events.map(ev => {
+        );
+
+        function renderCard(ev, zone) {
           const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
+          const isToday    = zone === 'today';
+          const isTomorrow = zone === 'tomorrow';
+          const isPast     = zone === 'past';
+          const cardStyle = isToday
+            ? { borderColor: 'rgba(74,222,128,0.45)', background: 'rgba(74,222,128,0.04)', boxShadow: '0 0 18px rgba(74,222,128,0.08)' }
+            : isTomorrow
+            ? { borderColor: 'rgba(96,165,250,0.35)', background: 'rgba(96,165,250,0.03)', boxShadow: '0 0 14px rgba(96,165,250,0.06)' }
+            : isPast ? { opacity: 0.55 } : {};
+          const startDates  = parseDatesField(ev, 'start_dates',   'start_date');
+          const endDates    = parseDatesField(ev, 'end_dates',     'end_date');
+          const filmDates   = parseDatesField(ev, 'filming_dates', 'filming_date');
+          function dateColor(d) { return d === todayStr ? '#4ade80' : d === tomorrowStr ? '#60a5fa' : undefined; }
+          function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
-            <div key={ev.id} className="card">
+            <div key={ev.id} className="card" style={cardStyle}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
                   <span className={s.cls}>{s.label}</span>
+                  {isToday    && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
+                  {isTomorrow && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#60a5fa', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
                   {ev.archived_at && <span style={{ fontSize:'0.7rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>
               <h3 className="font-semibold text-lg mb-1">{ev.name}</h3>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
-                {ev.client && <span>👤 {ev.client}</span>}
+                {ev.client   && <span>👤 {ev.client}</span>}
                 {ev.location && <span>📍 {ev.location}</span>}
-                {ev.start_date && <span>📅 {fmtD(ev.start_date)}{ev.end_date && ev.end_date !== ev.start_date ? ` → ${fmtD(ev.end_date)}` : ''}</span>}
+                {startDates.length > 0 && (
+                  <span>📅 {startDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}
+                    {endDates.length > 0 && endDates[0] !== startDates[0] && <> → {endDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</>}
+                  </span>
+                )}
+                {filmDates.length > 0 && (
+                  <span>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
+                )}
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>
-                  Danh mục thiết bị
-                </button>
-                <button className="btn-secondary btn-sm" title="Xem nhân sự làm việc" onClick={() => { setSelected(ev); setModal('staff'); }}>
-                  👥 Nhân sự làm việc
-                </button>
-                {(ev.status === 'completed'
-                  ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong)
-                  : (canFullEdit || !!user?.is_truong_phong)) && (
-                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>
-                    ✏️
-                  </button>
+                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>Danh mục thiết bị</button>
+                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
+                {(ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong)) && (
+                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>
                 )}
                 {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN') && (
-                  <button className="btn-danger btn-sm" title="Hủy sự kiện" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
+                  <button className="btn-danger btn-sm" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
-                  <button className="btn-secondary btn-sm" title="Lưu trữ sự kiện" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>
+                  <button className="btn-secondary btn-sm" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.archived_at && (
                   <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>
                 )}
                 {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
-                  <button className="btn-danger btn-sm" title="Chuyển vào thùng rác" onClick={() => handleDelete(ev)}>🗑</button>
+                  <button className="btn-danger btn-sm" onClick={() => handleDelete(ev)}>🗑</button>
                 )}
               </div>
             </div>
           );
-        })}
-      </div>
+        }
+
+        const sorted = [...events].sort((a, b) => {
+          const na = nearestUpcomingEvent(a), nb = nearestUpcomingEvent(b);
+          if (!na && !nb) return 0;
+          if (!na) return 1;
+          if (!nb) return -1;
+          return na.localeCompare(nb);
+        });
+
+        const todayZone    = sorted.filter(ev => ev.status !== 'cancelled' && isEventOnDate(ev, todayStr));
+        const tomorrowZone = sorted.filter(ev => ev.status !== 'cancelled' && !isEventOnDate(ev, todayStr) && isEventOnDate(ev, tomorrowStr));
+        const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled'; });
+        const pastZone     = sorted.filter(ev => nearestUpcomingEvent(ev) === null || ev.status === 'cancelled' || ev.status === 'completed');
+
+        return (
+          <div className="grid gap-4">
+            {todayZone.length > 0 && <>
+              <ZoneHeader color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={todayZone.length} />
+              {todayZone.map(ev => renderCard(ev, 'today'))}
+            </>}
+            {tomorrowZone.length > 0 && <>
+              <ZoneHeader color="#60a5fa" bg="rgba(96,165,250,0.1)" border="rgba(96,165,250,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={tomorrowZone.length} />
+              {tomorrowZone.map(ev => renderCard(ev, 'tomorrow'))}
+            </>}
+            {upcomingZone.length > 0 && <>
+              <ZoneHeader color="#fbbf24" bg="rgba(251,191,36,0.08)" border="rgba(251,191,36,0.3)" label="SẮP TỚI" count={upcomingZone.length} />
+              {upcomingZone.map(ev => renderCard(ev, 'upcoming'))}
+            </>}
+            {pastZone.length > 0 && <>
+              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA / HỦY" count={pastZone.length} />
+              {pastZone.map(ev => renderCard(ev, 'past'))}
+            </>}
+          </div>
+        );
+      })()}
 
       {modal === 'staff' && selected && (
         <StaffScheduleModal event={selected} onClose={() => setModal(null)} />
