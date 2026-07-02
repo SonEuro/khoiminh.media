@@ -841,7 +841,9 @@ export default function WorkSchedule() {
                 const leadsMapD  = selected[`${phase.key}_leads_map`];
                 const kmMapD     = selected[`${phase.key}_km_staff_map`];
                 const perDate    = dates.length > 1;
-                const itemStyle  = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
+                const itemStyle      = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
+                const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
+                const freeItemStyle = { ...itemStyle, color: '#f87171' };
                 const dateHdr    = { fontSize: '0.68rem', fontWeight: 800, color: '#fbbf24', display: 'block', marginBottom: '3px', marginTop: '6px' };
 
                 return (
@@ -882,7 +884,7 @@ export default function WorkSchedule() {
                               {Object.entries(byDept).map(([dept, members]) => (
                                 <div key={dept} style={{ marginBottom: '2px' }}>
                                   <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                  {members.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
+                                  {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
                                 </div>
                               ))}
                             </div>
@@ -893,7 +895,7 @@ export default function WorkSchedule() {
                         }, {})).map(([dept, members]) => (
                           <div key={dept} style={{ marginBottom: '3px' }}>
                             <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                            {members.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
+                            {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
                           </div>
                         ))}
                       </div>
@@ -916,7 +918,7 @@ export default function WorkSchedule() {
                                 return nameList.length ? (
                                   <div key={dept} style={{ marginBottom: '2px' }}>
                                     <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                    {nameList.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
+                                    {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
                                   </div>
                                 ) : null;
                               })}
@@ -925,7 +927,7 @@ export default function WorkSchedule() {
                         }) : freelancerGroups.map(([dept, members]) => (
                           <div key={dept} style={{ marginBottom: '3px' }}>
                             <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                            {members.map(n => <div key={n} style={itemStyle}>• {n}</div>)}
+                            {members.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
                           </div>
                         ))}
                       </div>
