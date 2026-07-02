@@ -68,6 +68,15 @@ function serializeFieldValue(v) {
   return v;
 }
 
+function parseNotesMap(raw) {
+  if (!raw) return {};
+  try {
+    const v = JSON.parse(raw);
+    if (v && typeof v === 'object' && !Array.isArray(v)) return v;
+  } catch {}
+  return {};
+}
+
 function parseRow(row) {
   const out = { ...row };
   for (const p of PHASES) {
@@ -83,6 +92,7 @@ function parseRow(row) {
     out[`${p}_freelancers`]     = flatFree;
     out[`${p}_freelancers_map`] = freeMap;
 
+    out[`${p}_notes`] = parseNotesMap(row[`${p}_notes`]);
     out[`${p}_dates`] = parseDatesField(row[`${p}_date`]);
     out[`${p}_date`]  = out[`${p}_dates`][0] || null;
   }
@@ -118,8 +128,8 @@ router.post('/', canPhanLich, (req, res) => {
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
-    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '');
+    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`);
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}));
   }
   const placeholders = cols.map(() => '?').join(',');
   const r = db.prepare(`INSERT INTO work_schedules (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
@@ -140,8 +150,8 @@ router.put('/:id', (req, res) => {
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
-    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '');
+    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`);
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}));
   }
   const setSql = cols.map(c => `${c} = ?`).join(', ');
   db.prepare(`UPDATE work_schedules SET ${setSql} WHERE id = ?`).run(...vals, req.params.id);

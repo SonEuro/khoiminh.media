@@ -213,6 +213,15 @@ if (!eventCols.includes('end_dates')) {
   console.log('[DB] Migration: thêm cột end_dates vào events');
 }
 
+// Migration: thêm cột notes cho từng phase trong work_schedules
+const wsCols = db.pragma('table_info(work_schedules)').map(c => c.name);
+for (const p of ['setup', 'teardown', 'rehearsal', 'filming']) {
+  if (!wsCols.includes(`${p}_notes`)) {
+    db.exec(`ALTER TABLE work_schedules ADD COLUMN ${p}_notes TEXT DEFAULT ''`);
+    console.log(`[DB] Migration: thêm cột ${p}_notes vào work_schedules`);
+  }
+}
+
 // Migration: thêm cột unit + rental_days vào external_items nếu chưa có
 const extCols = db.pragma('table_info(external_items)').map(c => c.name);
 if (!extCols.includes('unit')) {
