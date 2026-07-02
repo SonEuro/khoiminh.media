@@ -343,6 +343,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
   const dates           = form[`${phase.key}_date`]         || [];
   const [showAddRow, setShowAddRow]       = useState({});
   const [kmDeptFilter, setKMDeptFilter]   = useState({});
+  const [noteDeptFilter, setNoteDeptFilter] = useState({});
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
   const allLeads       = Object.values(leadsMap).flat();
@@ -464,24 +465,40 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             )}
           </div>
         )}
-        {visibleNoteDepts.length > 0 && (
-          <div>
-            <label style={subLabel}>Ghi chú (theo bộ phận)</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {visibleNoteDepts.map(dept => (
-                <div key={dept}>
-                  <span style={deptLbl}>{dept}</span>
-                  <input
-                    placeholder="Ghi chú... (không bắt buộc)"
-                    value={notesDeptObj[dept] || ''}
-                    onChange={e => setNote(dateKey, dept, e.target.value)}
-                    style={{ ...deptInput, color: '#c9b98a', fontStyle: 'italic' }}
-                  />
+        {visibleNoteDepts.length > 0 && (() => {
+          const filledNotes = visibleNoteDepts.filter(d => notesDeptObj[d]?.trim());
+          const activeNoteDept = noteDeptFilter[dateKey] || visibleNoteDepts[0] || '';
+          return (
+            <div>
+              <label style={subLabel}>Ghi chú (theo bộ phận)</label>
+              {filledNotes.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
+                  {filledNotes.map(dept => (
+                    <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '6px' }}>
+                      <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
+                      <span style={{ fontSize: '0.8rem', color: '#c9b98a', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
+                      <button
+                        onMouseDown={e => { e.preventDefault(); setNote(dateKey, dept, ''); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7878a0', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              <select
+                value={activeNoteDept}
+                onChange={e => setNoteDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
+                style={{ width: '100%', height: '30px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '6px', color: '#c9b98a', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+                {visibleNoteDepts.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <input
+                placeholder="Ghi chú... (không bắt buộc)"
+                value={notesDeptObj[activeNoteDept] || ''}
+                onChange={e => setNote(dateKey, activeNoteDept, e.target.value)}
+                style={{ ...deptInput, color: '#c9b98a', fontStyle: 'italic' }}
+              />
             </div>
-          </div>
-        )}
+          );
+        })()}
       </>
     );
   }
