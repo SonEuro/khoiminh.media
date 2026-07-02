@@ -977,14 +977,21 @@ export default function WorkSchedule() {
                 const itemStyle      = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
                 const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
                 const freeItemStyle = { ...itemStyle, color: '#f87171' };
-                function dateHdrStyle(d) {
-                  return { fontSize: '0.68rem', fontWeight: 800, display: 'block', marginBottom: '3px', marginTop: '6px',
-                    color: d === todayStr ? '#4ade80' : d === tomorrowStr ? '#60a5fa' : '#fbbf24' };
-                }
-                function dateBadge(d) {
-                  if (d === todayStr)    return <span style={{ marginLeft:'5px', fontSize:'0.58rem', background:'rgba(74,222,128,0.2)', border:'1px solid rgba(74,222,128,0.45)', borderRadius:'4px', padding:'1px 5px', color:'#4ade80', fontWeight:800, letterSpacing:'0.05em' }}>HÔM NAY</span>;
-                  if (d === tomorrowStr) return <span style={{ marginLeft:'5px', fontSize:'0.58rem', background:'rgba(96,165,250,0.2)', border:'1px solid rgba(96,165,250,0.45)', borderRadius:'4px', padding:'1px 5px', color:'#60a5fa', fontWeight:800, letterSpacing:'0.05em' }}>NGÀY MAI</span>;
-                  return null;
+                function renderDateHdr(d) {
+                  const isT = d === todayStr, isM = d === tomorrowStr;
+                  const color  = isT ? '#4ade80' : isM ? '#60a5fa' : '#fbbf24';
+                  const border = isT ? 'rgba(74,222,128,0.4)' : isM ? 'rgba(96,165,250,0.35)' : 'rgba(251,191,36,0.28)';
+                  const bg     = isT ? 'rgba(74,222,128,0.1)' : isM ? 'rgba(96,165,250,0.1)' : 'rgba(251,191,36,0.07)';
+                  const extra  = isT ? ' · HÔM NAY' : isM ? ' · NGÀY MAI' : '';
+                  return (
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'10px 0 5px' }}>
+                      <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
+                      <span style={{ fontSize:'0.63rem', fontWeight:800, letterSpacing:'0.07em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 10px', whiteSpace:'nowrap' }}>
+                        📅 {fmtD(d)}{extra}
+                      </span>
+                      <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
+                    </div>
+                  );
                 }
 
                 return (
@@ -1009,7 +1016,7 @@ export default function WorkSchedule() {
                           const dLeads = (leadsMapD[date] || []).filter(l => !viewerDept || l.department === viewerDept);
                           return dLeads.length ? (
                             <div key={date}>
-                              <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>
+                              {renderDateHdr(date)}
                               {dLeads.map((l, i) => <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>)}
                             </div>
                           ) : null;
@@ -1032,7 +1039,7 @@ export default function WorkSchedule() {
                           }, {});
                           return (
                             <div key={date}>
-                              <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>
+                              {renderDateHdr(date)}
                               {Object.entries(byDept).map(([dept, members]) => (
                                 <div key={dept} style={{ marginBottom: '2px' }}>
                                   <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
@@ -1064,7 +1071,7 @@ export default function WorkSchedule() {
                           if (!depts.length) return null;
                           return (
                             <div key={date}>
-                              {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
+                              {perDate && renderDateHdr(date)}
                               {depts.map(([dept, names]) => {
                                 const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
                                 return nameList.length ? (
@@ -1097,7 +1104,7 @@ export default function WorkSchedule() {
                               .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
                             return depts.length ? (
                               <div key={date}>
-                                {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
+                                {perDate && renderDateHdr(date)}
                                 {depts.map(([dept, note]) => (
                                   <div key={dept}>
                                     <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
@@ -1110,7 +1117,7 @@ export default function WorkSchedule() {
                           // Old format: string
                           return val?.trim() ? (
                             <div key={date}>
-                              {perDate && <span style={dateHdrStyle(date)}>📅 {fmtD(date)}{dateBadge(date)}</span>}
+                              {perDate && renderDateHdr(date)}
                               <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p>
                             </div>
                           ) : null;
