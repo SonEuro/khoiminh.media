@@ -1120,6 +1120,7 @@ export default function WorkSchedule() {
 
       {modal === 'form' && (
         <ScheduleForm
+          key={selected?.id ?? 'new'}
           initial={selected}
           events={events}
           schedules={schedules}
