@@ -8,7 +8,6 @@ export const DEPARTMENTS = [
 ];
 
 export const KM_STAFF_GROUPS = [
-  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hào'] },
   { dept: 'Âm Thanh Ánh Sáng', members: [
     'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
     'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
@@ -24,6 +23,7 @@ export const KM_STAFF_GROUPS = [
     'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
     'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
   ]},
+  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hào'] },
   { dept: 'Kế Toán', members: [
     'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
     'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',
