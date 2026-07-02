@@ -619,21 +619,19 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                 const eq = equipment.find(e => e.id === it.equipment_id);
                 const qty = parseInt(it.quantity) || 0;
                 return (
-                  <div key={idx} style={{ display:'grid', gridTemplateColumns:'1fr auto auto', gap:'8px', alignItems:'center', padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
-                    <div>
-                      <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
+                  <div key={idx} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
                       <p style={{ fontSize:'0.68rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
                     </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                      <input type="number" min="1" value={it.quantity}
-                        onChange={e => updateQty(idx, e.target.value)}
-                        onBlur={e => updateQty(idx, e.target.value, true)}
-                        style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
-                      />
-                      <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
-                    </div>
+                    <input type="number" min="1" value={it.quantity}
+                      onChange={e => updateQty(idx, e.target.value)}
+                      onBlur={e => updateQty(idx, e.target.value, true)}
+                      style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                    />
+                    <span style={{ width:'36px', flexShrink:0, fontSize:'0.72rem', color:'#7878a0', textAlign:'left' }}>{it.unit}</span>
                     <button onClick={() => removeItem(idx)}
-                      style={{ padding:'5px 8px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>✕</button>
+                      style={{ width:'30px', height:'30px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>✕</button>
                   </div>
                 );
               })}
