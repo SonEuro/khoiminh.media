@@ -685,7 +685,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
           {[['🏗', s.setup_dates], ['📦', s.teardown_dates], ['🎤', s.rehearsal_dates], ['🎬', s.filming_dates]].map(([icon, dates]) =>
             dates?.length > 0 && (
               <span key={icon}>{icon} {dates.map((d, i) => (
-                <span key={d} style={d === today ? { color: '#4ade80', fontWeight: 800 } : d === tomorrow ? { color: '#60a5fa', fontWeight: 800 } : undefined}>
+                <span key={d} style={d === today ? { color: '#f87171', fontWeight: 800 } : d === tomorrow ? { color: '#4ade80', fontWeight: 800 } : undefined}>
                   {i > 0 && ' · '}{fmtD(d)}
                 </span>
               ))}</span>
@@ -828,8 +828,8 @@ export default function WorkSchedule() {
           return (
             <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
               <span key={d} style={
-                d === todayStr    ? { color: '#4ade80', fontWeight: 800 } :
-                d === tomorrowStr ? { color: '#60a5fa', fontWeight: 800 } : undefined
+                d === todayStr    ? { color: '#f87171', fontWeight: 800 } :
+                d === tomorrowStr ? { color: '#4ade80', fontWeight: 800 } : undefined
               }>{i > 0 && ' · '}{fmtD(d)}</span>
             ))}</span>
           );
@@ -987,9 +987,9 @@ export default function WorkSchedule() {
                 const freeItemStyle = { ...itemStyle, color: '#f87171' };
                 function renderDateHdr(d) {
                   const isT = d === todayStr, isM = d === tomorrowStr;
-                  const color  = isT ? '#4ade80' : isM ? '#60a5fa' : '#fbbf24';
-                  const border = isT ? 'rgba(74,222,128,0.4)' : isM ? 'rgba(96,165,250,0.35)' : 'rgba(251,191,36,0.28)';
-                  const bg     = isT ? 'rgba(74,222,128,0.1)' : isM ? 'rgba(96,165,250,0.1)' : 'rgba(251,191,36,0.07)';
+                  const color  = isT ? '#f87171' : isM ? '#4ade80' : '#fbbf24';
+                  const border = isT ? 'rgba(248,113,113,0.4)' : isM ? 'rgba(74,222,128,0.35)' : 'rgba(251,191,36,0.28)';
+                  const bg     = isT ? 'rgba(248,113,113,0.1)' : isM ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.07)';
                   const extra  = isT ? ' · HÔM NAY' : isM ? ' · NGÀY MAI' : '';
                   return (
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'10px 0 5px' }}>
@@ -1008,13 +1008,13 @@ export default function WorkSchedule() {
                       <p style={{ fontWeight:700, color:GOLD, margin:0 }}>
                         {phase.label}{dates.length ? ' — ' : ''}
                         {dates.map((d, i) => (
-                          <span key={d} style={d === todayStr ? {color:'#4ade80'} : d === tomorrowStr ? {color:'#60a5fa'} : undefined}>
+                          <span key={d} style={d === todayStr ? {color:'#f87171'} : d === tomorrowStr ? {color:'#4ade80'} : undefined}>
                             {i > 0 && ' · '}{fmtD(d)}
                           </span>
                         ))}
                       </p>
-                      {dates.some(d => d === todayStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>HÔM NAY</span>}
-                      {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#60a5fa', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                      {dates.some(d => d === todayStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
+                      {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
                     </div>
 
                     {/* Nhóm trưởng */}

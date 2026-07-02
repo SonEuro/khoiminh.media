@@ -666,7 +666,7 @@ export default function Events() {
           const startDates  = parseDatesField(ev, 'start_dates',   'start_date');
           const endDates    = parseDatesField(ev, 'end_dates',     'end_date');
           const filmDates   = parseDatesField(ev, 'filming_dates', 'filming_date');
-          function dateColor(d) { return d === todayStr ? '#4ade80' : d === tomorrowStr ? '#60a5fa' : undefined; }
+          function dateColor(d) { return d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : undefined; }
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
             <div key={ev.id} className="card" style={cardStyle}>
@@ -674,8 +674,8 @@ export default function Events() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
                   <span className={s.cls}>{s.label}</span>
-                  {isToday    && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
-                  {isTomorrow && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#60a5fa', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
+                  {isToday    && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
+                  {isTomorrow && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
                   {ev.archived_at && <span style={{ fontSize:'0.7rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
