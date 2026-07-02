@@ -336,9 +336,13 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
     const cur = startTimesMap[dateKey] || {};
     set(`${phase.key}_start_times`, { ...startTimesMap, [dateKey]: { ...cur, [dept]: val } });
   }
+  const START_TIME_DEPTS = DEPARTMENTS.filter(d => d !== 'Kế Toán' && d !== 'Kinh Doanh');
   function renderStartTimes(dateKey) {
     const timesObj = startTimesMap[dateKey] || {};
-    const visibleDepts = userDept ? DEPARTMENTS.filter(d => d === userDept) : DEPARTMENTS;
+    const visibleDepts = userDept
+      ? START_TIME_DEPTS.filter(d => d === userDept)
+      : START_TIME_DEPTS;
+    if (!visibleDepts.length) return null;
     return (
       <div style={{ marginBottom: '8px' }}>
         <label style={subLabel}>⏰ Giờ bắt đầu (theo bộ phận)</label>
@@ -348,7 +352,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
               <span style={{ fontSize: '0.62rem', color: '#7878a0', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
               <input
                 type="time"
-                value={timesObj[dept] || ''}
+                value={timesObj[dept] ?? '08:30'}
                 onChange={e => setStartTime(dateKey, dept, e.target.value)}
                 style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.8rem', outline: 'none', flexShrink: 0 }}
               />
