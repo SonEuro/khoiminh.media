@@ -1004,6 +1004,7 @@ export default function WorkSchedule() {
 
                 return (
                   <div key={phase.key} style={sectionStyle}>
+                    {/* Phase header */}
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'8px' }}>
                       <p style={{ fontWeight:700, color:GOLD, margin:0 }}>
                         {phase.label}{dates.length ? ' — ' : ''}
@@ -1017,120 +1018,140 @@ export default function WorkSchedule() {
                       {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
                     </div>
 
-                    {/* Nhóm trưởng */}
-                    {flatLeads.length > 0 && (
-                      <div style={{ marginBottom: '8px' }}>
-                        {perDate && leadsMapD ? dates.map(date => {
-                          const dLeads = (leadsMapD[date] || []).filter(l => !viewerDept || l.department === viewerDept);
-                          return dLeads.length ? (
-                            <div key={date}>
-                              {renderDateHdr(date)}
-                              {dLeads.map((l, i) => <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>)}
-                            </div>
-                          ) : null;
-                        }) : flatLeads.map((l, i) => (
-                          <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Nhân sự Khôi Minh */}
-                    {staff.length > 0 && (
-                      <div style={{ marginBottom: '8px' }}>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                        {perDate && kmMapD ? dates.map(date => {
-                          const dayStaff = (kmMapD[date] || []).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
-                          if (!dayStaff.length) return null;
-                          const byDept = dayStaff.reduce((acc, n) => {
-                            const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                            (acc[d] = acc[d] || []).push(n); return acc;
-                          }, {});
-                          return (
-                            <div key={date}>
-                              {renderDateHdr(date)}
-                              {Object.entries(byDept).map(([dept, members]) => (
+                    {perDate ? dates.map(date => {
+                      /* Nhóm trưởng theo ngày */
+                      const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads)
+                        .filter(l => !viewerDept || l.department === viewerDept);
+                      /* KM staff theo ngày */
+                      const dayStaff = (kmMapD ? (kmMapD[date] || []) : staff)
+                        .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                      const byDeptKM = dayStaff.reduce((acc, n) => {
+                        const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                        (acc[d] = acc[d] || []).push(n); return acc;
+                      }, {});
+                      /* Freelancer theo ngày */
+                      let freeDepts = [];
+                      if (isNewFree && freeMapD) {
+                        const dateVal = freeMapD[date] || {};
+                        freeDepts = Object.entries(dateVal)
+                          .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
+                          .map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)])
+                          .filter(([, ns]) => ns.length > 0);
+                      }
+                      /* Ghi chú theo ngày */
+                      const noteVal = notesMapD[date];
+                      const noteDepts = (noteVal && typeof noteVal === 'object')
+                        ? Object.entries(noteVal).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
+                        : [];
+                      const noteStr = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
+                      const hasNote = noteDepts.length > 0 || noteStr;
+                      if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote) return null;
+                      return (
+                        <div key={date}>
+                          {renderDateHdr(date)}
+                          {dLeads.map((l, i) => (
+                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
+                          ))}
+                          {dayStaff.length > 0 && (
+                            <div style={{ marginTop: '4px' }}>
+                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                              {Object.entries(byDeptKM).map(([dept, members]) => (
                                 <div key={dept} style={{ marginBottom: '2px' }}>
                                   <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
                                   {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
                                 </div>
                               ))}
                             </div>
-                          );
-                        }) : Object.entries(staff.reduce((acc, n) => {
-                          const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                          (acc[d] = acc[d] || []).push(n); return acc;
-                        }, {})).map(([dept, members]) => (
-                          <div key={dept} style={{ marginBottom: '3px' }}>
-                            <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                            {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Freelancer */}
-                    {(hasNewFree || filteredFree.length > 0) && (
-                      <div style={{ marginBottom: '8px' }}>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
-                        {isNewFree ? dates.map(date => {
-                          const dateVal = freeMapD[date] || {};
-                          const depts = Object.entries(dateVal)
-                            .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
-                          if (!depts.length) return null;
-                          return (
-                            <div key={date}>
-                              {perDate && renderDateHdr(date)}
-                              {depts.map(([dept, names]) => {
-                                const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
-                                return nameList.length ? (
-                                  <div key={dept} style={{ marginBottom: '2px' }}>
-                                    <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
-                                    {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
-                                  </div>
-                                ) : null;
-                              })}
+                          )}
+                          {freeDepts.length > 0 && (
+                            <div style={{ marginTop: '4px' }}>
+                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                              {freeDepts.map(([dept, nameList]) => (
+                                <div key={dept} style={{ marginBottom: '2px' }}>
+                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
+                                  {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
+                                </div>
+                              ))}
                             </div>
-                          );
-                        }) : freelancerGroups.map(([dept, members]) => (
-                          <div key={dept} style={{ marginBottom: '3px' }}>
-                            <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
-                            {members.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
-                          </div>
+                          )}
+                          {hasNote && (
+                            <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+                              {noteDepts.map(([dept, note]) => (
+                                <div key={dept}>
+                                  <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
+                                  <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'18px' }}>{note}</p>
+                                </div>
+                              ))}
+                              {noteStr && <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{noteStr}</p>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }) : (
+                      /* Một ngày: hiển thị flat không có date header */
+                      <>
+                        {flatLeads.length > 0 && flatLeads.map((l, i) => (
+                          <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
                         ))}
-                      </div>
-                    )}
-
-                    {/* Ghi chú */}
-                    {hasNotes && (
-                      <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
-                        {dates.map(date => {
-                          const val = notesMapD[date];
-                          if (!val) return null;
-                          if (isNewNotes && typeof val === 'object') {
-                            const depts = Object.entries(val)
-                              .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
-                            return depts.length ? (
-                              <div key={date}>
-                                {perDate && renderDateHdr(date)}
-                                {depts.map(([dept, note]) => (
+                        {staff.length > 0 && (
+                          <div style={{ marginBottom: '8px', marginTop: flatLeads.length ? '4px' : 0 }}>
+                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                            {Object.entries(staff.reduce((acc, n) => {
+                              const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                              (acc[d] = acc[d] || []).push(n); return acc;
+                            }, {})).map(([dept, members]) => (
+                              <div key={dept} style={{ marginBottom: '3px' }}>
+                                <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
+                                {members.map(n => <div key={n} style={kmItemStyle}>• {n}</div>)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(hasNewFree || filteredFree.length > 0) && (
+                          <div style={{ marginBottom: '8px' }}>
+                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                            {isNewFree ? dates.map(date => {
+                              const dateVal = freeMapD[date] || {};
+                              return Object.entries(dateVal)
+                                .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
+                                .map(([dept, names]) => {
+                                  const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
+                                  return nameList.length ? (
+                                    <div key={dept} style={{ marginBottom: '2px' }}>
+                                      <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
+                                      {nameList.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
+                                    </div>
+                                  ) : null;
+                                });
+                            }) : freelancerGroups.map(([dept, members]) => (
+                              <div key={dept} style={{ marginBottom: '3px' }}>
+                                <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.7rem', display:'block' }}>{dept}:</span>
+                                {members.map(n => <div key={n} style={freeItemStyle}>• {n}</div>)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {hasNotes && (
+                          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+                            {dates.map(date => {
+                              const val = notesMapD[date];
+                              if (!val) return null;
+                              if (typeof val === 'object') {
+                                const depts = Object.entries(val).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
+                                return depts.map(([dept, note]) => (
                                   <div key={dept}>
                                     <span style={{ color:'#7878a0', fontWeight:700, fontSize:'0.68rem', display:'block', paddingLeft:'10px' }}>{dept}:</span>
                                     <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'18px' }}>{note}</p>
                                   </div>
-                                ))}
-                              </div>
-                            ) : null;
-                          }
-                          // Old format: string
-                          return val?.trim() ? (
-                            <div key={date}>
-                              {perDate && renderDateHdr(date)}
-                              <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
+                                ));
+                              }
+                              return val?.trim() ? <p key={date} style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p> : null;
+                            })}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 );
