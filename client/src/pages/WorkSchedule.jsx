@@ -573,7 +573,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
   }
 
   async function submit() {
-    if (!form.event_name?.trim()) { setError('Vui lòng chọn hoặc nhập tên sự kiện'); return; }
+    if (!form.event_id) { setError('Vui lòng chọn sự kiện trước khi tạo lịch'); return; }
     setSaving(true); setError('');
     try {
       if (initial?.id) await api.updateWorkSchedule(initial.id, form);
@@ -587,18 +587,8 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
     <Modal title={initial?.id ? `Chỉnh sửa lịch — ${initial.event_name}` : 'Tạo lịch làm việc mới'} onClose={onClose} size="xl">
       <div className="space-y-4">
         <div style={sectionStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <label style={{ ...labelStyle, marginBottom: 0 }}>Sự kiện</label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.75rem', color: '#7878a0' }}>
-              <input type="checkbox" checked={form.manualEvent}
-                onChange={e => setForm(f => ({ ...f, manualEvent: e.target.checked, event_id: e.target.checked ? null : f.event_id }))} />
-              Nhập thủ công
-            </label>
-          </div>
-          {form.manualEvent ? (
-            <input className="input" placeholder="Nhập tên sự kiện..."
-              value={form.event_name} onChange={e => setForm(f => ({ ...f, event_name: e.target.value }))} />
-          ) : (
+          <div style={{ marginBottom: '10px' }}>
+            <label style={labelStyle}>Sự kiện</label>
             <select className="input" value={form.event_id || ''}
               onChange={e => {
                 const val = e.target.value;
@@ -608,11 +598,11 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
               }}>
               <option value="">-- Chọn sự kiện --</option>
               {form.event_id && !events.some(ev => ev.id === form.event_id) && (
-                <option value={form.event_id}>{form.event_name} (sự kiện cũ, không còn trong danh sách)</option>
+                <option value={form.event_id}>{form.event_name}</option>
               )}
               {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name} {ev.start_date ? `(${fmtD(ev.start_date)})` : ''}</option>)}
             </select>
-          )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ marginTop: '12px' }}>
             <div>
