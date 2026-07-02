@@ -952,6 +952,18 @@ export default function ExportForm() {
                         fontWeight: row.name ? 700 : 400, fontSize:'0.9rem', outline:'none',
                       }}
                     />
+                    {/* Dòng 3: Ghi chú */}
+                    <input
+                      placeholder="Ghi chú..."
+                      value={row.notes || ''}
+                      onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, notes: e.target.value } : r))}
+                      style={{
+                        width:'100%', height:'34px', padding:'0 10px', boxSizing:'border-box', marginTop:'5px',
+                        background:'rgba(255,255,255,0.03)',
+                        border:'1px solid rgba(255,255,255,0.1)',
+                        borderRadius:'8px', color:'#c9b98a', fontSize:'0.82rem', outline:'none', fontStyle:'italic',
+                      }}
+                    />
                   </div>
                 ))}
               </div>
