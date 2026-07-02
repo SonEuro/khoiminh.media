@@ -629,7 +629,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                       onBlur={e => updateQty(idx, e.target.value, true)}
                       style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
                     />
-                    <span style={{ flexShrink:0, whiteSpace:'nowrap', fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
+                    <span style={{ width:'58px', flexShrink:0, fontSize:'0.72rem', color:'#7878a0', textAlign:'left' }}>{it.unit}</span>
                     <button onClick={() => removeItem(idx)}
                       style={{ width:'30px', height:'30px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>✕</button>
                   </div>
