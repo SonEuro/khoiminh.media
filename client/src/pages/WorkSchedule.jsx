@@ -635,6 +635,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
 // ── Section: Lịch của tôi (đang diễn ra + sắp tới) ─────────────────────────────
 function MySchedulesSection({ schedules, user, onSelect }) {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
   const userName = user?.full_name || '';
   const userId = user?.id;
 
@@ -681,10 +682,15 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       >
         <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
-          {s.setup_dates?.length > 0 && <span>🏗 {s.setup_dates.map(d => fmtD(d)).join(' · ')}</span>}
-          {s.teardown_dates?.length > 0 && <span>📦 {s.teardown_dates.map(d => fmtD(d)).join(' · ')}</span>}
-          {s.rehearsal_dates?.length > 0 && <span>🎤 {s.rehearsal_dates.map(d => fmtD(d)).join(' · ')}</span>}
-          {s.filming_dates?.length > 0 && <span>🎬 {s.filming_dates.map(d => fmtD(d)).join(' · ')}</span>}
+          {[['🏗', s.setup_dates], ['📦', s.teardown_dates], ['🎤', s.rehearsal_dates], ['🎬', s.filming_dates]].map(([icon, dates]) =>
+            dates?.length > 0 && (
+              <span key={icon}>{icon} {dates.map((d, i) => (
+                <span key={d} style={d === today ? { color: '#4ade80', fontWeight: 800 } : d === tomorrow ? { color: '#60a5fa', fontWeight: 800 } : undefined}>
+                  {i > 0 && ' · '}{fmtD(d)}
+                </span>
+              ))}</span>
+            )
+          )}
           {s.location && <span>📍 {s.location}</span>}
         </div>
       </div>
