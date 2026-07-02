@@ -61,10 +61,10 @@ const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
   setup_date: [], teardown_date: [], rehearsal_date: [], filming_date: [],
-  setup_leads: {}, setup_km_staff: {}, setup_freelancers: {}, setup_notes: {},
-  teardown_leads: {}, teardown_km_staff: {}, teardown_freelancers: {}, teardown_notes: {},
-  rehearsal_leads: {}, rehearsal_km_staff: {}, rehearsal_freelancers: {}, rehearsal_notes: {},
-  filming_leads: {}, filming_km_staff: {}, filming_freelancers: {}, filming_notes: {},
+  setup_leads: {}, setup_km_staff: {}, setup_freelancers: {}, setup_notes: {}, setup_start_times: {},
+  teardown_leads: {}, teardown_km_staff: {}, teardown_freelancers: {}, teardown_notes: {}, teardown_start_times: {},
+  rehearsal_leads: {}, rehearsal_km_staff: {}, rehearsal_freelancers: {}, rehearsal_notes: {}, rehearsal_start_times: {},
+  filming_leads: {}, filming_km_staff: {}, filming_freelancers: {}, filming_notes: {}, filming_start_times: {},
 };
 
 function initPerDateMap(map, flat, dates, isString) {
@@ -302,11 +302,12 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null }) {
-  const leadsMap       = form[`${phase.key}_leads`]       || {};
-  const kmMap          = form[`${phase.key}_km_staff`]    || {};
-  const freelancersMap = form[`${phase.key}_freelancers`] || {};
-  const notesMap       = form[`${phase.key}_notes`]       || {};
-  const dates          = form[`${phase.key}_date`]        || [];
+  const leadsMap        = form[`${phase.key}_leads`]        || {};
+  const kmMap           = form[`${phase.key}_km_staff`]     || {};
+  const freelancersMap  = form[`${phase.key}_freelancers`]  || {};
+  const notesMap        = form[`${phase.key}_notes`]        || {};
+  const startTimesMap   = form[`${phase.key}_start_times`]  || {};
+  const dates           = form[`${phase.key}_date`]         || [];
   const [showAddRow, setShowAddRow] = useState({});
   const multiDate      = dates.length > 1;
   const singleKey      = dates[0] || '_all';
@@ -330,6 +331,32 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
   function setNote(dateKey, dept, val) {
     const cur = typeof notesMap[dateKey] === 'object' ? (notesMap[dateKey] || {}) : {};
     set(`${phase.key}_notes`, { ...notesMap, [dateKey]: { ...cur, [dept]: val } });
+  }
+  function setStartTime(dateKey, dept, val) {
+    const cur = startTimesMap[dateKey] || {};
+    set(`${phase.key}_start_times`, { ...startTimesMap, [dateKey]: { ...cur, [dept]: val } });
+  }
+  function renderStartTimes(dateKey) {
+    const timesObj = startTimesMap[dateKey] || {};
+    const visibleDepts = userDept ? DEPARTMENTS.filter(d => d === userDept) : DEPARTMENTS;
+    return (
+      <div style={{ marginBottom: '8px' }}>
+        <label style={subLabel}>⏰ Giờ bắt đầu (theo bộ phận)</label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 10px' }}>
+          {visibleDepts.map(dept => (
+            <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.62rem', color: '#7878a0', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
+              <input
+                type="time"
+                value={timesObj[dept] || ''}
+                onChange={e => setStartTime(dateKey, dept, e.target.value)}
+                style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#e8c97a', fontSize: '0.8rem', outline: 'none', flexShrink: 0 }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   function renderFreelancerNotes(dateKey) {
@@ -398,6 +425,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
     const dayExcluded = dayLeads.map(l => l.name).filter(Boolean);
     return (
       <>
+        {renderStartTimes(dateKey)}
         <div style={{ marginBottom: '8px' }}>
           <label style={subLabel}>Nhóm trưởng</label>
           <LeadsEditor leads={dayLeads} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [dateKey]: v })} restrictDept={userDept} />
@@ -433,6 +461,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
         </div>
       ) : (
         <>
+          {renderStartTimes(singleKey)}
           <div style={{ marginBottom: '10px' }}>
             <label style={labelStyle}>Nhóm trưởng (theo bộ phận)</label>
             <LeadsEditor leads={leadsMap[singleKey] || []} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [singleKey]: v })} restrictDept={userDept} />
@@ -469,8 +498,9 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose }) {
     ...Object.fromEntries(PHASES.flatMap(p => [
       [`${p.key}_km_staff`,    initPerDateMap(initial[`${p.key}_km_staff_map`],    initial[`${p.key}_km_staff`],    initial[`${p.key}_dates`] || [], false)],
       [`${p.key}_leads`,       initPerDateMap(initial[`${p.key}_leads_map`],       initial[`${p.key}_leads`],       initial[`${p.key}_dates`] || [], false)],
-      [`${p.key}_freelancers`, (() => { const m = initial[`${p.key}_freelancers_map`]; if (!m) return {}; const vals = Object.values(m); return (vals.length && vals[0] && typeof vals[0] === 'object') ? m : {}; })()],
-      [`${p.key}_notes`,       initial[`${p.key}_notes`] || {}],
+      [`${p.key}_freelancers`,  (() => { const m = initial[`${p.key}_freelancers_map`]; if (!m) return {}; const vals = Object.values(m); return (vals.length && vals[0] && typeof vals[0] === 'object') ? m : {}; })()],
+      [`${p.key}_notes`,        initial[`${p.key}_notes`]       || {}],
+      [`${p.key}_start_times`,  initial[`${p.key}_start_times`] || {}],
     ])),
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -970,14 +1000,18 @@ export default function WorkSchedule() {
                   if (!dateVal || typeof dateVal !== 'object') return false;
                   return viewerDept ? !!dateVal[viewerDept]?.trim() : Object.values(dateVal).some(v => v?.trim());
                 });
-                const notesMapD  = selected[`${phase.key}_notes`] || {};
+                const notesMapD     = selected[`${phase.key}_notes`]       || {};
+                const startTimesMapD = selected[`${phase.key}_start_times`] || {};
                 const isNewNotes = Object.values(notesMapD).some(v => v && typeof v === 'object');
                 const hasNotes   = Object.values(notesMapD).some(v => {
                   if (typeof v === 'string') return v.trim();
                   if (v && typeof v === 'object') return viewerDept ? !!v[viewerDept]?.trim() : Object.values(v).some(n => n?.trim());
                   return false;
                 });
-                if (!flatLeads.length && !staff.length && !filteredFree.length && !hasNewFree && !hasNotes) return null;
+                const hasStartTimes = Object.values(startTimesMapD).some(v =>
+                  v && typeof v === 'object' ? Object.values(v).some(t => t?.trim()) : false
+                );
+                if (!flatLeads.length && !staff.length && !filteredFree.length && !hasNewFree && !hasNotes && !hasStartTimes) return null;
                 const freelancerGroups = groupFreelancersByDept(filteredFree.join(', '));
                 const leadsMapD  = selected[`${phase.key}_leads_map`];
                 const kmMapD     = selected[`${phase.key}_km_staff_map`];
@@ -1045,10 +1079,23 @@ export default function WorkSchedule() {
                         : [];
                       const noteStr = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
                       const hasNote = noteDepts.length > 0 || noteStr;
-                      if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote) return null;
+                      /* Giờ bắt đầu theo ngày */
+                      const dayTimes = startTimesMapD[date] || {};
+                      const timeDepts = Object.entries(dayTimes)
+                        .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept));
+                      if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote && !timeDepts.length) return null;
                       return (
                         <div key={date}>
                           {renderDateHdr(date)}
+                          {timeDepts.length > 0 && (
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 12px', marginBottom:'6px', paddingLeft:'4px' }}>
+                              {timeDepts.map(([dept, time]) => (
+                                <span key={dept} style={{ fontSize:'0.72rem', color:'#e8c97a', fontWeight:700 }}>
+                                  ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           {dLeads.map((l, i) => (
                             <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color:'#7878a0' }}>({l.department})</span></div>
                           ))}
