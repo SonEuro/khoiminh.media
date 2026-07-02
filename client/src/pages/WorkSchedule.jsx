@@ -1205,17 +1205,21 @@ export default function WorkSchedule() {
                 return (
                   <div key={phase.key} style={sectionStyle}>
                     {/* Phase header */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'8px' }}>
-                      <p style={{ fontWeight:700, color:GOLD, margin:0 }}>
-                        {phase.label}{dates.length ? ' — ' : ''}
-                        {dates.map((d, i) => (
-                          <span key={d} style={d === todayStr ? {color:'#f87171'} : d === tomorrowStr ? {color:'#4ade80'} : undefined}>
-                            {i > 0 && ' · '}{fmtD(d)}
-                          </span>
-                        ))}
-                      </p>
-                      {dates.some(d => d === todayStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
-                      {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                    <div style={{ marginBottom:'8px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                        <p style={{ fontWeight:700, color:GOLD, margin:0, flexShrink:0 }}>{phase.label}</p>
+                        {dates.length > 0 && (
+                          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'2px 0' }}>
+                            {dates.map((d, i) => (
+                              <span key={d} style={{ display:'inline-block', whiteSpace:'nowrap', fontWeight:700, color: d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : GOLD }}>
+                                {i > 0 && <span style={{ color:'#7878a0', margin:'0 4px' }}>·</span>}{fmtD(d)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.63rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
+                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                      </div>
                     </div>
 
                     {perDate ? dates.map(date => {
