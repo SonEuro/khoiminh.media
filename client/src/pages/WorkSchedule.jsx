@@ -823,6 +823,7 @@ export default function WorkSchedule() {
         }).map(s => {
           const isToday    = PHASES.some(p => (s[`${p.key}_dates`] || []).includes(todayStr));
           const isTomorrow = !isToday && PHASES.some(p => (s[`${p.key}_dates`] || []).includes(tomorrowStr));
+          const isPast     = !isToday && nearestUpcoming(s) === null;
           const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
           function renderDates(key, datesArr) {
             if (!datesArr?.length) return null;
@@ -843,6 +844,7 @@ export default function WorkSchedule() {
             border: isToday ? '1px solid rgba(74,222,128,0.45)' : isTomorrow ? '1px solid rgba(96,165,250,0.3)' : '1px solid rgba(255,255,255,0.08)',
             borderRadius: '12px', padding: '16px',
             boxShadow: isToday ? '0 0 18px rgba(74,222,128,0.1)' : isTomorrow ? '0 0 14px rgba(96,165,250,0.07)' : 'none',
+            opacity: isPast ? 0.5 : 1,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
               <div>
@@ -856,6 +858,11 @@ export default function WorkSchedule() {
                   {isTomorrow && (
                     <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.07em', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa' }}>
                       NGÀY MAI
+                    </span>
+                  )}
+                  {isPast && (
+                    <span style={{ padding: '2px 9px', borderRadius: '999px', fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.06em', background: 'rgba(120,120,160,0.12)', border: '1px solid rgba(120,120,160,0.25)', color: '#7878a0' }}>
+                      ĐÃ QUA
                     </span>
                   )}
                 </div>
