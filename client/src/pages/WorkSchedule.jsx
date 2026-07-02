@@ -214,22 +214,19 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
   );
 }
 
-// ── Autocomplete input cho freelancer theo bộ phận ──────────────────────────────
+// ── Autocomplete input cho freelancer (single name mode) ────────────────────────
 function FreelancerDeptInput({ dept, value, onChange }) {
   const members = FREELANCER_GROUPS.find(g => g.dept === dept)?.members || [];
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
 
-  const parts = value.split(',');
-  const currentWord = parts[parts.length - 1].trim().toLowerCase();
-  const already = parts.slice(0, -1).map(p => p.trim()).filter(Boolean);
-
+  const currentWord = value.trim().toLowerCase();
   const suggestions = members.filter(m =>
-    !already.includes(m) && (currentWord.length === 0 || m.toLowerCase().includes(currentWord))
+    currentWord.length === 0 || m.toLowerCase().includes(currentWord)
   );
 
   function pick(name) {
-    onChange([...already, name].join(', '));
+    onChange(name);
     setOpen(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   }
@@ -239,7 +236,7 @@ function FreelancerDeptInput({ dept, value, onChange }) {
       <input
         ref={inputRef}
         value={value}
-        placeholder={`Tên freelancer ${dept}... (cách nhau dấu phẩy)`}
+        placeholder="Tìm tên freelancer..."
         onChange={e => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
@@ -366,37 +363,48 @@ function PhaseBlock({ phase, form, setForm, userDept = null }) {
   function renderFreelancerNotes(dateKey) {
     const freeDeptObj  = (typeof freelancersMap[dateKey] === 'object' ? freelancersMap[dateKey] : {}) || {};
     const notesDeptObj = (typeof notesMap[dateKey] === 'object'       ? notesMap[dateKey]       : {}) || {};
+
+    // Flatten to individual name entries
+    const nameEntries = visibleFreeDepts.flatMap(dept =>
+      (freeDeptObj[dept] || '').split(',').map(n => n.trim()).filter(Boolean).map(name => ({ dept, name }))
+    );
+    function removeName(dept, nameToRemove) {
+      const names = (freeDeptObj[dept] || '').split(',').map(n => n.trim()).filter(n => n && n !== nameToRemove);
+      setFree(dateKey, dept, names.join(', '));
+    }
+
     return (
       <>
         {visibleFreeDepts.length > 0 && (
           <div style={{ marginBottom: '8px' }}>
             <label style={subLabel}>Freelancer (theo bộ phận)</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {visibleFreeDepts.map(dept => (
-                <div key={dept}>
-                  <span style={deptLbl}>{dept}</span>
-                  <FreelancerDeptInput
-                    dept={dept}
-                    value={freeDeptObj[dept] || ''}
-                    onChange={v => setFree(dateKey, dept, v)}
-                  />
-                </div>
-              ))}
-            </div>
+            {nameEntries.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '5px' }}>
+                {nameEntries.map(({ dept, name }) => (
+                  <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '0.63rem', color: '#7878a0', fontWeight: 600, flexShrink: 0 }}>{dept}</span>
+                    <span style={{ fontSize: '0.82rem', color: '#f87171', flex: 1 }}>{name}</span>
+                    <button
+                      onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
             {showAddRow[dateKey] ? (
               <AddFreelancerRow
                 availableDepts={visibleFreeDepts}
-                onAdd={(dept, names) => {
-                  const cur = typeof freelancersMap[dateKey] === 'object' ? (freelancersMap[dateKey] || {}) : {};
-                  const existing = (cur[dept] || '').trim().replace(/,\s*$/, '');
-                  setFree(dateKey, dept, existing ? `${existing}, ${names}` : names);
+                onAdd={(dept, name) => {
+                  const existing = (freeDeptObj[dept] || '').trim().replace(/,\s*$/, '');
+                  setFree(dateKey, dept, existing ? `${existing}, ${name}` : name);
+                  setShowAddRow(p => ({ ...p, [dateKey]: false }));
                 }}
                 onCancel={() => setShowAddRow(p => ({ ...p, [dateKey]: false }))}
               />
             ) : (
               <button
                 onClick={() => setShowAddRow(p => ({ ...p, [dateKey]: true }))}
-                style={{ marginTop: '6px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
+                style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
                 + Thêm nhân sự freelancer
               </button>
             )}
