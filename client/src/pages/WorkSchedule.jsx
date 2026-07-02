@@ -656,8 +656,8 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
     });
   }, [existingForEvent, userDept]);
 
-  // Có cần chặn tạo mới không?
-  const blockCreate = existingForEvent && (!!user?.is_phan_lich_all || isDeptAssignedInExisting || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role));
+  // Có cần chặn tạo mới không? — luôn chặn nếu event đã có lịch
+  const blockCreate = !!existingForEvent;
 
   // Phát hiện trùng lịch: (tên nhân sự, ngày) đã có trong lịch khác
   const conflicts = useMemo(() => {
@@ -755,13 +755,15 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
           </div>
 
           {existingForEvent && (
-            <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${blockCreate ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.4)'}`, background: blockCreate ? 'rgba(248,113,113,0.07)' : 'rgba(251,191,36,0.06)' }}>
-              <p style={{ fontSize: '0.82rem', color: blockCreate ? '#f87171' : '#fbbf24', marginBottom: blockCreate ? '8px' : 0, fontWeight: 600 }}>
-                {blockCreate
-                  ? `⚠️ Sự kiện này đã có lịch làm việc${isDeptAssignedInExisting && userDept ? ` (bộ phận ${userDept} đã được phân công)` : ''}. Vui lòng chỉnh sửa thay vì tạo mới.`
-                  : `ℹ️ Sự kiện đã có lịch làm việc, nhưng bộ phận ${userDept || 'của bạn'} chưa được phân công.`}
+            <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${isDeptAssignedInExisting || !userDept ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.4)'}`, background: isDeptAssignedInExisting || !userDept ? 'rgba(248,113,113,0.07)' : 'rgba(251,191,36,0.06)' }}>
+              <p style={{ fontSize: '0.82rem', color: isDeptAssignedInExisting || !userDept ? '#f87171' : '#fbbf24', marginBottom: '8px', fontWeight: 600 }}>
+                {isDeptAssignedInExisting && userDept
+                  ? `⚠️ Sự kiện đã có lịch, bộ phận ${userDept} đã được phân công. Vui lòng chỉnh sửa thay vì tạo mới.`
+                  : userDept
+                    ? `ℹ️ Sự kiện đã có lịch làm việc, bộ phận ${userDept} chưa được phân công — chuyển sang chỉnh sửa để bổ sung.`
+                    : '⚠️ Sự kiện này đã có lịch làm việc. Vui lòng chỉnh sửa thay vì tạo mới.'}
               </p>
-              {blockCreate && onSwitchToEdit && (
+              {onSwitchToEdit && (
                 <button
                   type="button"
                   onClick={() => onSwitchToEdit(existingForEvent)}
