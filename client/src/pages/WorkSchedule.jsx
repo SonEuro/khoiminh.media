@@ -1231,7 +1231,7 @@ export default function WorkSchedule() {
                   return (
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'10px 0 5px' }}>
                       <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-                      <span style={{ fontSize:'0.63rem', fontWeight:800, letterSpacing:'0.07em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 10px', whiteSpace:'nowrap' }}>
+                      <span style={{ fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.05em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'4px 14px', whiteSpace:'nowrap' }}>
                         📅 {fmtD(d)}{extra}
                       </span>
                       <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
@@ -1299,7 +1299,7 @@ export default function WorkSchedule() {
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <span key={dept} style={{ fontSize:'0.7rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'2px 8px' }}>
+                                  <span key={dept} style={{ fontSize:'0.82rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'4px 10px' }}>
                                     ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
                                   </span>
                                 );
@@ -1370,7 +1370,7 @@ export default function WorkSchedule() {
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <span key={dept} style={{ fontSize:'0.7rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'2px 8px' }}>
+                                  <span key={dept} style={{ fontSize:'0.82rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'4px 10px' }}>
                                     ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
                                   </span>
                                 );
