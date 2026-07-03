@@ -136,4 +136,5 @@ export const api = {
   updateWorkSchedule: (id, data) => request(`/work-schedules/${id}`, { method: 'PUT', body: data }),
   confirmWorkSchedule: (id) => request(`/work-schedules/${id}/confirm`, { method: 'POST' }),
   deleteWorkSchedule: (id) => request(`/work-schedules/${id}`, { method: 'DELETE' }),
+  getWorkScheduleHistory: (id) => request(`/work-schedules/${id}/history`),
 };

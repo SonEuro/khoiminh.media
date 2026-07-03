@@ -964,6 +964,7 @@ export default function WorkSchedule() {
   const [events, setEvents] = useState([]);
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [scheduleHistory, setScheduleHistory] = useState([]);
 
   const load = useCallback(() => {
     api.getWorkSchedules().then(setSchedules).catch(() => {});
@@ -1043,7 +1044,7 @@ export default function WorkSchedule() {
       <MySchedulesSection
         schedules={schedules}
         user={user}
-        onSelect={(s) => { setSelected(s); setModal('detail'); }}
+        onSelect={(s) => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}
       />
 
       {(() => {
@@ -1094,7 +1095,7 @@ export default function WorkSchedule() {
                 {renderDates('teardown',  s.teardown_dates)}
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); }}>Chi tiết</button>
+                <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
                 {canEdit(s) && <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
                 {s.status === 'draft' && canPhanLich && <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>}
                 {canDelete(s) && <button className="btn-danger btn-sm" onClick={() => handleDelete(s)}>🗑</button>}
@@ -1176,6 +1177,26 @@ export default function WorkSchedule() {
               🏢 Khách hàng: {selected.client || '—'}<br />
               📍 Địa điểm: {selected.location || '—'}
             </p>
+            {scheduleHistory.length > 0 && (
+              <div style={{ marginBottom: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
+                <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {scheduleHistory.map((h, i) => {
+                    const actionLabel = h.action === 'confirm' ? '✅ Xác nhận lịch' : '✏️ Chỉnh sửa';
+                    const actionColor = h.action === 'confirm' ? '#4ade80' : '#a78bfa';
+                    const dt = new Date(h.edited_at);
+                    const dtStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem' }}>
+                        <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
+                        <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
+                        <span style={{ color: '#555570', marginLeft: 'auto', flexShrink: 0, fontFamily: 'monospace', fontSize: '0.7rem' }}>{dtStr}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {(() => {
               const viewerDept = getTruongPhongDept(user);
               return PHASES.map(phase => {

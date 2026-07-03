@@ -237,6 +237,18 @@ if (!extCols.includes('rental_days')) {
   console.log('[DB] Migration: thêm cột rental_days vào external_items');
 }
 
+// Bảng lịch sử chỉnh sửa lịch làm việc
+db.exec(`
+  CREATE TABLE IF NOT EXISTS work_schedule_edits (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id    INTEGER REFERENCES work_schedules(id) ON DELETE CASCADE,
+    edited_by_id   INTEGER,
+    edited_by_name TEXT,
+    action         TEXT DEFAULT 'edit',
+    edited_at      TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
+
 // Bảng lịch sử chỉnh sửa phiếu xuất đã xác nhận
 db.exec(`
   CREATE TABLE IF NOT EXISTS transaction_edits (

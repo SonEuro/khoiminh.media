@@ -224,7 +224,7 @@ export default function Layout() {
     { to: '/transactions',  Icon: History,         label: 'Lịch Sử Vận Hành',        always: true },
     { to: '/export',        Icon: ArrowUpFromLine, label: 'Xuất Thiết Bị\nSự Kiện',  show: can('exportEvent') },
     { to: '/event-return',  Icon: ArrowDownToLine, label: 'Nhập Thiết Bị\nSự Kiện',  show: can('returnEvent') },
-    { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('intake') || can('confirmFix') },
+    { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('viewIntakePage') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
   ].filter(item => item.always || item.show);

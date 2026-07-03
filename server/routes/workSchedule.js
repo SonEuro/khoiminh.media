@@ -175,6 +175,8 @@ router.put('/:id', (req, res) => {
   }
   const setSql = cols.map(c => `${c} = ?`).join(', ');
   db.prepare(`UPDATE work_schedules SET ${setSql} WHERE id = ?`).run(...vals, req.params.id);
+  db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'edit')`)
+    .run(req.params.id, req.user.id, req.user.full_name);
   res.json({ ok: true });
 });
 
@@ -184,7 +186,16 @@ router.post('/:id/confirm', canPhanLich, (req, res) => {
   if (sched.status === 'confirmed') return res.status(400).json({ error: 'Lịch đã được xác nhận' });
   db.prepare(`UPDATE work_schedules SET status = 'confirmed', confirmed_at = datetime('now','localtime'), confirmed_by_id = ? WHERE id = ?`)
     .run(req.user.id, req.params.id);
+  db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'confirm')`)
+    .run(req.params.id, req.user.id, req.user.full_name);
   res.json({ ok: true });
+});
+
+router.get('/:id/history', (req, res) => {
+  const rows = db.prepare(
+    `SELECT edited_by_name, action, edited_at FROM work_schedule_edits WHERE schedule_id = ? ORDER BY edited_at DESC LIMIT 50`
+  ).all(req.params.id);
+  res.json(rows);
 });
 
 router.delete('/:id', (req, res) => {
