@@ -201,20 +201,20 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
           if (restrictDept && row.department !== restrictDept) return null;
           const members = KM_STAFF_GROUPS.find(g => g.dept === row.department)?.members || [];
           return (
-            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <div style={{ flex: 1, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {!restrictDept && (
-                <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ flex: '1 1 110px', fontSize: '0.82rem', height: '36px' }}>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '7px 8px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '8px' }}>
+              {!restrictDept && (
+                <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ fontSize: '0.82rem', height: '34px' }}>
                   {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
-                )}
-                <select className="input" value={row.name} onChange={e => updateRow(i, 'name', e.target.value)} style={{ flex: '1 1 110px', fontSize: '0.82rem', height: '36px' }}>
+              )}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <select className="input" value={row.name} onChange={e => updateRow(i, 'name', e.target.value)} style={{ flex: 1, fontSize: '0.82rem', height: '34px' }}>
                   <option value="">-- Chọn nhóm trưởng --</option>
                   {members.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
+                <button type="button" onClick={() => removeRow(i)}
+                  style={{ width: '32px', height: '34px', flexShrink: 0, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '7px', color: '#f87171', cursor: 'pointer' }}>×</button>
               </div>
-              <button type="button" onClick={() => removeRow(i)}
-                style={{ width: '32px', flexShrink: 0, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '7px', color: '#f87171', cursor: 'pointer' }}>×</button>
             </div>
           );
         })}
@@ -285,28 +285,30 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
   }
 
   return (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', padding: '7px 8px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px', padding: '8px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: '8px' }}>
       {availableDepts.length > 1 ? (
         <select value={dept} onChange={e => setDept(e.target.value)}
-          style={{ height: '30px', padding: '0 4px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.75rem', outline: 'none', flexShrink: 0, cursor: 'pointer' }}>
+          style={{ width: '100%', height: '32px', padding: '0 8px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
           {availableDepts.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       ) : (
-        <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0, padding: '0 2px' }}>{dept}</span>
+        <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 700, padding: '0 2px' }}>{dept}</span>
       )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <FreelancerDeptInput dept={dept} value={name} onChange={setName} />
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <FreelancerDeptInput dept={dept} value={name} onChange={setName} />
+        </div>
+        <button
+          onMouseDown={e => { e.preventDefault(); handleAdd(); }}
+          style={{ height: '30px', padding: '0 10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+          + Thêm
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); onCancel(); }}
+          style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
+          ✕
+        </button>
       </div>
-      <button
-        onMouseDown={e => { e.preventDefault(); handleAdd(); }}
-        style={{ height: '30px', padding: '0 10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
-        + Thêm
-      </button>
-      <button
-        onMouseDown={e => { e.preventDefault(); onCancel(); }}
-        style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
-        ✕
-      </button>
     </div>
   );
 }
@@ -319,30 +321,32 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
   const members = (KM_STAFF_GROUPS.find(g => g.dept === dept)?.members || []).filter(m => !excluded.includes(m));
 
   return (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', padding: '7px 8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px', padding: '8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
       {kmDepts.length > 1 ? (
         <select value={dept} onChange={e => { setDept(e.target.value); setName(''); }}
-          style={{ height: '30px', padding: '0 4px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.75rem', outline: 'none', flexShrink: 0, cursor: 'pointer' }}>
+          style={{ width: '100%', height: '32px', padding: '0 8px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
           {kmDepts.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       ) : (
-        <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, flexShrink: 0, padding: '0 2px' }}>{dept}</span>
+        <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, padding: '0 2px' }}>{dept}</span>
       )}
-      <select value={name} onChange={e => setName(e.target.value)}
-        style={{ flex: 1, height: '30px', padding: '0 6px', background: '#161628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
-        <option value="">-- Chọn nhân sự --</option>
-        {members.map(m => <option key={m} value={m}>{m}</option>)}
-      </select>
-      <button
-        onMouseDown={e => { e.preventDefault(); if (!name) return; onAdd(name); setName(''); }}
-        style={{ height: '30px', padding: '0 10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
-        + Thêm
-      </button>
-      <button
-        onMouseDown={e => { e.preventDefault(); onCancel(); }}
-        style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
-        ✕
-      </button>
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <select value={name} onChange={e => setName(e.target.value)}
+          style={{ flex: 1, height: '30px', padding: '0 6px', background: '#161628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
+          <option value="">-- Chọn nhân sự --</option>
+          {members.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <button
+          onMouseDown={e => { e.preventDefault(); if (!name) return; onAdd(name); setName(''); }}
+          style={{ height: '30px', padding: '0 10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+          + Thêm
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); onCancel(); }}
+          style={{ height: '30px', padding: '0 7px', background: 'none', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>
+          ✕
+        </button>
+      </div>
     </div>
   );
 }
