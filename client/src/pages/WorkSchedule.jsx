@@ -1184,7 +1184,12 @@ export default function WorkSchedule() {
                   .filter(l => !viewerDept || l.department === viewerDept);
                 const staff = (selected[`${phase.key}_km_staff`] || [])
                   .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
-                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).slice().sort();
+                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).slice().sort((a, b) => {
+                  const af = a >= todayStr, bf = b >= todayStr;
+                  if (af && !bf) return -1;
+                  if (!af && bf) return 1;
+                  return a.localeCompare(b);
+                });
                 const freeMapD   = selected[`${phase.key}_freelancers_map`];
                 const isNewFree  = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
                 // Old format fallback
