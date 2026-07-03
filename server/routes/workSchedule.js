@@ -16,11 +16,11 @@ function canEditSchedule(sched, user) {
 }
 
 function canDeleteSchedule(sched, user) {
+  if (sched.status !== 'draft') return user.role === 'SUPER_ADMIN';
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
-  if (!!user.is_phan_lich_all) return sched.status === 'draft';
-  if (!!user.is_truong_phong) return sched.status === 'draft';
-  if (sched.status === 'draft') return !!user.is_phan_lich;
-  return sched.scheduler_user_id === user.id;
+  if (!!user.is_phan_lich_all) return true;
+  if (!!user.is_truong_phong) return true;
+  return !!user.is_phan_lich || sched.scheduler_user_id === user.id;
 }
 
 const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];

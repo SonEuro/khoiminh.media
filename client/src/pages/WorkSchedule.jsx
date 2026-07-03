@@ -1002,11 +1002,11 @@ export default function WorkSchedule() {
   }
 
   function canDelete(s) {
+    if (s.status !== 'draft') return user?.role === 'SUPER_ADMIN';
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
-    if (!!user?.is_phan_lich_all) return s.status === 'draft';
-    if (!!user?.is_truong_phong) return s.status === 'draft' && !isPastSchedule(s);
-    if (s.status === 'draft') return !!user?.is_phan_lich;
-    return s.scheduler_user_id === user?.id;
+    if (!!user?.is_phan_lich_all) return true;
+    if (!!user?.is_truong_phong) return !isPastSchedule(s);
+    return !!user?.is_phan_lich || s.scheduler_user_id === user?.id;
   }
 
   async function handleConfirm(s) {
