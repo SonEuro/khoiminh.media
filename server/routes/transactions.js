@@ -11,6 +11,13 @@ function canTransact(req, res, next) {
 const canIntake   = requireRole('SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING');
 const canFix      = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 
+function logEdit(txId, user, reason, itemsBefore = [], itemsAfter = []) {
+  try {
+    db.prepare(`INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after) VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(txId, user.id, user.full_name, reason, JSON.stringify(itemsBefore), JSON.stringify(itemsAfter));
+  } catch (_) {}
+}
+
 function checkDept(user, equipmentIds) {
   const cats = user.deptCats;
   if (!cats) return null;
@@ -219,7 +226,7 @@ router.get('/:id', (req, res) => {
   let edits = [];
   try {
     edits = db.prepare(
-      'SELECT * FROM transaction_edits WHERE transaction_id = ? ORDER BY created_at ASC'
+      'SELECT * FROM transaction_edits WHERE transaction_id = ? ORDER BY created_at DESC'
     ).all(req.params.id);
   } catch (_) {}
 
@@ -289,6 +296,7 @@ router.post('/out', canTransact, (req, res) => {
   try {
     const result = doOut();
     res.json(result);
+    logEdit(result.id, req.user, result._pending ? 'Tạo phiếu xuất tạm' : 'Tạo phiếu xuất kho');
     // Notification (fire-and-forget)
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id);
     const label = result._pending ? '📋 Phiếu xuất tạm' : '📋 Phiếu xuất mới';
@@ -323,6 +331,7 @@ router.post('/confirm/:id', canTransact, (req, res) => {
 
   try {
     res.json(doConfirm());
+    logEdit(tx.id, req.user, 'Xác nhận xuất kho');
     const ev = tx.event_id ? db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id) : null;
     notifyAll(`✅ Xác nhận xuất kho: ${tx.code}\n🗓 Sự kiện: ${ev?.name || '—'}\n👤 ${tx.responsible_person || '—'}`).catch(() => {});
   } catch (e) {
@@ -378,7 +387,9 @@ router.post('/return', canTransact, (req, res) => {
   });
 
   try {
-    res.json(doReturn());
+    const result = doReturn();
+    res.json(result);
+    logEdit(result.id, req.user, 'Tạo phiếu nhập kho');
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -436,6 +447,7 @@ router.post('/intake', canIntake, (req, res) => {
   try {
     const result = doIntake();
     res.json(result);
+    logEdit(result.id, req.user, 'Tạo phiếu nhập kho mới');
     notifyAll(`📦 Nhập kho mới: ${result.code}\n👤 ${responsible_person || '—'}\n🔢 ${validItems.length} thiết bị${department ? `\n🏢 ${department}` : ''}`).catch(() => {});
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
@@ -472,7 +484,9 @@ router.post('/fix', canFix, (req, res) => {
   });
 
   try {
-    res.json(doFix());
+    const result = doFix();
+    res.json(result);
+    logEdit(result.id, req.user, 'Tạo phiếu xác nhận sửa chữa');
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -520,6 +534,7 @@ router.put('/:id/items', canTransact, (req, res) => {
   try {
     doUpdate();
     res.json({ ok: true });
+    logEdit(parseInt(req.params.id), req.user, 'Chỉnh sửa danh sách thiết bị (phiếu tạm)');
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
