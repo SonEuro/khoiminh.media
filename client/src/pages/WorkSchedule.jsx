@@ -1355,6 +1355,24 @@ export default function WorkSchedule() {
                     }) : (
                       /* Một ngày: hiển thị flat không có date header */
                       <>
+                        {(() => {
+                          const singleTimeDepts = dates.flatMap(date =>
+                            Object.entries(startTimesMapD[date] || {})
+                              .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept))
+                          );
+                          return singleTimeDepts.length > 0 && (
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 10px', marginBottom:'6px', paddingLeft:'4px' }}>
+                              {singleTimeDepts.map(([dept, time]) => {
+                                const dc = getDeptColor(dept);
+                                return (
+                                  <span key={dept} style={{ fontSize:'0.7rem', color: dc.color, fontWeight:700, background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'6px', padding:'2px 8px' }}>
+                                    ⏰ {dept}: <span style={{ color:'#fbbf24' }}>{time}</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                         {flatLeads.length > 0 && flatLeads.map((l, i) => {
                           const dc = getDeptColor(l.department);
                           return (
