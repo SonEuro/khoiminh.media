@@ -1,0 +1,37 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to 103.15.51.119
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 103.15.51.119
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            echo "━━━ [1/4] Pull code mới nhất ━━━"
+            cd /var/www/kho-khoiminh
+            git pull origin main
+
+            echo "━━━ [2/4] Cài dependencies ━━━"
+            npm install
+
+            echo "━━━ [3/4] Build frontend ━━━"
+            npm run build
+
+            echo "━━━ [4/4] Reload PM2 ━━━"
+            pm2 reload kho-khoiminh --update-env
+            pm2 save
+
+            echo ""
+            echo "✅ Deploy thành công!"
+            pm2 list

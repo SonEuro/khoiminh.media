@@ -9,10 +9,10 @@ server/public/
 server/kho.db
 *.db
 .env
-deploy/
+server/.env
 php-backend/
-ecosystem.config.cjs
 start.sh
+# deploy/ và ecosystem.config.cjs cần được track để CI/CD hoạt động
 BACKUP DRIVE/
 *.json.bak
 KM_LOGO*.png
