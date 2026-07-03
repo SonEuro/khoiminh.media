@@ -1219,7 +1219,7 @@ export default function WorkSchedule() {
                 const leadsMapD  = selected[`${phase.key}_leads_map`];
                 const kmMapD     = selected[`${phase.key}_km_staff_map`];
                 const perDate    = dates.length > 1;
-                const itemStyle      = { fontSize: '0.82rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
+                const itemStyle      = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
                 const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
                 const freeItemStyle = { ...itemStyle, color: '#f87171' };
                 function renderDateHdr(d) {
@@ -1254,8 +1254,8 @@ export default function WorkSchedule() {
                             ))}
                           </div>
                         )}
-                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.63rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 8px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
-                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.63rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 8px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 10px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
+                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 10px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
                       </div>
                     </div>
 
@@ -1309,12 +1309,12 @@ export default function WorkSchedule() {
                           {dLeads.map((l, i) => {
                             const dc = getDeptColor(l.department);
                             return (
-                              <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.7rem' }}>({l.department})</span></div>
+                              <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>
                             );
                           })}
                           {dayStaff.length > 0 && (
                             <div style={{ marginTop: '4px' }}>
-                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
                               {Object.entries(byDeptKM).map(([dept, members]) => {
                                 const dc = getDeptColor(dept);
                                 return (
@@ -1328,7 +1328,7 @@ export default function WorkSchedule() {
                           )}
                           {freeDepts.length > 0 && (
                             <div style={{ marginTop: '4px' }}>
-                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
                               {freeDepts.map(([dept, nameList]) => {
                                 const dc = getDeptColor(dept);
                                 return (
@@ -1342,7 +1342,7 @@ export default function WorkSchedule() {
                           )}
                           {hasNote && (
                             <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                              <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
                               {noteDepts.map(([dept, note]) => {
                                 const dc = getDeptColor(dept);
                                 return (
@@ -1381,12 +1381,12 @@ export default function WorkSchedule() {
                         {flatLeads.length > 0 && flatLeads.map((l, i) => {
                           const dc = getDeptColor(l.department);
                           return (
-                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.7rem' }}>({l.department})</span></div>
+                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>
                           );
                         })}
                         {staff.length > 0 && (
                           <div style={{ marginBottom: '8px', marginTop: flatLeads.length ? '4px' : 0 }}>
-                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
                             {Object.entries(staff.reduce((acc, n) => {
                               const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
                               (acc[d] = acc[d] || []).push(n); return acc;
@@ -1403,7 +1403,7 @@ export default function WorkSchedule() {
                         )}
                         {(hasNewFree || filteredFree.length > 0) && (
                           <div style={{ marginBottom: '8px' }}>
-                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
                             {isNewFree ? dates.map(date => {
                               const dateVal = freeMapD[date] || {};
                               return Object.entries(dateVal)
@@ -1431,7 +1431,7 @@ export default function WorkSchedule() {
                         )}
                         {hasNotes && (
                           <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                            <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
                             {dates.map(date => {
                               const val = notesMapD[date];
                               if (!val) return null;
@@ -1459,7 +1459,7 @@ export default function WorkSchedule() {
             })()}
             {scheduleHistory.length > 0 && (
               <div style={{ marginTop: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
-                <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
+                <p style={{ fontSize: '0.78rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {scheduleHistory.map((h, i) => {
                     const actionLabel = h.action === 'confirm' ? '✅ Xác nhận lịch' : '✏️ Chỉnh sửa';
