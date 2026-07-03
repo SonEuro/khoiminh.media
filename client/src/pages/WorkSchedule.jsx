@@ -1295,7 +1295,7 @@ export default function WorkSchedule() {
                         <div key={date}>
                           {renderDateHdr(date)}
                           {timeDepts.length > 0 && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 10px', marginBottom:'6px', paddingLeft:'4px' }}>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 8px', marginBottom:'6px', paddingLeft:'4px' }} className="time-badge-wrap">
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
@@ -1319,7 +1319,7 @@ export default function WorkSchedule() {
                                 const dc = getDeptColor(dept);
                                 return (
                                   <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                     {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                   </div>
                                 );
@@ -1333,7 +1333,7 @@ export default function WorkSchedule() {
                                 const dc = getDeptColor(dept);
                                 return (
                                   <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                     {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                   </div>
                                 );
@@ -1347,7 +1347,7 @@ export default function WorkSchedule() {
                                 const dc = getDeptColor(dept);
                                 return (
                                   <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                     <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
                                   </div>
                                 );
@@ -1366,7 +1366,7 @@ export default function WorkSchedule() {
                               .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept))
                           );
                           return singleTimeDepts.length > 0 && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 10px', marginBottom:'6px', paddingLeft:'4px' }}>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 8px', marginBottom:'6px', paddingLeft:'4px' }} className="time-badge-wrap">
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
@@ -1394,7 +1394,7 @@ export default function WorkSchedule() {
                               const dc = getDeptColor(dept);
                               return (
                                 <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                   {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                 </div>
                               );
@@ -1413,7 +1413,7 @@ export default function WorkSchedule() {
                                   const dc = getDeptColor(dept);
                                   return nameList.length ? (
                                     <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                       {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                     </div>
                                   ) : null;
@@ -1422,7 +1422,7 @@ export default function WorkSchedule() {
                               const dc = getDeptColor(dept);
                               return (
                                 <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                   {members.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                                 </div>
                               );
@@ -1441,7 +1441,7 @@ export default function WorkSchedule() {
                                   const dc = getDeptColor(dept);
                                   return (
                                     <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.67rem', display:'block' }}>{dept}</span>
+                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
                                       <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
                                     </div>
                                   );
