@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
       case 'transact':       return ['DIRECTOR', 'SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);
       case 'confirmFix':     return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);
       case 'intake':         return ['DIRECTOR', 'SUPER_ADMIN', 'ACCOUNTING'].includes(role);
-      case 'viewIntakePage': return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION', 'ACCOUNTING'].includes(role);
+      case 'viewIntakePage': return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION', 'ACCOUNTING'].includes(role) || !!user.is_truong_phong;
       case 'createEvent':    return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION'].includes(role) || !!user.is_truong_phong;
       case 'exportEvent':    return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION'].includes(role) || !!user.is_truong_phong;
       case 'returnEvent':    return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION'].includes(role) || !!user.is_truong_phong;
