@@ -220,7 +220,7 @@ export default function ExportForm() {
   if (doneSlip) {
     return (
       <div onClick={() => navigate('/')}
-        style={{ minHeight:'100vh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+        style={{ minHeight:'100dvh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
         <div className="card text-center space-y-5" onClick={e => e.stopPropagation()}
           style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
           {doneSlip._pending ? (

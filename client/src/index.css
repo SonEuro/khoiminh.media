@@ -193,9 +193,23 @@
   /* ── Mobile table wrapper ───────────────────────── */
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
-  /* ── iPhone safe area ───────────────────────────── */
+  /* ── iPhone / Dynamic Island safe area ─────────── */
   .safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-left   { padding-left:   env(safe-area-inset-left,   0px); }
+  .safe-right  { padding-right:  env(safe-area-inset-right,  0px); }
+
+  /* dvh fallback: 100vh ≠ actual viewport on iOS Safari */
+  :root { --full-h: 100dvh; }
+  @supports not (height: 100dvh) { :root { --full-h: 100vh; } }
+
+  /* Landscape landscape: đảm bảo overlay & fixed panels tính safe area */
+  @media (orientation: landscape) {
+    .safe-landscape {
+      padding-left:  max(env(safe-area-inset-left,  0px), 12px);
+      padding-right: max(env(safe-area-inset-right, 0px), 12px);
+    }
+  }
 
   /* ── Gold divider ────────────────────────────────── */
   .gold-line {

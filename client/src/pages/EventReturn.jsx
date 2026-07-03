@@ -200,7 +200,7 @@ export default function EventReturn() {
   // ── Done screen ──────────────────────────────────────────
   if (done) {
     return (
-      <div onClick={() => navigate('/')} style={{ minHeight:'100vh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+      <div onClick={() => navigate('/')} style={{ minHeight:'100dvh', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
         <div className="card text-center space-y-5" onClick={e => e.stopPropagation()} style={{ maxWidth:'420px', width:'100%', margin:'0 16px' }}>
           <div className="text-5xl">✅</div>
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Nhập kho thành công!</h2>

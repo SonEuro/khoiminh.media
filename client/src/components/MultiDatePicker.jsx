@@ -14,10 +14,25 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
   const openPanel = useCallback(() => {
     if (triggerRef.current) {
       const r = triggerRef.current.getBoundingClientRect();
+      const panelW = Math.max(r.width, 270);
+      // Probe element để đọc safe-area-inset-left từ env() variable
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;padding-left:env(safe-area-inset-left,0px);pointer-events:none;visibility:hidden;';
+      document.body.appendChild(probe);
+      const safeL = parseInt(getComputedStyle(probe).paddingLeft) || 0;
+      const safeR = (() => {
+        probe.style.paddingLeft = '0';
+        probe.style.paddingRight = 'env(safe-area-inset-right,0px)';
+        return parseInt(getComputedStyle(probe).paddingRight) || 0;
+      })();
+      document.body.removeChild(probe);
+      const minLeft = safeL + 8;
+      const maxRight = window.innerWidth - safeR - 8;
+      const clampedLeft = Math.min(Math.max(r.left, minLeft), maxRight - panelW);
       setPanelPos({
         top: r.bottom + 6,
-        left: r.left,
-        width: Math.max(r.width, 270),
+        left: Math.max(minLeft, clampedLeft),
+        width: Math.min(panelW, maxRight - minLeft),
       });
     }
     setOpen(true);

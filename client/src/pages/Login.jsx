@@ -27,7 +27,7 @@ export default function Login() {
 
   return (
     <div style={{
-      minHeight:'100vh',
+      minHeight:'100dvh',
       background:'radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, #0a0a10 60%)',
       display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem',
     }}>

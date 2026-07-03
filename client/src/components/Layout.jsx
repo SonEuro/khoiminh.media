@@ -160,7 +160,7 @@ function ChangePasswordModal({ onClose }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:2000, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:2000, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:`max(env(safe-area-inset-top,0px),20px) max(env(safe-area-inset-right,0px),20px) max(env(safe-area-inset-bottom,0px),20px) max(env(safe-area-inset-left,0px),20px)` }}>
       <div style={{ background:'#13131d', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'16px', padding:'28px', width:'100%', maxWidth:'380px', boxShadow:'0 20px 60px rgba(0,0,0,0.7)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
           <KeyRound size={18} color={GOLD} />
@@ -240,7 +240,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'var(--bg-main)' }}>
+    <div style={{ display:'flex', height:'100dvh', overflow:'hidden', background:'var(--bg-main)' }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
