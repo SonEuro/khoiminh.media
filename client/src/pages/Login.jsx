@@ -29,7 +29,8 @@ export default function Login() {
     <div style={{
       minHeight:'100dvh',
       background:'radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, #0a0a10 60%)',
-      display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      padding:'max(env(safe-area-inset-top,0px),1rem) max(env(safe-area-inset-right,0px),1rem) max(env(safe-area-inset-bottom,0px),1rem) max(env(safe-area-inset-left,0px),1rem)',
     }}>
       <div style={{ width:'100%', maxWidth:'360px' }}>
 

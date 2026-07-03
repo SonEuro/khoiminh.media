@@ -206,8 +206,9 @@
   /* Landscape landscape: đảm bảo overlay & fixed panels tính safe area */
   @media (orientation: landscape) {
     .safe-landscape {
-      padding-left:  max(env(safe-area-inset-left,  0px), 12px);
-      padding-right: max(env(safe-area-inset-right, 0px), 12px);
+      padding-left:   max(env(safe-area-inset-left,   0px), 12px);
+      padding-right:  max(env(safe-area-inset-right,  0px), 12px);
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
     }
   }
 

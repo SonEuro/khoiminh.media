@@ -365,15 +365,15 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
           }}
         >
           <img src={report.images[imgIdx]} alt=""
-            style={{ maxWidth:'90vw', maxHeight:'90vh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)' }} />
-          <div style={{ position:'absolute', top:'20px', right:'20px', color:'white', fontSize:'1.5rem', cursor:'pointer' }}
+            style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)' }} />
+          <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
           {report.images.length > 1 && (
             <>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx - 1 + report.images.length) % report.images.length); }}
-                style={{ position:'absolute', left:'20px', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>‹</button>
+                style={{ position:'absolute', left:'max(env(safe-area-inset-left, 0px), 20px)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>‹</button>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx + 1) % report.images.length); }}
-                style={{ position:'absolute', right:'60px', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>›</button>
+                style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 60px)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>›</button>
             </>
           )}
         </div>

@@ -18,11 +18,13 @@ const TEXT_PRIMARY = '#eeeef5';
 
 function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, safeLeft = false }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const leftInset = safeLeft ? 'env(safe-area-inset-left, 0px)' : '0px';
+  const leftInset   = safeLeft ? 'env(safe-area-inset-left,   0px)' : '0px';
+  const topInset    = safeLeft ? 'env(safe-area-inset-top,    0px)' : '0px';
+  const bottomInset = safeLeft ? 'env(safe-area-inset-bottom, 0px)' : '0px';
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', background: BG_SIDEBAR,
-      paddingLeft: leftInset }}>
+      paddingLeft: leftInset, paddingTop: topInset, paddingBottom: bottomInset }}>
 
       {/* Logo */}
       <div style={{ padding:'16px 20px', borderBottom:`1px solid ${GOLD_DIM}` }}>
