@@ -227,10 +227,6 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <MultiDatePicker value={form.start_dates || []} onChange={v => set('start_dates', v)} placeholder="Chọn ngày bắt đầu..." />
         </div>
         <div>
-          <label className="label">Ngày kết thúc</label>
-          <MultiDatePicker value={form.end_dates || []} onChange={v => set('end_dates', v)} placeholder="Chọn ngày kết thúc..." />
-        </div>
-        <div>
           <label className="label">Ngày Rehearsal</label>
           <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} placeholder="Chọn ngày rehearsal..." />
         </div>
@@ -238,6 +234,10 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} placeholder="Chọn ngày ghi hình..." />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
+        </div>
+        <div>
+          <label className="label">Ngày kết thúc</label>
+          <MultiDatePicker value={form.end_dates || []} onChange={v => set('end_dates', v)} placeholder="Chọn ngày kết thúc..." />
         </div>
         <div className="sm:col-span-2">
           <label className="label">Trạng thái</label>
@@ -283,25 +283,25 @@ function EventDetailModal({ eventId, onClose }) {
           {(() => {
             const startDates = parseDatesField(ev, 'start_dates', 'start_date');
             return startDates.length > 0 ? (
-              <div style={{ gridColumn: startDates.length > 1 ? 'span 2' : undefined }}>
+              <div style={{ gridColumn: 'span 2' }}>
                 <span className="text-gray-500">Ngày bắt đầu: </span>
                 {startDates.map((d, i) => <strong key={i} style={{ color:'#f87171', marginRight:'10px' }}>📅 {fmtD(d)}</strong>)}
               </div>
             ) : null;
           })()}
           {(() => {
-            const endDates = parseDatesField(ev, 'end_dates', 'end_date');
-            return endDates.length > 0 ? (
-              <div style={{ gridColumn: endDates.length > 1 ? 'span 2' : undefined }}>
-                <span className="text-gray-500">Ngày kết thúc: </span>
-                {endDates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'10px' }}>🏁 {fmtD(d)}</strong>)}
+            const showDates = parseDatesField(ev, 'show_dates', 'show_date');
+            return showDates.length > 0 ? (
+              <div style={{ gridColumn: 'span 2' }}>
+                <span className="text-gray-500">Ngày Rehearsal: </span>
+                {showDates.map((d, i) => <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>)}
               </div>
             ) : null;
           })()}
           {(() => {
             const dates = parseFilmingDates(ev);
             return dates.length > 0 ? (
-              <div style={{ gridColumn: dates.length > 1 ? 'span 2' : undefined }}>
+              <div style={{ gridColumn: 'span 2' }}>
                 <span className="text-gray-500">Ngày ghi hình: </span>
                 {dates.map((d, i) => (
                   <strong key={i} style={{ color:'#a78bfa', marginRight:'10px' }}>🎬 {fmtD(d)}</strong>
@@ -310,11 +310,11 @@ function EventDetailModal({ eventId, onClose }) {
             ) : null;
           })()}
           {(() => {
-            const showDates = parseDatesField(ev, 'show_dates', 'show_date');
-            return showDates.length > 0 ? (
-              <div style={{ gridColumn: showDates.length > 1 ? 'span 2' : undefined }}>
-                <span className="text-gray-500">Ngày Rehearsal: </span>
-                {showDates.map((d, i) => <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>)}
+            const endDates = parseDatesField(ev, 'end_dates', 'end_date');
+            return endDates.length > 0 ? (
+              <div style={{ gridColumn: 'span 2' }}>
+                <span className="text-gray-500">Ngày kết thúc: </span>
+                {endDates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'10px' }}>🏁 {fmtD(d)}</strong>)}
               </div>
             ) : null;
           })()}
