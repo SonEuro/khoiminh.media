@@ -22,7 +22,7 @@ function checkTruongPhongDept(req, eventCreatedById) {
 }
 
 function nextCode() {
-  const last = db.prepare("SELECT code FROM events ORDER BY id DESC LIMIT 1").get();
+  const last = db.prepare("SELECT code FROM events WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 1").get();
   if (!last) return 'EVENT-001';
   const num = parseInt(last.code.split('-')[1]);
   if (isNaN(num)) {
@@ -67,6 +67,7 @@ function cleanupTrash() {
         }
         try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
         try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+        try { db.prepare('UPDATE work_schedules SET event_id = NULL WHERE event_id = ?').run(id); } catch (_) {}
         db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
         try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
         db.prepare('DELETE FROM transactions WHERE event_id = ?').run(id);

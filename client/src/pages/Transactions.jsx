@@ -783,7 +783,7 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
   );
 }
 
-function PendingTxRows({ txs, onConfirm, onSelect, onDelete, confirming }) {
+function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confirming }) {
   if (!txs.length) return <Empty text="Không có phiếu xuất kho tạm nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
@@ -820,7 +820,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, confirming }) {
               </button>
             )}
             <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
-            {onDelete && (
+            {onDelete && (!canDeleteRow || canDeleteRow(tx)) && (
               <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
                 onClick={() => onDelete(tx)} title="Hủy phiếu tạm">🗑</button>
             )}
@@ -926,7 +926,7 @@ export default function Transactions() {
   const [confirming,          setConfirming]          = useState(null);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
-  const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
   const canEdit           = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
   const canEditCompleted  = ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'].includes(user?.role) || !!user?.is_truong_phong;
 
@@ -1005,7 +1005,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất kho tạm (chờ xác nhận)" color={PENDING_COLOR} border="rgba(251,191,36,0.25)" count={pendingTxs.length}>
-            <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} confirming={confirming} />
+            <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={handleDeleteTx} canDeleteRow={tx => isSuperAdmin || tx.created_by_id === user?.id} confirming={confirming} />
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>

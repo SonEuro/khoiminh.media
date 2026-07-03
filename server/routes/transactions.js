@@ -3,7 +3,11 @@ const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 const { notifyAll } = require('../services/zaloNotify');
 
-const canTransact = requireRole('SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
+function canTransact(req, res, next) {
+  const { role, is_truong_phong } = req.user || {};
+  if (['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role) || is_truong_phong) return next();
+  return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
+}
 const canIntake   = requireRole('SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING');
 const canFix      = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 
@@ -610,7 +614,9 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
   const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
   if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
-  if (!isSuperAdmin && tx.created_by_id !== req.user.id) {
+  const isCreator = tx.created_by_id === req.user.id;
+  // Người tạo chỉ được xóa phiếu pending của mình; completed/return chỉ SUPER_ADMIN/DIRECTOR
+  if (!isSuperAdmin && !(isCreator && tx.status === 'pending')) {
     return res.status(403).json({ error: 'Bạn không có quyền xóa phiếu này' });
   }
 
@@ -648,6 +654,10 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
         db.prepare('UPDATE equipment SET qty_maintenance = qty_maintenance + ?, qty_available = MAX(0, qty_available - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       } else if (tx.type === 'INTAKE') {
+        const eq = db.prepare('SELECT qty_available FROM equipment WHERE id = ?').get(item.equipment_id);
+        if (!eq || eq.qty_available < item.quantity) {
+          throw new Error(`Không thể xóa phiếu nhập: thiết bị đang được sử dụng một phần, không đủ số lượng khả dụng để hoàn tác`);
+        }
         db.prepare('UPDATE equipment SET qty_total = MAX(0, qty_total - ?), qty_available = MAX(0, qty_available - ?) WHERE id = ?')
           .run(item.quantity, item.quantity, item.equipment_id);
       }
