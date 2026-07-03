@@ -39,8 +39,9 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
             max-height: 92dvh !important;
           }
         }
-        /* Landscape mobile: centered sheet với safe area */
-        @media (max-width: 900px) and (orientation: landscape) {
+        /* Landscape mobile (phone): centered sheet với safe area
+           Dùng max-height thay max-width để catch cả iPhone Pro Max landscape (~932px wide) */
+        @media (orientation: landscape) and (max-height: 500px) {
           .modal-overlay {
             align-items: center !important;
             padding: env(safe-area-inset-top, 8px) calc(env(safe-area-inset-right, 0px) + 12px) env(safe-area-inset-bottom, 8px) calc(env(safe-area-inset-left, 0px) + 12px) !important;
@@ -51,9 +52,9 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
           }
           .modal-drag-handle { display: none !important; }
         }
-        /* Desktop: centered */
+        /* Desktop / tablet: centered */
         @media (min-width: 768px) and (orientation: portrait),
-               (min-width: 901px) {
+               (orientation: landscape) and (min-height: 501px) {
           .modal-overlay { align-items: center !important; padding: 16px !important; }
           .modal-positioner {
             border-radius: 1rem !important;
