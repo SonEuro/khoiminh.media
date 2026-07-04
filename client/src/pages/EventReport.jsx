@@ -7,6 +7,23 @@ import FreelancerPicker from '../components/FreelancerPicker';
 
 const GOLD = '#c9a84c';
 
+// Fallback: role → tên dept trong KM_STAFF_GROUPS
+const ROLE_TO_KM_DEPT = {
+  ATAS:       'Âm Thanh Ánh Sáng',
+  STAGE:      'Sân Khấu',
+  TECHNICAL:  'Kỹ Thuật',
+  CSVC:       'Cơ Sở Vật Chất',
+  ACCOUNTING: 'Kế Toán',
+  PRODUCTION: 'Kinh Doanh',
+};
+
+function getUserKmDept(user) {
+  return KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''))?.dept
+    || ROLE_TO_KM_DEPT[user?.role]
+    || user?.position
+    || '—';
+}
+
 const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Hoàn thành sớm', 'Chậm tiến độ', 'Trễ tiến độ'];
 const COMPLETED_CHIPS  = ['Hoàn thành tất cả hạng mục', 'Hoàn thành với điều chỉnh nhỏ', 'Hoàn thành một phần', 'Chưa hoàn thành'];
 const QUALITY_CHIPS    = ['Xuất sắc', 'Tốt', 'Đạt yêu cầu', 'Cần cải thiện'];
@@ -487,7 +504,8 @@ export default function EventReport() {
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
   useEffect(() => {
     if (!form.report_date) return;
-    const userGroup = KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''));
+    const userDept = getUserKmDept(user);
+    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userDept);
     if (!userGroup) { setIsAloneInDept(false); return; }
     const deptMembers = new Set(userGroup.members);
     api.getWorkSchedules({}).then(scheds => {
@@ -713,7 +731,7 @@ export default function EventReport() {
             <div>
               <label style={labelStyle}>Bộ phận</label>
               <input className="input" readOnly
-                value={KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''))?.dept || (user?.position || '—')}
+                value={getUserKmDept(user)}
                 style={{ opacity:0.7, cursor:'not-allowed', color:'#93c5fd', fontWeight:600 }} />
             </div>
           </div>
