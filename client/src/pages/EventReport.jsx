@@ -420,6 +420,7 @@ export default function EventReport() {
   const [evSearch, setEvSearch] = useState('');
   const [showEvDrop, setShowEvDrop] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [isAloneInDept, setIsAloneInDept] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -483,10 +484,11 @@ export default function EventReport() {
   }, [form.event_id, form.report_date]);
 
   // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
+  // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
   useEffect(() => {
-    if (!user?.is_truong_phong || !form.report_date) return;
-    const userGroup = KM_STAFF_GROUPS.find(g => g.members.includes(user.full_name || ''));
-    if (!userGroup) return;
+    if (!form.report_date) return;
+    const userGroup = KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''));
+    if (!userGroup) { setIsAloneInDept(false); return; }
     const deptMembers = new Set(userGroup.members);
     api.getWorkSchedules({}).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
@@ -504,8 +506,13 @@ export default function EventReport() {
           (kmMap[form.report_date] || []).filter(n => deptMembers.has(n)).forEach(n => names.add(n));
         }
       }
-      if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
-    }).catch(() => {});
+      // Chỉ nhóm trưởng mới tự động điền danh sách nhân sự
+      if (user?.is_truong_phong && names.size > 0) {
+        setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
+      }
+      // Nếu chỉ có 1 nhân viên trong dept cho ngày này và đó là user hiện tại → cũng cảnh báo trễ hạn
+      setIsAloneInDept(names.size === 1 && names.has(user?.full_name || ''));
+    }).catch(() => { setIsAloneInDept(false); });
   }, [form.report_date, user?.is_truong_phong, user?.full_name]);
 
   const evSuggestions = showEvDrop
@@ -607,7 +614,7 @@ export default function EventReport() {
     reportDeadline = `${ny}-${nm}-${nd} 12:00`;
     deadlineDisplay = `${nd}/${nm} 12:00`;
   }
-  const isOverdue = !!user?.is_truong_phong && !!reportDeadline && vnNow > reportDeadline;
+  const isOverdue = (!!user?.is_truong_phong || isAloneInDept) && !!reportDeadline && vnNow > reportDeadline;
 
   return (
     <div className="p-6">
