@@ -487,17 +487,45 @@ function EventDetailModal({ eventId, onClose }) {
                   <th className="pb-2 text-right">Xuất</th><th className="pb-2 text-right">Đã trả</th><th className="pb-2 text-right">Còn nợ</th>
                 </tr></thead>
                 <tbody>
-                  {ev.items.map(it => (
-                    <tr key={it.equipment_id} className="border-b last:border-0">
-                      <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
-                      <td className="py-1.5">{it.eq_name}</td>
-                      <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
-                      <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
-                      <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                        {it.qty_out - (it.qty_returned || 0)}
-                      </td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const CAT_COLORS = {
+                      TECH:   '#fb923c', AUDIO:  '#60a5fa', LIGHT:  '#fbbf24',
+                      LED:    '#4ade80', STAGE:  '#f472b6', CSVC:   '#94a3b8',
+                      MATRIX: '#c084fc',
+                    };
+                    const rows = [];
+                    let lastCat = null;
+                    ev.items.forEach(it => {
+                      const cat = (it.eq_code || '').split('-')[0];
+                      if (cat !== lastCat) {
+                        const color = CAT_COLORS[cat] || '#c9a84c';
+                        rows.push(
+                          <tr key={`cat-${cat}`}>
+                            <td colSpan={5} style={{ padding:'8px 0 4px' }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                                <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${color}, transparent)`, opacity:0.5 }} />
+                                <span style={{ fontSize:'0.65rem', fontWeight:800, color, letterSpacing:'0.1em', whiteSpace:'nowrap' }}>{cat}</span>
+                                <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${color}, transparent)`, opacity:0.5 }} />
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                        lastCat = cat;
+                      }
+                      rows.push(
+                        <tr key={it.equipment_id} className="border-b last:border-0">
+                          <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
+                          <td className="py-1.5">{it.eq_name}</td>
+                          <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
+                          <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
+                          <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                            {it.qty_out - (it.qty_returned || 0)}
+                          </td>
+                        </tr>
+                      );
+                    });
+                    return rows;
+                  })()}
                 </tbody>
               </table>
             </div>
