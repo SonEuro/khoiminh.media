@@ -163,7 +163,7 @@ function StaffScheduleModal({ event, onClose }) {
               if (!dLeads.length && !dKm.length && !freeDepts.length) return null;
               return (
                 <div key={date}>
-                  <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
+                  <div style={{ fontSize: '0.92rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
                     📅 {fmtD(date)}
                   </div>
                   {renderStaffSection(dLeads, dKm, freeDepts)}
