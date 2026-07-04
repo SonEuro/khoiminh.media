@@ -271,6 +271,7 @@ const PHASE_LABELS = { filming: '🎬 Ghi hình', setup: '🏗 Setup', rehearsal
 function UpcomingScheduleSection({ userName }) {
   const [upcoming, setUpcoming] = useState([]);
   const navigate = useNavigate();
+  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
 
   useEffect(() => {
     if (!userName) return;
@@ -308,27 +309,34 @@ function UpcomingScheduleSection({ userName }) {
     <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(167,139,250,0.35)', marginBottom: '10px' }}>
       <SectionHeader title="Lịch làm việc của bạn (14 ngày tới)" color="#a78bfa" colorRgb="167,139,250" count={upcoming.length} />
       <div style={{ background: '#13131d' }}>
-        {upcoming.map((item, i) => (
-          <div key={`${item.schedId}-${item.phase}`}
-            onClick={() => navigate('/work-schedule')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '10px 16px', cursor: 'pointer',
-              borderTop: i > 0 ? '1px solid rgba(167,139,250,0.08)' : 'none',
-              transition: 'background 0.13s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.05)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', flexShrink: 0, boxShadow: '0 0 6px rgba(167,139,250,0.8)' }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {PHASE_LABELS[item.phase]} — {item.eventName}
-              </p>
+        {upcoming.map((item, i) => {
+          const isToday = item.date === todayVN;
+          return (
+            <div key={`${item.schedId}-${item.phase}-${item.date}`}
+              onClick={() => navigate('/work-schedule')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '10px 16px', cursor: 'pointer',
+                borderTop: i > 0 ? `1px solid ${isToday ? 'rgba(248,113,113,0.15)' : 'rgba(167,139,250,0.08)'}` : 'none',
+                background: isToday ? 'rgba(248,113,113,0.05)' : 'transparent',
+                transition: 'background 0.13s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = isToday ? 'rgba(248,113,113,0.1)' : 'rgba(167,139,250,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = isToday ? 'rgba(248,113,113,0.05)' : 'transparent'}
+            >
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: isToday ? '#f87171' : '#a78bfa', flexShrink: 0, boxShadow: `0 0 6px ${isToday ? 'rgba(248,113,113,0.8)' : 'rgba(167,139,250,0.8)'}` }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 600, color: isToday ? '#fca5a5' : '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {PHASE_LABELS[item.phase]} — {item.eventName}
+                </p>
+              </div>
+              {isToday
+                ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>HÔM NAY</span>
+                : <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
+              }
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
