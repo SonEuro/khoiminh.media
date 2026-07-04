@@ -210,12 +210,13 @@ export default function Users() {
         {[...groupedUsers, ...(otherUsers.length ? [{ role: 'OTHER', label: '❓ Khác', members: otherUsers }] : [])].map(group => {
           const rc = ROLE_COLORS[group.role] || ROLE_COLORS.CSVC;
           return (
-            <div key={`mgroup-${group.role}`}>
-              <div style={{ padding:'6px 4px 4px', display:'flex', alignItems:'center', gap:'6px' }}>
-                <span style={{ fontSize:'0.7rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase' }}>
-                  {group.label}
+            <div key={`mgroup-${group.role}`} style={{ marginBottom:'8px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'12px 0 8px' }}>
+                <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${rc.color}55, transparent)` }} />
+                <span style={{ fontSize:'0.7rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
+                  {group.label} <span style={{ opacity:0.6, fontWeight:600 }}>({group.members.length})</span>
                 </span>
-                <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontWeight:600 }}>({group.members.length})</span>
+                <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${rc.color}55, transparent)` }} />
               </div>
               {group.members.map(u => (
                 <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'12px 14px', marginBottom:'8px' }}>
