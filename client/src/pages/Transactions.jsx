@@ -193,11 +193,11 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                         const changed = b && a && (b.eq_name !== a.eq_name || b.quantity !== a.quantity);
                         return (
                           <div key={j} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', borderTop:'1px solid rgba(255,255,255,0.15)', background: changed ? 'rgba(251,191,36,0.05)' : 'transparent' }}>
-                            <span style={{ padding:'4px 8px', color: b ? '#a0a0b8' : '#3a3a5a', borderRight:'1px solid rgba(255,255,255,0.15)', textDecoration: changed ? 'line-through' : 'none', opacity: changed ? 0.7 : 1 }}>
-                              {b ? `${b.eq_name} × ${b.quantity} ${b.unit}` : '—'}
+                            <span style={{ padding:'4px 8px', borderRight:'1px solid rgba(255,255,255,0.15)', textDecoration: changed ? 'line-through' : 'none', opacity: changed ? 0.7 : 1 }}>
+                              {b ? <>{b.eq_name} <span style={{ color:'#60a5fa', fontWeight:600 }}>×{b.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'italic' }}>{b.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
                             </span>
-                            <span style={{ padding:'4px 8px', color: a ? (changed ? '#fbbf24' : '#a0a0b8') : '#3a3a5a' }}>
-                              {a ? `${a.eq_name} × ${a.quantity} ${a.unit}` : '—'}
+                            <span style={{ padding:'4px 8px' }}>
+                              {a ? <>{a.eq_name} <span style={{ color: changed ? '#fbbf24' : '#60a5fa', fontWeight:600 }}>×{a.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'italic' }}>{a.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
                             </span>
                           </div>
                         );
