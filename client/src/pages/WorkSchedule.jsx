@@ -1011,9 +1011,11 @@ export default function WorkSchedule() {
   }
 
   function canEdit(s) {
+    const past = isPastSchedule(s);
+    console.log('[canEdit]', { role: user?.role, is_phan_lich_all: user?.is_phan_lich_all, is_truong_phong: user?.is_truong_phong, past, setup_dates: s.setup_dates, filming_dates: s.filming_dates, setup_date: s.setup_date, filming_date: s.filming_date, todayStr });
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
     if (!!user?.is_phan_lich_all) return true;
-    if (isPastSchedule(s)) return false;
+    if (past) return false;
     if (!!user?.is_truong_phong) return true;
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
