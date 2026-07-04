@@ -1062,6 +1062,41 @@ export default function WorkSchedule() {
         </div>
       )}
 
+      {/* ── Thông báo báo cáo chưa nộp hôm nay — dành cho admin/phân lịch ──── */}
+      {(['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all) && (() => {
+        const phaseIcon  = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
+        const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
+        const todayUnsubmitted = obligations.filter(o => o.assigned_date === todayStr && !o.submitted);
+        if (!todayUnsubmitted.length) return null;
+        return (
+          <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+              <span style={{ fontSize:'1rem' }}>🔔</span>
+              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP HÔM NAY</span>
+              <span style={{ background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                {todayUnsubmitted.length} người
+              </span>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+              {todayUnsubmitted.map(ob => (
+                <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', background:'rgba(248,113,113,0.05)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
+                  <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      {ob.lead_name}
+                    </div>
+                    <div style={{ fontSize:'0.75rem', color:'#a0a0b8' }}>
+                      {ob.event_display || ob.event_name} · {phaseLabel[ob.phase]}
+                      {ob.overdue && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Báo cáo cần nộp — chỉ nhân viên thường (không phải admin/TP/phân lịch) */}
       {obligations.length > 0
         && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
