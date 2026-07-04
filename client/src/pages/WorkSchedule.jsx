@@ -1001,7 +1001,12 @@ export default function WorkSchedule() {
   }
 
   function isPastSchedule(s) {
-    const allDates = PHASES.flatMap(p => s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []));
+    const allDates = PHASES.flatMap(p => {
+      const arr = s[`${p.key}_dates`];
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+      const single = s[`${p.key}_date`];
+      return single ? [single] : [];
+    });
     return allDates.length > 0 && allDates.every(d => d < todayStr);
   }
 
