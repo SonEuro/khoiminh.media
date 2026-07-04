@@ -627,13 +627,16 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
       {multiDate ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {dates.map(d => {
-            if (d < todayStr && !isPhanLichAll) return null;
+            const isPastLocked = d < todayStr && !isPhanLichAll;
             return (
-              <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em' }}>
+              <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: isPastLocked ? 'rgba(120,120,160,0.04)' : 'rgba(251,191,36,0.04)', border: `1px solid ${isPastLocked ? 'rgba(120,120,160,0.15)' : 'rgba(251,191,36,0.12)'}` }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   📅 {fmtD(d)}
+                  {isPastLocked && <span style={{ fontSize: '0.65rem', color: '#555570' }}>🔒 Ngày đã qua</span>}
                 </div>
-                {renderDateSection(d)}
+                <div style={isPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
+                  {renderDateSection(d)}
+                </div>
               </div>
             );
           })}
