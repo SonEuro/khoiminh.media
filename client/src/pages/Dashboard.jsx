@@ -281,14 +281,20 @@ function UpcomingScheduleSection({ userName }) {
       const cutoffStr = cutoff.toISOString().slice(0, 10);
       const phases = ['filming', 'setup', 'rehearsal', 'teardown'];
       const found = [];
+      const seen = new Set();
       for (const s of schedules) {
         for (const p of phases) {
-          const date = s[`${p}_date`];
-          if (!date || date < todayVN || date > cutoffStr) continue;
+          const dates = s[`${p}_dates`] || (s[`${p}_date`] ? [s[`${p}_date`]] : []);
           const leads = (s[`${p}_leads`] || []).map(l => l.name);
           const staff = s[`${p}_km_staff`] || [];
           if (!leads.includes(userName) && !staff.includes(userName)) continue;
-          found.push({ date, phase: p, eventName: s.event_name, schedId: s.id });
+          for (const date of dates) {
+            if (!date || date < todayVN || date > cutoffStr) continue;
+            const key = `${s.id}-${p}-${date}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            found.push({ date, phase: p, eventName: s.event_name, schedId: s.id });
+          }
         }
       }
       found.sort((a, b) => a.date.localeCompare(b.date));
