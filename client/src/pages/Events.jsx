@@ -495,7 +495,8 @@ function EventDetailModal({ eventId, onClose }) {
                     };
                     const rows = [];
                     let lastCat = null;
-                    ev.items.forEach(it => {
+                    const sorted = [...ev.items].sort((a, b) => (a.eq_code || '').localeCompare(b.eq_code || ''));
+                    sorted.forEach(it => {
                       const cat = (it.eq_code || '').split('-')[0];
                       if (cat !== lastCat) {
                         const color = CAT_COLORS[cat] || '#c9a84c';
