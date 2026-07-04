@@ -313,12 +313,12 @@ function UpcomingScheduleSection({ userName }) {
         {upcoming.map((item, i) => {
           const isToday    = item.date === todayVN;
           const isTomorrow = item.date === tomorrowVN;
-          const dotColor = isToday ? '#f87171' : isTomorrow ? '#fb923c' : '#a78bfa';
-          const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(251,146,60,0.8)' : 'rgba(167,139,250,0.8)';
-          const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(251,146,60,0.04)' : 'transparent';
-          const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(251,146,60,0.09)' : 'rgba(167,139,250,0.05)';
-          const borderC  = isToday ? 'rgba(248,113,113,0.15)' : isTomorrow ? 'rgba(251,146,60,0.12)' : 'rgba(167,139,250,0.08)';
-          const textColor = isToday ? '#fca5a5' : isTomorrow ? '#fdba74' : '#e0e0ee';
+          const dotColor = isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#60a5fa';
+          const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(74,222,128,0.8)' : 'rgba(96,165,250,0.8)';
+          const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
+          const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(74,222,128,0.09)' : 'rgba(96,165,250,0.05)';
+          const borderC  = isToday ? 'rgba(248,113,113,0.15)' : isTomorrow ? 'rgba(74,222,128,0.12)' : 'rgba(96,165,250,0.08)';
+          const textColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : '#e0e0ee';
           return (
             <div key={`${item.schedId}-${item.phase}-${item.date}`}
               onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
@@ -341,8 +341,8 @@ function UpcomingScheduleSection({ userName }) {
               {isToday
                 ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · HÔM NAY</span>
                 : isTomorrow
-                  ? <span style={{ fontSize: '0.7rem', color: '#fb923c', fontWeight: 800, flexShrink: 0, background: 'rgba(251,146,60,0.15)', border: '1px solid rgba(251,146,60,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
-                  : <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
+                  ? <span style={{ fontSize: '0.7rem', color: '#4ade80', fontWeight: 800, flexShrink: 0, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
+                  : <span style={{ fontSize: '0.75rem', color: '#60a5fa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
               }
             </div>
           );
