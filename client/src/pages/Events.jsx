@@ -3,7 +3,7 @@ import { api } from '../api';
 import Modal from '../components/Modal';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
-import { KM_STAFF_GROUPS } from '../constants/staff';
+import { KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
 
 import { fmtD } from '../utils/fmt';
 
@@ -15,15 +15,44 @@ const PHASES = [
   { key: 'filming',   label: '🎬 Ghi hình' },
 ];
 
-function groupStaffByDept(names) {
-  const groups = {};
-  for (const name of (names || [])) {
-    const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || 'Khác';
-    if (!groups[dept]) groups[dept] = [];
-    groups[dept].push(name);
-  }
-  return Object.entries(groups);
+const DEPT_COLORS = {
+  'Âm Thanh Ánh Sáng': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
+  'Sân Khấu':          { color: '#fb923c', bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.22)' },
+  'Kỹ Thuật':          { color: '#38bdf8', bg: 'rgba(56,189,248,0.08)',   border: 'rgba(56,189,248,0.22)' },
+  'Cơ Sở Vật Chất':   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.22)' },
+  'Kế Toán':           { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',   border: 'rgba(251,191,36,0.22)' },
+  'Kinh Doanh':        { color: '#f472b6', bg: 'rgba(244,114,182,0.08)',  border: 'rgba(244,114,182,0.22)' },
+  'Quay Phim':         { color: '#e879f9', bg: 'rgba(232,121,249,0.08)',  border: 'rgba(232,121,249,0.22)' },
+  'Sản Xuất':          { color: '#34d399', bg: 'rgba(52,211,153,0.08)',   border: 'rgba(52,211,153,0.22)' },
+};
+function getDeptColor(dept) {
+  return DEPT_COLORS[dept] || { color: '#7878a0', bg: 'rgba(120,120,160,0.06)', border: 'rgba(120,120,160,0.18)' };
 }
+
+function groupByDept(names, groups) {
+  const map = {};
+  for (const name of (names || [])) {
+    const dept = groups.find(g => g.members.includes(name))?.dept || 'Khác';
+    (map[dept] = map[dept] || []).push(name);
+  }
+  return Object.entries(map);
+}
+
+function aggregateFreelancerMap(freeMap) {
+  const map = {};
+  for (const dateVal of Object.values(freeMap || {})) {
+    if (typeof dateVal !== 'object') continue;
+    for (const [dept, namesStr] of Object.entries(dateVal)) {
+      const names = (namesStr || '').split(',').map(n => n.trim()).filter(Boolean);
+      for (const n of names) {
+        if (!(map[dept] = map[dept] || new Set()).has(n)) map[dept].add(n);
+      }
+    }
+  }
+  return Object.entries(map).map(([dept, set]) => [dept, [...set]]);
+}
+
+const itemStyle = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
 
 function StaffScheduleModal({ event, onClose }) {
   const [schedules, setSchedules] = useState(null);
@@ -44,38 +73,58 @@ function StaffScheduleModal({ event, onClose }) {
           {PHASES.map(phase => {
             const leads = s[`${phase.key}_leads`] || [];
             const staff = s[`${phase.key}_km_staff`] || [];
-            const free = s[`${phase.key}_freelancers`];
+            const freeMap = s[`${phase.key}_freelancers_map`];
+            const freeFlatArr = s[`${phase.key}_freelancers`] || [];
             const date = s[`${phase.key}_date`];
-            if (!date && !leads.length && !staff.length && !free) return null;
-            const staffByDept = groupStaffByDept(staff);
+
+            const staffByDept = groupByDept(staff, KM_STAFF_GROUPS);
+
+            const freeDepts = freeMap && Object.keys(freeMap).length > 0
+              ? aggregateFreelancerMap(freeMap)
+              : groupByDept(freeFlatArr, FREELANCER_GROUPS);
+
+            if (!date && !leads.length && !staff.length && !freeDepts.length) return null;
             return (
-              <div key={phase.key} style={{ marginBottom: '10px', fontSize: '0.82rem' }}>
-                <span style={{ fontWeight: 700, color: GOLD }}>{phase.label} {date ? `— ${fmtD(date)}` : ''}</span>
+              <div key={phase.key} style={{ marginBottom: '12px' }}>
+                <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem' }}>{phase.label}{date ? ` — ${fmtD(date)}` : ''}</span>
                 {leads.length > 0 && (
-                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: GOLD, letterSpacing: '0.06em' }}>NHÓM TRƯỞNG</span>
-                    {leads.map((l, i) => (
-                      <p key={i} style={{ margin: '1px 0', color: '#e8c97a', fontSize: '0.8rem' }}>
-                        👑 {l.name} <span style={{ color: '#7878a0', fontWeight: 400 }}>({l.department})</span>
-                      </p>
-                    ))}
+                  <div style={{ marginTop: '6px' }}>
+                    {leads.map((l, i) => {
+                      const dc = getDeptColor(l.department);
+                      return (
+                        <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>
+                          👑 {l.name} <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.82rem' }}>({l.department})</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {staffByDept.length > 0 && (
-                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(96,165,250,0.3)' }}>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</span>
-                    {staffByDept.map(([dept, members]) => (
-                      <p key={dept} style={{ margin: '2px 0', color: '#a0a0b8', fontSize: '0.8rem' }}>
-                        <span style={{ color: '#7878a0', fontWeight: 700, fontSize: '0.7rem' }}>{dept}:</span>{' '}
-                        {members.join(', ')}
-                      </p>
-                    ))}
+                  <div style={{ marginTop: '6px' }}>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                    {staffByDept.map(([dept, members]) => {
+                      const dc = getDeptColor(dept);
+                      return (
+                        <div key={dept} style={{ marginBottom: '3px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                          <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
+                          {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-                {free && (
-                  <div style={{ margin: '4px 0 2px', paddingLeft: '8px', borderLeft: '2px solid rgba(96,165,250,0.15)' }}>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#93c5fd', letterSpacing: '0.06em' }}>FREELANCER</span>
-                    <p style={{ margin: '1px 0', color: '#a0a0b8', fontSize: '0.8rem' }}>{free}</p>
+                {freeDepts.length > 0 && (
+                  <div style={{ marginTop: '6px' }}>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing: '0.06em' }}>FREELANCER</p>
+                    {freeDepts.map(([dept, members]) => {
+                      const dc = getDeptColor(dept);
+                      return (
+                        <div key={dept} style={{ marginBottom: '3px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                          <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
+                          {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
