@@ -605,16 +605,16 @@ router.put('/:id/edit-completed', (req, res, next) => {
     const oldExtItems = db.prepare('SELECT * FROM external_items WHERE transaction_id = ?').all(tx.id);
 
     // Thay thế external_items (NCC)
-    let newExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
+    let newExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC${e.supplier ? ': ' + e.supplier : ''}] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
     if (external_items !== undefined) {
       const validExt = (external_items || []).filter(i => i.name?.trim());
       db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
       const insExt = db.prepare('INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)');
       validExt.forEach(e => insExt.run(tx.id, e.supplier || '', e.name.trim(), e.quantity || 1, e.notes || null, e.unit || 'Cái', e.rental_days || 1));
-      newExtSnap = validExt.map(e => ({ eq_name: `[NCC] ${e.name.trim()}`, supplier: e.supplier || '', quantity: e.quantity || 1, unit: e.unit || 'Cái' }));
+      newExtSnap = validExt.map(e => ({ eq_name: `[NCC${e.supplier ? ': ' + e.supplier : ''}] ${e.name.trim()}`, supplier: e.supplier || '', quantity: e.quantity || 1, unit: e.unit || 'Cái' }));
     }
 
-    const oldExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
+    const oldExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC${e.supplier ? ': ' + e.supplier : ''}] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
 
     // Ghi log
     db.prepare(`
