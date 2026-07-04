@@ -202,83 +202,8 @@ export default function Users() {
         </div>
       </div>
 
-      {/* ── Desktop: Table ── */}
-      <div className="card p-0 overflow-hidden hide-mobile">
-        <div className="table-wrap">
-          <table className="w-full text-sm" style={{ minWidth: '600px' }}>
-            <thead>
-              <tr>
-                <th className="text-center px-4 py-3">Họ tên</th>
-                <th className="text-center px-4 py-3">Chức vụ</th>
-                <th className="text-center px-4 py-3">Tên đăng nhập</th>
-                <th className="text-center px-4 py-3">Phòng ban</th>
-                <th className="text-center px-4 py-3">Trạng thái</th>
-                <th className="text-center px-4 py-3">Ngày tạo</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chưa có tài khoản nào</td></tr>
-              )}
-              {[...groupedUsers, ...(otherUsers.length ? [{ role: 'OTHER', label: '❓ Khác', members: otherUsers }] : [])].map(group => {
-                const rc = ROLE_COLORS[group.role] || ROLE_COLORS.CSVC;
-                return [
-                  <tr key={`group-${group.role}`}>
-                    <td colSpan={7} style={{ padding:'8px 16px', background: rc.bg, borderTop:'1px solid rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                      <span style={{ fontSize:'0.72rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase' }}>
-                        {group.label} <span style={{ opacity:0.6, fontWeight:600 }}>({group.members.length})</span>
-                      </span>
-                    </td>
-                  </tr>,
-                  ...group.members.map(u => (
-                    <tr key={u.id}>
-                      <td className="px-4 py-3 text-center" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
-                      <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
-                      <td className="px-4 py-3 text-center" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center' }}>
-                          {u.is_truong_phong ? (
-                            <span style={{ fontSize: '0.65rem', color: '#2dd4bf', fontWeight: 600 }}>🏅 Trưởng phòng</span>
-                          ) : null}
-                          {u.is_phan_lich ? (
-                            <span style={{ fontSize: '0.65rem', color: '#60a5fa', fontWeight: 600 }}>🗓 Phân lịch</span>
-                          ) : null}
-                          {u.is_phan_lich_all ? (
-                            <span style={{ fontSize: '0.65rem', color: '#f97316', fontWeight: 600 }}>📋 Phân lịch tất cả</span>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {u.is_active
-                          ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
-                          : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
-                      </td>
-                      <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
-                          <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
-                          {isSuperAdmin && (
-                            <button className="btn-sm" onClick={() => handleReset(u)}
-                              style={{ padding:'7px 12px', borderRadius:'7px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
-                              title="Reset mật khẩu về mặc định">
-                              🔑
-                            </button>
-                          )}
-                          <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
-                        </div>
-                      </td>
-                    </tr>
-                  )),
-                ];
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ── Mobile: Card list ── */}
-      <div className="show-mobile" style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+      {/* ── Card list (all screens) ── */}
+      <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
         {users.length === 0 && (
           <p style={{ textAlign:'center', padding:'32px', color:'var(--text-muted)' }}>Chưa có tài khoản nào</p>
         )}
@@ -294,12 +219,13 @@ export default function Users() {
               </div>
               {group.members.map(u => (
                 <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'12px 14px', marginBottom:'8px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
                     <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
                     {u.is_active
                       ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
                       : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
+                  <div style={{ marginBottom:'10px', fontSize:'0.78rem', color:'var(--text-muted)' }}>{u.username}</div>
                   <div style={{ display:'flex', gap:'8px' }}>
                     <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
                     {isSuperAdmin && (
