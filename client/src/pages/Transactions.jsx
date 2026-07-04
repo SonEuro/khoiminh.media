@@ -181,15 +181,27 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                     <p style={{ fontSize:'0.78rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'italic' }}>
                       Lý do: {e.reason}
                     </p>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px', fontSize:'0.72rem' }}>
-                      <div>
-                        <p style={{ color:'#f87171', fontWeight:600, margin:'0 0 3px' }}>Trước:</p>
-                        {before.map((b, j) => <p key={j} style={{ color:'#a0a0b8', margin:'1px 0' }}>{b.eq_name} × {b.quantity} {b.unit}</p>)}
+                    <div style={{ fontSize:'0.72rem', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'6px', overflow:'hidden' }}>
+                      {/* Header */}
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'rgba(255,255,255,0.04)' }}>
+                        <span style={{ padding:'4px 8px', color:'#f87171', fontWeight:700, borderRight:'1px solid rgba(255,255,255,0.07)' }}>Trước</span>
+                        <span style={{ padding:'4px 8px', color:'#4ade80', fontWeight:700 }}>Sau</span>
                       </div>
-                      <div>
-                        <p style={{ color:'#4ade80', fontWeight:600, margin:'0 0 3px' }}>Sau:</p>
-                        {after.map((a, j) => <p key={j} style={{ color:'#a0a0b8', margin:'1px 0' }}>{a.eq_name} × {a.quantity} {a.unit}</p>)}
-                      </div>
+                      {/* Rows */}
+                      {Array.from({ length: Math.max(before.length, after.length) }).map((_, j) => {
+                        const b = before[j], a = after[j];
+                        const changed = b && a && (b.eq_name !== a.eq_name || b.quantity !== a.quantity);
+                        return (
+                          <div key={j} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', borderTop:'1px solid rgba(255,255,255,0.07)', background: changed ? 'rgba(251,191,36,0.04)' : 'transparent' }}>
+                            <span style={{ padding:'4px 8px', color: b ? '#a0a0b8' : '#3a3a5a', borderRight:'1px solid rgba(255,255,255,0.07)', textDecoration: changed ? 'line-through' : 'none', opacity: changed ? 0.7 : 1 }}>
+                              {b ? `${b.eq_name} × ${b.quantity} ${b.unit}` : '—'}
+                            </span>
+                            <span style={{ padding:'4px 8px', color: a ? (changed ? '#fbbf24' : '#a0a0b8') : '#3a3a5a' }}>
+                              {a ? `${a.eq_name} × ${a.quantity} ${a.unit}` : '—'}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
