@@ -21,7 +21,7 @@ const sectionStyle = {
 };
 
 const PHASES = [
-  { key: 'filming',   label: '🎬 Ngày Ghi Hình',            eventField: 'filming_date' },
+  { key: 'filming',   label: '🎬 Ngày Ghi Hình',            eventField: 'filming_date', orange: true },
   { key: 'setup',     label: '🏗 Ngày Bắt Đầu / Setup',     eventField: 'start_date' },
   { key: 'rehearsal', label: '🎤 Ngày Rehearsal',           eventField: 'show_date' },
   { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
@@ -917,15 +917,21 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       >
         <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
-          {[['🏗', s.setup_dates], ['📦', s.teardown_dates], ['🎤', s.rehearsal_dates], ['🎬', s.filming_dates]]
+          {[['🏗', s.setup_dates, false], ['📦', s.teardown_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true]]
             .filter(([, d]) => d?.length > 0)
             .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
-            .map(([icon, dates]) => (
-              <span key={icon}>{icon} {dates.map((d, i) => (
-                <span key={d} style={d === today ? { color: '#f87171', fontWeight: 800 } : d === tomorrow ? { color: '#4ade80', fontWeight: 800 } : undefined}>
-                  {i > 0 && ' · '}{fmtD(d)}
-                </span>
-              ))}</span>
+            .map(([icon, dates, isFilming]) => (
+              <span key={icon} style={isFilming ? { color:'#fb923c', fontWeight:700, fontSize:'0.78rem' } : undefined}>
+                {icon} {dates.map((d, i) => (
+                  <span key={d} style={
+                    d === today    ? { color: '#f87171', fontWeight: 800 } :
+                    d === tomorrow ? { color: '#4ade80', fontWeight: 800 } :
+                    isFilming      ? { color: '#fb923c' } : undefined
+                  }>
+                    {i > 0 && ' · '}{fmtD(d)}
+                  </span>
+                ))}
+              </span>
             ))
           }
           {s.location && <span>📍 {s.location}</span>}
@@ -1178,13 +1184,17 @@ export default function WorkSchedule() {
         const phaseIcons = { filming: '🎬', setup: '🏗', rehearsal: '🎤', teardown: '📦' };
         function renderDates(key, datesArr) {
           if (!datesArr?.length) return null;
+          const isFilming = key === 'filming';
           return (
-            <span key={key}>{phaseIcons[key]} {datesArr.map((d, i) => (
-              <span key={d} style={
-                d === todayStr    ? { color: '#f87171', fontWeight: 800 } :
-                d === tomorrowStr ? { color: '#4ade80', fontWeight: 800 } : undefined
-              }>{i > 0 && ' · '}{fmtD(d)}</span>
-            ))}</span>
+            <span key={key} style={isFilming ? { color:'#fb923c', fontWeight:700, fontSize:'0.82rem' } : undefined}>
+              {phaseIcons[key]} {datesArr.map((d, i) => (
+                <span key={d} style={
+                  d === todayStr    ? { color: '#f87171', fontWeight: 800 } :
+                  d === tomorrowStr ? { color: '#4ade80', fontWeight: 800 } :
+                  isFilming         ? { color: '#fb923c' } : undefined
+                }>{i > 0 && ' · '}{fmtD(d)}</span>
+              ))}
+            </span>
           );
         }
         function renderCard(s, zone) {

@@ -349,7 +349,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
           <MultiDatePicker value={form.show_dates || []} onChange={v => set('show_dates', v)} placeholder="Chọn ngày rehearsal..." />
         </div>
         <div>
-          <label className="label">Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
+          <label className="label" style={{ color:'#fb923c' }}>Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} placeholder="Chọn ngày ghi hình..." />
           {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
@@ -420,9 +420,9 @@ function EventDetailModal({ eventId, onClose }) {
             const dates = parseFilmingDates(ev);
             return dates.length > 0 ? (
               <div style={{ gridColumn: 'span 2' }}>
-                <span className="text-gray-500">Ngày ghi hình: </span>
+                <span style={{ color:'#fb923c', fontWeight:700, fontSize:'0.9rem' }}>🎬 Ngày ghi hình: </span>
                 {dates.map((d, i) => (
-                  <strong key={i} style={{ color:'#a78bfa', marginRight:'10px' }}>🎬 {fmtD(d)}</strong>
+                  <strong key={i} style={{ color:'#fb923c', marginRight:'10px', fontSize:'0.9rem' }}>{fmtD(d)}</strong>
                 ))}
               </div>
             ) : null;
@@ -837,7 +837,7 @@ export default function Events() {
                   </span>
                 )}
                 {filmDates.length > 0 && (
-                  <span>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
+                  <span style={{ color:'#fb923c', fontWeight:700, fontSize:'0.85rem' }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
                 )}
               </div>
               <div className="flex gap-2 flex-wrap">
