@@ -1016,7 +1016,7 @@ export default function ExportForm() {
         function removeRow(realIdx) { setNccReturnItems(p => p.filter((_, j) => j !== realIdx)); }
         function updateRow(realIdx, key, val) { setNccReturnItems(p => p.map((r, j) => j === realIdx ? { ...r, [key]: val } : r)); }
 
-        const SortArrow = ({ col }) => sortBy === col
+        const SortArrow = ({ col }) => nccSortBy === col
           ? <span style={{ marginLeft:'4px', color:'#60a5fa' }}>{nccSortDir === 'asc' ? '↑' : '↓'}</span>
           : <span style={{ opacity:0.3, marginLeft:'4px' }}>↕</span>;
 
