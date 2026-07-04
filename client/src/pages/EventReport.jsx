@@ -521,9 +521,12 @@ export default function EventReport() {
     const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userDept);
     if (!userGroup) { setIsAloneInDept(false); return; }
     const deptMembers = new Set(userGroup.members);
+    const myName = user?.full_name || '';
     api.getWorkSchedules({}).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
-      const names = new Set();
+      const staffNames = new Set(); // leads + km_staff (để auto-fill nhóm trưởng)
+      const leadNames  = new Set(); // chỉ leads (để kiểm tra isAloneInDept – khớp obligation system)
+      let isLeadThisDate = false;   // user có phải lead ngày này không
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
@@ -531,18 +534,25 @@ export default function EventReport() {
           const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
           leadsForDate.forEach(l => {
             const n = typeof l === 'string' ? l : l?.name;
-            if (n && deptMembers.has(n)) names.add(n);
+            if (!n) return;
+            if (n === myName) isLeadThisDate = true;
+            // Tính vào leadNames nếu cùng dept hoặc chính là user hiện tại
+            if (deptMembers.has(n) || n === myName) leadNames.add(n);
+            if (deptMembers.has(n) || n === myName) staffNames.add(n);
           });
           const kmMap = s[`${key}_km_staff_map`] || {};
-          (kmMap[form.report_date] || []).filter(n => deptMembers.has(n)).forEach(n => names.add(n));
+          (kmMap[form.report_date] || []).forEach(n => {
+            if (deptMembers.has(n) || n === myName) staffNames.add(n);
+          });
         }
       }
       // Chỉ nhóm trưởng mới tự động điền danh sách nhân sự
-      if (user?.is_truong_phong && names.size > 0) {
-        setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
+      if (user?.is_truong_phong && staffNames.size > 0) {
+        setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...staffNames])] }));
       }
-      // Nếu chỉ có 1 nhân viên trong dept cho ngày này và đó là user hiện tại → cũng cảnh báo trễ hạn
-      setIsAloneInDept(names.size === 1 && names.has(user?.full_name || ''));
+      // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
+      // → khớp với obligation system (chỉ tạo vi phạm cho leads)
+      setIsAloneInDept(isLeadThisDate && leadNames.size === 1 && leadNames.has(myName));
     }).catch(() => { setIsAloneInDept(false); });
   }, [form.report_date, user?.is_truong_phong, user?.full_name]);
 
