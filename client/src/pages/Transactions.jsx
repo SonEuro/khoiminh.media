@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { printSlip } from '../utils/printSlip';
 import { printNccReturn } from '../utils/printNccReturn';
+import { NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
 import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
@@ -688,6 +689,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
 }
 
 const NCC_DEPTS = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
 
 // ── Trả NCC modal ─────────────────────────────────────────────────────────────
 function TraNccModal({ txId, onClose }) {
@@ -717,7 +719,7 @@ function TraNccModal({ txId, onClose }) {
     else { setSortBy(col); setSortDir('asc'); }
   }
 
-  function addRow() { setItems(p => [...p, { name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+  function addRow() { setItems(p => [...p, { dept:'', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
   function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
   function updateRow(i, key, val) { setItems(p => p.map((r, j) => j === i ? { ...r, [key]: val } : r)); }
 
@@ -754,36 +756,45 @@ function TraNccModal({ txId, onClose }) {
             {tx.responsible_person && <> · {tx.responsible_person}</>}
           </div>
           <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
-            <datalist id="ncc-depts">
-              {NCC_DEPTS.map(d => <option key={d} value={d} />)}
-            </datalist>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'560px' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'600px' }}>
               <thead>
                 <tr>
                   <th style={{ ...thStyle(), width:'32px', padding:'7px 8px', textAlign:'center', cursor:'default' }}>#</th>
+                  <th style={{ ...thStyle(), width:'110px' }}>Bộ phận</th>
                   <th style={thStyle('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
                   <th style={thStyle('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
-                  <th style={{ ...thStyle(), width:'72px' }}>SL</th>
-                  <th style={{ ...thStyle(), width:'64px' }}>Đơn vị</th>
-                  <th style={{ ...thStyle(), width:'120px' }}>Ghi chú</th>
+                  <th style={{ ...thStyle(), width:'64px' }}>SL</th>
+                  <th style={{ ...thStyle(), width:'60px' }}>Đơn vị</th>
+                  <th style={{ ...thStyle(), width:'110px' }}>Ghi chú</th>
                   <th style={{ ...thStyle(), width:'32px', cursor:'default' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {sorted.length === 0 && (
-                  <tr><td colSpan={7} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Chưa có thiết bị NCC. Nhấn "+ Thêm dòng" để nhập.</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Chưa có thiết bị NCC. Nhấn "+ Thêm dòng" để nhập.</td></tr>
                 )}
                 {sorted.map((row, i) => {
                   const realIdx = items.indexOf(row);
                   const td = { verticalAlign:'middle', padding:'0 6px', height:'34px' };
                   const inp = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.82rem', lineHeight:'34px', height:'34px' };
+                  const dKey = DEPT_KEY[row.dept];
+                  const rowNccs = dKey ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(dKey)) : row.dept ? [] : NCC_LIST;
+                  const dlId = `ncc-tx-${realIdx}`;
                   return (
                     <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ ...td, textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'0 8px' }}>{i + 1}</td>
                       <td style={{ ...td, padding:'0 4px' }}>
+                        <select value={row.dept || ''} onChange={e => updateRow(realIdx, 'dept', e.target.value)}
+                          style={{ width:'100%', background:'#16162a', border:'none', outline:'none', color:'#a78bfa', fontSize:'0.78rem', height:'34px', cursor:'pointer' }}>
+                          <option value="">— Bộ phận —</option>
+                          {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </td>
+                      <td style={{ ...td, padding:'0 4px' }}>
                         <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
-                          list="ncc-depts" placeholder="Bộ phận / NCC..."
+                          list={dlId} placeholder="Chọn hoặc nhập NCC..."
                           style={{ ...inp, color:'#60a5fa' }} />
+                        <datalist id={dlId}>{rowNccs.map(n => <option key={n} value={n} />)}</datalist>
                       </td>
                       <td style={td}>
                         <input value={row.name} onChange={e => updateRow(realIdx, 'name', e.target.value)}

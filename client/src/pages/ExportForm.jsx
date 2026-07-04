@@ -32,6 +32,7 @@ const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equ
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
 const NCC_DEPTS = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY  = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
 
 export default function ExportForm() {
   const navigate = useNavigate();
@@ -1013,7 +1014,7 @@ export default function ExportForm() {
           if (nccSortBy === col) setNccSortDir(d => d === 'asc' ? 'desc' : 'asc');
           else { setNccSortBy(col); setNccSortDir('asc'); }
         }
-        function addRow() { setNccReturnItems(p => [...p, { name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+        function addRow() { setNccReturnItems(p => [...p, { dept:'', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
         function removeRow(realIdx) { setNccReturnItems(p => p.filter((_, j) => j !== realIdx)); }
         function updateRow(realIdx, key, val) { setNccReturnItems(p => p.map((r, j) => j === realIdx ? { ...r, [key]: val } : r)); }
 
@@ -1039,36 +1040,45 @@ export default function ExportForm() {
               </div>
             }>
             <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
-              <datalist id="ncc-depts-ef">
-                {NCC_DEPTS.map(d => <option key={d} value={d} />)}
-              </datalist>
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'540px' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'580px' }}>
                 <thead>
                   <tr>
                     <th style={{ ...thSt(), width:'32px', cursor:'default', textAlign:'center' }}>#</th>
+                    <th style={{ ...thSt(), width:'108px' }}>Bộ phận</th>
                     <th style={thSt('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
                     <th style={thSt('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
-                    <th style={{ ...thSt(), width:'64px' }}>SL</th>
-                    <th style={{ ...thSt(), width:'60px' }}>Đơn vị</th>
-                    <th style={{ ...thSt(), width:'110px' }}>Ghi chú</th>
+                    <th style={{ ...thSt(), width:'56px' }}>SL</th>
+                    <th style={{ ...thSt(), width:'56px' }}>Đơn vị</th>
+                    <th style={{ ...thSt(), width:'100px' }}>Ghi chú</th>
                     <th style={{ ...thSt(), width:'28px', cursor:'default' }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {sorted.length === 0 && (
-                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Nhấn "+ Thêm dòng" để nhập thiết bị NCC cần trả.</td></tr>
+                    <tr><td colSpan={8} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Nhấn "+ Thêm dòng" để nhập thiết bị NCC cần trả.</td></tr>
                   )}
                   {sorted.map((row, i) => {
                     const realIdx = nccReturnItems.indexOf(row);
                     const td = { verticalAlign:'middle', padding:'0 6px', height:'34px' };
                     const inp = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.82rem', lineHeight:'34px', height:'34px' };
+                    const dKey = DEPT_KEY[row.dept];
+                    const rowNccs = dKey ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(dKey)) : row.dept ? [] : NCC_LIST;
+                    const dlId = `ncc-ef-${realIdx}`;
                     return (
                       <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
                         <td style={{ ...td, textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'0 8px' }}>{i+1}</td>
                         <td style={{ ...td, padding:'0 4px' }}>
+                          <select value={row.dept || ''} onChange={e => updateRow(realIdx,'dept',e.target.value)}
+                            style={{ width:'100%', background:'#16162a', border:'none', outline:'none', color:'#a78bfa', fontSize:'0.78rem', height:'34px', cursor:'pointer' }}>
+                            <option value="">— Bộ phận —</option>
+                            {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
+                          </select>
+                        </td>
+                        <td style={{ ...td, padding:'0 4px' }}>
                           <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)}
-                            list="ncc-depts-ef" placeholder="Bộ phận / NCC..."
+                            list={dlId} placeholder="Chọn hoặc nhập NCC..."
                             style={{ ...inp, color:'#60a5fa' }} />
+                          <datalist id={dlId}>{rowNccs.map(n => <option key={n} value={n} />)}</datalist>
                         </td>
                         <td style={td}>
                           <input value={row.name} onChange={e => updateRow(realIdx,'name',e.target.value)} placeholder="Tên thiết bị..."
