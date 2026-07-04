@@ -339,9 +339,9 @@ function UpcomingScheduleSection({ userName }) {
                 </p>
               </div>
               {isToday
-                ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>HÔM NAY</span>
+                ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · HÔM NAY</span>
                 : isTomorrow
-                  ? <span style={{ fontSize: '0.7rem', color: '#fb923c', fontWeight: 800, flexShrink: 0, background: 'rgba(251,146,60,0.15)', border: '1px solid rgba(251,146,60,0.35)', borderRadius: '6px', padding: '1px 7px' }}>NGÀY MAI</span>
+                  ? <span style={{ fontSize: '0.7rem', color: '#fb923c', fontWeight: 800, flexShrink: 0, background: 'rgba(251,146,60,0.15)', border: '1px solid rgba(251,146,60,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
                   : <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
               }
             </div>
