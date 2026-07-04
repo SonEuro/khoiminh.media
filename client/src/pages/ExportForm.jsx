@@ -31,6 +31,7 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
+const NCC_DEPTS = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
 
 export default function ExportForm() {
   const navigate = useNavigate();
@@ -1038,14 +1039,17 @@ export default function ExportForm() {
               </div>
             }>
             <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
+              <datalist id="ncc-depts-ef">
+                {NCC_DEPTS.map(d => <option key={d} value={d} />)}
+              </datalist>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'540px' }}>
                 <thead>
                   <tr>
                     <th style={{ ...thSt(), width:'32px', cursor:'default', textAlign:'center' }}>#</th>
-                    <th style={thSt('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
                     <th style={thSt('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
-                    <th style={{ ...thSt(), width:'72px' }}>SL</th>
-                    <th style={{ ...thSt(), width:'68px' }}>Đơn vị</th>
+                    <th style={thSt('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
+                    <th style={{ ...thSt(), width:'64px' }}>SL</th>
+                    <th style={{ ...thSt(), width:'60px' }}>Đơn vị</th>
                     <th style={{ ...thSt(), width:'110px' }}>Ghi chú</th>
                     <th style={{ ...thSt(), width:'28px', cursor:'default' }}></th>
                   </tr>
@@ -1056,32 +1060,35 @@ export default function ExportForm() {
                   )}
                   {sorted.map((row, i) => {
                     const realIdx = nccReturnItems.indexOf(row);
+                    const td = { verticalAlign:'middle', padding:'0 6px', height:'34px' };
+                    const inp = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.82rem', lineHeight:'34px', height:'34px' };
                     return (
                       <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
-                        <td style={{ textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'4px 8px' }}>{i+1}</td>
-                        <td style={{ padding:'4px 6px' }}>
+                        <td style={{ ...td, textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'0 8px' }}>{i+1}</td>
+                        <td style={{ ...td, padding:'0 4px' }}>
+                          <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)}
+                            list="ncc-depts-ef" placeholder="Bộ phận / NCC..."
+                            style={{ ...inp, color:'#60a5fa' }} />
+                        </td>
+                        <td style={td}>
                           <input value={row.name} onChange={e => updateRow(realIdx,'name',e.target.value)} placeholder="Tên thiết bị..."
-                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#e0e0f0', fontSize:'0.82rem' }} />
+                            style={{ ...inp, color:'#e0e0f0' }} />
                         </td>
-                        <td style={{ padding:'4px 6px' }}>
-                          <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)} placeholder="NCC..."
-                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#60a5fa', fontSize:'0.82rem' }} />
-                        </td>
-                        <td style={{ padding:'4px 6px' }}>
+                        <td style={{ ...td, padding:'0 4px' }}>
                           <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx,'quantity',parseInt(e.target.value)||1)}
-                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#fbbf24', fontWeight:700, fontSize:'0.82rem', textAlign:'center' }} />
+                            style={{ ...inp, color:'#fbbf24', fontWeight:700, textAlign:'center' }} />
                         </td>
-                        <td style={{ padding:'4px 6px' }}>
+                        <td style={td}>
                           <input value={row.unit} onChange={e => updateRow(realIdx,'unit',e.target.value)}
-                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#a0a0b8', fontSize:'0.82rem' }} />
+                            style={{ ...inp, color:'#a0a0b8' }} />
                         </td>
-                        <td style={{ padding:'4px 6px' }}>
+                        <td style={td}>
                           <input value={row.notes} onChange={e => updateRow(realIdx,'notes',e.target.value)} placeholder="..."
-                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.8rem' }} />
+                            style={{ ...inp, color:'#7878a0' }} />
                         </td>
-                        <td style={{ textAlign:'center', padding:'4px' }}>
+                        <td style={{ ...td, textAlign:'center', padding:'0 4px' }}>
                           <button onClick={() => removeRow(realIdx)}
-                            style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.9rem', lineHeight:1 }}>×</button>
+                            style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1rem', lineHeight:1 }}>×</button>
                         </td>
                       </tr>
                     );
