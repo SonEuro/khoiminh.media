@@ -1062,8 +1062,13 @@ export default function WorkSchedule() {
         </div>
       )}
 
-      {/* ── Báo cáo cần nộp ─────────────────────────────────────── */}
-      {obligations.length > 0 && (() => {
+      {/* ── Báo cáo cần nộp — chỉ nhân viên thường (không phải admin/TP/phân lịch) */}
+      {obligations.length > 0
+        && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
+        && !user?.is_phan_lich_all
+        && !user?.is_truong_phong
+        && !user?.is_phan_lich
+        && (() => {
         const pastObs  = obligations.filter(o => o.assigned_date < todayStr);
         const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
         const overdue  = pastObs.filter(o => o.overdue);
