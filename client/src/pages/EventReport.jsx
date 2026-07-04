@@ -7,7 +7,19 @@ import FreelancerPicker from '../components/FreelancerPicker';
 
 const GOLD = '#c9a84c';
 
-// Fallback: role → tên dept trong KM_STAFF_GROUPS
+// Hiển thị dept nhất quán với Users.jsx ROLES array
+const ROLE_DEPT_LABEL = {
+  DIRECTOR:    'Tổng Giám Đốc',
+  SUPER_ADMIN: 'Giám Đốc Sản Xuất',
+  PRODUCTION:  'Bộ Phận Sản Xuất',
+  ACCOUNTING:  'Kế Toán',
+  TECHNICAL:   'Kỹ Thuật',
+  ATAS:        'ATAS – LED',
+  STAGE:       'Sân Khấu',
+  CSVC:        'Cơ Sở Vật Chất',
+};
+
+// Mapping role → tên dept trong KM_STAFF_GROUPS (dùng để filter nhân sự khi auto-load)
 const ROLE_TO_KM_DEPT = {
   ATAS:       'Âm Thanh Ánh Sáng',
   STAGE:      'Sân Khấu',
@@ -20,7 +32,6 @@ const ROLE_TO_KM_DEPT = {
 function getUserKmDept(user) {
   return KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''))?.dept
     || ROLE_TO_KM_DEPT[user?.role]
-    || user?.position
     || '—';
 }
 
@@ -731,7 +742,7 @@ export default function EventReport() {
             <div>
               <label style={labelStyle}>Bộ phận</label>
               <input className="input" readOnly
-                value={getUserKmDept(user)}
+                value={ROLE_DEPT_LABEL[user?.role] || user?.position || '—'}
                 style={{ opacity:0.7, cursor:'not-allowed', color:'#93c5fd', fontWeight:600 }} />
             </div>
           </div>
