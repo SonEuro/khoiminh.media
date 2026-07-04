@@ -1032,17 +1032,15 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
       {txs.map(tx => {
         const cfg = TX_CFG[tx.type] || TX_CFG.OUT;
         return (
-          <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
-            <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:GOLD, fontWeight:700, margin:'0 0 2px' }}>{tx.code}</p>
-              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
-              </p>
+          <div key={tx.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2px' }}>
+              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:GOLD, fontWeight:700, margin:0 }}>{tx.code}</p>
+              <span style={{ fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
             </div>
-            <span style={{ fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>
-              {fmtD(tx.transaction_date)}
-            </span>
-            <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
+            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
+            </p>
+            <div style={{ display:'flex', gap:'4px', flexWrap:'wrap' }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
               {onTraNcc && tx.ext_count > 0 && (
                 <button onClick={() => onTraNcc(tx.id)}
