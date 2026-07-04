@@ -502,9 +502,18 @@ export default function EventReport() {
       let freelancerText = '';
       for (const s of scheds) {
         for (const key of phaseKeys) {
-          if (s[`${key}_date`] !== form.report_date) continue;
-          (s[`${key}_leads`] || []).forEach(l => l.name && names.add(l.name));
-          (s[`${key}_km_staff`] || []).forEach(n => names.add(n));
+          // Hỗ trợ multi-date: dùng _dates array thay vì _date singular
+          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          if (!dates.includes(form.report_date)) continue;
+          // Leads: ưu tiên date-specific từ leads_map
+          const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
+          leadsForDate.forEach(l => {
+            const n = typeof l === 'string' ? l : l?.name;
+            if (n) names.add(n);
+          });
+          // km_staff: ưu tiên date-specific từ km_staff_map
+          const kmForDate = s[`${key}_km_staff_map`]?.[form.report_date] || s[`${key}_km_staff`] || [];
+          kmForDate.forEach(n => names.add(n));
           if (s[`${key}_freelancers`]) freelancerText = freelancerText ? `${freelancerText}, ${s[`${key}_freelancers`]}` : s[`${key}_freelancers`];
         }
       }
