@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -977,6 +977,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
 export default function WorkSchedule() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
 
   const [schedules, setSchedules] = useState([]);
@@ -998,6 +999,18 @@ export default function WorkSchedule() {
       setEvents(data.filter(e => e.status !== 'cancelled' && (!e.start_date || e.start_date >= today)));
     }).catch(() => {});
   }, [load]);
+
+  // Tự mở modal chi tiết khi navigate từ Dashboard
+  useEffect(() => {
+    const targetId = location.state?.schedId;
+    if (!targetId || !schedules.length) return;
+    const s = schedules.find(x => x.id === targetId);
+    if (!s) return;
+    setSelected(s);
+    setModal('detail');
+    setScheduleHistory([]);
+    api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {});
+  }, [schedules, location.state?.schedId]);
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowStr = (() => {

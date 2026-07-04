@@ -313,7 +313,7 @@ function UpcomingScheduleSection({ userName }) {
           const isToday = item.date === todayVN;
           return (
             <div key={`${item.schedId}-${item.phase}-${item.date}`}
-              onClick={() => navigate('/work-schedule')}
+              onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
               style={{
                 display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '10px 16px', cursor: 'pointer',
