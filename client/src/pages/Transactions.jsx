@@ -945,31 +945,32 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete }) {
         const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
         const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
         return (
-          <div key={ev.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
-            <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</p>
-              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {[ev.client, ev.location].filter(Boolean).join(' · ')}
-                {archivedDate && <span style={{ marginLeft:'6px', color:'#5a5a80' }}>· Lưu {fmtDate(ev.archived_at)}</span>}
-              </p>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-              {ev.start_date && <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>{fmtDate(ev.start_date)}</span>}
+          <div key={ev.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
+            {/* Hàng 1: tên + badge */}
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
+              <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, minWidth:0 }}>{ev.name}</p>
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
-              {ev.tx_count > 0 && <span style={{ fontSize:'0.68rem', color:'#7878a0', whiteSpace:'nowrap' }}>{ev.tx_count} phiếu</span>}
-              {isSuperAdmin && (
-                <>
-                  <button onClick={() => onUnarchive(ev)} title="Bỏ lưu trữ"
-                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.7rem', fontWeight:700, whiteSpace:'nowrap' }}>
-                    Bỏ lưu
-                  </button>
-                  <button onClick={() => onDelete(ev)} title="Xoá vĩnh viễn"
-                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.7rem', fontWeight:700, whiteSpace:'nowrap' }}>
-                    Xoá
-                  </button>
-                </>
-              )}
             </div>
+            {/* Hàng 2: client/location · ngày · phiếu */}
+            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {[ev.client, ev.location].filter(Boolean).join(' · ')}
+              {ev.start_date && <span> · {fmtDate(ev.start_date)}</span>}
+              {ev.tx_count > 0 && <span> · {ev.tx_count} phiếu</span>}
+              {archivedDate && <span style={{ color:'#5a5a80' }}> · Lưu {fmtDate(ev.archived_at)}</span>}
+            </p>
+            {/* Hàng 3: nút (chỉ SUPER_ADMIN) */}
+            {isSuperAdmin && (
+              <div style={{ display:'flex', gap:'6px' }}>
+                <button onClick={() => onUnarchive(ev)}
+                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.7rem', fontWeight:700 }}>
+                  Bỏ lưu trữ
+                </button>
+                <button onClick={() => onDelete(ev)}
+                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.7rem', fontWeight:700 }}>
+                  Xoá vĩnh viễn
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
