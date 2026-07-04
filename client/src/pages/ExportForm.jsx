@@ -1040,76 +1040,70 @@ export default function ExportForm() {
                 </button>
               </div>
             }>
-            <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'580px' }}>
-                <thead>
-                  <tr>
-                    <th style={{ ...thSt(), width:'32px', cursor:'default', textAlign:'center' }}>#</th>
-                    <th style={{ ...thSt(), width:'108px' }}>Bộ phận</th>
-                    <th style={thSt('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
-                    <th style={thSt('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
-                    <th style={{ ...thSt(), width:'56px' }}>SL</th>
-                    <th style={{ ...thSt(), width:'56px' }}>Đơn vị</th>
-                    <th style={{ ...thSt(), width:'100px' }}>Ghi chú</th>
-                    <th style={{ ...thSt(), width:'28px', cursor:'default' }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.length === 0 && (
-                    <tr><td colSpan={8} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Nhấn "+ Thêm dòng" để nhập thiết bị NCC cần trả.</td></tr>
-                  )}
-                  {sorted.map((row, i) => {
-                    const realIdx = nccReturnItems.indexOf(row);
-                    const td = { verticalAlign:'middle', padding:'0 6px', height:'34px' };
-                    const inp = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.82rem', lineHeight:'34px', height:'34px' };
-                    const dKey = DEPT_KEY[row.dept];
-                    const rowNccs = dKey ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(dKey)) : row.dept ? [] : NCC_LIST;
-                    const dlId = `ncc-ef-${realIdx}`;
-                    return (
-                      <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
-                        <td style={{ ...td, textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'0 8px' }}>{i+1}</td>
-                        <td style={{ ...td, padding:'0 4px' }}>
-                          <select value={row.dept || ''} onChange={e => updateRow(realIdx,'dept',e.target.value)}
-                            style={{ width:'100%', background:'#16162a', border:'none', outline:'none', color:'#a78bfa', fontSize:'0.78rem', height:'34px', cursor:'pointer' }}>
-                            <option value="">— Bộ phận —</option>
-                            {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
-                          </select>
-                        </td>
-                        <td style={{ ...td, padding:'0 4px' }}>
-                          <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)}
-                            list={dlId} placeholder="Chọn hoặc nhập NCC..."
-                            style={{ ...inp, color:'#60a5fa' }} />
-                          <datalist id={dlId}>{rowNccs.map(n => <option key={n} value={n} />)}</datalist>
-                        </td>
-                        <td style={td}>
-                          <input value={row.name} onChange={e => updateRow(realIdx,'name',e.target.value)} placeholder="Tên thiết bị..."
-                            style={{ ...inp, color:'#e0e0f0' }} />
-                        </td>
-                        <td style={{ ...td, padding:'0 4px' }}>
-                          <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx,'quantity',parseInt(e.target.value)||1)}
-                            style={{ ...inp, color:'#fbbf24', fontWeight:700, textAlign:'center' }} />
-                        </td>
-                        <td style={td}>
-                          <input value={row.unit} onChange={e => updateRow(realIdx,'unit',e.target.value)}
-                            style={{ ...inp, color:'#a0a0b8' }} />
-                        </td>
-                        <td style={td}>
-                          <input value={row.notes} onChange={e => updateRow(realIdx,'notes',e.target.value)} placeholder="..."
-                            style={{ ...inp, color:'#7878a0' }} />
-                        </td>
-                        <td style={{ ...td, textAlign:'center', padding:'0 4px' }}>
-                          <button onClick={() => removeRow(realIdx)}
-                            style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1rem', lineHeight:1 }}>×</button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            {/* Sort bar */}
+            <div style={{ display:'flex', gap:'6px', marginBottom:'10px', alignItems:'center', flexWrap:'wrap' }}>
+              <span style={{ color:'#5a5a80', fontSize:'0.72rem' }}>Sắp xếp:</span>
+              {[['supplier','NCC'],['name','Tên thiết bị']].map(([col, label]) => (
+                <button key={col} onClick={() => toggleSort(col)}
+                  style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:'4px', color:'#a0a0b8', fontSize:'0.72rem', padding:'3px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:'3px' }}>
+                  {label} <SortArrow col={col} />
+                </button>
+              ))}
             </div>
-            <p style={{ fontSize:'0.72rem', color:'#5a5a80', marginTop:'10px' }}>
-              {sorted.length} dòng · Click tiêu đề cột để sắp xếp
-            </p>
+            {/* Cards */}
+            <div>
+              {sorted.length === 0 && (
+                <div style={{ textAlign:'center', padding:'24px', color:'#7878a0', fontSize:'0.8rem' }}>Nhấn "+ Thêm dòng" để nhập thiết bị NCC cần trả.</div>
+              )}
+              {sorted.map((row, i) => {
+                const realIdx = nccReturnItems.indexOf(row);
+                const dKey = DEPT_KEY[row.dept];
+                const rowNccs = dKey ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(dKey)) : row.dept ? [] : NCC_LIST;
+                const dlId = `ncc-ef-${realIdx}`;
+                const ipt = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.85rem', padding:'4px 0' };
+                const sep = { borderBottom:'1px solid rgba(255,255,255,0.07)', paddingBottom:'6px', marginBottom:'6px' };
+                return (
+                  <div key={i} style={{ background:'rgba(255,255,255,0.04)', borderRadius:'8px', padding:'10px 12px', marginBottom:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
+                    {/* Dòng 1: index + bộ phận + xóa */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
+                      <span style={{ color:'#5a5a80', fontSize:'0.72rem', minWidth:'18px' }}>{i+1}</span>
+                      <select value={row.dept||''} onChange={e => updateRow(realIdx,'dept',e.target.value)}
+                        style={{ flex:1, background:'#16162a', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.82rem', height:'32px', padding:'0 6px', cursor:'pointer' }}>
+                        <option value="">— Bộ phận —</option>
+                        {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                      <button onClick={() => removeRow(realIdx)}
+                        style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1.1rem', lineHeight:1, padding:'0 2px' }}>×</button>
+                    </div>
+                    {/* Dòng 2: NCC */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
+                      <span style={{ color:'#5a5a80', fontSize:'0.7rem', width:'30px', flexShrink:0 }}>NCC</span>
+                      <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)}
+                        list={dlId} placeholder="Chọn hoặc nhập NCC..."
+                        style={{ ...ipt, color:'#60a5fa' }} />
+                      <datalist id={dlId}>{rowNccs.map(n => <option key={n} value={n} />)}</datalist>
+                    </div>
+                    {/* Dòng 3: Tên thiết bị */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
+                      <span style={{ color:'#5a5a80', fontSize:'0.7rem', width:'30px', flexShrink:0 }}>Tên</span>
+                      <input value={row.name} onChange={e => updateRow(realIdx,'name',e.target.value)} placeholder="Tên thiết bị..."
+                        style={{ ...ipt, color:'#e0e0f0' }} />
+                    </div>
+                    {/* Dòng 4: SL + ĐV + Ghi chú */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                      <span style={{ color:'#5a5a80', fontSize:'0.7rem', flexShrink:0 }}>SL</span>
+                      <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx,'quantity',parseInt(e.target.value)||1)}
+                        style={{ width:'52px', background:'transparent', border:'none', outline:'none', color:'#fbbf24', fontWeight:700, fontSize:'0.85rem', textAlign:'center' }} />
+                      <input value={row.unit} onChange={e => updateRow(realIdx,'unit',e.target.value)} placeholder="ĐV"
+                        style={{ width:'48px', background:'transparent', border:'none', outline:'none', color:'#a0a0b8', fontSize:'0.82rem' }} />
+                      <input value={row.notes} onChange={e => updateRow(realIdx,'notes',e.target.value)} placeholder="Ghi chú..."
+                        style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.8rem' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p style={{ fontSize:'0.72rem', color:'#5a5a80', marginTop:'8px' }}>{sorted.length} dòng</p>
           </Modal>
         );
       })()}
