@@ -1306,7 +1306,7 @@ export default function WorkSchedule() {
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
@@ -1378,7 +1378,7 @@ export default function WorkSchedule() {
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
