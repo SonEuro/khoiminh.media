@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { printSlip } from '../utils/printSlip';
+import { printNccReturn } from '../utils/printNccReturn';
 import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
@@ -686,6 +687,134 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   );
 }
 
+// ── Trả NCC modal ─────────────────────────────────────────────────────────────
+function TraNccModal({ txId, onClose }) {
+  const [tx,      setTx]      = useState(null);
+  const [items,   setItems]   = useState([]);
+  const [sortBy,  setSortBy]  = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+
+  useEffect(() => {
+    api.getTransactionById(txId).then(data => {
+      setTx(data);
+      setItems((data.external_items || []).map(e => ({
+        name: e.name || '', supplier: e.supplier || '',
+        quantity: e.quantity || 1, unit: e.unit || 'Cái', notes: e.notes || '',
+      })));
+    });
+  }, [txId]);
+
+  const sorted = sortBy ? [...items].sort((a, b) => {
+    const va = (a[sortBy] || '').toString().toLowerCase();
+    const vb = (b[sortBy] || '').toString().toLowerCase();
+    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  }) : items;
+
+  function toggleSort(col) {
+    if (sortBy === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(col); setSortDir('asc'); }
+  }
+
+  function addRow() { setItems(p => [...p, { name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+  function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
+  function updateRow(i, key, val) { setItems(p => p.map((r, j) => j === i ? { ...r, [key]: val } : r)); }
+
+  const SortArrow = ({ col }) => {
+    if (sortBy !== col) return <span style={{ opacity:0.3, marginLeft:'4px' }}>↕</span>;
+    return <span style={{ marginLeft:'4px', color:'#60a5fa' }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const thStyle = (col) => ({
+    padding:'7px 10px', textAlign:'left', fontSize:'0.72rem', fontWeight:800,
+    color: sortBy === col ? '#60a5fa' : '#a0a0b8',
+    cursor:'pointer', userSelect:'none', background:'rgba(255,255,255,0.03)',
+    borderBottom:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap',
+  });
+
+  return (
+    <Modal title="🏪 Trả NCC" onClose={onClose} size="lg"
+      extra={
+        <div style={{ display:'inline-flex', gap:'6px' }}>
+          <button onClick={addRow} className="btn-secondary btn-sm">+ Thêm dòng</button>
+          <button onClick={() => printNccReturn(sorted, tx || {})} className="btn-primary btn-sm"
+            style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}>
+            <Printer size={13} /> In phiếu
+          </button>
+        </div>
+      }>
+      {!tx ? (
+        <div style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>Đang tải...</div>
+      ) : (
+        <>
+          <div style={{ fontSize:'0.78rem', color:'#7878a0', marginBottom:'12px' }}>
+            <span style={{ color:'#c9a84c', fontWeight:700 }}>{tx.code}</span>
+            {tx.event_name && <> · {tx.event_name}</>}
+            {tx.responsible_person && <> · {tx.responsible_person}</>}
+          </div>
+          <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'560px' }}>
+              <thead>
+                <tr>
+                  <th style={{ ...thStyle(), width:'32px', padding:'7px 8px', textAlign:'center', cursor:'default' }}>#</th>
+                  <th style={thStyle('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
+                  <th style={thStyle('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
+                  <th style={{ ...thStyle(), width:'80px' }}>SL</th>
+                  <th style={{ ...thStyle(), width:'72px' }}>Đơn vị</th>
+                  <th style={{ ...thStyle(), width:'120px' }}>Ghi chú</th>
+                  <th style={{ ...thStyle(), width:'32px', cursor:'default' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.length === 0 && (
+                  <tr><td colSpan={7} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Chưa có thiết bị NCC. Nhấn "+ Thêm dòng" để nhập.</td></tr>
+                )}
+                {sorted.map((row, i) => {
+                  const realIdx = items.indexOf(row);
+                  return (
+                    <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'4px 8px' }}>{i + 1}</td>
+                      <td style={{ padding:'4px 6px' }}>
+                        <input value={row.name} onChange={e => updateRow(realIdx, 'name', e.target.value)}
+                          placeholder="Tên thiết bị..."
+                          style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#e0e0f0', fontSize:'0.82rem' }} />
+                      </td>
+                      <td style={{ padding:'4px 6px' }}>
+                        <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
+                          placeholder="NCC..."
+                          style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#60a5fa', fontSize:'0.82rem' }} />
+                      </td>
+                      <td style={{ padding:'4px 6px' }}>
+                        <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx, 'quantity', parseInt(e.target.value) || 1)}
+                          style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#fbbf24', fontWeight:700, fontSize:'0.82rem', textAlign:'center' }} />
+                      </td>
+                      <td style={{ padding:'4px 6px' }}>
+                        <input value={row.unit} onChange={e => updateRow(realIdx, 'unit', e.target.value)}
+                          style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#a0a0b8', fontSize:'0.82rem' }} />
+                      </td>
+                      <td style={{ padding:'4px 6px' }}>
+                        <input value={row.notes} onChange={e => updateRow(realIdx, 'notes', e.target.value)}
+                          placeholder="..."
+                          style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.8rem' }} />
+                      </td>
+                      <td style={{ textAlign:'center', padding:'4px' }}>
+                        <button onClick={() => removeRow(realIdx)}
+                          style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.9rem', lineHeight:1 }}>×</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize:'0.72rem', color:'#5a5a80', marginTop:'10px' }}>
+            {sorted.length} dòng · Click tiêu đề cột để sắp xếp · Nhập thủ công hoặc sửa trực tiếp
+          </p>
+        </>
+      )}
+    </Modal>
+  );
+}
+
 // ── Section wrapper ───────────────────────────────────────────────────────────
 function Section({ Icon, title, color, border, count, children }) {
   const [open, setOpen] = useState(true);
@@ -883,7 +1012,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
   );
 }
 
-function TxRows({ txs, onSelect, onDelete }) {
+function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
@@ -902,6 +1031,12 @@ function TxRows({ txs, onSelect, onDelete }) {
             </span>
             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
+              {onTraNcc && tx.ext_count > 0 && (
+                <button onClick={() => onTraNcc(tx.id)}
+                  style={{ padding:'5px 10px', borderRadius:'6px', border:'1px solid rgba(74,222,128,0.35)', background:'transparent', color:'#4ade80', cursor:'pointer', fontSize:'0.72rem', fontWeight:700, whiteSpace:'nowrap' }}>
+                  🏪 Trả NCC
+                </button>
+              )}
               <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', display:'flex', alignItems:'center' }}
                 onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}><Printer size={14} /></button>
               {onDelete && (
@@ -977,6 +1112,7 @@ export default function Transactions() {
   const [editingCompletedTx,  setEditingCompletedTx]  = useState(null);
   const [deletingCompletedTx, setDeletingCompletedTx] = useState(null);
   const [confirming,          setConfirming]          = useState(null);
+  const [traNccTx,            setTraNccTx]            = useState(null);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1077,7 +1213,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
-            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
+            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
@@ -1133,6 +1269,9 @@ export default function Transactions() {
           onClose={() => setDeletingCompletedTx(null)}
           onDeleted={() => { setDeletingCompletedTx(null); load(); }}
         />
+      )}
+      {traNccTx && (
+        <TraNccModal txId={traNccTx} onClose={() => setTraNccTx(null)} />
       )}
     </div>
   );

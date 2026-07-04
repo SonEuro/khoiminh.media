@@ -26,7 +26,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, zalo_uid: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -92,7 +92,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, zalo_uid: u.zalo_uid || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -535,6 +535,15 @@ export default function Users() {
                 style={{ width: '16px', height: '16px', accentColor: '#f97316' }} />
               <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                 📋 Phân lịch tất cả <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(tạo, sửa, xác nhận tất cả lịch + chọn nhân sự tất cả bộ phận)</span>
+              </span>
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.is_tra_ncc}
+                onChange={e => set('is_tra_ncc', e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#4ade80' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                🏪 Trả NCC <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
               </span>
             </label>
 
