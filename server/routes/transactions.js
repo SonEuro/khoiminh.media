@@ -601,21 +601,31 @@ router.put('/:id/edit-completed', (req, res, next) => {
     const ins = db.prepare('INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)');
     items.forEach(i => ins.run(tx.id, i.equipment_id, parseInt(i.quantity) || 1, i.condition || 'good', i.notes || null));
 
+    // Snapshot NCC cũ trước khi xóa
+    const oldExtItems = db.prepare('SELECT * FROM external_items WHERE transaction_id = ?').all(tx.id);
+
     // Thay thế external_items (NCC)
+    let newExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
     if (external_items !== undefined) {
       const validExt = (external_items || []).filter(i => i.name?.trim());
       db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
       const insExt = db.prepare('INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)');
       validExt.forEach(e => insExt.run(tx.id, e.supplier || '', e.name.trim(), e.quantity || 1, e.notes || null, e.unit || 'Cái', e.rental_days || 1));
+      newExtSnap = validExt.map(e => ({ eq_name: `[NCC] ${e.name.trim()}`, supplier: e.supplier || '', quantity: e.quantity || 1, unit: e.unit || 'Cái' }));
     }
+
+    const oldExtSnap = oldExtItems.map(e => ({ eq_name: `[NCC] ${e.name}`, supplier: e.supplier, quantity: e.quantity, unit: e.unit || 'Cái' }));
 
     // Ghi log
     db.prepare(`
       INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after)
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(tx.id, req.user.id, req.user.full_name, reason.trim(),
-      JSON.stringify(oldItems.map(i => ({ eq_name: i.eq_name, eq_code: i.eq_code, quantity: i.quantity, unit: i.unit }))),
-      JSON.stringify(newItemsSnap));
+      JSON.stringify([
+        ...oldItems.map(i => ({ eq_name: i.eq_name, eq_code: i.eq_code, quantity: i.quantity, unit: i.unit })),
+        ...oldExtSnap,
+      ]),
+      JSON.stringify([...newItemsSnap, ...newExtSnap]));
 
     return { ok: true };
   });
