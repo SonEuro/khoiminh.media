@@ -497,7 +497,8 @@ export default function EventReport() {
     if (!form.event_id || !form.report_date) return;
     if (user?.is_truong_phong) return;
     const myName = user?.full_name || '';
-    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === getUserKmDept(user));
+    const userKmDept = getUserKmDept(user);
+    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userKmDept);
     const deptFilter = userGroup ? new Set(userGroup.members) : null;
     api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
@@ -516,7 +517,19 @@ export default function EventReport() {
           kmForDate.forEach(n => {
             if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
           });
-          if (s[`${key}_freelancers`]) freelancerText = freelancerText ? `${freelancerText}, ${s[`${key}_freelancers`]}` : s[`${key}_freelancers`];
+          // Freelancer: lọc theo dept và ngày cụ thể
+          const freeMap = s[`${key}_freelancers_map`];
+          let deptFree = '';
+          if (freeMap) {
+            const dateEntry = freeMap[form.report_date];
+            if (dateEntry && typeof dateEntry === 'object') {
+              deptFree = userKmDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
+            } else if (typeof dateEntry === 'string') {
+              deptFree = dateEntry;
+            }
+          }
+          if (!deptFree) deptFree = s[`${key}_freelancers`] || '';
+          if (deptFree) freelancerText = freelancerText ? `${freelancerText}, ${deptFree}` : deptFree;
         }
       }
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
@@ -535,9 +548,10 @@ export default function EventReport() {
     const myName = user?.full_name || '';
     api.getWorkSchedules({}).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
-      const staffNames = new Set(); // leads + km_staff (để auto-fill nhóm trưởng)
-      const leadNames  = new Set(); // chỉ leads (để kiểm tra isAloneInDept – khớp obligation system)
-      let isLeadThisDate = false;   // user có phải lead ngày này không
+      const staffNames   = new Set(); // leads + km_staff (để auto-fill nhóm trưởng)
+      const leadNames    = new Set(); // chỉ leads (để kiểm tra isAloneInDept)
+      const freeTextParts = [];       // freelancer text theo dept
+      let isLeadThisDate = false;
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
@@ -555,11 +569,27 @@ export default function EventReport() {
           (kmMap[form.report_date] || []).forEach(n => {
             if (deptMembers.has(n) || n === myName) staffNames.add(n);
           });
+          // Freelancer theo dept + ngày cho nhóm trưởng
+          if (user?.is_truong_phong) {
+            const freeMap = s[`${key}_freelancers_map`];
+            if (freeMap) {
+              const dateEntry = freeMap[form.report_date];
+              if (dateEntry && typeof dateEntry === 'object') {
+                freeTextParts.push(dateEntry[userDept] || '');
+              } else if (typeof dateEntry === 'string') {
+                freeTextParts.push(dateEntry);
+              }
+            }
+          }
         }
       }
       // Chỉ nhóm trưởng mới tự động điền danh sách nhân sự
       if (user?.is_truong_phong && staffNames.size > 0) {
         setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...staffNames])] }));
+      }
+      if (user?.is_truong_phong) {
+        const freelancerText = freeTextParts.filter(Boolean).join(', ');
+        if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
       }
       // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
       // → khớp với obligation system (chỉ tạo vi phạm cho leads)
