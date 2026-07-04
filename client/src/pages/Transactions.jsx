@@ -580,6 +580,27 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
           />
         </div>
 
+        {/* NCC section — đặt trên để luôn thấy */}
+        <div style={{ padding:'10px 12px', borderRadius:'10px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: extItems.length ? '8px' : 0 }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
+            <button onClick={addExtItem} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
+          </div>
+          {extItems.map((it, idx) => (
+            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '5px', marginBottom: '5px', padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.15)' }}>
+              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <button onClick={() => removeExtItem(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', cursor: 'pointer' }}>✕</button>
+              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
+                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
+                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.78rem' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Tìm thiết bị */}
         <div>
           <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
@@ -638,27 +659,6 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
             </div>
           </div>
         )}
-
-        {/* NCC section */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>Nhà cung cấp / NCC ({extItems.length})</p>
-            <button onClick={addExtItem} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.08)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
-          </div>
-          {extItems.map((it, idx) => (
-            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '5px', marginBottom: '5px', padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.15)' }}>
-              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
-              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
-              <button onClick={() => removeExtItem(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', cursor: 'pointer' }}>✕</button>
-              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
-                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
-                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.78rem' }} />
-              </div>
-            </div>
-          ))}
-        </div>
 
         {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
 
