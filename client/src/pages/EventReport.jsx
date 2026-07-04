@@ -492,8 +492,10 @@ export default function EventReport() {
   }
 
   // Gợi ý nhân sự đã lên lịch làm việc cho ngày báo cáo đã chọn (vẫn cho sửa thủ công)
+  // Nhóm trưởng dùng useEffect riêng bên dưới (có filter theo dept)
   useEffect(() => {
     if (!form.event_id || !form.report_date) return;
+    if (user?.is_truong_phong) return;
     api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
       const names = new Set();
@@ -509,7 +511,7 @@ export default function EventReport() {
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
       if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
     }).catch(() => {});
-  }, [form.event_id, form.report_date]);
+  }, [form.event_id, form.report_date, user?.is_truong_phong]);
 
   // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
