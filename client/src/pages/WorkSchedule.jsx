@@ -1062,9 +1062,11 @@ export default function WorkSchedule() {
 
       {/* ── Báo cáo cần nộp ─────────────────────────────────────── */}
       {obligations.length > 0 && (() => {
-        const pending  = obligations.filter(o => !o.submitted && !o.overdue);
-        const overdue  = obligations.filter(o => o.overdue);
-        const done     = obligations.filter(o => o.submitted);
+        const pastObs  = obligations.filter(o => o.assigned_date < todayStr);
+        const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
+        const overdue  = pastObs.filter(o => o.overdue);
+        const done     = pastObs.filter(o => o.submitted);
+        if (!pending.length && !overdue.length && !done.length) return null;
         const phaseIcon = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
