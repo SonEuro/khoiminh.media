@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { printSlip, previewSlip } from '../utils/printSlip';
+import { printNccReturn } from '../utils/printNccReturn';
+import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
-import { LayoutGrid, Clapperboard, Headphones, Theater, Package } from 'lucide-react';
+import { LayoutGrid, Clapperboard, Headphones, Theater, Package, Printer } from 'lucide-react';
 import { NCC_CATALOG, NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
 
 const DEPTS = [
@@ -64,6 +66,10 @@ export default function ExportForm() {
   const [dateError, setDateError]     = useState('');
   const [eventError, setEventError]   = useState(false);
   const [eventDropOpen, setEventDropOpen] = useState(false);
+  const [showTraNcc, setShowTraNcc]   = useState(false);
+  const [nccReturnItems, setNccReturnItems] = useState([]);
+  const [nccSortBy,  setNccSortBy]   = useState(null);
+  const [nccSortDir, setNccSortDir]  = useState('asc');
   const savedSnapshot = useRef(null);
 
   // Thiết bị ngoài
@@ -308,9 +314,17 @@ export default function ExportForm() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Phiếu Xuất Kho</h1>
-        <p className="text-gray-500 text-sm">Phải chọn sự kiện trước khi xuất thiết bị</p>
+      <div className="mb-6" style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:'12px' }}>
+        <div>
+          <h1 className="text-2xl font-bold">Phiếu Xuất Kho</h1>
+          <p className="text-gray-500 text-sm">Phải chọn sự kiện trước khi xuất thiết bị</p>
+        </div>
+        {!!user?.is_tra_ncc && (
+          <button type="button" onClick={() => { setNccReturnItems([]); setShowTraNcc(true); }}
+            style={{ padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.4)', background:'rgba(74,222,128,0.07)', color:'#4ade80', fontWeight:700, fontSize:'0.85rem', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:'6px' }}>
+            🏪 Trả NCC
+          </button>
+        )}
       </div>
 
       <form onSubmit={submit} className="space-y-6" noValidate>
@@ -983,6 +997,104 @@ export default function ExportForm() {
           <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Hủy</button>
         </div>
       </form>
+
+      {/* ── Modal Trả NCC (standalone, không cần sự kiện) ── */}
+      {showTraNcc && (() => {
+        const sorted = nccSortBy
+          ? [...nccReturnItems].sort((a, b) => {
+              const va = (a[nccSortBy] || '').toLowerCase();
+              const vb = (b[nccSortBy] || '').toLowerCase();
+              return nccSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            })
+          : nccReturnItems;
+
+        function toggleSort(col) {
+          if (nccSortBy === col) setNccSortDir(d => d === 'asc' ? 'desc' : 'asc');
+          else { setNccSortBy(col); setNccSortDir('asc'); }
+        }
+        function addRow() { setNccReturnItems(p => [...p, { name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+        function removeRow(realIdx) { setNccReturnItems(p => p.filter((_, j) => j !== realIdx)); }
+        function updateRow(realIdx, key, val) { setNccReturnItems(p => p.map((r, j) => j === realIdx ? { ...r, [key]: val } : r)); }
+
+        const SortArrow = ({ col }) => sortBy === col
+          ? <span style={{ marginLeft:'4px', color:'#60a5fa' }}>{nccSortDir === 'asc' ? '↑' : '↓'}</span>
+          : <span style={{ opacity:0.3, marginLeft:'4px' }}>↕</span>;
+
+        const thSt = (col) => ({
+          padding:'7px 10px', textAlign:'left', fontSize:'0.72rem', fontWeight:800,
+          color: nccSortBy === col ? '#60a5fa' : '#a0a0b8', cursor:'pointer', userSelect:'none',
+          background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap',
+        });
+
+        return (
+          <Modal title="🏪 Trả NCC" onClose={() => setShowTraNcc(false)} size="lg"
+            extra={
+              <div style={{ display:'inline-flex', gap:'6px' }}>
+                <button onClick={addRow} className="btn-secondary btn-sm">+ Thêm dòng</button>
+                <button onClick={() => printNccReturn(sorted, { event_name: form.event_id ? events.find(e=>String(e.id)===String(form.event_id))?.name : '', responsible_person: form.responsible_person })}
+                  className="btn-primary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}>
+                  <Printer size={13} /> In phiếu
+                </button>
+              </div>
+            }>
+            <div style={{ overflowX:'auto', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.82rem', minWidth:'540px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...thSt(), width:'32px', cursor:'default', textAlign:'center' }}>#</th>
+                    <th style={thSt('name')} onClick={() => toggleSort('name')}>Tên thiết bị <SortArrow col="name" /></th>
+                    <th style={thSt('supplier')} onClick={() => toggleSort('supplier')}>NCC <SortArrow col="supplier" /></th>
+                    <th style={{ ...thSt(), width:'72px' }}>SL</th>
+                    <th style={{ ...thSt(), width:'68px' }}>Đơn vị</th>
+                    <th style={{ ...thSt(), width:'110px' }}>Ghi chú</th>
+                    <th style={{ ...thSt(), width:'28px', cursor:'default' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.length === 0 && (
+                    <tr><td colSpan={7} style={{ textAlign:'center', padding:'20px', color:'#7878a0', fontSize:'0.8rem' }}>Nhấn "+ Thêm dòng" để nhập thiết bị NCC cần trả.</td></tr>
+                  )}
+                  {sorted.map((row, i) => {
+                    const realIdx = nccReturnItems.indexOf(row);
+                    return (
+                      <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ textAlign:'center', color:'#5a5a80', fontSize:'0.72rem', padding:'4px 8px' }}>{i+1}</td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <input value={row.name} onChange={e => updateRow(realIdx,'name',e.target.value)} placeholder="Tên thiết bị..."
+                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#e0e0f0', fontSize:'0.82rem' }} />
+                        </td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <input value={row.supplier} onChange={e => updateRow(realIdx,'supplier',e.target.value)} placeholder="NCC..."
+                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#60a5fa', fontSize:'0.82rem' }} />
+                        </td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx,'quantity',parseInt(e.target.value)||1)}
+                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#fbbf24', fontWeight:700, fontSize:'0.82rem', textAlign:'center' }} />
+                        </td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <input value={row.unit} onChange={e => updateRow(realIdx,'unit',e.target.value)}
+                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#a0a0b8', fontSize:'0.82rem' }} />
+                        </td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <input value={row.notes} onChange={e => updateRow(realIdx,'notes',e.target.value)} placeholder="..."
+                            style={{ width:'100%', background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.8rem' }} />
+                        </td>
+                        <td style={{ textAlign:'center', padding:'4px' }}>
+                          <button onClick={() => removeRow(realIdx)}
+                            style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.9rem', lineHeight:1 }}>×</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p style={{ fontSize:'0.72rem', color:'#5a5a80', marginTop:'10px' }}>
+              {sorted.length} dòng · Click tiêu đề cột để sắp xếp
+            </p>
+          </Modal>
+        );
+      })()}
     </div>
   );
 }
