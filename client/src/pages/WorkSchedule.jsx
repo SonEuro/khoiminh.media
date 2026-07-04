@@ -1302,14 +1302,13 @@ export default function WorkSchedule() {
                         <div key={date}>
                           {renderDateHdr(date)}
                           {timeDepts.length > 0 && (
-                            <div style={{ marginBottom: '6px' }}>
-                              <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#fbbf24', margin:'0 0 4px', letterSpacing:'0.06em' }}>GIỜ LÀM VIỆC</p>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.75rem', letterSpacing:'0.03em' }}>{dept}</span>
-                                    <span style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800, marginLeft:'8px' }}>⏰ {time}</span>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px' }}>
+                                    <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
+                                    <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
                                 );
                               })}
@@ -1375,14 +1374,13 @@ export default function WorkSchedule() {
                               .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept))
                           );
                           return singleTimeDepts.length > 0 && (
-                            <div style={{ marginBottom: '6px' }}>
-                              <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#fbbf24', margin:'0 0 4px', letterSpacing:'0.06em' }}>GIỜ LÀM VIỆC</p>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.75rem', letterSpacing:'0.03em' }}>{dept}</span>
-                                    <span style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800, marginLeft:'8px' }}>⏰ {time}</span>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px' }}>
+                                    <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
+                                    <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
                                 );
                               })}
