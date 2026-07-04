@@ -917,15 +917,17 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       >
         <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
-          {[['🏗', s.setup_dates], ['📦', s.teardown_dates], ['🎤', s.rehearsal_dates], ['🎬', s.filming_dates]].map(([icon, dates]) =>
-            dates?.length > 0 && (
+          {[['🏗', s.setup_dates], ['📦', s.teardown_dates], ['🎤', s.rehearsal_dates], ['🎬', s.filming_dates]]
+            .filter(([, d]) => d?.length > 0)
+            .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
+            .map(([icon, dates]) => (
               <span key={icon}>{icon} {dates.map((d, i) => (
                 <span key={d} style={d === today ? { color: '#f87171', fontWeight: 800 } : d === tomorrow ? { color: '#4ade80', fontWeight: 800 } : undefined}>
                   {i > 0 && ' · '}{fmtD(d)}
                 </span>
               ))}</span>
-            )
-          )}
+            ))
+          }
           {s.location && <span>📍 {s.location}</span>}
         </div>
       </div>
@@ -1174,10 +1176,10 @@ export default function WorkSchedule() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
-                {renderDates('filming',   s.filming_dates)}
-                {renderDates('setup',     s.setup_dates)}
-                {renderDates('rehearsal', s.rehearsal_dates)}
-                {renderDates('teardown',  s.teardown_dates)}
+                {[['filming', s.filming_dates], ['setup', s.setup_dates], ['rehearsal', s.rehearsal_dates], ['teardown', s.teardown_dates]]
+                  .filter(([, d]) => d?.length)
+                  .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
+                  .map(([key, dates]) => renderDates(key, dates))}
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
                 <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
@@ -1264,7 +1266,12 @@ export default function WorkSchedule() {
             </p>
             {(() => {
               const viewerDept = getTruongPhongDept(user);
-              return PHASES.map(phase => {
+              const sortedPhases = [...PHASES].sort((a, b) => {
+                const aMin = [...(selected[`${a.key}_dates`] || [])].sort()[0] || '9999';
+                const bMin = [...(selected[`${b.key}_dates`] || [])].sort()[0] || '9999';
+                return aMin.localeCompare(bMin);
+              });
+              return sortedPhases.map(phase => {
                 const flatLeads = (selected[`${phase.key}_leads`] || [])
                   .filter(l => !viewerDept || l.department === viewerDept);
                 const staff = (selected[`${phase.key}_km_staff`] || [])

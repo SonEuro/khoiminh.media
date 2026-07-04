@@ -70,7 +70,11 @@ function StaffScheduleModal({ event, onClose }) {
               {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
             </span>
           </p>
-          {PHASES.map(phase => {
+          {[...PHASES].sort((a, b) => {
+            const aMin = [...(s[`${a.key}_dates`] || [])].sort()[0] || '9999';
+            const bMin = [...(s[`${b.key}_dates`] || [])].sort()[0] || '9999';
+            return aMin.localeCompare(bMin);
+          }).map(phase => {
             const dates     = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
             const leadsMap  = s[`${phase.key}_leads_map`];
             const leadsFlat = s[`${phase.key}_leads`] || [];
