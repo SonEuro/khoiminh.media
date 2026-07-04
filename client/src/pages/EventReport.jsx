@@ -503,7 +503,8 @@ export default function EventReport() {
     api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
       const names = new Set();
-      let freelancerText = '';
+      const freeParts = [];
+      const validDept = userKmDept && userKmDept !== '—';
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
@@ -517,22 +518,24 @@ export default function EventReport() {
           kmForDate.forEach(n => {
             if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
           });
-          // Freelancer: lọc theo dept và ngày cụ thể
+          // Freelancer: lọc theo dept + ngày, thu vào mảng để dedup sau
           const freeMap = s[`${key}_freelancers_map`];
-          let deptFree = '';
           if (freeMap) {
             const dateEntry = freeMap[form.report_date];
             if (dateEntry && typeof dateEntry === 'object') {
-              deptFree = userKmDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
-            } else if (typeof dateEntry === 'string') {
-              deptFree = dateEntry;
+              const txt = validDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
+              if (txt) freeParts.push(txt);
+            } else if (typeof dateEntry === 'string' && dateEntry) {
+              freeParts.push(dateEntry);
             }
+          } else if (validDept) {
+            const flat = s[`${key}_freelancers`] || '';
+            if (flat) freeParts.push(flat);
           }
-          if (!deptFree) deptFree = s[`${key}_freelancers`] || '';
-          if (deptFree) freelancerText = freelancerText ? `${freelancerText}, ${deptFree}` : deptFree;
         }
       }
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
+      const freelancerText = [...new Set(freeParts.flatMap(t => t.split(',').map(s => s.trim())).filter(Boolean))].join(', ');
       if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
     }).catch(() => {});
   }, [form.event_id, form.report_date, user?.is_truong_phong, user?.full_name]);
@@ -588,7 +591,7 @@ export default function EventReport() {
         setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...staffNames])] }));
       }
       if (user?.is_truong_phong) {
-        const freelancerText = freeTextParts.filter(Boolean).join(', ');
+        const freelancerText = [...new Set(freeTextParts.flatMap(t => t.split(',').map(s => s.trim())).filter(Boolean))].join(', ');
         if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
       }
       // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
