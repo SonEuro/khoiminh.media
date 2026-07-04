@@ -716,6 +716,8 @@ export default function EventReport() {
             <div>
               <label style={labelStyle}>Ngày báo cáo *</label>
               <input type="date" className="input" value={form.report_date}
+                min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 86400000))}
+                max={todayVN()}
                 onChange={e => setField('report_date', e.target.value)} required />
             </div>
           </div>
