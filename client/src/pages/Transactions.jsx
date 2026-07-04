@@ -988,17 +988,13 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
           border:'1px solid rgba(251,191,36,0.3)',
           borderLeft:'3px solid #fbbf24',
         }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-            <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:PENDING_COLOR, fontWeight:700, margin:'0 0 2px' }}>{tx.code}</p>
-              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại
-              </p>
-            </div>
-            <span style={{ fontSize:'0.68rem', background:'rgba(251,191,36,0.15)', color:PENDING_COLOR, border:'1px solid rgba(251,191,36,0.4)', borderRadius:'6px', padding:'2px 7px', fontWeight:700, flexShrink:0 }}>
-              Chờ xuất
-            </span>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
+            <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:PENDING_COLOR, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0, flex:1 }}>{tx.code}</p>
+            <span style={{ fontSize:'0.68rem', background:'rgba(251,191,36,0.15)', color:PENDING_COLOR, border:'1px solid rgba(251,191,36,0.4)', borderRadius:'6px', padding:'2px 7px', fontWeight:700, flexShrink:0 }}>Chờ xuất</span>
           </div>
+          <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 8px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại
+          </p>
           <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
             {onConfirm && (
               <button
@@ -1033,8 +1029,8 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
         const cfg = TX_CFG[tx.type] || TX_CFG.OUT;
         return (
           <div key={tx.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2px' }}>
-              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:GOLD, fontWeight:700, margin:0 }}>{tx.code}</p>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
+              <p style={{ fontFamily:'monospace', fontSize:'0.75rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
               <span style={{ fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
             </div>
             <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
