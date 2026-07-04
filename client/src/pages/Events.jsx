@@ -71,19 +71,80 @@ function StaffScheduleModal({ event, onClose }) {
             </span>
           </p>
           {PHASES.map(phase => {
-            const leads = s[`${phase.key}_leads`] || [];
-            const staff = s[`${phase.key}_km_staff`] || [];
-            const freeMap = s[`${phase.key}_freelancers_map`];
-            const freeFlatArr = s[`${phase.key}_freelancers`] || [];
-            const date = s[`${phase.key}_date`];
+            const dates = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
+            const leadsMap  = s[`${phase.key}_leads_map`];
+            const leadsFlat = s[`${phase.key}_leads`] || [];
+            const kmMap     = s[`${phase.key}_km_staff_map`];
+            const kmFlat    = s[`${phase.key}_km_staff`] || [];
+            const freeMap   = s[`${phase.key}_freelancers_map`];
+            const multi     = dates.length > 1;
 
-            const staffByDept = groupByDept(staff, KM_STAFF_GROUPS);
+            // Render nội dung cho một ngày (hoặc flat nếu không có map)
+            function renderDateBlock(date) {
+              const dLeads = leadsMap ? (leadsMap[date] || []) : leadsFlat;
+              const dKm    = kmMap    ? (kmMap[date]    || []) : kmFlat;
+              const byDept = dKm.reduce((acc, n) => {
+                const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                (acc[d] = acc[d] || []).push(n); return acc;
+              }, {});
+              let freeDepts = [];
+              if (freeMap && date) {
+                freeDepts = Object.entries(freeMap[date] || {})
+                  .filter(([, v]) => v?.trim())
+                  .map(([dept, str]) => [dept, str.split(',').map(n => n.trim()).filter(Boolean)])
+                  .filter(([, ns]) => ns.length > 0);
+              }
+              if (!dLeads.length && !dKm.length && !freeDepts.length) return null;
+              return (
+                <div key={date || 'flat'}>
+                  {multi && date && (
+                    <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
+                      📅 {fmtD(date)}
+                    </div>
+                  )}
+                  {dLeads.map((l, i) => {
+                    const dc = getDeptColor(l.department);
+                    return (
+                      <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>
+                        👑 {l.name} <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.82rem' }}>({l.department})</span>
+                      </div>
+                    );
+                  })}
+                  {Object.keys(byDept).length > 0 && (
+                    <div style={{ marginTop: '4px', marginBottom: '4px' }}>
+                      <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                      {Object.entries(byDept).map(([dept, members]) => {
+                        const dc = getDeptColor(dept);
+                        return (
+                          <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                            <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
+                            {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {freeDepts.length > 0 && (
+                    <div style={{ marginTop: '4px' }}>
+                      <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing: '0.06em' }}>FREELANCER</p>
+                      {freeDepts.map(([dept, members]) => {
+                        const dc = getDeptColor(dept);
+                        return (
+                          <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                            <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
+                            {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
-            const freeDepts = freeMap && Object.keys(freeMap).length > 0
-              ? aggregateFreelancerMap(freeMap)
-              : groupByDept(freeFlatArr, FREELANCER_GROUPS);
+            const blocks = dates.length ? dates.map(renderDateBlock) : [renderDateBlock(null)];
+            if (blocks.every(b => b === null)) return null;
 
-            if (!date && !leads.length && !staff.length && !freeDepts.length) return null;
             return (
               <div key={phase.key} style={{
                 marginBottom: '10px',
@@ -92,49 +153,10 @@ function StaffScheduleModal({ event, onClose }) {
                 borderRadius: '8px',
                 padding: '10px 12px',
               }}>
-                <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '8px' }}>
-                  {phase.label}{date ? ` — ${fmtD(date)}` : ''}
+                <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '6px' }}>
+                  {phase.label}{!multi && dates[0] ? ` — ${fmtD(dates[0])}` : ''}
                 </div>
-                {leads.length > 0 && (
-                  <div style={{ marginBottom: '6px' }}>
-                    {leads.map((l, i) => {
-                      const dc = getDeptColor(l.department);
-                      return (
-                        <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>
-                          👑 {l.name} <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.82rem' }}>({l.department})</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {staffByDept.length > 0 && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                    {staffByDept.map(([dept, members]) => {
-                      const dc = getDeptColor(dept);
-                      return (
-                        <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
-                          <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
-                          {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {freeDepts.length > 0 && (
-                  <div>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing: '0.06em' }}>FREELANCER</p>
-                    {freeDepts.map(([dept, members]) => {
-                      const dc = getDeptColor(dept);
-                      return (
-                        <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
-                          <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
-                          {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {blocks}
               </div>
             );
           })}
