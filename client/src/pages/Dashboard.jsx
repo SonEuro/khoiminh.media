@@ -272,6 +272,7 @@ function UpcomingScheduleSection({ userName }) {
   const [upcoming, setUpcoming] = useState([]);
   const navigate = useNavigate();
   const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tomorrowVN = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
 
   useEffect(() => {
     if (!userName) return;
@@ -310,29 +311,38 @@ function UpcomingScheduleSection({ userName }) {
       <SectionHeader title="Lịch làm việc của bạn (14 ngày tới)" color="#a78bfa" colorRgb="167,139,250" count={upcoming.length} />
       <div style={{ background: '#13131d' }}>
         {upcoming.map((item, i) => {
-          const isToday = item.date === todayVN;
+          const isToday    = item.date === todayVN;
+          const isTomorrow = item.date === tomorrowVN;
+          const dotColor = isToday ? '#f87171' : isTomorrow ? '#fb923c' : '#a78bfa';
+          const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(251,146,60,0.8)' : 'rgba(167,139,250,0.8)';
+          const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(251,146,60,0.04)' : 'transparent';
+          const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(251,146,60,0.09)' : 'rgba(167,139,250,0.05)';
+          const borderC  = isToday ? 'rgba(248,113,113,0.15)' : isTomorrow ? 'rgba(251,146,60,0.12)' : 'rgba(167,139,250,0.08)';
+          const textColor = isToday ? '#fca5a5' : isTomorrow ? '#fdba74' : '#e0e0ee';
           return (
             <div key={`${item.schedId}-${item.phase}-${item.date}`}
               onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
               style={{
                 display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '10px 16px', cursor: 'pointer',
-                borderTop: i > 0 ? `1px solid ${isToday ? 'rgba(248,113,113,0.15)' : 'rgba(167,139,250,0.08)'}` : 'none',
-                background: isToday ? 'rgba(248,113,113,0.05)' : 'transparent',
+                borderTop: i > 0 ? `1px solid ${borderC}` : 'none',
+                background: bgBase,
                 transition: 'background 0.13s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = isToday ? 'rgba(248,113,113,0.1)' : 'rgba(167,139,250,0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = isToday ? 'rgba(248,113,113,0.05)' : 'transparent'}
+              onMouseEnter={e => e.currentTarget.style.background = bgHover}
+              onMouseLeave={e => e.currentTarget.style.background = bgBase}
             >
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: isToday ? '#f87171' : '#a78bfa', flexShrink: 0, boxShadow: `0 0 6px ${isToday ? 'rgba(248,113,113,0.8)' : 'rgba(167,139,250,0.8)'}` }} />
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotGlow}` }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: isToday ? '#fca5a5' : '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontWeight: 600, color: textColor, fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {PHASE_LABELS[item.phase]} — {item.eventName}
                 </p>
               </div>
               {isToday
                 ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>HÔM NAY</span>
-                : <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
+                : isTomorrow
+                  ? <span style={{ fontSize: '0.7rem', color: '#fb923c', fontWeight: 800, flexShrink: 0, background: 'rgba(251,146,60,0.15)', border: '1px solid rgba(251,146,60,0.35)', borderRadius: '6px', padding: '1px 7px' }}>NGÀY MAI</span>
+                  : <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
               }
             </div>
           );
