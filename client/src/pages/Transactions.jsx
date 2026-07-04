@@ -688,11 +688,13 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   );
 }
 
-const NCC_DEPTS = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
-const DEPT_KEY = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
+const NCC_DEPTS   = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY    = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
+const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS – LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
 
 // ── Trả NCC modal ─────────────────────────────────────────────────────────────
 function TraNccModal({ txId, onClose }) {
+  const { user }              = useAuth();
   const [tx,      setTx]      = useState(null);
   const [items,   setItems]   = useState([]);
   const [sortBy,  setSortBy]  = useState(null);
@@ -719,7 +721,7 @@ function TraNccModal({ txId, onClose }) {
     else { setSortBy(col); setSortDir('asc'); }
   }
 
-  function addRow() { setItems(p => [...p, { dept:'', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+  function addRow() { setItems(p => [...p, { dept: ROLE_TO_DEPT[user?.role] || '', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
   function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
   function updateRow(i, key, val) { setItems(p => p.map((r, j) => j === i ? { ...r, [key]: val } : r)); }
 

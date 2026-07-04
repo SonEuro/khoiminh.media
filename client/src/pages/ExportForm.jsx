@@ -31,8 +31,9 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
-const NCC_DEPTS = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
-const DEPT_KEY  = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
+const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY     = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
+const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS – LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
 
 export default function ExportForm() {
   const navigate = useNavigate();
@@ -1014,7 +1015,7 @@ export default function ExportForm() {
           if (nccSortBy === col) setNccSortDir(d => d === 'asc' ? 'desc' : 'asc');
           else { setNccSortBy(col); setNccSortDir('asc'); }
         }
-        function addRow() { setNccReturnItems(p => [...p, { dept:'', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
+        function addRow() { setNccReturnItems(p => [...p, { dept: ROLE_TO_DEPT[user?.role] || '', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
         function removeRow(realIdx) { setNccReturnItems(p => p.filter((_, j) => j !== realIdx)); }
         function updateRow(realIdx, key, val) { setNccReturnItems(p => p.map((r, j) => j === realIdx ? { ...r, [key]: val } : r)); }
 
