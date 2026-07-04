@@ -71,38 +71,24 @@ function StaffScheduleModal({ event, onClose }) {
             </span>
           </p>
           {PHASES.map(phase => {
-            const dates = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
+            const dates     = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
             const leadsMap  = s[`${phase.key}_leads_map`];
             const leadsFlat = s[`${phase.key}_leads`] || [];
             const kmMap     = s[`${phase.key}_km_staff_map`];
             const kmFlat    = s[`${phase.key}_km_staff`] || [];
             const freeMap   = s[`${phase.key}_freelancers_map`];
+            const freeFlat  = s[`${phase.key}_freelancers`] || [];
             const multi     = dates.length > 1;
 
-            // Render nội dung cho một ngày (hoặc flat nếu không có map)
-            function renderDateBlock(date) {
-              const dLeads = leadsMap ? (leadsMap[date] || []) : leadsFlat;
-              const dKm    = kmMap    ? (kmMap[date]    || []) : kmFlat;
-              const byDept = dKm.reduce((acc, n) => {
+            // Khi multi-date: data không có map chỉ hiển thị 1 lần (flat), không lặp theo ngày
+            function renderStaffSection(leads, km, freeDepts) {
+              const byDept = km.reduce((acc, n) => {
                 const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
                 (acc[d] = acc[d] || []).push(n); return acc;
               }, {});
-              let freeDepts = [];
-              if (freeMap && date) {
-                freeDepts = Object.entries(freeMap[date] || {})
-                  .filter(([, v]) => v?.trim())
-                  .map(([dept, str]) => [dept, str.split(',').map(n => n.trim()).filter(Boolean)])
-                  .filter(([, ns]) => ns.length > 0);
-              }
-              if (!dLeads.length && !dKm.length && !freeDepts.length) return null;
               return (
-                <div key={date || 'flat'}>
-                  {multi && date && (
-                    <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
-                      📅 {fmtD(date)}
-                    </div>
-                  )}
-                  {dLeads.map((l, i) => {
+                <>
+                  {leads.map((l, i) => {
                     const dc = getDeptColor(l.department);
                     return (
                       <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>
@@ -138,12 +124,60 @@ function StaffScheduleModal({ event, onClose }) {
                       })}
                     </div>
                   )}
+                </>
+              );
+            }
+
+            // Flat freelancer (old format or aggregated)
+            const freeDeptsFlatAggregate = freeMap
+              ? aggregateFreelancerMap(freeMap)
+              : groupByDept(freeFlat, FREELANCER_GROUPS);
+
+            if (!multi) {
+              // Một ngày: hiển thị flat trực tiếp
+              if (!leadsFlat.length && !kmFlat.length && !freeDeptsFlatAggregate.length) return null;
+              return (
+                <div key={phase.key} style={{ marginBottom: '10px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.12)', borderRadius: '8px', padding: '10px 12px' }}>
+                  <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '6px' }}>
+                    {phase.label}{dates[0] ? ` — ${fmtD(dates[0])}` : ''}
+                  </div>
+                  {renderStaffSection(leadsFlat, kmFlat, freeDeptsFlatAggregate)}
                 </div>
               );
             }
 
-            const blocks = dates.length ? dates.map(renderDateBlock) : [renderDateBlock(null)];
-            if (blocks.every(b => b === null)) return null;
+            // Nhiều ngày: render theo từng ngày (chỉ dùng map), flat hiển thị 1 lần nếu không có map
+            const hasLeadsMap = leadsMap && Object.keys(leadsMap).length > 0;
+            const hasKmMap    = kmMap    && Object.keys(kmMap).length    > 0;
+            const hasFreeMap  = freeMap  && Object.keys(freeMap).length  > 0;
+
+            const perDateBlocks = dates.map(date => {
+              const dLeads    = hasLeadsMap ? (leadsMap[date] || []) : [];
+              const dKm       = hasKmMap    ? (kmMap[date]    || []) : [];
+              const freeDepts = hasFreeMap
+                ? Object.entries(freeMap[date] || {})
+                    .filter(([, v]) => v?.trim())
+                    .map(([dept, str]) => [dept, str.split(',').map(n => n.trim()).filter(Boolean)])
+                    .filter(([, ns]) => ns.length > 0)
+                : [];
+              if (!dLeads.length && !dKm.length && !freeDepts.length) return null;
+              return (
+                <div key={date}>
+                  <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
+                    📅 {fmtD(date)}
+                  </div>
+                  {renderStaffSection(dLeads, dKm, freeDepts)}
+                </div>
+              );
+            }).filter(Boolean);
+
+            // Flat data (khi không có map): hiện 1 lần ở đầu
+            const flatLeadsShow = !hasLeadsMap ? leadsFlat : [];
+            const flatKmShow    = !hasKmMap    ? kmFlat    : [];
+            const flatFreeShow  = !hasFreeMap  ? freeDeptsFlatAggregate : [];
+            const hasFlatContent = flatLeadsShow.length || flatKmShow.length || flatFreeShow.length;
+
+            if (!hasFlatContent && !perDateBlocks.length) return null;
 
             return (
               <div key={phase.key} style={{
@@ -154,9 +188,10 @@ function StaffScheduleModal({ event, onClose }) {
                 padding: '10px 12px',
               }}>
                 <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '6px' }}>
-                  {phase.label}{!multi && dates[0] ? ` — ${fmtD(dates[0])}` : ''}
+                  {phase.label}
                 </div>
-                {blocks}
+                {hasFlatContent && renderStaffSection(flatLeadsShow, flatKmShow, flatFreeShow)}
+                {perDateBlocks}
               </div>
             );
           })}
