@@ -482,6 +482,32 @@ export default function EventReport() {
     }).catch(() => {});
   }, [form.event_id, form.report_date]);
 
+  // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
+  useEffect(() => {
+    if (!user?.is_truong_phong || !form.report_date) return;
+    const userGroup = KM_STAFF_GROUPS.find(g => g.members.includes(user.full_name || ''));
+    if (!userGroup) return;
+    const deptMembers = new Set(userGroup.members);
+    api.getWorkSchedules({}).then(scheds => {
+      const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+      const names = new Set();
+      for (const s of scheds) {
+        for (const key of phaseKeys) {
+          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          if (!dates.includes(form.report_date)) continue;
+          const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
+          leadsForDate.forEach(l => {
+            const n = typeof l === 'string' ? l : l?.name;
+            if (n && deptMembers.has(n)) names.add(n);
+          });
+          const kmMap = s[`${key}_km_staff_map`] || {};
+          (kmMap[form.report_date] || []).filter(n => deptMembers.has(n)).forEach(n => names.add(n));
+        }
+      }
+      if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
+    }).catch(() => {});
+  }, [form.report_date, user?.is_truong_phong, user?.full_name]);
+
   const evSuggestions = showEvDrop
     ? (evSearch.trim()
         ? events.filter(e => e.name.toLowerCase().includes(evSearch.toLowerCase())).slice(0, 8)
@@ -569,6 +595,20 @@ export default function EventReport() {
   }
 
   // ── Form view ───────────────────────────────────────────────────────────────
+  const vnNow = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
+  let reportDeadline = null;
+  let deadlineDisplay = '';
+  if (form.report_date) {
+    const [y, m, d] = form.report_date.split('-').map(Number);
+    const next = new Date(Date.UTC(y, m - 1, d + 1));
+    const nd = String(next.getUTCDate()).padStart(2, '0');
+    const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
+    const ny = next.getUTCFullYear();
+    reportDeadline = `${ny}-${nm}-${nd} 12:00`;
+    deadlineDisplay = `${nd}/${nm} 12:00`;
+  }
+  const isOverdue = !!user?.is_truong_phong && !!reportDeadline && vnNow > reportDeadline;
+
   return (
     <div className="p-6">
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
@@ -641,6 +681,21 @@ export default function EventReport() {
                 onChange={e => setField('report_date', e.target.value)} required />
             </div>
           </div>
+
+          {isOverdue && (
+            <div style={{
+              background: 'rgba(251,146,60,0.1)',
+              border: '1px solid rgba(251,146,60,0.35)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginTop: '12px',
+              color: '#fb923c',
+              fontSize: '0.82rem',
+              lineHeight: 1.5,
+            }}>
+              ⚠️ <strong>Đã quá hạn nộp báo cáo</strong> — Hạn chót: {deadlineDisplay}. Báo cáo trễ vẫn được ghi nhận nhưng sẽ bị đánh dấu vi phạm.
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4" style={{ marginTop:'14px' }}>
             <div>
