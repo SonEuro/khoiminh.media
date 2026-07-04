@@ -492,35 +492,37 @@ export default function EventReport() {
   }
 
   // Gợi ý nhân sự đã lên lịch làm việc cho ngày báo cáo đã chọn (vẫn cho sửa thủ công)
-  // Nhóm trưởng dùng useEffect riêng bên dưới (có filter theo dept)
+  // Nhóm trưởng dùng useEffect riêng bên dưới (load toàn bộ lịch theo ngày)
   useEffect(() => {
     if (!form.event_id || !form.report_date) return;
     if (user?.is_truong_phong) return;
+    const myName = user?.full_name || '';
+    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === getUserKmDept(user));
+    const deptFilter = userGroup ? new Set(userGroup.members) : null;
     api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
       const names = new Set();
       let freelancerText = '';
       for (const s of scheds) {
         for (const key of phaseKeys) {
-          // Hỗ trợ multi-date: dùng _dates array thay vì _date singular
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
           if (!dates.includes(form.report_date)) continue;
-          // Leads: ưu tiên date-specific từ leads_map
           const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
           leadsForDate.forEach(l => {
             const n = typeof l === 'string' ? l : l?.name;
-            if (n) names.add(n);
+            if (n && (!deptFilter || deptFilter.has(n) || n === myName)) names.add(n);
           });
-          // km_staff: ưu tiên date-specific từ km_staff_map
           const kmForDate = s[`${key}_km_staff_map`]?.[form.report_date] || s[`${key}_km_staff`] || [];
-          kmForDate.forEach(n => names.add(n));
+          kmForDate.forEach(n => {
+            if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
+          });
           if (s[`${key}_freelancers`]) freelancerText = freelancerText ? `${freelancerText}, ${s[`${key}_freelancers`]}` : s[`${key}_freelancers`];
         }
       }
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
       if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
     }).catch(() => {});
-  }, [form.event_id, form.report_date, user?.is_truong_phong]);
+  }, [form.event_id, form.report_date, user?.is_truong_phong, user?.full_name]);
 
   // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
