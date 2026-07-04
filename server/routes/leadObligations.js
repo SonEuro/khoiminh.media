@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
   const joinReport = `
     LEFT JOIN event_reports er
       ON er.report_date = o.assigned_date
-      AND er.event_id = o.event_id
+      AND er.event_id IS o.event_id
       AND (er.reporter_user_id = o.user_id OR er.reporter_name = o.lead_name)
   `;
 

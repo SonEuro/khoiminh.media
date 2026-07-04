@@ -85,13 +85,13 @@ function checkAndCreateViolations() {
     if (ob.user_id) {
       hasReport = !!db.prepare(`
         SELECT 1 FROM event_reports
-        WHERE report_date = ? AND event_id = ? AND (reporter_user_id = ? OR reporter_name = ?)
+        WHERE report_date = ? AND event_id IS ? AND (reporter_user_id = ? OR reporter_name = ?)
         LIMIT 1
       `).get(ob.assigned_date, ob.event_id, ob.user_id, ob.lead_name);
     } else {
       hasReport = !!db.prepare(`
         SELECT 1 FROM event_reports
-        WHERE report_date = ? AND event_id = ? AND reporter_name = ?
+        WHERE report_date = ? AND event_id IS ? AND reporter_name = ?
         LIMIT 1
       `).get(ob.assigned_date, ob.event_id, ob.lead_name);
     }
