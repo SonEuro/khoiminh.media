@@ -1387,11 +1387,11 @@ export default function WorkSchedule() {
                         <div key={date}>
                           {renderDateHdr(date)}
                           {timeDepts.length > 0 && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
+                            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px', textAlign:'center' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
@@ -1459,11 +1459,11 @@ export default function WorkSchedule() {
                               .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept))
                           );
                           return singleTimeDepts.length > 0 && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
+                            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', flex:'1 1 calc(50% - 3px)', minWidth:'120px', textAlign:'center' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {dept}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
