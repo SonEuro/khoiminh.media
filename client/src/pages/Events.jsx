@@ -85,10 +85,18 @@ function StaffScheduleModal({ event, onClose }) {
 
             if (!date && !leads.length && !staff.length && !freeDepts.length) return null;
             return (
-              <div key={phase.key} style={{ marginBottom: '12px' }}>
-                <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem' }}>{phase.label}{date ? ` — ${fmtD(date)}` : ''}</span>
+              <div key={phase.key} style={{
+                marginBottom: '10px',
+                background: 'rgba(201,168,76,0.04)',
+                border: '1px solid rgba(201,168,76,0.12)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+              }}>
+                <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '8px' }}>
+                  {phase.label}{date ? ` — ${fmtD(date)}` : ''}
+                </div>
                 {leads.length > 0 && (
-                  <div style={{ marginTop: '6px' }}>
+                  <div style={{ marginBottom: '6px' }}>
                     {leads.map((l, i) => {
                       const dc = getDeptColor(l.department);
                       return (
@@ -100,12 +108,12 @@ function StaffScheduleModal({ event, onClose }) {
                   </div>
                 )}
                 {staffByDept.length > 0 && (
-                  <div style={{ marginTop: '6px' }}>
+                  <div style={{ marginBottom: '6px' }}>
                     <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</p>
                     {staffByDept.map(([dept, members]) => {
                       const dc = getDeptColor(dept);
                       return (
-                        <div key={dept} style={{ marginBottom: '3px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                        <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
                           <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
                           {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                         </div>
@@ -114,12 +122,12 @@ function StaffScheduleModal({ event, onClose }) {
                   </div>
                 )}
                 {freeDepts.length > 0 && (
-                  <div style={{ marginTop: '6px' }}>
+                  <div>
                     <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing: '0.06em' }}>FREELANCER</p>
                     {freeDepts.map(([dept, members]) => {
                       const dc = getDeptColor(dept);
                       return (
-                        <div key={dept} style={{ marginBottom: '3px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
+                        <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
                           <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
                           {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
                         </div>
