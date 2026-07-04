@@ -93,7 +93,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
             </div>
           ))}
         </div>
-        {tx.notes && <p style={{ fontSize:'0.84rem', background:'rgba(255,255,255,0.04)', padding:'10px 12px', borderRadius:'8px', color:'#c9b98a', border:'1px solid rgba(201,168,76,0.22)', fontStyle:'italic' }}>{tx.notes}</p>}
+        {tx.notes && <p style={{ fontSize:'0.84rem', background:'rgba(255,255,255,0.04)', padding:'10px 12px', borderRadius:'8px', color:'#c9b98a', border:'1px solid rgba(201,168,76,0.22)', fontStyle:'normal' }}>{tx.notes}</p>}
         {((tx.items?.length || 0) + (tx.external_items?.length || 0)) > 0 && (
           <div>
             <h3 style={{ fontWeight:700, color:'#e0e0ee', marginBottom:'10px', fontSize:'0.85rem' }}>
@@ -178,7 +178,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                       <span style={{ fontWeight:700, color:'#fbbf24', fontSize:'0.8rem' }}>{e.edited_by_name}</span>
                       <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>{fmtDT(e.created_at)}</span>
                     </div>
-                    <p style={{ fontSize:'0.78rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'italic' }}>
+                    <p style={{ fontSize:'0.78rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'normal' }}>
                       Lý do: {e.reason}
                     </p>
                     <div style={{ fontSize:'0.72rem', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'6px', overflow:'hidden' }}>
@@ -194,10 +194,10 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                         return (
                           <div key={j} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', borderTop:'1px solid rgba(255,255,255,0.15)', background: changed ? 'rgba(251,191,36,0.05)' : 'transparent' }}>
                             <span style={{ padding:'4px 8px', borderRight:'1px solid rgba(255,255,255,0.15)', textDecoration: changed ? 'line-through' : 'none', opacity: changed ? 0.7 : 1 }}>
-                              {b ? <>{b.eq_name} <span style={{ color:'#60a5fa', fontWeight:600 }}>×{b.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'italic' }}>{b.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
+                              {b ? <>{b.eq_name} <span style={{ color:'#60a5fa', fontWeight:600 }}>×{b.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'normal' }}>{b.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
                             </span>
                             <span style={{ padding:'4px 8px' }}>
-                              {a ? <>{a.eq_name} <span style={{ color: changed ? '#fbbf24' : '#60a5fa', fontWeight:600 }}>×{a.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'italic' }}>{a.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
+                              {a ? <>{a.eq_name} <span style={{ color: changed ? '#fbbf24' : '#60a5fa', fontWeight:600 }}>×{a.quantity}</span> <span style={{ color:'#94a3b8', fontStyle:'normal' }}>{a.unit}</span></> : <span style={{ color:'#3a3a5a' }}>—</span>}
                             </span>
                           </div>
                         );
@@ -423,7 +423,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.73rem' }} />
                       <input placeholder="Ghi chú..." value={it.notes || ''}
                         onChange={e => updateExtItem(idx, 'notes', e.target.value)}
-                        style={{ ...extInputStyle, color:'#7878a0', fontSize:'0.72rem', fontStyle:'italic' }} />
+                        style={{ ...extInputStyle, color:'#7878a0', fontSize:'0.72rem', fontStyle:'normal' }} />
                     </div>
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', e.target.value)}
