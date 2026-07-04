@@ -129,6 +129,15 @@ export default function Users() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const ROLE_ORDER = ROLES.map(r => r.value);
+  const groupedUsers = ROLES.map(r => ({
+    role: r.value,
+    label: r.label,
+    members: users.filter(u => u.role === r.value),
+  })).filter(g => g.members.length > 0);
+  // Các role không nằm trong ROLES (nếu có)
+  const otherUsers = users.filter(u => !ROLE_ORDER.includes(u.role));
+
   return (
     <div className="p-6">
       <div className="flex items-start justify-between gap-3 mb-6">
@@ -209,58 +218,60 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {users.map(u => {
-                const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
-                return (
-                  <tr key={u.id}>
-                    <td className="px-4 py-3 text-center" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
-                    <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
-                    <td className="px-4 py-3 text-center" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center' }}>
-                        <span style={{
-                          padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700,
-                          background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
-                          whiteSpace: 'nowrap', display: 'inline-block',
-                        }}>
-                          {ROLE_LABELS[u.role] || u.role}
-                        </span>
-                        {u.is_truong_phong ? (
-                          <span style={{ fontSize: '0.65rem', color: '#2dd4bf', fontWeight: 600 }}>🏅 Trưởng phòng</span>
-                        ) : null}
-                        {u.is_phan_lich ? (
-                          <span style={{ fontSize: '0.65rem', color: '#60a5fa', fontWeight: 600 }}>🗓 Phân lịch</span>
-                        ) : null}
-                        {u.is_phan_lich_all ? (
-                          <span style={{ fontSize: '0.65rem', color: '#f97316', fontWeight: 600 }}>📋 Phân lịch tất cả</span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {u.is_active
-                        ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
-                        : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
-                    </td>
-                    <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
-                        <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
-                        {isSuperAdmin && (
-                          <button className="btn-sm" onClick={() => handleReset(u)}
-                            style={{ padding:'7px 12px', borderRadius:'7px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
-                            title="Reset mật khẩu về mặc định">
-                            🔑
-                          </button>
-                        )}
-                        <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
               {users.length === 0 && (
                 <tr><td colSpan={7} className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chưa có tài khoản nào</td></tr>
               )}
+              {[...groupedUsers, ...(otherUsers.length ? [{ role: 'OTHER', label: '❓ Khác', members: otherUsers }] : [])].map(group => {
+                const rc = ROLE_COLORS[group.role] || ROLE_COLORS.CSVC;
+                return [
+                  <tr key={`group-${group.role}`}>
+                    <td colSpan={7} style={{ padding:'8px 16px', background: rc.bg, borderTop:'1px solid rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ fontSize:'0.72rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase' }}>
+                        {group.label} <span style={{ opacity:0.6, fontWeight:600 }}>({group.members.length})</span>
+                      </span>
+                    </td>
+                  </tr>,
+                  ...group.members.map(u => (
+                    <tr key={u.id}>
+                      <td className="px-4 py-3 text-center" style={{ fontWeight: 600, color: '#c9a84c' }}>{u.full_name}</td>
+                      <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{u.position || '—'}</td>
+                      <td className="px-4 py-3 text-center" style={{ fontFamily: 'monospace', color: 'var(--gold)', fontSize: '0.85rem' }}>{u.username}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center' }}>
+                          {u.is_truong_phong ? (
+                            <span style={{ fontSize: '0.65rem', color: '#2dd4bf', fontWeight: 600 }}>🏅 Trưởng phòng</span>
+                          ) : null}
+                          {u.is_phan_lich ? (
+                            <span style={{ fontSize: '0.65rem', color: '#60a5fa', fontWeight: 600 }}>🗓 Phân lịch</span>
+                          ) : null}
+                          {u.is_phan_lich_all ? (
+                            <span style={{ fontSize: '0.65rem', color: '#f97316', fontWeight: 600 }}>📋 Phân lịch tất cả</span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {u.is_active
+                          ? <span style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.8rem' }}>● Hoạt động</span>
+                          : <span style={{ color: '#f87171', fontWeight: 600, fontSize: '0.8rem' }}>● Vô hiệu</span>}
+                      </td>
+                      <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{fmtD(u.created_at)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2 justify-end" style={{ minWidth: '80px' }}>
+                          <button className="btn-secondary btn-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
+                          {isSuperAdmin && (
+                            <button className="btn-sm" onClick={() => handleReset(u)}
+                              style={{ padding:'7px 12px', borderRadius:'7px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
+                              title="Reset mật khẩu về mặc định">
+                              🔑
+                            </button>
+                          )}
+                          <button className="btn-danger btn-sm" onClick={() => handleDelete(u)}>🗑</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )),
+                ];
+              })}
             </tbody>
           </table>
         </div>
@@ -271,40 +282,44 @@ export default function Users() {
         {users.length === 0 && (
           <p style={{ textAlign:'center', padding:'32px', color:'var(--text-muted)' }}>Chưa có tài khoản nào</p>
         )}
-        {users.map(u => {
-          const rc = ROLE_COLORS[u.role] || ROLE_COLORS.CSVC;
+        {[...groupedUsers, ...(otherUsers.length ? [{ role: 'OTHER', label: '❓ Khác', members: otherUsers }] : [])].map(group => {
+          const rc = ROLE_COLORS[group.role] || ROLE_COLORS.CSVC;
           return (
-            <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'14px' }}>
-              {/* Dòng 1: Tên + Trạng thái */}
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'6px' }}>
-                <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
-                {u.is_active
-                  ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
-                  : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
-              </div>
-              {/* Dòng 2: Username + Badge */}
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-                <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'var(--gold)' }}>{u.username}</span>
-                <span style={{ padding:'2px 10px', borderRadius:'9999px', fontSize:'0.68rem', fontWeight:700, background:rc.bg, color:rc.color, border:`1px solid ${rc.border}`, whiteSpace:'nowrap' }}>
-                  {ROLE_LABELS[u.role] || u.role}
+            <div key={`mgroup-${group.role}`}>
+              <div style={{ padding:'6px 4px 4px', display:'flex', alignItems:'center', gap:'6px' }}>
+                <span style={{ fontSize:'0.7rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase' }}>
+                  {group.label}
                 </span>
-                {u.is_truong_phong && <span style={{ fontSize:'0.65rem', color:'#2dd4bf', fontWeight:600 }}>🏅</span>}
-                {u.is_phan_lich && <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:600 }}>🗓</span>}
+                <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontWeight:600 }}>({group.members.length})</span>
               </div>
-              {/* Dòng 3: Chức vụ (nếu có) */}
-              {u.position && <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginBottom:'10px' }}>{u.position}</p>}
-              {/* Dòng 4: Actions */}
-              <div style={{ display:'flex', gap:'8px' }}>
-                <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
-                {isSuperAdmin && (
-                  <button onClick={() => handleReset(u)}
-                    style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
-                    title="Reset mật khẩu">
-                    🔑
-                  </button>
-                )}
-                <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
-              </div>
+              {group.members.map(u => (
+                <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'14px', marginBottom:'8px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'6px' }}>
+                    <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
+                    {u.is_active
+                      ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
+                      : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
+                  </div>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                    <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'var(--gold)' }}>{u.username}</span>
+                    {u.is_truong_phong && <span style={{ fontSize:'0.65rem', color:'#2dd4bf', fontWeight:600 }}>🏅</span>}
+                    {u.is_phan_lich && <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:600 }}>🗓</span>}
+                    {u.is_phan_lich_all && <span style={{ fontSize:'0.65rem', color:'#f97316', fontWeight:600 }}>📋</span>}
+                  </div>
+                  {u.position && <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginBottom:'10px' }}>{u.position}</p>}
+                  <div style={{ display:'flex', gap:'8px' }}>
+                    <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
+                    {isSuperAdmin && (
+                      <button onClick={() => handleReset(u)}
+                        style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
+                        title="Reset mật khẩu">
+                        🔑
+                      </button>
+                    )}
+                    <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
+                  </div>
+                </div>
+              ))}
             </div>
           );
         })}
