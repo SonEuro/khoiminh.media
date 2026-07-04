@@ -293,20 +293,21 @@ export default function Users() {
                 <span style={{ fontSize:'0.68rem', color:'var(--text-muted)', fontWeight:600 }}>({group.members.length})</span>
               </div>
               {group.members.map(u => (
-                <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'14px', marginBottom:'8px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'6px' }}>
+                <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'12px 14px', marginBottom:'8px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
                     <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
                     {u.is_active
                       ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
                       : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-                    <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'var(--gold)' }}>{u.username}</span>
-                    {u.is_truong_phong && <span style={{ fontSize:'0.65rem', color:'#2dd4bf', fontWeight:600 }}>🏅</span>}
-                    {u.is_phan_lich && <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:600 }}>🗓</span>}
-                    {u.is_phan_lich_all && <span style={{ fontSize:'0.65rem', color:'#f97316', fontWeight:600 }}>📋</span>}
-                  </div>
-                  {u.position && <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', marginBottom:'10px' }}>{u.position}</p>}
+                  {(u.position || u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all) && (
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'10px', flexWrap:'wrap' }}>
+                      {u.position && <span style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>{u.position}</span>}
+                      {u.is_truong_phong && <span style={{ fontSize:'0.68rem', color:'#2dd4bf', fontWeight:600 }}>🏅 Trưởng phòng</span>}
+                      {u.is_phan_lich && <span style={{ fontSize:'0.68rem', color:'#60a5fa', fontWeight:600 }}>🗓 Phân lịch</span>}
+                      {u.is_phan_lich_all && <span style={{ fontSize:'0.68rem', color:'#f97316', fontWeight:600 }}>📋 Phân lịch tất cả</span>}
+                    </div>
+                  )}
                   <div style={{ display:'flex', gap:'8px' }}>
                     <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
                     {isSuperAdmin && (
