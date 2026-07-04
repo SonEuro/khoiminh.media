@@ -1008,7 +1008,8 @@ export default function WorkSchedule() {
   function canEdit(s) {
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
     if (!!user?.is_phan_lich_all) return true;
-    if (!!user?.is_truong_phong) return !isPastSchedule(s);
+    if (isPastSchedule(s)) return false;
+    if (!!user?.is_truong_phong) return true;
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
   }
