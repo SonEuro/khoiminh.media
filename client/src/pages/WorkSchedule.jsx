@@ -412,7 +412,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 <span style={{ fontSize: '0.65rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dept}</span>
                 <input
                   type="time"
-                  value={timesObj[dept] ?? '08:30'}
+                  value={timesObj[dept] ?? ''}
                   onChange={e => setStartTime(dateKey, dept, e.target.value)}
                   style={{ width: '88px', height: '28px', padding: '0 6px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${dc.border}`, borderRadius: '6px', color: '#e8c97a', fontSize: '0.82rem', fontWeight: 700, outline: 'none', flexShrink: 0 }}
                 />
