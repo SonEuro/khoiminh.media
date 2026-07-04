@@ -123,8 +123,9 @@ export const api = {
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),
-  archiveEvent:   (id) => request(`/events/${id}/archive`,   { method: 'POST' }),
-  unarchiveEvent: (id) => request(`/events/${id}/unarchive`, { method: 'POST' }),
+  archiveEvent:          (id) => request(`/events/${id}/archive`,           { method: 'POST' }),
+  unarchiveEvent:        (id) => request(`/events/${id}/unarchive`,         { method: 'POST' }),
+  deleteArchivedEvent:   (id) => request(`/events/${id}/archive-permanent`, { method: 'DELETE' }),
 
   // Work Schedules (Lịch làm việc)
   getWorkSchedules: (params = {}) => {

@@ -424,6 +424,41 @@ router.delete('/:id/permanent', adminOnly, (req, res) => {
   }
 });
 
+// Xóa vĩnh viễn từ kho lưu trữ (SUPER_ADMIN)
+router.delete('/:id/archive-permanent', requireRole('SUPER_ADMIN'), (req, res) => {
+  const id = req.params.id;
+  const ev = db.prepare('SELECT id FROM events WHERE id = ? AND archived_at IS NOT NULL AND deleted_at IS NULL').get(id);
+  if (!ev) return res.status(404).json({ error: 'Sự kiện không có trong kho lưu trữ' });
+  const doDelete = db.transaction(() => {
+    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(id);
+    for (const tx of txs) {
+      const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
+      for (const item of items) {
+        const qty = item.quantity;
+        const eqId = item.equipment_id;
+        if (tx.type === 'OUT' && tx.status !== 'pending') {
+          db.prepare('UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?').run(qty, qty, eqId);
+        } else if (tx.type === 'RETURN') {
+          const cond = item.condition || 'good';
+          if (cond === 'damaged')      db.prepare('UPDATE equipment SET qty_damaged = MAX(0, qty_damaged - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+          else if (cond === 'maintenance') db.prepare('UPDATE equipment SET qty_maintenance = MAX(0, qty_maintenance - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+          else if (cond === 'lost')    db.prepare('UPDATE equipment SET qty_lost = MAX(0, qty_lost - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+          else db.prepare('UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?').run(qty, qty, eqId);
+        }
+      }
+    }
+    try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
+    try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+    try { db.prepare('UPDATE work_schedules SET event_id = NULL WHERE event_id = ?').run(id); } catch (_) {}
+    db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
+    try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
+    db.prepare('DELETE FROM transactions WHERE event_id = ?').run(id);
+    db.prepare('DELETE FROM events WHERE id = ?').run(id);
+  });
+  try { doDelete(); res.json({ ok: true }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // Lưu trữ sự kiện (SUPER_ADMIN) — ẩn khỏi live feed, toàn bộ dữ liệu liên quan được giữ nguyên
 router.post('/:id/archive', requireRole('SUPER_ADMIN'), (req, res) => {
   const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);

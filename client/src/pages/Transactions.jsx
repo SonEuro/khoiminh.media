@@ -7,7 +7,7 @@ import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, ChevronUp, ChevronDown,
-  Printer, MapPin, User,
+  Printer, MapPin, User, Archive, ArchiveRestore,
 } from 'lucide-react';
 
 const GOLD = '#c9a84c';
@@ -795,6 +795,46 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
   );
 }
 
+function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete }) {
+  if (!events.length) return <Empty text="Chưa có sự kiện nào được lưu trữ" />;
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+      {events.map(ev => {
+        const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
+        const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
+        return (
+          <div key={ev.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</p>
+              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {[ev.client, ev.location].filter(Boolean).join(' · ')}
+                {archivedDate && <span style={{ marginLeft:'6px', color:'#5a5a80' }}>· Lưu {fmtDate(ev.archived_at)}</span>}
+              </p>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+              {ev.start_date && <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>{fmtDate(ev.start_date)}</span>}
+              <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
+              {ev.tx_count > 0 && <span style={{ fontSize:'0.68rem', color:'#7878a0', whiteSpace:'nowrap' }}>{ev.tx_count} phiếu</span>}
+              {isSuperAdmin && (
+                <>
+                  <button onClick={() => onUnarchive(ev)} title="Bỏ lưu trữ"
+                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.7rem', fontWeight:700, whiteSpace:'nowrap' }}>
+                    Bỏ lưu
+                  </button>
+                  <button onClick={() => onDelete(ev)} title="Xoá vĩnh viễn"
+                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.7rem', fontWeight:700, whiteSpace:'nowrap' }}>
+                    Xoá
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confirming }) {
   if (!txs.length) return <Empty text="Không có phiếu xuất kho tạm nào" />;
   return (
@@ -924,12 +964,13 @@ function ViolationRows({ violations }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Transactions() {
   const { user } = useAuth();
-  const [events,     setEvents]     = useState([]);
-  const [pendingTxs, setPendingTxs] = useState([]);
-  const [outTxs,     setOutTxs]     = useState([]);
-  const [returnTxs,  setReturnTxs]  = useState([]);
-  const [reports,    setReports]    = useState([]);
-  const [violations, setViolations] = useState([]);
+  const [events,         setEvents]         = useState([]);
+  const [archivedEvents, setArchivedEvents] = useState([]);
+  const [pendingTxs,     setPendingTxs]     = useState([]);
+  const [outTxs,         setOutTxs]         = useState([]);
+  const [returnTxs,      setReturnTxs]      = useState([]);
+  const [reports,        setReports]        = useState([]);
+  const [violations,     setViolations]     = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [selectedTx,          setSelectedTx]          = useState(null);
   const [editingTx,           setEditingTx]           = useState(null);
@@ -946,13 +987,16 @@ export default function Transactions() {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
+      api.getEvents({ include_archived: 'true', limit: 500 }),
       api.getTransactions({ type: 'OUT', status: 'pending',   limit: 200, hide_archived: 'true' }),
       api.getTransactions({ type: 'OUT', status: 'completed', limit: 200, hide_archived: 'true' }),
       api.getTransactions({ type: 'RETURN',                   limit: 200, hide_archived: 'true' }),
       api.getEventReports(),
       api.getViolations(),
-    ]).then(([ev, pending, out, ret, rep, vio]) => {
-      setEvents(ev); setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
+    ]).then(([ev, allEv, pending, out, ret, rep, vio]) => {
+      setEvents(ev);
+      setArchivedEvents(allEv.filter(e => !!e.archived_at));
+      setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
       setReports(rep); setViolations(vio);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
@@ -978,6 +1022,18 @@ export default function Transactions() {
       await api.deleteTransaction(tx.id);
       load();
     } catch (err) { alert(err.message); }
+  }
+
+  async function handleUnarchiveEvent(ev) {
+    if (!confirm(`Bỏ lưu trữ sự kiện "${ev.name}"?\nSự kiện sẽ hiện trở lại trong danh sách chính.`)) return;
+    try { await api.unarchiveEvent(ev.id); load(); }
+    catch (err) { alert(err.message); }
+  }
+
+  async function handleDeleteArchivedEvent(ev) {
+    if (!confirm(`Xoá vĩnh viễn sự kiện "${ev.name}"?\n\nToàn bộ phiếu xuất/nhập và dữ liệu liên quan sẽ bị xoá không thể khôi phục!`)) return;
+    try { await api.deleteArchivedEvent(ev.id); load(); }
+    catch (err) { alert(err.message); }
   }
 
   async function handleArchiveEvent(ev) {
@@ -1034,6 +1090,15 @@ export default function Transactions() {
 
           <Section Icon={ShieldAlert} title="Vi phạm nội quy" color="#f87171" border="rgba(248,113,113,0.25)" count={violations.length}>
             <ViolationRows violations={violations} />
+          </Section>
+
+          <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
+            <ArchivedEventRows
+              events={archivedEvents}
+              isSuperAdmin={user?.role === 'SUPER_ADMIN'}
+              onUnarchive={handleUnarchiveEvent}
+              onDelete={handleDeleteArchivedEvent}
+            />
           </Section>
         </>
       )}
