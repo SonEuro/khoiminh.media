@@ -1308,8 +1308,8 @@ export default function WorkSchedule() {
                                 const dc = getDeptColor(dept);
                                 return (
                                   <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.78rem', display:'block', letterSpacing:'0.03em' }}>{dept}</span>
-                                    <span style={{ fontSize:'1rem', color:'#fbbf24', fontWeight:800 }}>⏰ {time}</span>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.75rem', letterSpacing:'0.03em' }}>{dept}</span>
+                                    <span style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800, marginLeft:'8px' }}>⏰ {time}</span>
                                   </div>
                                 );
                               })}
@@ -1381,8 +1381,8 @@ export default function WorkSchedule() {
                                 const dc = getDeptColor(dept);
                                 return (
                                   <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.78rem', display:'block', letterSpacing:'0.03em' }}>{dept}</span>
-                                    <span style={{ fontSize:'1rem', color:'#fbbf24', fontWeight:800 }}>⏰ {time}</span>
+                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.75rem', letterSpacing:'0.03em' }}>{dept}</span>
+                                    <span style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800, marginLeft:'8px' }}>⏰ {time}</span>
                                   </div>
                                 );
                               })}
