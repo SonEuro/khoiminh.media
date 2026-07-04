@@ -831,7 +831,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
           </div>
         </div>
 
-        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all || isPhanLich || !!user?.is_truong_phong} />)}
+        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)} />)}
 
         {conflicts.length > 0 && (
           <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
@@ -1011,11 +1011,9 @@ export default function WorkSchedule() {
   }
 
   function canEdit(s) {
-    const past = isPastSchedule(s);
-    console.log('[canEdit]', { role: user?.role, is_phan_lich_all: user?.is_phan_lich_all, is_truong_phong: user?.is_truong_phong, past, setup_dates: s.setup_dates, filming_dates: s.filming_dates, setup_date: s.setup_date, filming_date: s.filming_date, todayStr });
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
     if (!!user?.is_phan_lich_all) return true;
-    if (past) return false;
+    if (isPastSchedule(s)) return false;
     if (!!user?.is_truong_phong) return true;
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
