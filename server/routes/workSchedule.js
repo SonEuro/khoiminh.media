@@ -11,9 +11,12 @@ function canPhanLich(req, res, next) {
 function isPastSchedule(sched) {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const dates = ['setup', 'teardown', 'rehearsal', 'filming'].flatMap(p => {
-    const val = sched[`${p}_dates`];
+    const val = sched[`${p}_date`]; // DB column is singular
     if (!val) return [];
-    try { return JSON.parse(val); } catch { return []; }
+    if (typeof val === 'string' && val.startsWith('[')) {
+      try { return JSON.parse(val); } catch { return []; }
+    }
+    return [val];
   });
   return dates.length > 0 && dates.every(d => d < today);
 }
@@ -21,7 +24,8 @@ function isPastSchedule(sched) {
 function canEditSchedule(sched, user) {
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
   if (!!user.is_phan_lich_all) return true;
-  if (!!user.is_truong_phong) return !isPastSchedule(sched);
+  if (isPastSchedule(sched)) return false;
+  if (!!user.is_truong_phong) return true;
   if (sched.status === 'draft') return !!user.is_phan_lich;
   return sched.scheduler_user_id === user.id;
 }
