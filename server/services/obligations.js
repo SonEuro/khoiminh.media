@@ -42,6 +42,8 @@ function syncObligations(scheduleId) {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(scheduleId);
   if (!sched) return;
 
+  const currentKeys = new Set(); // "lead_name|phase|date"
+
   for (const phase of PHASES) {
     const rawDates = sched[`${phase}_dates`] || sched[`${phase}_date`];
     const dates = parseDates(rawDates);
@@ -53,6 +55,7 @@ function syncObligations(scheduleId) {
       const leads = parseLeads(rawLeads, date);
       for (const lead of leads) {
         if (!lead?.name) continue;
+        currentKeys.add(`${lead.name}|${phase}|${date}`);
         const deadline = computeDeadline(date);
         const user = db.prepare('SELECT id FROM users WHERE full_name = ? AND is_active = 1 LIMIT 1').get(lead.name);
         db.prepare(`
@@ -60,12 +63,27 @@ function syncObligations(scheduleId) {
             (schedule_id, event_id, event_name, lead_name, user_id, phase, assigned_date, deadline)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `).run(scheduleId, sched.event_id || null, sched.event_name || '', lead.name, user?.id || null, phase, date, deadline);
-        // Cập nhật user_id nếu vừa tìm được
-        if (user?.id) {
-          db.prepare('UPDATE lead_report_obligations SET user_id = ?, event_name = ? WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ?')
-            .run(user.id, sched.event_name || '', scheduleId, lead.name, phase, date);
-        }
+        // Luôn cập nhật event_id, event_name, user_id (kể cả khi đổi sự kiện)
+        db.prepare(`
+          UPDATE lead_report_obligations
+          SET event_id = ?, event_name = ?, user_id = COALESCE(?, user_id)
+          WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ?
+        `).run(sched.event_id || null, sched.event_name || '', user?.id || null, scheduleId, lead.name, phase, date);
       }
+    }
+  }
+
+  // Xóa obligations cho lead/ngày đã bị xóa khỏi lịch (chỉ khi chưa xử lý vi phạm)
+  const existing = db.prepare(`
+    SELECT lead_name, phase, assigned_date FROM lead_report_obligations
+    WHERE schedule_id = ? AND violation_created = 0
+  `).all(scheduleId);
+  for (const row of existing) {
+    if (!currentKeys.has(`${row.lead_name}|${row.phase}|${row.assigned_date}`)) {
+      db.prepare(`
+        DELETE FROM lead_report_obligations
+        WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ? AND violation_created = 0
+      `).run(scheduleId, row.lead_name, row.phase, row.assigned_date);
     }
   }
 }
