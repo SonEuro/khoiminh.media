@@ -212,11 +212,11 @@ export default function Users() {
           return (
             <div key={`mgroup-${group.role}`} style={{ marginBottom:'8px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'12px 0 8px' }}>
-                <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${rc.color}55, transparent)` }} />
+                <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${rc.color}, transparent)`, opacity:0.45 }} />
                 <span style={{ fontSize:'0.7rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
                   {group.label} <span style={{ opacity:0.6, fontWeight:600 }}>({group.members.length})</span>
                 </span>
-                <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${rc.color}55, transparent)` }} />
+                <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${rc.color}, transparent)`, opacity:0.45 }} />
               </div>
               {group.members.map(u => (
                 <div key={u.id} style={{ background:'var(--bg-card)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', padding:'12px 14px', marginBottom:'8px' }}>
