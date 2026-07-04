@@ -274,6 +274,24 @@ if (eqCols.includes('qty_reserved')) {
   }
 }
 
+// Bảng nghĩa vụ báo cáo của nhóm trưởng
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lead_report_obligations (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id       INTEGER NOT NULL REFERENCES work_schedules(id) ON DELETE CASCADE,
+    event_id          INTEGER,
+    event_name        TEXT,
+    lead_name         TEXT NOT NULL,
+    user_id           INTEGER,
+    phase             TEXT NOT NULL,
+    assigned_date     TEXT NOT NULL,
+    deadline          TEXT NOT NULL,
+    violation_created INTEGER DEFAULT 0,
+    created_at        TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(schedule_id, lead_name, phase, assigned_date)
+  );
+`);
+
 // Seed admin mặc định nếu chưa có user nào
 const bcryptSeed = require('bcryptjs');
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;

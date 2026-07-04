@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
+const { syncObligations } = require('../services/obligations');
 
 function canPhanLich(req, res, next) {
   const { role, is_phan_lich, is_phan_lich_all } = req.user || {};
@@ -153,6 +154,7 @@ router.post('/', canPhanLich, (req, res) => {
   }
   const placeholders = cols.map(() => '?').join(',');
   const r = db.prepare(`INSERT INTO work_schedules (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
+  try { syncObligations(r.lastInsertRowid); } catch (e) { console.error('[obligations] sync error:', e.message); }
   res.json({ id: r.lastInsertRowid });
 });
 
@@ -177,6 +179,7 @@ router.put('/:id', (req, res) => {
   db.prepare(`UPDATE work_schedules SET ${setSql} WHERE id = ?`).run(...vals, req.params.id);
   db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'edit')`)
     .run(req.params.id, req.user.id, req.user.full_name);
+  try { syncObligations(req.params.id); } catch (e) { console.error('[obligations] sync error:', e.message); }
   res.json({ ok: true });
 });
 
@@ -188,6 +191,7 @@ router.post('/:id/confirm', canPhanLich, (req, res) => {
     .run(req.user.id, req.params.id);
   db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'confirm')`)
     .run(req.params.id, req.user.id, req.user.full_name);
+  try { syncObligations(req.params.id); } catch (e) { console.error('[obligations] sync error:', e.message); }
   res.json({ ok: true });
 });
 

@@ -137,4 +137,7 @@ export const api = {
   confirmWorkSchedule: (id) => request(`/work-schedules/${id}/confirm`, { method: 'POST' }),
   deleteWorkSchedule: (id) => request(`/work-schedules/${id}`, { method: 'DELETE' }),
   getWorkScheduleHistory: (id) => request(`/work-schedules/${id}/history`),
+
+  // Lead obligations (nghĩa vụ báo cáo của nhóm trưởng)
+  getLeadObligations: () => request('/lead-obligations'),
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { KM_STAFF_GROUPS } from '../constants/staff';
@@ -398,6 +399,7 @@ const makeEmptyForm = () => ({
 
 export default function EventReport() {
   const { user } = useAuth();
+  const location = useLocation();
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng
   const canDeleteReport = (report) => {
@@ -434,6 +436,20 @@ export default function EventReport() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  // Pre-fill form nếu được navigate từ trang Lịch Làm Việc (nghĩa vụ báo cáo)
+  useEffect(() => {
+    const prefill = location.state?.prefill;
+    if (!prefill) return;
+    setView('form');
+    setForm(f => ({
+      ...f,
+      event_id:    prefill.event_id    || f.event_id,
+      event_label: prefill.event_label || f.event_label,
+      report_date: prefill.report_date || f.report_date,
+    }));
+    if (prefill.event_label) setEvSearch(prefill.event_label);
+  }, [location.state]);
 
   function setField(key, value) {
     setForm(f => ({ ...f, [key]: value }));
