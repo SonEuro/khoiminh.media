@@ -867,19 +867,34 @@ export default function Events() {
                 const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                 const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                 const hasSecondary = showCancel || showArchive || showUnarch || showDelete;
+                const btnV = { flexDirection:'column', gap:'3px', padding:'9px 10px', flex:1, minWidth:0 };
+                const ico  = { fontSize:'1.15rem', lineHeight:1 };
+                const lbl  = { fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.01em', lineHeight:1 };
                 return (
                   <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                     <div className="flex gap-2">
-                      <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
-                      <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
-                      {showEdit   && <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>}
-                      {showCancel && <button className="btn-danger btn-sm"    onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
+                      <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('detail'); }}>
+                        <span style={ico}>📋</span><span style={lbl}>Thiết bị</span>
+                      </button>
+                      <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('staff'); }}>
+                        <span style={ico}>👥</span><span style={lbl}>Nhân sự</span>
+                      </button>
+                      {showEdit && (
+                        <button className="btn-secondary btn-sm" style={{ ...btnV, flex:'0 0 auto', padding:'9px 14px' }} onClick={() => { setSelected(ev); setModal('form'); }}>
+                          <span style={ico}>✏️</span><span style={lbl}>Sửa</span>
+                        </button>
+                      )}
+                      {showCancel && (
+                        <button className="btn-danger btn-sm" style={btnV} onClick={() => handleCancel(ev)}>
+                          <span style={ico}>🚫</span><span style={lbl}>Hủy</span>
+                        </button>
+                      )}
                     </div>
                     {(showArchive || showUnarch || showDelete) && (
                       <div className="flex gap-2">
-                        {showArchive && <button className="btn-secondary btn-sm" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>}
-                        {showUnarch  && <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>}
-                        {showDelete  && <button className="btn-danger btn-sm"    onClick={() => handleDelete(ev)}>🗑</button>}
+                        {showArchive && <button className="btn-secondary btn-sm" style={btnV} onClick={() => handleArchive(ev)}><span style={ico}>💾</span><span style={lbl}>Lưu trữ</span></button>}
+                        {showUnarch  && <button className="btn-secondary btn-sm" style={{ ...btnV, borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span style={ico}>↩</span><span style={lbl}>Bỏ lưu trữ</span></button>}
+                        {showDelete  && <button className="btn-danger btn-sm"    style={{ ...btnV, flex:'0 0 auto', padding:'9px 14px' }} onClick={() => handleDelete(ev)}><span style={ico}>🗑</span></button>}
                       </div>
                     )}
                   </div>
