@@ -1076,8 +1076,14 @@ export default function WorkSchedule() {
   }
 
   function isPastSchedule(s) {
-    const hasAnyDate = PHASES.some(p => (s[`${p.key}_dates`] || []).length > 0);
-    return hasAnyDate && nearestUpcoming(s) === null;
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+    const allDates = PHASES.flatMap(p => {
+      const arr = s[`${p.key}_dates`];
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+      const single = s[`${p.key}_date`];
+      return single ? [single] : [];
+    });
+    return allDates.length > 0 && allDates.every(d => d < today);
   }
 
   function canEdit(s) {
