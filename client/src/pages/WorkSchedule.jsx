@@ -1488,7 +1488,12 @@ export default function WorkSchedule() {
                     )}
                     {dLeads.map((l, i) => {
                       const dc = getDeptColor(l.department);
-                      return <div key={i} style={{ ...itemStyle, color:'#e8c97a' }}>👑 {l.name} <span style={{ color:dc.color, fontWeight:700, fontSize:'0.82rem' }}>({getDeptDisplay(l.department)})</span></div>;
+                      return (
+                        <div key={i} style={{ ...itemStyle, color: dc.color }}>
+                          👑 <strong>{l.name}</strong>
+                          <span style={{ opacity:0.65, fontSize:'0.78rem', fontWeight:600 }}> · {getDeptDisplay(l.department)}</span>
+                        </div>
+                      );
                     })}
                     {Object.keys(byDeptKM).length > 0 && (
                       <div style={{ marginTop:'4px' }}>
@@ -1498,7 +1503,7 @@ export default function WorkSchedule() {
                           return (
                             <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                               <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                              {members.map(n => <div key={n} style={{ ...kmItemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                              {members.map(n => <div key={n} style={{ ...kmItemStyle, color: dc.color, opacity:0.9 }}>• {n}</div>)}
                             </div>
                           );
                         })}
@@ -1512,7 +1517,7 @@ export default function WorkSchedule() {
                           return (
                             <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                               <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                              {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                              {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: dc.color, opacity:0.9 }}>• {n}</div>)}
                             </div>
                           );
                         })}
