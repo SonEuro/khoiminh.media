@@ -278,9 +278,10 @@ function UpcomingScheduleSection({ userName }) {
     if (!userName) return;
     api.getWorkSchedules({}).then(schedules => {
       const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
-      const cutoff = new Date(todayVN);
-      cutoff.setDate(cutoff.getDate() + 14);
-      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      const futureCutoff = new Date(todayVN); futureCutoff.setDate(futureCutoff.getDate() + 14);
+      const pastCutoff   = new Date(todayVN); pastCutoff.setDate(pastCutoff.getDate() - 30);
+      const cutoffStr  = futureCutoff.toISOString().slice(0, 10);
+      const pastStr    = pastCutoff.toISOString().slice(0, 10);
       const phases = ['filming', 'setup', 'rehearsal', 'teardown'];
       const found = [];
       const seen = new Set();
@@ -291,7 +292,7 @@ function UpcomingScheduleSection({ userName }) {
           const staff = s[`${p}_km_staff`] || [];
           if (!leads.includes(userName) && !staff.includes(userName)) continue;
           for (const date of dates) {
-            if (!date || date < todayVN || date > cutoffStr) continue;
+            if (!date || date < pastStr || date > cutoffStr) continue;
             const key = `${s.id}-${p}-${date}`;
             if (seen.has(key)) continue;
             seen.add(key);
@@ -304,49 +305,77 @@ function UpcomingScheduleSection({ userName }) {
     }).catch(() => {});
   }, [userName]);
 
+  const todayItems    = upcoming.filter(i => i.date === todayVN);
+  const tomorrowItems = upcoming.filter(i => i.date === tomorrowVN);
+  const upcomingItems = upcoming.filter(i => i.date > tomorrowVN);
+  const pastItems     = [...upcoming.filter(i => i.date < todayVN)].reverse();
+  const totalFuture   = todayItems.length + tomorrowItems.length + upcomingItems.length;
+
   if (upcoming.length === 0) return null;
 
+  function ZoneDivider({ color, border, label, count }) {
+    return (
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'6px 16px 2px' }}>
+        <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
+        <span style={{ fontSize:'0.65rem', fontWeight:800, letterSpacing:'0.08em', color, background:`${color}18`, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 10px', whiteSpace:'nowrap' }}>
+          {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
+        </span>
+        <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
+      </div>
+    );
+  }
+
+  function SchedRow({ item, isPast }) {
+    const isToday    = item.date === todayVN;
+    const isTomorrow = item.date === tomorrowVN;
+    const dotColor = isToday ? '#f87171' : isTomorrow ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa';
+    const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(74,222,128,0.8)' : isPast ? 'rgba(120,120,160,0.5)' : 'rgba(96,165,250,0.8)';
+    const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
+    const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(74,222,128,0.09)' : 'rgba(96,165,250,0.05)';
+    const textColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : isPast ? '#7878a0' : '#e0e0ee';
+    return (
+      <div key={`${item.schedId}-${item.phase}-${item.date}`}
+        onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
+        style={{ display:'flex', alignItems:'center', gap:'12px', padding:'10px 16px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
+        onMouseEnter={e => e.currentTarget.style.background = bgHover}
+        onMouseLeave={e => e.currentTarget.style.background = bgBase}
+      >
+        <div style={{ width:7, height:7, borderRadius:'50%', background:dotColor, flexShrink:0, boxShadow:`0 0 6px ${dotGlow}` }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontWeight:600, color:textColor, fontSize:'0.87rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            {PHASE_LABELS[item.phase]} — {item.eventName}
+          </p>
+        </div>
+        {isToday
+          ? <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 7px' }}>{fmtD(item.date)} · HÔM NAY</span>
+          : isTomorrow
+            ? <span style={{ fontSize:'0.7rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
+            : <span style={{ fontSize:'0.75rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0 }}>{fmtD(item.date)}</span>
+        }
+      </div>
+    );
+  }
+
   return (
-    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(167,139,250,0.35)', marginBottom: '10px' }}>
-      <SectionHeader title="Lịch làm việc của bạn (14 ngày tới)" color="#a78bfa" colorRgb="167,139,250" count={upcoming.length} />
-      <div style={{ background: '#13131d' }}>
-        {upcoming.map((item, i) => {
-          const isToday    = item.date === todayVN;
-          const isTomorrow = item.date === tomorrowVN;
-          const dotColor = isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#60a5fa';
-          const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(74,222,128,0.8)' : 'rgba(96,165,250,0.8)';
-          const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
-          const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(74,222,128,0.09)' : 'rgba(96,165,250,0.05)';
-          const borderC  = isToday ? 'rgba(248,113,113,0.15)' : isTomorrow ? 'rgba(74,222,128,0.12)' : 'rgba(96,165,250,0.08)';
-          const textColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : '#e0e0ee';
-          return (
-            <div key={`${item.schedId}-${item.phase}-${item.date}`}
-              onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '10px 16px', cursor: 'pointer',
-                borderTop: i > 0 ? `1px solid ${borderC}` : 'none',
-                background: bgBase,
-                transition: 'background 0.13s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = bgHover}
-              onMouseLeave={e => e.currentTarget.style.background = bgBase}
-            >
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotGlow}` }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: textColor, fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {PHASE_LABELS[item.phase]} — {item.eventName}
-                </p>
-              </div>
-              {isToday
-                ? <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 800, flexShrink: 0, background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · HÔM NAY</span>
-                : isTomorrow
-                  ? <span style={{ fontSize: '0.7rem', color: '#4ade80', fontWeight: 800, flexShrink: 0, background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: '6px', padding: '1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
-                  : <span style={{ fontSize: '0.75rem', color: '#60a5fa', fontWeight: 700, flexShrink: 0 }}>{fmtD(item.date)}</span>
-              }
-            </div>
-          );
-        })}
+    <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(167,139,250,0.35)', marginBottom:'10px' }}>
+      <SectionHeader title="Lịch làm việc của bạn" color="#a78bfa" colorRgb="167,139,250" count={totalFuture} />
+      <div style={{ background:'#13131d' }}>
+        {todayItems.length > 0 && <>
+          <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayItems.length} />
+          {todayItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        </>}
+        {tomorrowItems.length > 0 && <>
+          <ZoneDivider color="#4ade80" border="rgba(74,222,128,0.35)" label="NGÀY MAI" count={tomorrowItems.length} />
+          {tomorrowItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        </>}
+        {upcomingItems.length > 0 && <>
+          <ZoneDivider color="#60a5fa" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={upcomingItems.length} />
+          {upcomingItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        </>}
+        {pastItems.length > 0 && <>
+          <ZoneDivider color="#7878a0" border="rgba(120,120,160,0.25)" label="NGÀY LÀM VIỆC ĐÃ HOÀN THÀNH" count={pastItems.length} />
+          {pastItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} isPast />)}
+        </>}
       </div>
     </div>
   );

@@ -1295,12 +1295,12 @@ export default function WorkSchedule() {
             </>}
 
             {zones.upcoming.length > 0 && <>
-              <ZoneHeader color="#fbbf24" bg="rgba(251,191,36,0.08)" border="rgba(251,191,36,0.3)" label="SẮP TỚI" count={zones.upcoming.length} />
+              <ZoneHeader color="#fbbf24" bg="rgba(251,191,36,0.08)" border="rgba(251,191,36,0.3)" label="NGÀY SẮP TỚI" count={zones.upcoming.length} />
               {zones.upcoming.map(s => renderCard(s, 'upcoming'))}
             </>}
 
             {zones.past.length > 0 && <>
-              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA" count={zones.past.length} />
+              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY LÀM VIỆC ĐÃ HOÀN THÀNH" count={zones.past.length} />
               {zones.past.map(s => renderCard(s, 'past'))}
             </>}
           </div>
