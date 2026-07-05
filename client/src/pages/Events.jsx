@@ -58,149 +58,168 @@ function StaffScheduleModal({ event, onClose }) {
   const [schedules, setSchedules] = useState(null);
   useEffect(() => { api.getWorkSchedules({ event_id: event.id }).then(setSchedules).catch(() => setSchedules([])); }, [event.id]);
 
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tomorrowStr = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
+
+  function ZoneHdr({ color, bg, border, label, count }) {
+    return (
+      <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 4px' }}>
+        <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
+        <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
+          {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
+        </span>
+        <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
+      </div>
+    );
+  }
+
+  function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote }) {
+    const isPast = date < todayStr;
+    const dateColor = date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa';
+    return (
+      <div key={`${phase.key}-${date}`} style={{ marginBottom:'6px', padding:'10px 12px', background: isPast ? 'rgba(120,120,160,0.04)' : 'rgba(201,168,76,0.04)', border:`1px solid ${isPast ? 'rgba(120,120,160,0.15)' : 'rgba(201,168,76,0.12)'}`, borderRadius:'8px', opacity: isPast ? 0.65 : 1 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
+          <span style={{ fontWeight:700, color:GOLD, fontSize:'0.82rem' }}>{phase.label}</span>
+          <span style={{ fontSize:'0.75rem', color: dateColor, fontWeight:700 }}>{fmtD(date)}</span>
+        </div>
+        {dLeads.map((l, i) => {
+          const dc = getDeptColor(l.department);
+          return <div key={i} style={{ ...itemStyle, color:'#e8c97a' }}>👑 {l.name} <span style={{ color:dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>;
+        })}
+        {Object.keys(byDeptKM).length > 0 && (
+          <div style={{ marginTop:'4px' }}>
+            <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#60a5fa', margin:'4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+            {Object.entries(byDeptKM).map(([dept, members]) => {
+              const dc = getDeptColor(dept);
+              return (
+                <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                  <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
+                  {members.map(n => <div key={n} style={{ ...itemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {freeDepts.length > 0 && (
+          <div style={{ marginTop:'4px' }}>
+            <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#93c5fd', margin:'4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
+            {freeDepts.map(([dept, nameList]) => {
+              const dc = getDeptColor(dept);
+              return (
+                <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                  <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
+                  {nameList.map(n => <div key={n} style={{ ...itemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {hasNote && (
+          <div style={{ marginTop:'4px', paddingTop:'4px', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+            <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#c9b98a', margin:'0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+            {noteDepts.map(([dept, note]) => {
+              const dc = getDeptColor(dept);
+              return (
+                <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                  <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
+                  <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
+                </div>
+              );
+            })}
+            {noteStr && <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{noteStr}</p>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <Modal title={`Nhân sự làm việc — ${event.name}`} onClose={onClose} size="lg">
-      {schedules === null && <p style={{ textAlign: 'center', color: '#7878a0', padding: '20px' }}>Đang tải...</p>}
-      {schedules?.length === 0 && <p style={{ textAlign: 'center', color: '#7878a0', padding: '20px' }}>Chưa có lịch làm việc cho sự kiện này</p>}
-      {schedules?.map(s => (
-        <div key={s.id} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <p style={{ fontSize: '0.8rem', color: '#7878a0', marginBottom: '8px' }}>
-            👤 Người phân lịch: <strong style={{ color: GOLD }}>{s.scheduler_name}</strong> ·{' '}
-            <span style={{ color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24' }}>
-              {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
-            </span>
-          </p>
-          {[...PHASES].sort((a, b) => {
-            const aMin = [...(s[`${a.key}_dates`] || [])].sort()[0] || '9999';
-            const bMin = [...(s[`${b.key}_dates`] || [])].sort()[0] || '9999';
-            return aMin.localeCompare(bMin);
-          }).map(phase => {
-            const dates     = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
-            const leadsMap  = s[`${phase.key}_leads_map`];
-            const leadsFlat = s[`${phase.key}_leads`] || [];
-            const kmMap     = s[`${phase.key}_km_staff_map`];
-            const kmFlat    = s[`${phase.key}_km_staff`] || [];
-            const freeMap   = s[`${phase.key}_freelancers_map`];
-            const freeFlat  = s[`${phase.key}_freelancers`] || [];
-            const multi     = dates.length > 1;
+      {schedules === null && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Đang tải...</p>}
+      {schedules?.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Chưa có lịch làm việc cho sự kiện này</p>}
+      {schedules?.map(s => {
+        const allEntries = [];
+        for (const phase of PHASES) {
+          const dates    = s[`${phase.key}_dates`] || (s[`${phase.key}_date`] ? [s[`${phase.key}_date`]] : []);
+          if (!dates.length) continue;
+          const leadsMap  = s[`${phase.key}_leads_map`];
+          const kmMap     = s[`${phase.key}_km_staff_map`];
+          const freeMap   = s[`${phase.key}_freelancers_map`];
+          const notesMap  = s[`${phase.key}_notes`] || {};
+          const leadsFlat = s[`${phase.key}_leads`] || [];
+          const kmFlat    = s[`${phase.key}_km_staff`] || [];
+          const isNewFree = freeMap && Object.values(freeMap).some(v => v && typeof v === 'object');
 
-            // Khi multi-date: data không có map chỉ hiển thị 1 lần (flat), không lặp theo ngày
-            function renderStaffSection(leads, km, freeDepts) {
-              const byDept = km.reduce((acc, n) => {
-                const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                (acc[d] = acc[d] || []).push(n); return acc;
-              }, {});
-              return (
-                <>
-                  {leads.map((l, i) => {
-                    const dc = getDeptColor(l.department);
-                    return (
-                      <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>
-                        👑 {l.name} <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.82rem' }}>({l.department})</span>
-                      </div>
-                    );
-                  })}
-                  {Object.keys(byDept).length > 0 && (
-                    <div style={{ marginTop: '4px', marginBottom: '4px' }}>
-                      <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing: '0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                      {Object.entries(byDept).map(([dept, members]) => {
-                        const dc = getDeptColor(dept);
-                        return (
-                          <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
-                            <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
-                            {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {freeDepts.length > 0 && (
-                    <div style={{ marginTop: '4px' }}>
-                      <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing: '0.06em' }}>FREELANCER</p>
-                      {freeDepts.map(([dept, members]) => {
-                        const dc = getDeptColor(dept);
-                        return (
-                          <div key={dept} style={{ marginBottom: '4px', paddingLeft: '8px', borderLeft: `2px solid ${dc.border}` }}>
-                            <span style={{ color: dc.color, fontWeight: 700, fontSize: '0.85rem', display: 'block' }}>{dept}</span>
-                            {members.map(n => <div key={n} style={{ ...itemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              );
+          for (const date of dates) {
+            const dLeads   = leadsMap ? (leadsMap[date] || []) : leadsFlat;
+            const dKm      = kmMap    ? (kmMap[date]    || []) : kmFlat;
+            const byDeptKM = dKm.reduce((acc, n) => {
+              const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+              (acc[d] = acc[d] || []).push(n); return acc;
+            }, {});
+
+            let freeDepts = [];
+            if (isNewFree && freeMap) {
+              const dateVal = freeMap[date] || {};
+              freeDepts = Object.entries(dateVal)
+                .filter(([, v]) => v?.trim())
+                .map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)])
+                .filter(([, ns]) => ns.length > 0);
             }
 
-            // Flat freelancer (old format or aggregated)
-            const freeDeptsFlatAggregate = freeMap
-              ? aggregateFreelancerMap(freeMap)
-              : groupByDept(freeFlat, FREELANCER_GROUPS);
+            const noteVal   = notesMap[date];
+            const noteDepts = (noteVal && typeof noteVal === 'object')
+              ? Object.entries(noteVal).filter(([, v]) => v?.trim())
+              : [];
+            const noteStr   = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
+            const hasNote   = noteDepts.length > 0 || !!noteStr;
 
-            if (!multi) {
-              // Một ngày: hiển thị flat trực tiếp
-              if (!leadsFlat.length && !kmFlat.length && !freeDeptsFlatAggregate.length) return null;
-              return (
-                <div key={phase.key} style={{ marginBottom: '10px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.12)', borderRadius: '8px', padding: '10px 12px' }}>
-                  <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '6px' }}>
-                    {phase.label}{dates[0] ? ` — ${fmtD(dates[0])}` : ''}
-                  </div>
-                  {renderStaffSection(leadsFlat, kmFlat, freeDeptsFlatAggregate)}
+            if (!dLeads.length && !Object.keys(byDeptKM).length && !freeDepts.length && !hasNote) continue;
+            allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote });
+          }
+        }
+
+        allEntries.sort((a, b) => a.date.localeCompare(b.date) || PHASES.findIndex(p => p.key === a.phase.key) - PHASES.findIndex(p => p.key === b.phase.key));
+
+        const zones = {
+          today:    allEntries.filter(e => e.date === todayStr),
+          tomorrow: allEntries.filter(e => e.date === tomorrowStr),
+          upcoming: allEntries.filter(e => e.date > tomorrowStr),
+          past:     allEntries.filter(e => e.date < todayStr).reverse(),
+        };
+
+        return (
+          <div key={s.id} style={{ marginBottom:'16px', paddingBottom:'16px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+            <p style={{ fontSize:'0.8rem', color:'#7878a0', marginBottom:'8px' }}>
+              👤 Người phân lịch: <strong style={{ color:GOLD }}>{s.scheduler_name}</strong> ·{' '}
+              <span style={{ color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24' }}>
+                {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
+              </span>
+            </p>
+            {allEntries.length === 0
+              ? <p style={{ color:'#7878a0', fontSize:'0.85rem', textAlign:'center', padding:'10px 0' }}>Không có dữ liệu nhân sự</p>
+              : <div>
+                  {zones.today.length > 0 && <>
+                    <ZoneHdr color="#f87171" bg="rgba(248,113,113,0.1)" border="rgba(248,113,113,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={zones.today.length} />
+                    {zones.today.map(e => renderEntry(e))}
+                  </>}
+                  {zones.tomorrow.length > 0 && <>
+                    <ZoneHdr color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={zones.tomorrow.length} />
+                    {zones.tomorrow.map(e => renderEntry(e))}
+                  </>}
+                  {zones.upcoming.length > 0 && <>
+                    <ZoneHdr color="#60a5fa" bg="rgba(96,165,250,0.08)" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={zones.upcoming.length} />
+                    {zones.upcoming.map(e => renderEntry(e))}
+                  </>}
+                  {zones.past.length > 0 && <>
+                    <ZoneHdr color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY ĐÃ QUA" count={zones.past.length} />
+                    {zones.past.map(e => renderEntry(e))}
+                  </>}
                 </div>
-              );
             }
-
-            // Nhiều ngày: render theo từng ngày (chỉ dùng map), flat hiển thị 1 lần nếu không có map
-            const hasLeadsMap = leadsMap && Object.keys(leadsMap).length > 0;
-            const hasKmMap    = kmMap    && Object.keys(kmMap).length    > 0;
-            const hasFreeMap  = freeMap  && Object.keys(freeMap).length  > 0;
-
-            const perDateBlocks = dates.map(date => {
-              const dLeads    = hasLeadsMap ? (leadsMap[date] || []) : [];
-              const dKm       = hasKmMap    ? (kmMap[date]    || []) : [];
-              const freeDepts = hasFreeMap
-                ? Object.entries(freeMap[date] || {})
-                    .filter(([, v]) => v?.trim())
-                    .map(([dept, str]) => [dept, str.split(',').map(n => n.trim()).filter(Boolean)])
-                    .filter(([, ns]) => ns.length > 0)
-                : [];
-              if (!dLeads.length && !dKm.length && !freeDepts.length) return null;
-              return (
-                <div key={date}>
-                  <div style={{ fontSize: '0.92rem', color: '#fbbf24', fontWeight: 700, margin: '6px 0 4px' }}>
-                    📅 {fmtD(date)}
-                  </div>
-                  {renderStaffSection(dLeads, dKm, freeDepts)}
-                </div>
-              );
-            }).filter(Boolean);
-
-            // Flat data (khi không có map): hiện 1 lần ở đầu
-            const flatLeadsShow = !hasLeadsMap ? leadsFlat : [];
-            const flatKmShow    = !hasKmMap    ? kmFlat    : [];
-            const flatFreeShow  = !hasFreeMap  ? freeDeptsFlatAggregate : [];
-            const hasFlatContent = flatLeadsShow.length || flatKmShow.length || flatFreeShow.length;
-
-            if (!hasFlatContent && !perDateBlocks.length) return null;
-
-            return (
-              <div key={phase.key} style={{
-                marginBottom: '10px',
-                background: 'rgba(201,168,76,0.04)',
-                border: '1px solid rgba(201,168,76,0.12)',
-                borderRadius: '8px',
-                padding: '10px 12px',
-              }}>
-                <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.82rem', marginBottom: '6px' }}>
-                  {phase.label}
-                </div>
-                {hasFlatContent && renderStaffSection(flatLeadsShow, flatKmShow, flatFreeShow)}
-                {perDateBlocks}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </Modal>
   );
 }
