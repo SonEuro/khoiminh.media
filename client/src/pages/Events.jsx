@@ -865,34 +865,31 @@ export default function Events() {
                 const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                 const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                 const hasSecondary = showCancel || showArchive || showUnarch || showDelete;
-                const btnV = { flexDirection:'column', gap:'3px', padding:'9px 10px' };
-                const ico  = { fontSize:'1.15rem', lineHeight:1 };
-                const lbl  = { fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.01em', lineHeight:1 };
                 return (
                   <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                     <div className="ev-card-row">
-                      <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('detail'); }}>
-                        <span style={ico}>📋</span><span style={lbl}>Thiết bị</span>
+                      <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('detail'); }}>
+                        <span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span>
                       </button>
-                      <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('staff'); }}>
-                        <span style={ico}>👥</span><span style={lbl}>Nhân sự</span>
+                      <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('staff'); }}>
+                        <span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span>
                       </button>
                       {showEdit && (
-                        <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('form'); }}>
-                          <span style={ico}>✏️</span><span style={lbl}>Sửa</span>
+                        <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('form'); }}>
+                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span>
                         </button>
                       )}
                       {showCancel && (
-                        <button className="btn-danger btn-sm" style={btnV} onClick={() => handleCancel(ev)}>
-                          <span style={ico}>🚫</span><span style={lbl}>Hủy</span>
+                        <button className="btn-danger btn-sm ev-card-btn" onClick={() => handleCancel(ev)}>
+                          <span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span>
                         </button>
                       )}
                     </div>
                     {(showArchive || showUnarch || showDelete) && (
                       <div className="ev-card-row">
-                        {showArchive && <button className="btn-secondary btn-sm" style={btnV} onClick={() => handleArchive(ev)}><span style={ico}>💾</span><span style={lbl}>Lưu trữ</span></button>}
-                        {showUnarch  && <button className="btn-secondary btn-sm" style={{ ...btnV, borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span style={ico}>↩</span><span style={lbl}>Bỏ lưu trữ</span></button>}
-                        {showDelete  && <button className="btn-danger btn-sm"    style={btnV} onClick={() => handleDelete(ev)}><span style={ico}>🗑</span><span style={lbl}>Xóa</span></button>}
+                        {showArchive && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
+                        {showUnarch  && <button className="btn-secondary btn-sm ev-card-btn" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu trữ</span></button>}
+                        {showDelete  && <button className="btn-danger btn-sm ev-card-btn"    onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
                       </div>
                     )}
                   </div>
