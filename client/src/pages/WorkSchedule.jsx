@@ -356,6 +356,8 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false }) {
+  const { user } = useAuth();
+  const isSADir  = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const leadsMap        = form[`${phase.key}_leads`]        || {};
   const kmMap           = form[`${phase.key}_km_staff`]     || {};
   const freelancersMap  = form[`${phase.key}_freelancers`]  || {};
@@ -634,7 +636,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             if (!af && !bf) return b.localeCompare(a); // cả hai quá khứ: desc (mới nhất trước)
             return af ? -1 : 1;                         // tương lai lên trước quá khứ
           }).map(d => {
-            const isPastLocked = d < todayStr && !isPhanLichAll;
+            const isPastLocked = d < todayStr && !isSADir;
             return (
               <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: isPastLocked ? 'rgba(120,120,160,0.04)' : 'rgba(251,191,36,0.04)', border: `1px solid ${isPastLocked ? 'rgba(120,120,160,0.15)' : 'rgba(251,191,36,0.12)'}` }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -648,17 +650,25 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             );
           })}
         </div>
-      ) : (
-        <>
-          {renderStartTimes(singleKey)}
-          <div style={{ marginBottom: '10px' }}>
-            <label style={labelStyle}>Nhóm trưởng (theo bộ phận)</label>
-            <LeadsEditor leads={leadsMap[singleKey] || []} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [singleKey]: v })} restrictDept={userDept} />
-          </div>
-          {renderKMStaff(singleKey)}
-          {renderFreelancerNotes(singleKey)}
-        </>
-      )}
+      ) : (() => {
+        const singleIsPastLocked = dates.length === 1 && dates[0] < todayStr && !isSADir;
+        return (
+          <>
+            {singleIsPastLocked && (
+              <div style={{ fontSize: '0.65rem', color: '#555570', marginBottom: '8px' }}>🔒 Ngày đã qua – chỉ Super Admin / Giám đốc mới chỉnh được</div>
+            )}
+            <div style={singleIsPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
+              {renderStartTimes(singleKey)}
+              <div style={{ marginBottom: '10px' }}>
+                <label style={labelStyle}>Nhóm trưởng (theo bộ phận)</label>
+                <LeadsEditor leads={leadsMap[singleKey] || []} onChange={v => set(`${phase.key}_leads`, { ...leadsMap, [singleKey]: v })} restrictDept={userDept} />
+              </div>
+              {renderKMStaff(singleKey)}
+              {renderFreelancerNotes(singleKey)}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
