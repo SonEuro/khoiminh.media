@@ -1409,8 +1409,8 @@ export default function WorkSchedule() {
                             ))}
                           </div>
                         )}
-                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 10px', color:'#f87171', letterSpacing:'0.06em' }}>HÔM NAY</span>}
-                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 10px', color:'#4ade80', letterSpacing:'0.06em' }}>NGÀY MAI</span>}
+                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 10px', color:'#f87171', letterSpacing:'0.06em' }}>📅 {fmtD(todayStr)} · HÔM NAY</span>}
+                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 10px', color:'#4ade80', letterSpacing:'0.06em' }}>📅 {fmtD(tomorrowStr)} · NGÀY MAI</span>}
                       </div>
                     </div>
 
