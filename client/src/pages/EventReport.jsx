@@ -7,6 +7,18 @@ import FreelancerPicker from '../components/FreelancerPicker';
 
 const GOLD = '#c9a84c';
 
+const DEPT_COLORS = {
+  'Âm Thanh Ánh Sáng': '#a78bfa',
+  'Sân Khấu':          '#fb923c',
+  'Kỹ Thuật':          '#38bdf8',
+  'Cơ Sở Vật Chất':   '#4ade80',
+  'Kế Toán':           '#fbbf24',
+  'Kinh Doanh':        '#f472b6',
+  'Quay Phim':         '#e879f9',
+  'Sản Xuất':          '#34d399',
+};
+function getDeptColor(dept) { return DEPT_COLORS[dept] || '#7878a0'; }
+
 // Hiển thị dept nhất quán với Users.jsx ROLES array
 const ROLE_DEPT_LABEL = {
   DIRECTOR:    'Tổng Giám Đốc',
@@ -288,10 +300,15 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
               {report.event_label || 'Sự kiện không rõ'}
             </p>
           )}
-          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0' }}>
-            {!hideEventName && report.location && <span style={{ marginRight:'10px' }}>📍 {report.location}</span>}
+          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0', display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px' }}>
+            {!hideEventName && report.location && <span>📍 {report.location}</span>}
             {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
-            {report.reporter_name && <span style={{ marginLeft:'10px' }}>👤 {report.reporter_name}{reporterDept ? ` · ${reporterDept}` : ''}</span>}
+            {report.reporter_name && (
+              <span>
+                👤 <span style={{ color:'#e8c97a', fontWeight:600 }}>{report.reporter_name}</span>
+                {reporterDept && <span style={{ color: getDeptColor(reporterDept), fontWeight:600 }}> · {reporterDept}</span>}
+              </span>
+            )}
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
