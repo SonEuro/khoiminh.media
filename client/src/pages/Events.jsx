@@ -84,12 +84,7 @@ function StaffScheduleModal({ event, onClose }) {
         </div>
         {dLeads.map((l, i) => {
           const dc = getDeptColor(l.department);
-          return (
-            <div key={i} style={{ ...itemStyle, color: dc.color }}>
-              👑 <strong>{l.name}</strong>
-              <span style={{ opacity:0.65, fontSize:'0.78rem', fontWeight:600 }}> · {l.department}</span>
-            </div>
-          );
+          return <div key={i} style={{ ...itemStyle, color:'#e8c97a' }}>👑 {l.name} <span style={{ color:dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>;
         })}
         {Object.keys(byDeptKM).length > 0 && (
           <div style={{ marginTop:'4px' }}>
@@ -99,7 +94,7 @@ function StaffScheduleModal({ event, onClose }) {
               return (
                 <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                   <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
-                  {members.map(n => <div key={n} style={{ ...itemStyle, color: dc.color, opacity:0.9 }}>• {n}</div>)}
+                  {members.map(n => <div key={n} style={{ ...itemStyle, color:'#c0c8e0' }}>• {n}</div>)}
                 </div>
               );
             })}
@@ -113,7 +108,7 @@ function StaffScheduleModal({ event, onClose }) {
               return (
                 <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                   <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
-                  {nameList.map(n => <div key={n} style={{ ...itemStyle, color: dc.color, opacity:0.9 }}>• {n}</div>)}
+                  {nameList.map(n => <div key={n} style={{ ...itemStyle, color:'#c0c8e0' }}>• {n}</div>)}
                 </div>
               );
             })}
