@@ -628,7 +628,12 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 
       {multiDate ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {dates.map(d => {
+          {[...dates].sort((a, b) => {
+            const af = a >= todayStr, bf = b >= todayStr;
+            if (af && bf) return a.localeCompare(b);   // cả hai tương lai: asc
+            if (!af && !bf) return b.localeCompare(a); // cả hai quá khứ: desc (mới nhất trước)
+            return af ? -1 : 1;                         // tương lai lên trước quá khứ
+          }).map(d => {
             const isPastLocked = d < todayStr && !isPhanLichAll;
             return (
               <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: isPastLocked ? 'rgba(120,120,160,0.04)' : 'rgba(251,191,36,0.04)', border: `1px solid ${isPastLocked ? 'rgba(120,120,160,0.15)' : 'rgba(251,191,36,0.12)'}` }}>
