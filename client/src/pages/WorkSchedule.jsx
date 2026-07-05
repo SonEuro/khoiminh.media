@@ -207,7 +207,7 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '7px 8px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '8px' }}>
               {!restrictDept && (
                 <select className="input" value={row.department} onChange={e => updateRow(i, 'department', e.target.value)} style={{ fontSize: '0.82rem', height: '34px' }}>
-                  {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                  {deptOptions.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
                 </select>
               )}
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -292,7 +292,7 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
       {availableDepts.length > 1 ? (
         <select value={dept} onChange={e => setDept(e.target.value)}
           style={{ width: '100%', height: '32px', padding: '0 8px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
-          {availableDepts.map(d => <option key={d} value={d}>{d}</option>)}
+          {availableDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
       ) : (
         <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
@@ -328,7 +328,7 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
       {kmDepts.length > 1 ? (
         <select value={dept} onChange={e => { setDept(e.target.value); setName(''); }}
           style={{ width: '100%', height: '32px', padding: '0 8px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
-          {kmDepts.map(d => <option key={d} value={d}>{d}</option>)}
+          {kmDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
       ) : (
         <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
@@ -522,7 +522,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 value={activeNoteDept}
                 onChange={e => setNoteDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
                 style={{ width: '100%', height: '30px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '6px', color: '#c9b98a', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
-                {visibleNoteDepts.map(d => <option key={d} value={d}>{d}</option>)}
+                {visibleNoteDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
               </select>
               <input
                 placeholder="Ghi chú... (không bắt buộc)"
@@ -592,7 +592,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
           value={activeDept}
           onChange={e => setKMDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
           style={{ width: '100%', height: '30px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#93c5fd', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
-          {deptList.map(d => <option key={d} value={d}>{d}</option>)}
+          {deptList.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
         <StaffMultiSelect
           selected={selected}
