@@ -1015,7 +1015,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       border: '1px solid rgba(167,139,250,0.25)', borderRadius: '14px',
       padding: '16px', marginBottom: '20px',
     }}>
-      <h2 style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 800, color: '#a78bfa', letterSpacing: '0.04em' }}>
+      <h2 style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.04em' }}>
         📅 Lịch làm việc của bạn
       </h2>
       {ongoing.length > 0 && (

@@ -357,8 +357,8 @@ function UpcomingScheduleSection({ userName }) {
   }
 
   return (
-    <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(167,139,250,0.35)', marginBottom:'10px' }}>
-      <SectionHeader title="Lịch làm việc của bạn" color="#a78bfa" colorRgb="167,139,250" count={totalFuture} />
+    <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.35)', marginBottom:'10px' }}>
+      <SectionHeader title="Lịch làm việc của bạn" color="#4ade80" colorRgb="74,222,128" count={totalFuture} />
       <div style={{ background:'#13131d' }}>
         {todayItems.length > 0 && <>
           <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayItems.length} />
