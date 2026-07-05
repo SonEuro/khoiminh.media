@@ -1331,290 +1331,166 @@ export default function WorkSchedule() {
             </p>
             {(() => {
               const viewerDept = getTruongPhongDept(user);
-              const sortedPhases = [...PHASES].sort((a, b) => {
-                const aMin = [...(selected[`${a.key}_dates`] || [])].sort()[0] || '9999';
-                const bMin = [...(selected[`${b.key}_dates`] || [])].sort()[0] || '9999';
-                return aMin.localeCompare(bMin);
-              });
-              return sortedPhases.map(phase => {
-                const flatLeads = (selected[`${phase.key}_leads`] || [])
-                  .filter(l => !viewerDept || l.department === viewerDept);
-                const staff = (selected[`${phase.key}_km_staff`] || [])
-                  .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
-                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).slice().sort((a, b) => {
-                  const af = a >= todayStr, bf = b >= todayStr;
-                  if (af && !bf) return -1;
-                  if (!af && bf) return 1;
-                  return a.localeCompare(b);
-                });
-                const freeMapD   = selected[`${phase.key}_freelancers_map`];
-                const isNewFree  = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
-                // Old format fallback
-                const freeStr    = selected[`${phase.key}_freelancers`] || '';
-                const freeNames  = freeStr.split(',').map(s => s.trim()).filter(Boolean);
-                const filteredFree = (!isNewFree && viewerDept)
-                  ? freeNames.filter(n => FREELANCER_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)))
-                  : isNewFree ? [] : freeNames;
-                // New format: check if any dept has data (filtered by viewerDept)
-                const hasNewFree = isNewFree && Object.values(freeMapD || {}).some(dateVal => {
-                  if (!dateVal || typeof dateVal !== 'object') return false;
-                  return viewerDept ? !!dateVal[viewerDept]?.trim() : Object.values(dateVal).some(v => v?.trim());
-                });
-                const notesMapD     = selected[`${phase.key}_notes`]       || {};
-                const startTimesMapD = selected[`${phase.key}_start_times`] || {};
-                const isNewNotes = Object.values(notesMapD).some(v => v && typeof v === 'object');
-                const hasNotes   = Object.values(notesMapD).some(v => {
-                  if (typeof v === 'string') return v.trim();
-                  if (v && typeof v === 'object') return viewerDept ? !!v[viewerDept]?.trim() : Object.values(v).some(n => n?.trim());
-                  return false;
-                });
-                const hasStartTimes = Object.values(startTimesMapD).some(v =>
-                  v && typeof v === 'object' ? Object.values(v).some(t => t?.trim()) : false
-                );
-                if (!flatLeads.length && !staff.length && !filteredFree.length && !hasNewFree && !hasNotes && !hasStartTimes) return null;
-                const freelancerGroups = groupFreelancersByDept(filteredFree.join(', '));
-                const leadsMapD  = selected[`${phase.key}_leads_map`];
-                const kmMapD     = selected[`${phase.key}_km_staff_map`];
-                const perDate    = dates.length > 1;
-                const itemStyle      = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
-                const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
-                const freeItemStyle = { ...itemStyle, color: '#f87171' };
-                function renderDateHdr(d) {
-                  const isT = d === todayStr, isM = d === tomorrowStr;
-                  const color  = isT ? '#f87171' : isM ? '#4ade80' : '#fbbf24';
-                  const border = isT ? 'rgba(248,113,113,0.4)' : isM ? 'rgba(74,222,128,0.35)' : 'rgba(251,191,36,0.28)';
-                  const bg     = isT ? 'rgba(248,113,113,0.1)' : isM ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.07)';
-                  const extra  = isT ? ' · HÔM NAY' : isM ? ' · NGÀY MAI' : '';
-                  return (
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'10px 0 5px' }}>
-                      <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-                      <span style={{ fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.05em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'4px 14px', whiteSpace:'nowrap' }}>
-                        📅 {fmtD(d)}{extra}
-                      </span>
-                      <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
-                    </div>
-                  );
-                }
+              const itemStyle     = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
+              const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
+              const freeItemStyle = { ...itemStyle, color: '#f87171' };
 
+              function ZoneHdr({ color, bg, border, label, count }) {
                 return (
-                  <div key={phase.key} style={sectionStyle}>
-                    {/* Phase header */}
-                    <div style={{ marginBottom:'8px' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                        <p style={{ fontWeight:700, color:GOLD, margin:0, flexShrink:0 }}>{phase.label}</p>
-                        {dates.length > 0 && (
-                          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'2px 0' }}>
-                            {dates.map((d, i) => (
-                              <span key={d} style={{ display:'inline-block', whiteSpace:'nowrap', fontWeight:700, color: d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : GOLD }}>
-                                {i > 0 && <span style={{ color:'#7878a0', margin:'0 4px' }}>·</span>}{fmtD(d)}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {dates.some(d => d === todayStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 10px', color:'#f87171', letterSpacing:'0.06em' }}>📅 {fmtD(todayStr)} · HÔM NAY</span>}
-                        {!dates.some(d => d === todayStr) && dates.some(d => d === tomorrowStr) && <span style={{ flexShrink:0, fontSize:'0.75rem', fontWeight:800, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'999px', padding:'2px 10px', color:'#4ade80', letterSpacing:'0.06em' }}>📅 {fmtD(tomorrowStr)} · NGÀY MAI</span>}
-                      </div>
-                    </div>
+                  <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 4px' }}>
+                    <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
+                    <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
+                      {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
+                    </span>
+                    <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
+                  </div>
+                );
+              }
 
-                    {perDate ? dates.map(date => {
-                      /* Nhóm trưởng theo ngày */
-                      const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads)
-                        .filter(l => !viewerDept || l.department === viewerDept);
-                      /* KM staff theo ngày */
-                      const dayStaff = (kmMapD ? (kmMapD[date] || []) : staff)
-                        .filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
-                      const byDeptKM = dayStaff.reduce((acc, n) => {
-                        const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                        (acc[d] = acc[d] || []).push(n); return acc;
-                      }, {});
-                      /* Freelancer theo ngày */
-                      let freeDepts = [];
-                      if (isNewFree && freeMapD) {
-                        const dateVal = freeMapD[date] || {};
-                        freeDepts = Object.entries(dateVal)
-                          .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
-                          .map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)])
-                          .filter(([, ns]) => ns.length > 0);
-                      }
-                      /* Ghi chú theo ngày */
-                      const noteVal = notesMapD[date];
-                      const noteDepts = (noteVal && typeof noteVal === 'object')
-                        ? Object.entries(noteVal).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
-                        : [];
-                      const noteStr = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
-                      const hasNote = noteDepts.length > 0 || noteStr;
-                      /* Giờ bắt đầu theo ngày */
-                      const dayTimes = startTimesMapD[date] || {};
-                      const timeDepts = Object.entries(dayTimes)
-                        .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept));
-                      if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote && !timeDepts.length) return null;
-                      return (
-                        <div key={date}>
-                          {renderDateHdr(date)}
-                          {timeDepts.length > 0 && (
-                            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
-                              {timeDepts.map(([dept, time]) => {
-                                const dc = getDeptColor(dept);
-                                return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
-                                    <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
-                                    <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {dLeads.map((l, i) => {
-                            const dc = getDeptColor(l.department);
-                            return (
-                              <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.82rem' }}>({getDeptDisplay(l.department)})</span></div>
-                            );
-                          })}
-                          {dayStaff.length > 0 && (
-                            <div style={{ marginTop: '4px' }}>
-                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                              {Object.entries(byDeptKM).map(([dept, members]) => {
-                                const dc = getDeptColor(dept);
-                                return (
-                                  <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                    {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {freeDepts.length > 0 && (
-                            <div style={{ marginTop: '4px' }}>
-                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
-                              {freeDepts.map(([dept, nameList]) => {
-                                const dc = getDeptColor(dept);
-                                return (
-                                  <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                    {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {hasNote && (
-                            <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                              <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
-                              {noteDepts.map(([dept, note]) => {
-                                const dc = getDeptColor(dept);
-                                return (
-                                  <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                    <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                    <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
-                                  </div>
-                                );
-                              })}
-                              {noteStr && <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{noteStr}</p>}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    }) : (
-                      /* Một ngày: hiển thị flat không có date header */
-                      <>
-                        {(() => {
-                          const singleTimeDepts = dates.flatMap(date =>
-                            Object.entries(startTimesMapD[date] || {})
-                              .filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept))
-                          );
-                          return singleTimeDepts.length > 0 && (
-                            <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
-                              {singleTimeDepts.map(([dept, time]) => {
-                                const dc = getDeptColor(dept);
-                                return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
-                                    <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
-                                    <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })()}
-                        {flatLeads.length > 0 && flatLeads.map((l, i) => {
-                          const dc = getDeptColor(l.department);
+              // Collect all (phase, date) entries with computed content
+              const allEntries = [];
+              for (const phase of PHASES) {
+                const rawDates = selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : []);
+                if (!rawDates.length) continue;
+                const leadsMapD      = selected[`${phase.key}_leads_map`];
+                const kmMapD         = selected[`${phase.key}_km_staff_map`];
+                const freeMapD       = selected[`${phase.key}_freelancers_map`];
+                const notesMapD      = selected[`${phase.key}_notes`] || {};
+                const startTimesMapD = selected[`${phase.key}_start_times`] || {};
+                const flatLeads      = (selected[`${phase.key}_leads`] || []).filter(l => !viewerDept || l.department === viewerDept);
+                const flatStaff      = (selected[`${phase.key}_km_staff`] || []).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                const isNewFree      = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
+                for (const date of rawDates) {
+                  const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads).filter(l => !viewerDept || l.department === viewerDept);
+                  const dayStaff = (kmMapD ? (kmMapD[date] || []) : flatStaff).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                  const byDeptKM = dayStaff.reduce((acc, n) => {
+                    const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                    (acc[d] = acc[d] || []).push(n); return acc;
+                  }, {});
+                  let freeDepts = [];
+                  if (isNewFree && freeMapD) {
+                    const dateVal = freeMapD[date] || {};
+                    freeDepts = Object.entries(dateVal)
+                      .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
+                      .map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)])
+                      .filter(([, ns]) => ns.length > 0);
+                  }
+                  const noteVal   = notesMapD[date];
+                  const noteDepts = (noteVal && typeof noteVal === 'object')
+                    ? Object.entries(noteVal).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
+                    : [];
+                  const noteStr  = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
+                  const hasNote  = noteDepts.length > 0 || noteStr;
+                  const dayTimes = startTimesMapD[date] || {};
+                  const timeDepts = Object.entries(dayTimes).filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept));
+                  if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote && !timeDepts.length) continue;
+                  allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts });
+                }
+              }
+
+              allEntries.sort((a, b) => a.date.localeCompare(b.date) || PHASES.findIndex(p => p.key === a.phase.key) - PHASES.findIndex(p => p.key === b.phase.key));
+
+              const zones = {
+                today:    allEntries.filter(e => e.date === todayStr),
+                tomorrow: allEntries.filter(e => e.date === tomorrowStr),
+                upcoming: allEntries.filter(e => e.date > tomorrowStr),
+                past:     allEntries.filter(e => e.date < todayStr).reverse(),
+              };
+
+              function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts }) {
+                const isPast = date < todayStr;
+                return (
+                  <div key={`${phase.key}-${date}`} style={{ ...sectionStyle, opacity: isPast ? 0.65 : 1, marginBottom:'6px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
+                      <span style={{ fontWeight:700, color:GOLD, fontSize:'0.88rem' }}>{phase.label}</span>
+                      <span style={{ fontSize:'0.75rem', color: date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa', fontWeight:700 }}>{fmtD(date)}</span>
+                    </div>
+                    {timeDepts.length > 0 && (
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
+                        {timeDepts.map(([dept, time]) => {
+                          const dc = getDeptColor(dept);
                           return (
-                            <div key={i} style={{ ...itemStyle, color: '#e8c97a' }}>👑 {l.name} <span style={{ color: dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>
+                            <div key={dept} style={{ background:dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
+                              <div style={{ fontSize:'0.72rem', color:dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
+                              <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
+                            </div>
                           );
                         })}
-                        {staff.length > 0 && (
-                          <div style={{ marginBottom: '8px', marginTop: flatLeads.length ? '4px' : 0 }}>
-                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 4px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
-                            {Object.entries(staff.reduce((acc, n) => {
-                              const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
-                              (acc[d] = acc[d] || []).push(n); return acc;
-                            }, {})).map(([dept, members]) => {
-                              const dc = getDeptColor(dept);
-                              return (
-                                <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                  {members.map(n => <div key={n} style={{ ...kmItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {(hasNewFree || filteredFree.length > 0) && (
-                          <div style={{ marginBottom: '8px' }}>
-                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#93c5fd', margin: '0 0 4px', letterSpacing:'0.06em' }}>FREELANCER</p>
-                            {isNewFree ? dates.map(date => {
-                              const dateVal = freeMapD[date] || {};
-                              return Object.entries(dateVal)
-                                .filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept))
-                                .map(([dept, names]) => {
-                                  const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
-                                  const dc = getDeptColor(dept);
-                                  return nameList.length ? (
-                                    <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                      {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                                    </div>
-                                  ) : null;
-                                });
-                            }) : freelancerGroups.map(([dept, members]) => {
-                              const dc = getDeptColor(dept);
-                              return (
-                                <div key={dept} style={{ marginBottom: '3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                  <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                  {members.map(n => <div key={n} style={{ ...freeItemStyle, color: '#c0c8e0' }}>• {n}</div>)}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {hasNotes && (
-                          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                            <p style={{ fontSize: '0.82rem', fontWeight: 800, color: '#c9b98a', margin: '0 0 4px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
-                            {dates.map(date => {
-                              const val = notesMapD[date];
-                              if (!val) return null;
-                              if (typeof val === 'object') {
-                                const depts = Object.entries(val).filter(([d, v]) => v?.trim() && (!viewerDept || d === viewerDept));
-                                return depts.map(([dept, note]) => {
-                                  const dc = getDeptColor(dept);
-                                  return (
-                                    <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
-                                      <span style={{ color: dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                                      <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
-                                    </div>
-                                  );
-                                });
-                              }
-                              return val?.trim() ? <p key={date} style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{val}</p> : null;
-                            })}
-                          </div>
-                        )}
-                      </>
+                      </div>
+                    )}
+                    {dLeads.map((l, i) => {
+                      const dc = getDeptColor(l.department);
+                      return <div key={i} style={{ ...itemStyle, color:'#e8c97a' }}>👑 {l.name} <span style={{ color:dc.color, fontWeight:700, fontSize:'0.82rem' }}>({getDeptDisplay(l.department)})</span></div>;
+                    })}
+                    {Object.keys(byDeptKM).length > 0 && (
+                      <div style={{ marginTop:'4px' }}>
+                        <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#60a5fa', margin:'4px 0 2px', letterSpacing:'0.06em' }}>NHÂN SỰ KHÔI MINH</p>
+                        {Object.entries(byDeptKM).map(([dept, members]) => {
+                          const dc = getDeptColor(dept);
+                          return (
+                            <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                              <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
+                              {members.map(n => <div key={n} style={{ ...kmItemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {freeDepts.length > 0 && (
+                      <div style={{ marginTop:'4px' }}>
+                        <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#93c5fd', margin:'4px 0 2px', letterSpacing:'0.06em' }}>FREELANCER</p>
+                        {freeDepts.map(([dept, nameList]) => {
+                          const dc = getDeptColor(dept);
+                          return (
+                            <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                              <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
+                              {nameList.map(n => <div key={n} style={{ ...freeItemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {hasNote && (
+                      <div style={{ marginTop:'4px', paddingTop:'4px', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                        <p style={{ fontSize:'0.82rem', fontWeight:800, color:'#c9b98a', margin:'0 0 2px', letterSpacing:'0.06em' }}>GHI CHÚ</p>
+                        {noteDepts.map(([dept, note]) => {
+                          const dc = getDeptColor(dept);
+                          return (
+                            <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
+                              <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
+                              <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a', paddingLeft:'8px' }}>{note}</p>
+                            </div>
+                          );
+                        })}
+                        {noteStr && <p style={{ ...itemStyle, fontStyle:'italic', color:'#c9b98a' }}>{noteStr}</p>}
+                      </div>
                     )}
                   </div>
                 );
-              });
+              }
+
+              if (allEntries.length === 0) return <p style={{ color:'#7878a0', textAlign:'center', padding:'20px' }}>Không có dữ liệu nhân sự</p>;
+
+              return (
+                <div>
+                  {zones.today.length > 0 && <>
+                    <ZoneHdr color="#f87171" bg="rgba(248,113,113,0.1)" border="rgba(248,113,113,0.4)" label={`HÔM NAY — ${fmtD(todayStr)}`} count={zones.today.length} />
+                    {zones.today.map(renderEntry)}
+                  </>}
+                  {zones.tomorrow.length > 0 && <>
+                    <ZoneHdr color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.35)" label={`NGÀY MAI — ${fmtD(tomorrowStr)}`} count={zones.tomorrow.length} />
+                    {zones.tomorrow.map(renderEntry)}
+                  </>}
+                  {zones.upcoming.length > 0 && <>
+                    <ZoneHdr color="#60a5fa" bg="rgba(96,165,250,0.08)" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={zones.upcoming.length} />
+                    {zones.upcoming.map(renderEntry)}
+                  </>}
+                  {zones.past.length > 0 && <>
+                    <ZoneHdr color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY ĐÃ QUA" count={zones.past.length} />
+                    {zones.past.map(renderEntry)}
+                  </>}
+                </div>
+              );
             })()}
             {scheduleHistory.length > 0 && (
               <div style={{ marginTop: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
