@@ -835,7 +835,52 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
           </div>
         </div>
 
-        {PHASES.map(phase => <PhaseBlock key={phase.key} phase={phase} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={!!user?.is_phan_lich_all || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)} />)}
+        {(() => {
+          const today    = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+          const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
+          const isPhanLichAllFlag = !!user?.is_phan_lich_all || ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+          function getPhaseZone(phase) {
+            const dates = form[`${phase.key}_date`] || [];
+            if (!dates.length) return 'none';
+            if (dates.includes(today))    return 'today';
+            if (dates.includes(tomorrow)) return 'tomorrow';
+            if (dates.some(d => d > tomorrow)) return 'upcoming';
+            return 'past';
+          }
+          const zones = { today: [], tomorrow: [], upcoming: [], past: [], none: [] };
+          PHASES.forEach(p => zones[getPhaseZone(p)].push(p));
+          function ZoneHdr({ color, bg, border, label }) {
+            return (
+              <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 2px' }}>
+                <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
+                <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>{label}</span>
+                <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
+              </div>
+            );
+          }
+          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} />;
+          return (
+            <>
+              {zones.today.length > 0 && <>
+                <ZoneHdr color="#f87171" bg="rgba(248,113,113,0.1)" border="rgba(248,113,113,0.4)" label={`HÔM NAY — ${fmtD(today)}`} />
+                {zones.today.map(renderPhase)}
+              </>}
+              {zones.tomorrow.length > 0 && <>
+                <ZoneHdr color="#4ade80" bg="rgba(74,222,128,0.1)" border="rgba(74,222,128,0.35)" label={`NGÀY MAI — ${fmtD(tomorrow)}`} />
+                {zones.tomorrow.map(renderPhase)}
+              </>}
+              {zones.upcoming.length > 0 && <>
+                <ZoneHdr color="#60a5fa" bg="rgba(96,165,250,0.08)" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" />
+                {zones.upcoming.map(renderPhase)}
+              </>}
+              {zones.past.length > 0 && <>
+                <ZoneHdr color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY ĐÃ QUA" />
+                <div style={{ opacity: 0.75 }}>{zones.past.map(renderPhase)}</div>
+              </>}
+              {zones.none.length > 0 && zones.none.map(renderPhase)}
+            </>
+          );
+        })()}
 
         {conflicts.length > 0 && (
           <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
