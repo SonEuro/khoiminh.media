@@ -410,8 +410,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
           {visibleDepts.map(dept => {
             const dc = getDeptColor(dept);
             return (
-              <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '7px', padding: '5px 8px' }}>
-                <span style={{ fontSize: '0.65rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDeptDisplay(dept)}</span>
+              <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '7px', padding: '8px 10px' }}>
+                <span style={{ fontSize: '0.75rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDeptDisplay(dept)}</span>
                 <input
                   type="time"
                   value={timesObj[dept] ?? ''}
@@ -451,8 +451,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                     {nameEntries.map(({ dept, name }) => {
                       const dc = getDeptColor(dept);
                       return (
-                        <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                          <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
+                        <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                          <span style={{ fontSize: '0.72rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
                           <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
                           <button
                             onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
@@ -507,8 +507,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                   {filledNotes.map(dept => {
                     const dc = getDeptColor(dept);
                     return (
-                      <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                        <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
+                      <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.72rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
                         <span style={{ fontSize: '0.8rem', color: '#d4c8a0', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
                         <button
                           onMouseDown={e => { e.preventDefault(); setNote(dateKey, dept, ''); }}
@@ -576,7 +576,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
                 const dc = getDeptColor(dept);
                 return (
-                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
+                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
                     <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
                     <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
                     <button
@@ -1456,7 +1456,7 @@ export default function WorkSchedule() {
                               {timeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', textAlign:'center' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
@@ -1528,7 +1528,7 @@ export default function WorkSchedule() {
                               {singleTimeDepts.map(([dept, time]) => {
                                 const dc = getDeptColor(dept);
                                 return (
-                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'6px 12px', textAlign:'center' }}>
+                                  <div key={dept} style={{ background: dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
                                     <div style={{ fontSize:'0.72rem', color: dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
                                     <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                                   </div>
