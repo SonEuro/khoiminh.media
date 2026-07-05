@@ -776,40 +776,43 @@ export default function Events() {
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
-      <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
-          <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
-        </div>
-        <div className="flex gap-2 flex-shrink-0 flex-wrap">
-          {canManage && (
-            <button className="btn-secondary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
-          )}
-          {can('createEvent') && (
-            <button className="btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => { setSelected(null); setModal('form'); }}>
-              + Tạo sự kiện
-            </button>
-          )}
-        </div>
+      <div style={{ marginBottom:'12px' }}>
+        <h1 className="text-2xl font-bold">Sự Kiện / Dự Án</h1>
+        <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
       </div>
 
-      <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', WebkitOverflowScrolling:'touch', paddingBottom:'2px' }}>
-        {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành'], ['cancelled', 'Đã hủy']].map(([v, l]) => (
+      {/* Hàng 1: Tạo sự kiện + Thùng Rác */}
+      <div style={{ display:'flex', gap:'8px', marginBottom:'8px' }}>
+        {can('createEvent') && (
+          <button className="btn-primary btn-sm" style={{ flex:1 }} onClick={() => { setSelected(null); setModal('form'); }}>+ Tạo sự kiện</button>
+        )}
+        {canManage && (
+          <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
+        )}
+      </div>
+
+      {/* Hàng 2–3: filter 3 cột */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'8px', marginBottom:'16px' }}>
+        {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành']].map(([v, l]) => (
           <button key={v}
             className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
             onClick={() => { setShowArchived(false); setStatusFilter(v); }}>
             {l}
           </button>
         ))}
-        {user?.role === 'SUPER_ADMIN' && (
+        {user?.role === 'SUPER_ADMIN' ? (
           <button
             className={`btn btn-sm ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
-            style={showArchived ? { flexShrink:0, whiteSpace:'nowrap', background:'#7c3aed', borderColor:'#7c3aed' } : { flexShrink:0, whiteSpace:'nowrap', borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
+            style={showArchived ? { background:'#7c3aed', borderColor:'#7c3aed' } : { borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
             onClick={() => { setShowArchived(v => !v); setStatusFilter(''); }}>
             📦 Đã lưu trữ
           </button>
-        )}
+        ) : null}
+        <button
+          className={`btn btn-sm ${!showArchived && statusFilter === 'cancelled' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => { setShowArchived(false); setStatusFilter('cancelled'); }}>
+          Đã hủy
+        </button>
       </div>
 
       {(() => {
