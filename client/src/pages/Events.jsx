@@ -872,11 +872,11 @@ export default function Events() {
                     <div className="flex gap-2">
                       <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
                       <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
-                      {showEdit && <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>}
+                      {showEdit   && <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>}
+                      {showCancel && <button className="btn-danger btn-sm"    onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
                     </div>
-                    {hasSecondary && (
+                    {(showArchive || showUnarch || showDelete) && (
                       <div className="flex gap-2">
-                        {showCancel  && <button className="btn-danger btn-sm"    onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
                         {showArchive && <button className="btn-secondary btn-sm" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>}
                         {showUnarch  && <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>}
                         {showDelete  && <button className="btn-danger btn-sm"    onClick={() => handleDelete(ev)}>🗑</button>}
