@@ -260,9 +260,10 @@
 .ev-card-row { display: flex; gap: 8px; }
 
 @media (max-width: 767px) {
-  .ev-hdr-btns > button { flex: 1; }
-  .ev-filter            { display: grid !important; grid-template-columns: repeat(3, 1fr); }
-  .ev-card-row > button { flex: 1 !important; min-width: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+  .ev-hdr-btns > button    { flex: 1; }
+  .ev-filter               { display: grid !important; grid-template-columns: repeat(3, 1fr); }
+  .ev-filter-hide-mobile   { display: none !important; }
+  .ev-card-row > button    { flex: 1 !important; min-width: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
 }
 
 /* ── Responsive helpers ──────────────────────────── */

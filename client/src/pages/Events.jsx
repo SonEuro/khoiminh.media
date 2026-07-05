@@ -795,7 +795,7 @@ export default function Events() {
       <div className="ev-filter">
         {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành']].map(([v, l]) => (
           <button key={v}
-            className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}${v !== '' ? ' ev-filter-hide-mobile' : ''}`}
             onClick={() => { setShowArchived(false); setStatusFilter(v); }}>
             {l}
           </button>
