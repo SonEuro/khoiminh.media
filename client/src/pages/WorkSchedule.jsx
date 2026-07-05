@@ -811,14 +811,21 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
                     ? `ℹ️ Sự kiện đã có lịch làm việc, bộ phận ${userDept} chưa được phân công — chuyển sang chỉnh sửa để bổ sung.`
                     : '⚠️ Sự kiện này đã có lịch làm việc. Vui lòng chỉnh sửa thay vì tạo mới.'}
               </p>
-              {onSwitchToEdit && (
-                <button
-                  type="button"
-                  onClick={() => onSwitchToEdit(existingForEvent)}
-                  style={{ padding: '6px 14px', borderRadius: '7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
-                  ✏️ Chuyển sang chỉnh sửa
-                </button>
-              )}
+              {onSwitchToEdit && (() => {
+                const isSADir = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+                const exDates = PHASES.flatMap(p => existingForEvent[`${p.key}_dates`] || []);
+                const todayNow = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+                const existingIsPast = exDates.length > 0 && exDates.every(d => d < todayNow);
+                if (existingIsPast && !isSADir) return null;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => onSwitchToEdit(existingForEvent)}
+                    style={{ padding: '6px 14px', borderRadius: '7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+                    ✏️ Chuyển sang chỉnh sửa
+                  </button>
+                );
+              })()}
             </div>
           )}
 
