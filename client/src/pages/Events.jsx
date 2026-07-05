@@ -781,38 +781,33 @@ export default function Events() {
         <p className="text-gray-500 text-sm">{events.length} sự kiện</p>
       </div>
 
-      {/* Hàng 1: Tạo sự kiện + Thùng Rác */}
-      <div className="ev-hdr-btns">
+      {/* Desktop: 1 hàng [Tạo] [Tất cả] [Đã lưu trữ] [Đã hủy] [Thùng Rác]
+          Mobile:  hàng 1 = [Tạo][Thùng Rác] · hàng 2 = [Tất cả][Đã lưu trữ][Đã hủy] */}
+      <div className="ev-top-controls">
         {can('createEvent') && (
-          <button className="btn-primary btn-sm" onClick={() => { setSelected(null); setModal('form'); }}>+ Tạo sự kiện</button>
+          <button className="btn-primary btn-sm ev-btn-create" onClick={() => { setSelected(null); setModal('form'); }}>+ Tạo sự kiện</button>
         )}
-        {canManage && (
-          <button className="btn-secondary btn-sm" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
-        )}
-      </div>
-
-      {/* Hàng 2–3: filter (mobile: 3-cột grid, desktop: flex-wrap) */}
-      <div className="ev-filter">
-        {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành']].map(([v, l]) => (
-          <button key={v}
-            className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}${v !== '' ? ' ev-filter-hide-mobile' : ''}`}
-            onClick={() => { setShowArchived(false); setStatusFilter(v); }}>
-            {l}
-          </button>
-        ))}
+        <button
+          className={`btn btn-sm ev-btn-tatca ${!showArchived && statusFilter === '' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => { setShowArchived(false); setStatusFilter(''); }}>
+          Tất cả
+        </button>
         {user?.role === 'SUPER_ADMIN' ? (
           <button
-            className={`btn btn-sm ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ev-btn-filter ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
             style={showArchived ? { background:'#7c3aed', borderColor:'#7c3aed' } : { borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
             onClick={() => { setShowArchived(v => !v); setStatusFilter(''); }}>
             📦 Đã lưu trữ
           </button>
         ) : null}
         <button
-          className={`btn btn-sm ${!showArchived && statusFilter === 'cancelled' ? 'btn-primary' : 'btn-secondary'}`}
+          className={`btn btn-sm ev-btn-filter ${!showArchived && statusFilter === 'cancelled' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => { setShowArchived(false); setStatusFilter('cancelled'); }}>
           Đã hủy
         </button>
+        {canManage && (
+          <button className="btn-secondary btn-sm ev-btn-trash" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
+        )}
       </div>
 
       {(() => {
