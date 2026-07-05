@@ -782,17 +782,17 @@ export default function Events() {
       </div>
 
       {/* Hàng 1: Tạo sự kiện + Thùng Rác */}
-      <div style={{ display:'flex', gap:'8px', marginBottom:'8px' }}>
+      <div className="ev-hdr-btns">
         {can('createEvent') && (
-          <button className="btn-primary btn-sm" style={{ flex:1 }} onClick={() => { setSelected(null); setModal('form'); }}>+ Tạo sự kiện</button>
+          <button className="btn-primary btn-sm" onClick={() => { setSelected(null); setModal('form'); }}>+ Tạo sự kiện</button>
         )}
         {canManage && (
-          <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
+          <button className="btn-secondary btn-sm" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
         )}
       </div>
 
-      {/* Hàng 2–3: filter 3 cột */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'8px', marginBottom:'16px' }}>
+      {/* Hàng 2–3: filter (mobile: 3-cột grid, desktop: flex-wrap) */}
+      <div className="ev-filter">
         {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành']].map(([v, l]) => (
           <button key={v}
             className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
@@ -870,12 +870,12 @@ export default function Events() {
                 const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                 const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                 const hasSecondary = showCancel || showArchive || showUnarch || showDelete;
-                const btnV = { flexDirection:'column', gap:'3px', padding:'9px 10px', flex:1, minWidth:0 };
+                const btnV = { flexDirection:'column', gap:'3px', padding:'9px 10px' };
                 const ico  = { fontSize:'1.15rem', lineHeight:1 };
                 const lbl  = { fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.01em', lineHeight:1 };
                 return (
                   <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-                    <div className="flex gap-2">
+                    <div className="ev-card-row">
                       <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('detail'); }}>
                         <span style={ico}>📋</span><span style={lbl}>Thiết bị</span>
                       </button>
@@ -894,7 +894,7 @@ export default function Events() {
                       )}
                     </div>
                     {(showArchive || showUnarch || showDelete) && (
-                      <div className="flex gap-2">
+                      <div className="ev-card-row">
                         {showArchive && <button className="btn-secondary btn-sm" style={btnV} onClick={() => handleArchive(ev)}><span style={ico}>💾</span><span style={lbl}>Lưu trữ</span></button>}
                         {showUnarch  && <button className="btn-secondary btn-sm" style={{ ...btnV, borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span style={ico}>↩</span><span style={lbl}>Bỏ lưu trữ</span></button>}
                         {showDelete  && <button className="btn-danger btn-sm"    style={btnV} onClick={() => handleDelete(ev)}><span style={ico}>🗑</span><span style={lbl}>Xóa</span></button>}

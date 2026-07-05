@@ -254,6 +254,17 @@
   .sm-grid-6 { grid-template-columns: repeat(6, 1fr) !important; }
 }
 
+/* ── Events page – responsive header / filter / card buttons ── */
+.ev-hdr-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.ev-filter   { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.ev-card-row { display: flex; gap: 8px; }
+
+@media (max-width: 767px) {
+  .ev-hdr-btns > button { flex: 1; }
+  .ev-filter            { display: grid !important; grid-template-columns: repeat(3, 1fr); }
+  .ev-card-row > button { flex: 1 !important; min-width: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+}
+
 /* ── Responsive helpers ──────────────────────────── */
 .hide-mobile  { display: block; }
 .show-mobile  { display: none; }
