@@ -793,10 +793,11 @@ export default function Events() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div style={{ display:'flex', gap:'8px', marginBottom:'16px', overflowX:'auto', WebkitOverflowScrolling:'touch', paddingBottom:'2px' }}>
         {[['', 'Tất cả'], ['planned', 'Lên kế hoạch'], ['active', 'Đang diễn ra'], ['completed', 'Hoàn thành'], ['cancelled', 'Đã hủy']].map(([v, l]) => (
           <button key={v}
             className={`btn btn-sm ${!showArchived && statusFilter === v ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
             onClick={() => { setShowArchived(false); setStatusFilter(v); }}>
             {l}
           </button>
@@ -804,7 +805,7 @@ export default function Events() {
         {user?.role === 'SUPER_ADMIN' && (
           <button
             className={`btn btn-sm ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
-            style={showArchived ? { background:'#7c3aed', borderColor:'#7c3aed' } : { borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
+            style={showArchived ? { flexShrink:0, whiteSpace:'nowrap', background:'#7c3aed', borderColor:'#7c3aed' } : { flexShrink:0, whiteSpace:'nowrap', borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
             onClick={() => { setShowArchived(v => !v); setStatusFilter(''); }}>
             📦 Đã lưu trữ
           </button>
@@ -859,25 +860,31 @@ export default function Events() {
                   <span style={{ color:'#fb923c', fontWeight:700, fontSize:'0.85rem' }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
                 )}
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>Danh mục thiết bị</button>
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
-                {(ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong)) && (
-                  <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>
-                )}
-                {canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN') && (
-                  <button className="btn-danger btn-sm" onClick={() => handleCancel(ev)}>🚫 Hủy</button>
-                )}
-                {user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at && (
-                  <button className="btn-secondary btn-sm" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>
-                )}
-                {user?.role === 'SUPER_ADMIN' && ev.archived_at && (
-                  <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>
-                )}
-                {user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled' && (
-                  <button className="btn-danger btn-sm" onClick={() => handleDelete(ev)}>🗑</button>
-                )}
-              </div>
+              {(() => {
+                const showEdit     = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
+                const showCancel   = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                const showArchive  = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
+                const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
+                const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
+                const hasSecondary = showCancel || showArchive || showUnarch || showDelete;
+                return (
+                  <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                    <div className="flex gap-2">
+                      <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
+                      <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
+                      {showEdit && <button className="btn-secondary btn-sm" onClick={() => { setSelected(ev); setModal('form'); }}>✏️</button>}
+                    </div>
+                    {hasSecondary && (
+                      <div className="flex gap-2">
+                        {showCancel  && <button className="btn-danger btn-sm"    onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
+                        {showArchive && <button className="btn-secondary btn-sm" onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>}
+                        {showUnarch  && <button className="btn-secondary btn-sm" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>}
+                        {showDelete  && <button className="btn-danger btn-sm"    onClick={() => handleDelete(ev)}>🗑</button>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           );
         }
