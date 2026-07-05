@@ -251,39 +251,47 @@ function TimeInput({ value, onChange, hasError }) {
   );
 }
 
-// ── Report detail modal ───────────────────────────────────────────────────────
-function ReportCard({ report, onDelete, isSuperAdmin }) {
+// ── Shared helper ────────────────────────────────────────────────────────────
+const fmtDate = (d) => {
+  if (!d) return '';
+  const parts = d.split('-');
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0].slice(2,4)}`;
+  return d;
+};
+
+// ── Report detail card ────────────────────────────────────────────────────────
+function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
 
-  const fmtDate = (d) => {
-    if (!d) return '';
-    const parts = d.split('-');
-    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0].slice(2,4)}`;
-    return d;
-  };
+  const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
 
   return (
     <div style={{
-      background:'#13131d', border:'1px solid rgba(201,168,76,0.2)',
-      borderRadius:'12px', overflow:'hidden', marginBottom:'12px',
+      background: hideEventName ? 'rgba(255,255,255,0.03)' : '#13131d',
+      border: hideEventName ? '1px solid rgba(201,168,76,0.1)' : '1px solid rgba(201,168,76,0.2)',
+      borderRadius: hideEventName ? '10px' : '12px',
+      overflow:'hidden',
+      marginBottom: hideEventName ? '8px' : '12px',
     }}>
       {/* Header row */}
       <div
         onClick={() => setExpanded(v => !v)}
         style={{
-          padding:'14px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px',
+          padding:'12px 16px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px',
           borderBottom: expanded ? '1px solid rgba(201,168,76,0.15)' : 'none',
         }}
       >
         <div style={{ flex:1 }}>
-          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.95rem', margin:0 }}>
-            {report.event_label || 'Sự kiện không rõ'}
-          </p>
-          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:'3px 0 0' }}>
-            {report.location && <span style={{ marginRight:'10px' }}>📍 {report.location}</span>}
+          {!hideEventName && (
+            <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.95rem', margin:0 }}>
+              {report.event_label || 'Sự kiện không rõ'}
+            </p>
+          )}
+          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0' }}>
+            {!hideEventName && report.location && <span style={{ marginRight:'10px' }}>📍 {report.location}</span>}
             {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
-            {report.reporter_name && <span style={{ marginLeft:'10px' }}>👤 {report.reporter_name}{KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept ? ` · ${KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept}` : ''}</span>}
+            {report.reporter_name && <span style={{ marginLeft:'10px' }}>👤 {report.reporter_name}{reporterDept ? ` · ${reporterDept}` : ''}</span>}
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
@@ -405,6 +413,50 @@ function ReportCard({ report, onDelete, isSuperAdmin }) {
                 style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 60px)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>›</button>
             </>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
+function EventZone({ group, onDelete, canDeleteReport }) {
+  const [open, setOpen] = useState(true);
+  const totalImages = group.reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
+  const totalStaff  = new Set(group.reports.flatMap(r => r.km_staff || [])).size;
+  const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
+
+  return (
+    <div style={{ background:'#13131d', border:'1px solid rgba(201,168,76,0.22)', borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
+      {/* Zone header */}
+      <div
+        onClick={() => setOpen(v => !v)}
+        style={{ padding:'14px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px' }}
+      >
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.97rem', margin:0 }}>{group.event_label}</p>
+          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'10px' }}>
+            {group.location && <span>📍 {group.location}</span>}
+            {allDates.length > 0 && <span>📅 {allDates.map(fmtDate).join(' · ')}</span>}
+          </p>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+          {totalImages > 0 && <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
+          {totalStaff  > 0 && <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
+          <span style={{
+            fontSize:'0.72rem', background:'rgba(201,168,76,0.12)',
+            color: GOLD, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
+          }}>{group.reports.length}</span>
+          <span style={{ color: GOLD, fontSize:'0.8rem' }}>{open ? '▲' : '▼'}</span>
+        </div>
+      </div>
+
+      {/* Reports inside */}
+      {open && (
+        <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'8px 10px 10px' }}>
+          {group.reports.map(r => (
+            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName />
+          ))}
         </div>
       )}
     </div>
@@ -679,9 +731,22 @@ export default function EventReport() {
           </div>
         )}
 
-        {!loading && reports.map(r => (
-          <ReportCard key={r.id} report={r} onDelete={handleDelete} isSuperAdmin={canDeleteReport(r)} />
-        ))}
+        {!loading && (() => {
+          // Group reports by event_id
+          const order = [];
+          const map = {};
+          reports.forEach(r => {
+            const key = r.event_id ? String(r.event_id) : `_${r.id}`;
+            if (!map[key]) {
+              map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] };
+              order.push(key);
+            }
+            map[key].reports.push(r);
+          });
+          return order.map(k => (
+            <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+          ));
+        })()}
       </div>
     );
   }
