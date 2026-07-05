@@ -23,8 +23,8 @@ function isPastSchedule(sched) {
 
 function canEditSchedule(sched, user) {
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
+  if (isPastSchedule(sched)) return false; // chỉ SA/Director mới sửa lịch đã qua
   if (!!user.is_phan_lich_all) return true;
-  if (isPastSchedule(sched)) return false;
   if (!!user.is_truong_phong) return true;
   if (sched.status === 'draft') return !!user.is_phan_lich;
   return sched.scheduler_user_id === user.id;

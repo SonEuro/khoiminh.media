@@ -1087,8 +1087,8 @@ export default function WorkSchedule() {
 
   function canEdit(s) {
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
+    if (isPastSchedule(s)) return false; // chỉ SA/Director mới sửa lịch đã qua
     if (!!user?.is_phan_lich_all) return true;
-    if (isPastSchedule(s)) return false;
     if (!!user?.is_truong_phong) return true;
     if (s.status === 'draft') return !!user?.is_phan_lich;
     return s.scheduler_user_id === user?.id;
