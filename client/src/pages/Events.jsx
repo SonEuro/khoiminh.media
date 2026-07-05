@@ -94,7 +94,7 @@ function StaffScheduleModal({ event, onClose }) {
               return (
                 <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                   <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
-                  {members.map(n => <div key={n} style={{ ...itemStyle, color:'#c0c8e0' }}>• {n}</div>)}
+                  {members.map(n => <div key={n} style={{ ...itemStyle, color:'#eeeef5' }}>• {n}</div>)}
                 </div>
               );
             })}

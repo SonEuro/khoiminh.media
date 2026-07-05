@@ -1400,7 +1400,7 @@ export default function WorkSchedule() {
             {(() => {
               const viewerDept = getTruongPhongDept(user);
               const itemStyle     = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
-              const kmItemStyle   = { ...itemStyle, color: '#60a5fa' };
+              const kmItemStyle   = { ...itemStyle, color: '#eeeef5' };
               const freeItemStyle = { ...itemStyle, color: '#f87171' };
 
               function ZoneHdr({ color, bg, border, label, count }) {
