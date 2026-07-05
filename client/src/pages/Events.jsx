@@ -880,7 +880,7 @@ export default function Events() {
                         <span style={ico}>👥</span><span style={lbl}>Nhân sự</span>
                       </button>
                       {showEdit && (
-                        <button className="btn-secondary btn-sm" style={{ ...btnV, flex:'0 0 auto', padding:'9px 14px' }} onClick={() => { setSelected(ev); setModal('form'); }}>
+                        <button className="btn-secondary btn-sm" style={btnV} onClick={() => { setSelected(ev); setModal('form'); }}>
                           <span style={ico}>✏️</span><span style={lbl}>Sửa</span>
                         </button>
                       )}
@@ -894,7 +894,7 @@ export default function Events() {
                       <div className="flex gap-2">
                         {showArchive && <button className="btn-secondary btn-sm" style={btnV} onClick={() => handleArchive(ev)}><span style={ico}>💾</span><span style={lbl}>Lưu trữ</span></button>}
                         {showUnarch  && <button className="btn-secondary btn-sm" style={{ ...btnV, borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span style={ico}>↩</span><span style={lbl}>Bỏ lưu trữ</span></button>}
-                        {showDelete  && <button className="btn-danger btn-sm"    style={{ ...btnV, flex:'0 0 auto', padding:'9px 14px' }} onClick={() => handleDelete(ev)}><span style={ico}>🗑</span></button>}
+                        {showDelete  && <button className="btn-danger btn-sm"    style={btnV} onClick={() => handleDelete(ev)}><span style={ico}>🗑</span><span style={lbl}>Xóa</span></button>}
                       </div>
                     )}
                   </div>
