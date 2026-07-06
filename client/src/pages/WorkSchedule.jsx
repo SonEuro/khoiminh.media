@@ -1160,7 +1160,7 @@ export default function WorkSchedule() {
       {/* ── Vi phạm báo cáo — dành cho admin/phân lịch ──── */}
       {(['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all) && (() => {
         const isAll = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
-        const myDept = getUserDept(user?.full_name);
+        const myDept = getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null;
         const filtered = reportViolations.filter(v =>
           isAll ? true : getUserDept(v.violator) === myDept
         );
