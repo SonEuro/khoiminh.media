@@ -277,6 +277,16 @@
   .ev-card-row > button { flex: 1 !important; min-width: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
 }
 
+/* ── WorkSchedule card action buttons ───────────────── */
+.ws-card-actions  { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.ws-card-btn-main { flex: 0 0 auto; }
+.ws-card-confirm  { flex: 0 0 auto; }
+
+@media (max-width: 767px) {
+  .ws-card-btn-main { flex: 1 1 0; }
+  .ws-card-confirm  { flex: 1 1 100%; }
+}
+
 /* ── Responsive helpers ──────────────────────────── */
 .hide-mobile  { display: block; }
 .show-mobile  { display: none; }
