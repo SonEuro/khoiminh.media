@@ -23,7 +23,7 @@ export const KM_STAFF_GROUPS = [
     'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
     'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
   ]},
-  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hào'] },
+  { dept: 'Cơ Sở Vật Chất', members: ['Đào Chí Hải', 'Ngô Văn Hảo'] },
   { dept: 'Kế Toán', members: [
     'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
     'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',

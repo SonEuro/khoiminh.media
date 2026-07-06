@@ -18,7 +18,7 @@ const VIOLATION_TYPES = [
 // ── Danh sách nhân sự theo bộ phận ────────────────────────────────────────
 const VIOLATOR_GROUPS = [
   { dept: 'Cơ Sở Vật Chất', members: [
-    'Đào Chí Hải', 'Ngô Văn Hào',
+    'Đào Chí Hải', 'Ngô Văn Hảo',
   ]},
   { dept: 'Âm Thanh Ánh Sáng', members: [
     'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
