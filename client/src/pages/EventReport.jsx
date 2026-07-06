@@ -839,8 +839,10 @@ export default function EventReport() {
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
                     <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
-                    <span style={{ flex:1, color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
-                    {ev.location && <span style={{ fontSize:'0.68rem', color:'#60a5fa', flexShrink:0 }}>📍 {ev.location}</span>}
+                    <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'2px' }}>
+                      <span style={{ color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
+                      {ev.location && <span style={{ fontSize:'0.68rem', color:'#60a5fa' }}>📍 {ev.location}</span>}
+                    </div>
                   </button>
                 ))}
               </div>
