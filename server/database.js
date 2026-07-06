@@ -293,6 +293,16 @@ db.exec(`
   );
 `);
 
+// Migration: đổi tên Ngô Văn Hào → Ngô Văn Hảo
+const oldName = 'Ngô Văn Hào', newName = 'Ngô Văn Hảo';
+const hasOldName = db.prepare('SELECT 1 FROM users WHERE full_name = ? LIMIT 1').get(oldName);
+if (hasOldName) {
+  db.prepare('UPDATE users SET full_name = ? WHERE full_name = ?').run(newName, oldName);
+  db.prepare('UPDATE lead_report_obligations SET lead_name = ? WHERE lead_name = ?').run(newName, oldName);
+  db.prepare('UPDATE violations SET violator = ? WHERE violator = ?').run(newName, oldName);
+  console.log('[DB] Migration: đổi tên Ngô Văn Hào → Ngô Văn Hảo');
+}
+
 // Seed admin mặc định nếu chưa có user nào
 const bcryptSeed = require('bcryptjs');
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
