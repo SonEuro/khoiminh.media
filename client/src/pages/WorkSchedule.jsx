@@ -1182,9 +1182,14 @@ export default function WorkSchedule() {
               {filtered.map(v => {
                 const color = typeColor(v.violation_type);
                 const vDept = getDeptColor(getUserDept(v.violator));
+                // parse ngày làm việc từ description: "ngày 2026-07-04"
+                const workDateRaw = v.description?.match(/ngày (\d{4}-\d{2}-\d{2})/)?.[1];
+                const workDate = workDateRaw
+                  ? workDateRaw.split('-').slice(1).reverse().join('/') // "04/07"
+                  : null;
                 return (
-                  <div key={v.id} style={{ display:'flex', alignItems:'flex-start', gap:'10px', background:`rgba(0,0,0,0.15)`, border:`1px solid ${color}33`, borderRadius:'8px', padding:'8px 12px' }}>
-                    <span style={{ fontSize:'0.9rem', marginTop:'1px' }}>{typeIcon(v.violation_type)}</span>
+                  <div key={v.id} style={{ display:'flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.15)', border:`1px solid ${color}33`, borderRadius:'8px', padding:'8px 12px' }}>
+                    <span style={{ fontSize:'0.9rem' }}>{typeIcon(v.violation_type)}</span>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                         <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{v.violator}</span>
@@ -1193,17 +1198,14 @@ export default function WorkSchedule() {
                             {getUserDept(v.violator)}
                           </span>
                         )}
+                      </div>
+                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'3px', display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                         <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:`${color}18`, borderRadius:'4px', padding:'1px 6px' }}>
                           {v.violation_type}
                         </span>
+                        {v.event_label && v.event_label !== 'Nội bộ' && <span>{v.event_label}</span>}
+                        {workDate && <span>· {workDate}</span>}
                       </div>
-                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'2px' }}>
-                        {v.event_label && v.event_label !== 'Nội bộ' && <span>{v.event_label} · </span>}
-                        <span>{v.created_at?.slice(0, 16).replace('T', ' ')}</span>
-                      </div>
-                      {v.description && (
-                        <div style={{ fontSize:'0.73rem', color:'#7878a0', marginTop:'3px' }}>{v.description}</div>
-                      )}
                     </div>
                   </div>
                 );
