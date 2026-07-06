@@ -60,12 +60,8 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
                 transition:'all 0.18s',
               }}>
                 <item.Icon size={16} strokeWidth={1.75} style={{ flexShrink:0, color: isActive ? '#e8c97a' : GOLD }} />
-                <span style={{ letterSpacing:'0.02em', lineHeight: 1.35 }}>
-                  {item.label.includes('\n')
-                    ? item.label.split('\n').map((line, i) => (
-                        <span key={i} style={{ display:'block' }}>{line}</span>
-                      ))
-                    : item.label}
+                <span style={{ letterSpacing:'0.02em', lineHeight: 1.35, whiteSpace: 'nowrap' }}>
+                  {item.label}
                 </span>
               </div>
             )}
@@ -222,8 +218,8 @@ export default function Layout() {
     { to: '/event-report',  Icon: ClipboardList,   label: 'Báo Cáo Sự Kiện',        always: true },
     { to: '/violations',    Icon: ShieldAlert,     label: 'Vi Phạm Nội Quy',         always: true },
     { to: '/transactions',  Icon: History,         label: 'Lịch Sử Vận Hành',        always: true },
-    { to: '/export',        Icon: ArrowUpFromLine, label: 'Xuất TB\nSự Kiện',  show: can('exportEvent') },
-    { to: '/event-return',  Icon: ArrowDownToLine, label: 'Nhập TB\nSự Kiện',  show: can('returnEvent') },
+    { to: '/export',        Icon: ArrowUpFromLine, label: 'Xuất TB Sự Kiện',  show: can('exportEvent') },
+    { to: '/event-return',  Icon: ArrowDownToLine, label: 'Nhập TB Sự Kiện',  show: can('returnEvent') },
     { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('viewIntakePage') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
