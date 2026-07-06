@@ -98,30 +98,44 @@ function checkAndCreateViolations() {
   `).all(now);
 
   for (const ob of overdue) {
-    // Kiểm tra xem đã nộp báo cáo chưa
-    let hasReport = false;
-    if (ob.user_id) {
-      hasReport = !!db.prepare(`
-        SELECT 1 FROM event_reports
-        WHERE report_date = ? AND event_id IS ? AND (reporter_user_id = ? OR reporter_name = ?)
-        LIMIT 1
-      `).get(ob.assigned_date, ob.event_id, ob.user_id, ob.lead_name);
-    } else {
-      hasReport = !!db.prepare(`
-        SELECT 1 FROM event_reports
-        WHERE report_date = ? AND event_id IS ? AND reporter_name = ?
-        LIMIT 1
-      `).get(ob.assigned_date, ob.event_id, ob.lead_name);
-    }
+    // Tìm báo cáo đã nộp (nếu có) — lấy cả created_at để biết nộp đúng hay trễ hạn
+    const reportRow = ob.user_id
+      ? db.prepare(`
+          SELECT created_at FROM event_reports
+          WHERE report_date = ? AND event_id IS ?
+            AND (reporter_user_id = ? OR reporter_name = ?)
+          ORDER BY created_at ASC LIMIT 1
+        `).get(ob.assigned_date, ob.event_id, ob.user_id, ob.lead_name)
+      : db.prepare(`
+          SELECT created_at FROM event_reports
+          WHERE report_date = ? AND event_id IS ? AND reporter_name = ?
+          ORDER BY created_at ASC LIMIT 1
+        `).get(ob.assigned_date, ob.event_id, ob.lead_name);
 
-    if (!hasReport) {
-      const label = ob.ev_display || ob.event_name || 'Sự kiện';
-      const desc = `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${PHASE_LABEL[ob.phase] || ob.phase}) trong vòng 12 giờ sau khi kết thúc ngày làm việc.`;
+    const label = ob.ev_display || ob.event_name || 'Sự kiện';
+    const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
+
+    if (!reportRow) {
+      // Chưa nộp báo cáo → vi phạm "Không nộp báo cáo"
       db.prepare(`
         INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
         VALUES (?, ?, 'Hệ thống', ?, 'Không nộp báo cáo', ?)
-      `).run(ob.event_id || null, label, ob.lead_name, desc);
+      `).run(
+        ob.event_id || null, label, ob.lead_name,
+        `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn chót: ${ob.deadline}.`,
+      );
+    } else if (reportRow.created_at > ob.deadline) {
+      // Đã nộp nhưng sau hạn → vi phạm "Nộp báo cáo trễ"
+      db.prepare(`
+        INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
+        VALUES (?, ?, 'Hệ thống', ?, 'Nộp báo cáo trễ', ?)
+      `).run(
+        ob.event_id || null, label, ob.lead_name,
+        `Nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}) sau hạn chót ${ob.deadline} (nộp lúc ${reportRow.created_at}).`,
+      );
     }
+    // Nộp trước hạn → không tạo vi phạm
+
     db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
   }
 }

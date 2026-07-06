@@ -12,6 +12,7 @@ try { require('./import-equipment').runOnce(); } catch (e) { console.error('[Imp
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
 const { uploadBackupToDrive, scheduleAutoBackup, restoreFromDriveIfNeeded } = require('./utils/gdriveBackup');
+const { checkAndCreateViolations } = require('./services/obligations');
 
 const app = express();
 app.use(cors());
@@ -118,6 +119,21 @@ app.listen(PORT, async () => {
     console.error('[Restore] Lỗi khi restore từ Drive:', e.message);
   }
   scheduleAutoBackup(db);
+
+  // ── Cron: tự động check vi phạm báo cáo trễ mỗi giờ ──────────────────────
+  function runViolationCheck() {
+    try {
+      checkAndCreateViolations();
+      const vnTime = new Intl.DateTimeFormat('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit',
+      }).format(new Date());
+      console.log(`[obligations] Check vi phạm lúc ${vnTime}`);
+    } catch (e) {
+      console.error('[obligations] Lỗi check vi phạm:', e.message);
+    }
+  }
+  runViolationCheck();                          // chạy ngay khi server khởi động
+  setInterval(runViolationCheck, 60 * 60_000); // chạy lại mỗi 1 giờ
 });
 
 // Backup lên Google Drive trước khi Render tắt server (SIGTERM)
