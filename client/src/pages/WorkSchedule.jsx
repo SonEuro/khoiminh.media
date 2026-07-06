@@ -78,10 +78,10 @@ const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
   setup_date: [], teardown_date: [], rehearsal_date: [], filming_date: [],
-  setup_leads: {}, setup_km_staff: {}, setup_freelancers: {}, setup_notes: {}, setup_start_times: {},
-  teardown_leads: {}, teardown_km_staff: {}, teardown_freelancers: {}, teardown_notes: {}, teardown_start_times: {},
-  rehearsal_leads: {}, rehearsal_km_staff: {}, rehearsal_freelancers: {}, rehearsal_notes: {}, rehearsal_start_times: {},
-  filming_leads: {}, filming_km_staff: {}, filming_freelancers: {}, filming_notes: {}, filming_start_times: {},
+  setup_leads: {}, setup_km_staff: {}, setup_freelancers: {}, setup_notes: {}, setup_start_times: {}, setup_km_support: {},
+  teardown_leads: {}, teardown_km_staff: {}, teardown_freelancers: {}, teardown_notes: {}, teardown_start_times: {}, teardown_km_support: {},
+  rehearsal_leads: {}, rehearsal_km_staff: {}, rehearsal_freelancers: {}, rehearsal_notes: {}, rehearsal_start_times: {}, rehearsal_km_support: {},
+  filming_leads: {}, filming_km_staff: {}, filming_freelancers: {}, filming_notes: {}, filming_start_times: {}, filming_km_support: {},
 };
 
 function initPerDateMap(map, flat, dates, isString) {
@@ -360,12 +360,14 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
   const isSADir  = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const leadsMap        = form[`${phase.key}_leads`]        || {};
   const kmMap           = form[`${phase.key}_km_staff`]     || {};
+  const supportMap      = form[`${phase.key}_km_support`]   || {};
   const freelancersMap  = form[`${phase.key}_freelancers`]  || {};
   const notesMap        = form[`${phase.key}_notes`]        || {};
   const startTimesMap   = form[`${phase.key}_start_times`]  || {};
   const dates           = form[`${phase.key}_date`]         || [];
   const todayStr        = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const [showAddRow, setShowAddRow]       = useState({});
+  const [showSupportRow, setShowSupportRow] = useState({});
   const [kmDeptFilter, setKMDeptFilter]   = useState({});
   const [noteDeptFilter, setNoteDeptFilter] = useState({});
   const multiDate      = dates.length > 1;
@@ -565,24 +567,37 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
       ? KM_STAFF_GROUPS.filter(g => g.dept === userDept).map(g => g.dept)
       : KM_STAFF_GROUPS.map(g => g.dept);
     const activeDept = kmDeptFilter[dateKey] || deptList[0] || '';
+    const daySupport = supportMap[dateKey] || {}; // {name: forDept}
+
+    function removeStaff(name) {
+      set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) });
+      if (daySupport[name]) {
+        const newSupport = { ...daySupport }; delete newSupport[name];
+        set(`${phase.key}_km_support`, { ...supportMap, [dateKey]: newSupport });
+      }
+    }
+
     return (
       <div style={{ marginBottom: '8px' }}>
         <label style={subLabel}>Nhân sự Khôi Minh</label>
         {(() => {
           const displayRows = userDept
-            ? selected.filter(name => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(name)))
+            ? selected.filter(name => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(name)) || daySupport[name] === userDept)
             : selected;
           return displayRows.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
               {displayRows.map(name => {
-                const dept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
-                const dc = getDeptColor(dept);
+                const forDept = daySupport[name]; // dept được hỗ trợ (override)
+                const realDept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
+                const displayDept = forDept || realDept;
+                const dc = getDeptColor(displayDept);
                 return (
                   <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                    <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
+                    <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(displayDept)}</span>
                     <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
+                    {forDept && <span style={{ fontSize: '0.6rem', background: 'rgba(96,165,250,0.2)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.4)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>HT</span>}
                     <button
-                      onMouseDown={e => { e.preventDefault(); set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: selected.filter(n => n !== name) }); }}
+                      onMouseDown={e => { e.preventDefault(); removeStaff(name); }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                   </div>
                 );
@@ -601,6 +616,26 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
           onChange={v => set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: v })}
           priorityDepts={priorityDepts} excluded={excluded} restrictDept={activeDept}
         />
+        {/* Nút Hỗ trợ — chỉ is_phan_lich_all */}
+        {isPhanLichAll && (
+          showSupportRow[dateKey]
+            ? <AddKMStaffRow
+                availableDepts={KM_STAFF_GROUPS.map(g => g.dept)}
+                excluded={[...excluded, ...selected]}
+                onAdd={name => {
+                  set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: [...selected, name] });
+                  set(`${phase.key}_km_support`, { ...supportMap, [dateKey]: { ...daySupport, [name]: activeDept } });
+                  setShowSupportRow(p => ({ ...p, [dateKey]: false }));
+                }}
+                onCancel={() => setShowSupportRow(p => ({ ...p, [dateKey]: false }))}
+              />
+            : <button
+                type="button"
+                onMouseDown={e => { e.preventDefault(); setShowSupportRow(p => ({ ...p, [dateKey]: true })); }}
+                style={{ marginTop: '5px', padding: '6px 12px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                + Hỗ trợ
+              </button>
+        )}
       </div>
     );
   }
@@ -688,6 +723,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
     manualEvent: !initial.event_id,
     ...Object.fromEntries(PHASES.flatMap(p => [
       [`${p.key}_km_staff`,    initPerDateMap(initial[`${p.key}_km_staff_map`],    initial[`${p.key}_km_staff`],    initial[`${p.key}_dates`] || [], false)],
+      [`${p.key}_km_support`,  initial[`${p.key}_km_support`] || {}],
       [`${p.key}_leads`,       initPerDateMap(initial[`${p.key}_leads_map`],       initial[`${p.key}_leads`],       initial[`${p.key}_dates`] || [], false)],
       [`${p.key}_freelancers`,  (() => { const m = initial[`${p.key}_freelancers_map`]; if (!m) return {}; const vals = Object.values(m); return (vals.length && vals[0] && typeof vals[0] === 'object') ? m : {}; })()],
       [`${p.key}_notes`,        initial[`${p.key}_notes`]       || {}],
@@ -1453,14 +1489,17 @@ export default function WorkSchedule() {
                 const freeMapD       = selected[`${phase.key}_freelancers_map`];
                 const notesMapD      = selected[`${phase.key}_notes`] || {};
                 const startTimesMapD = selected[`${phase.key}_start_times`] || {};
+                const kmSupportMapD  = selected[`${phase.key}_km_support`] || {};
                 const flatLeads      = (selected[`${phase.key}_leads`] || []).filter(l => !viewerDept || l.department === viewerDept);
                 const flatStaff      = (selected[`${phase.key}_km_staff`] || []).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
                 const isNewFree      = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
                 for (const date of rawDates) {
+                  const daySupport = kmSupportMapD[date] || {}; // {name: forDept}
                   const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads).filter(l => !viewerDept || l.department === viewerDept);
-                  const dayStaff = (kmMapD ? (kmMapD[date] || []) : flatStaff).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                  const allDayStaff = kmMapD ? (kmMapD[date] || []) : flatStaff;
+                  const dayStaff = allDayStaff.filter(n => !viewerDept || (daySupport[n] ? daySupport[n] === viewerDept : KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n))));
                   const byDeptKM = dayStaff.reduce((acc, n) => {
-                    const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                    const d = daySupport[n] || KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
                     (acc[d] = acc[d] || []).push(n); return acc;
                   }, {});
                   let freeDepts = [];
@@ -1480,7 +1519,7 @@ export default function WorkSchedule() {
                   const dayTimes = startTimesMapD[date] || {};
                   const timeDepts = Object.entries(dayTimes).filter(([d, t]) => t?.trim() && (!viewerDept || d === viewerDept));
                   if (!dLeads.length && !dayStaff.length && !freeDepts.length && !hasNote && !timeDepts.length) continue;
-                  allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts });
+                  allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts, daySupport });
                 }
               }
 
@@ -1493,7 +1532,7 @@ export default function WorkSchedule() {
                 past:     allEntries.filter(e => e.date < todayStr).reverse(),
               };
 
-              function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts }) {
+              function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, timeDepts, daySupport = {} }) {
                 const isPast = date < todayStr;
                 return (
                   <div key={`${phase.key}-${date}`} style={{ ...sectionStyle, opacity: isPast ? 0.65 : 1, marginBottom:'6px' }}>
@@ -1526,7 +1565,12 @@ export default function WorkSchedule() {
                           return (
                             <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                               <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{getDeptDisplay(dept)}</span>
-                              {members.map(n => <div key={n} style={{ ...kmItemStyle }}>• {n}</div>)}
+                              {members.map(n => (
+                            <div key={n} style={{ ...kmItemStyle, display:'flex', alignItems:'center', gap:'5px' }}>
+                              <span>• {n}</span>
+                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>HT</span>}
+                            </div>
+                          ))}
                             </div>
                           );
                         })}

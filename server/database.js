@@ -214,7 +214,7 @@ if (!eventCols.includes('end_dates')) {
   console.log('[DB] Migration: thêm cột end_dates vào events');
 }
 
-// Migration: thêm cột notes + start_times cho từng phase trong work_schedules
+// Migration: thêm cột notes + start_times + km_support cho từng phase trong work_schedules
 const wsCols = db.pragma('table_info(work_schedules)').map(c => c.name);
 for (const p of ['setup', 'teardown', 'rehearsal', 'filming']) {
   if (!wsCols.includes(`${p}_notes`)) {
@@ -224,6 +224,10 @@ for (const p of ['setup', 'teardown', 'rehearsal', 'filming']) {
   if (!wsCols.includes(`${p}_start_times`)) {
     db.exec(`ALTER TABLE work_schedules ADD COLUMN ${p}_start_times TEXT DEFAULT '{}'`);
     console.log(`[DB] Migration: thêm cột ${p}_start_times vào work_schedules`);
+  }
+  if (!wsCols.includes(`${p}_km_support`)) {
+    db.exec(`ALTER TABLE work_schedules ADD COLUMN ${p}_km_support TEXT DEFAULT '{}'`);
+    console.log(`[DB] Migration: thêm cột ${p}_km_support vào work_schedules`);
   }
 }
 

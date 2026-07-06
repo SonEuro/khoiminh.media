@@ -118,6 +118,7 @@ function parseRow(row) {
 
     out[`${p}_notes`]       = parseNotesMap(row[`${p}_notes`]);
     out[`${p}_start_times`] = parseNotesMap(row[`${p}_start_times`]);
+    out[`${p}_km_support`]  = parseNotesMap(row[`${p}_km_support`]);
     out[`${p}_dates`] = parseDatesField(row[`${p}_date`]);
     out[`${p}_date`]  = out[`${p}_dates`][0] || null;
   }
@@ -153,8 +154,8 @@ router.post('/', canPhanLich, (req, res) => {
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
-    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}), JSON.stringify(b[`${p}_start_times`] || {}));
+    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`, `${p}_km_support`);
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}), JSON.stringify(b[`${p}_start_times`] || {}), JSON.stringify(b[`${p}_km_support`] || {}));
   }
   const placeholders = cols.map(() => '?').join(',');
   const r = db.prepare(`INSERT INTO work_schedules (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
@@ -176,8 +177,8 @@ router.put('/:id', (req, res) => {
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
   ];
   for (const p of PHASES) {
-    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`);
-    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}), JSON.stringify(b[`${p}_start_times`] || {}));
+    cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`, `${p}_km_support`);
+    vals.push(JSON.stringify(b[`${p}_leads`] || {}), JSON.stringify(b[`${p}_km_staff`] || {}), serializeFieldValue(b[`${p}_freelancers`]) || '', JSON.stringify(b[`${p}_notes`] || {}), JSON.stringify(b[`${p}_start_times`] || {}), JSON.stringify(b[`${p}_km_support`] || {}));
   }
   const setSql = cols.map(c => `${c} = ?`).join(', ');
   db.prepare(`UPDATE work_schedules SET ${setSql} WHERE id = ?`).run(...vals, req.params.id);
