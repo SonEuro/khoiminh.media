@@ -1055,10 +1055,16 @@ export default function WorkSchedule() {
   const [selected, setSelected] = useState(null);
   const [scheduleHistory, setScheduleHistory] = useState([]);
   const [obligations, setObligations] = useState([]);
+  const [reportViolations, setReportViolations] = useState([]);
+
+  const REPORT_VIOL_TYPES = ['Không nộp báo cáo', 'Nộp báo cáo trễ'];
 
   const load = useCallback(() => {
     api.getWorkSchedules().then(setSchedules).catch(() => {});
     api.getLeadObligations().then(setObligations).catch(() => {});
+    api.getViolations()
+      .then(vs => setReportViolations(vs.filter(v => REPORT_VIOL_TYPES.includes(v.violation_type))))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -1151,36 +1157,57 @@ export default function WorkSchedule() {
         </div>
       )}
 
-      {/* ── Thông báo báo cáo chưa nộp hôm nay — dành cho admin/phân lịch ──── */}
+      {/* ── Vi phạm báo cáo — dành cho admin/phân lịch ──── */}
       {(['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all) && (() => {
-        const phaseIcon  = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
-        const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
-        const todayUnsubmitted = obligations.filter(o => o.assigned_date === todayStr && !o.submitted);
-        if (!todayUnsubmitted.length) return null;
+        const isAll = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+        const myDept = getUserDept(user?.full_name);
+        const filtered = reportViolations.filter(v =>
+          isAll ? true : getUserDept(v.violator) === myDept
+        );
+        if (!filtered.length) return null;
+
+        const typeColor = t => t === 'Không nộp báo cáo' ? '#f87171' : '#fb923c';
+        const typeIcon  = t => t === 'Không nộp báo cáo' ? '🚫' : '⏰';
+
         return (
           <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
               <span style={{ fontSize:'1rem' }}>🔔</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP HÔM NAY</span>
+              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
               <span style={{ background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
-                {todayUnsubmitted.length} người
+                {filtered.length} vi phạm
               </span>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              {todayUnsubmitted.map(ob => (
-                <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', background:'rgba(248,113,113,0.05)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
-                  <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                      {ob.lead_name}
-                    </div>
-                    <div style={{ fontSize:'0.75rem', color:'#a0a0b8' }}>
-                      {ob.event_display || ob.event_name} · {phaseLabel[ob.phase]}
-                      {ob.overdue && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
+              {filtered.map(v => {
+                const color = typeColor(v.violation_type);
+                const vDept = getDeptColor(getUserDept(v.violator));
+                return (
+                  <div key={v.id} style={{ display:'flex', alignItems:'flex-start', gap:'10px', background:`rgba(0,0,0,0.15)`, border:`1px solid ${color}33`, borderRadius:'8px', padding:'8px 12px' }}>
+                    <span style={{ fontSize:'0.9rem', marginTop:'1px' }}>{typeIcon(v.violation_type)}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                        <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{v.violator}</span>
+                        {getUserDept(v.violator) && (
+                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: vDept.color, background: vDept.bg, border:`1px solid ${vDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
+                            {getUserDept(v.violator)}
+                          </span>
+                        )}
+                        <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:`${color}18`, borderRadius:'4px', padding:'1px 6px' }}>
+                          {v.violation_type}
+                        </span>
+                      </div>
+                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'2px' }}>
+                        {v.event_label && v.event_label !== 'Nội bộ' && <span>{v.event_label} · </span>}
+                        <span>{v.created_at?.slice(0, 16).replace('T', ' ')}</span>
+                      </div>
+                      {v.description && (
+                        <div style={{ fontSize:'0.73rem', color:'#7878a0', marginTop:'3px' }}>{v.description}</div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
