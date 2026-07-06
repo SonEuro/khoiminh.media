@@ -1343,10 +1343,10 @@ export default function WorkSchedule() {
                   .map(([key, dates]) => renderDates(key, dates))}
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
-                {canEdit(s) && <button className="btn-secondary btn-sm" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
-                {s.status === 'draft' && canPhanLich && <button className="btn-primary btn-sm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>}
-                {canDelete(s) && <button className="btn-danger btn-sm" onClick={() => handleDelete(s)}>🗑</button>}
+                <button className="btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
+                {canEdit(s) && <button className="btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
+                {canDelete(s) && <button className="btn-danger btn-sm" style={{ flexShrink: 0 }} onClick={() => handleDelete(s)}>🗑</button>}
+                {s.status === 'draft' && canPhanLich && <button className="btn-primary btn-sm" style={{ flex: '1 1 100%' }} onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>}
               </div>
             </div>
           );
