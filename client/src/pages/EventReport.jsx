@@ -300,16 +300,18 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
               {report.event_label || 'Sự kiện không rõ'}
             </p>
           )}
-          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0', display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px' }}>
-            {!hideEventName && report.location && <span>📍 {report.location}</span>}
-            {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
+          <div style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0', display:'flex', flexDirection:'column', gap:'3px' }}>
+            <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px' }}>
+              {!hideEventName && report.location && <span>📍 {report.location}</span>}
+              {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
+            </div>
             {report.reporter_name && (
-              <span>
-                👤 <span style={{ color:'#e8c97a', fontWeight:600 }}>{report.reporter_name}</span>
-                {reporterDept && <span style={{ color: getDeptColor(reporterDept), fontWeight:600 }}> · {reporterDept}</span>}
-              </span>
+              <div style={{ display:'flex', flexDirection:'column', gap:'2px' }}>
+                <span>👤 <span style={{ color:'#e8c97a', fontWeight:600 }}>{report.reporter_name}</span></span>
+                {reporterDept && <span style={{ color: getDeptColor(reporterDept), fontWeight:600, paddingLeft:'14px' }}>{reporterDept}</span>}
+              </div>
             )}
-          </p>
+          </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           {report.images?.length > 0 && (
