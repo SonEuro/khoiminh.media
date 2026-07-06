@@ -414,49 +414,50 @@ function EventDetailModal({ eventId, onClose }) {
   return (
     <Modal title={`${ev.code} · ${ev.name}`} onClose={onClose} size="lg">
       <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div><span className="text-gray-500">Khách hàng: </span><strong>{ev.client || '—'}</strong></div>
-          <div><span className="text-gray-500">Địa điểm: </span><strong>{ev.location || '—'}</strong></div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'6px', fontSize:'0.88rem' }}>
+          <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}><span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Khách hàng:</span><strong>{ev.client || '—'}</strong></div>
+          <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}><span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Địa điểm:</span><strong>{ev.location || '—'}</strong></div>
           {(() => {
             const startDates = parseDatesField(ev, 'start_dates', 'start_date');
             return startDates.length > 0 ? (
-              <div style={{ gridColumn: 'span 2' }}>
-                <span className="text-gray-500">Ngày bắt đầu: </span>
-                {startDates.map((d, i) => <strong key={i} style={{ color:'#f87171', marginRight:'10px' }}>📅 {fmtD(d)}</strong>)}
+              <div style={{ display:'flex', gap:'6px', alignItems:'baseline', flexWrap:'wrap' }}>
+                <span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Ngày bắt đầu:</span>
+                <span>{startDates.map((d, i) => <strong key={i} style={{ color:'#f87171', marginRight:'8px' }}>📅 {fmtD(d)}</strong>)}</span>
               </div>
             ) : null;
           })()}
           {(() => {
             const showDates = parseDatesField(ev, 'show_dates', 'show_date');
             return showDates.length > 0 ? (
-              <div style={{ gridColumn: 'span 2' }}>
-                <span className="text-gray-500">Ngày Rehearsal: </span>
-                {showDates.map((d, i) => <strong key={i} style={{ color:'#34d399', marginRight:'10px' }}>🎪 {fmtD(d)}</strong>)}
+              <div style={{ display:'flex', gap:'6px', alignItems:'baseline', flexWrap:'wrap' }}>
+                <span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Ngày Rehearsal:</span>
+                <span>{showDates.map((d, i) => <strong key={i} style={{ color:'#34d399', marginRight:'8px' }}>🎪 {fmtD(d)}</strong>)}</span>
               </div>
             ) : null;
           })()}
           {(() => {
             const dates = parseFilmingDates(ev);
             return dates.length > 0 ? (
-              <div style={{ gridColumn: 'span 2' }}>
-                <span style={{ color:'#fb923c', fontWeight:700, fontSize:'0.9rem' }}>🎬 Ngày ghi hình: </span>
-                {dates.map((d, i) => (
-                  <strong key={i} style={{ color:'#fb923c', marginRight:'10px', fontSize:'0.9rem' }}>{fmtD(d)}</strong>
-                ))}
+              <div style={{ display:'flex', gap:'6px', alignItems:'baseline', flexWrap:'wrap' }}>
+                <span style={{ color:'#fb923c', fontWeight:700, flexShrink:0, whiteSpace:'nowrap' }}>🎬 Ngày ghi hình:</span>
+                <span>{dates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'8px' }}>{fmtD(d)}</strong>)}</span>
               </div>
             ) : null;
           })()}
           {(() => {
             const endDates = parseDatesField(ev, 'end_dates', 'end_date');
             return endDates.length > 0 ? (
-              <div style={{ gridColumn: 'span 2' }}>
-                <span className="text-gray-500">Ngày kết thúc: </span>
-                {endDates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'10px' }}>🏁 {fmtD(d)}</strong>)}
+              <div style={{ display:'flex', gap:'6px', alignItems:'baseline', flexWrap:'wrap' }}>
+                <span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Ngày kết thúc:</span>
+                <span>{endDates.map((d, i) => <strong key={i} style={{ color:'#fb923c', marginRight:'8px' }}>🏁 {fmtD(d)}</strong>)}</span>
               </div>
             ) : null;
           })()}
           {ev.created_by && (
-            <div><span className="text-gray-500">Người tạo: </span><strong>{ev.created_by}</strong></div>
+            <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}>
+              <span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Người tạo:</span>
+              <strong>{ev.created_by}</strong>
+            </div>
           )}
         </div>
         {ev.notes && (
