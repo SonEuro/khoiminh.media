@@ -226,7 +226,15 @@ export default function Users() {
                       ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
                       : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
-                  <div style={{ marginBottom:'10px', fontSize:'0.78rem', color:'var(--text-muted)' }}>{u.username}</div>
+                  <div style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) ? '6px' : '10px' }}>{u.username}</div>
+                  {(u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'10px' }}>
+                      {!!u.is_truong_phong  && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
+                      {!!u.is_phan_lich_all && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
+                      {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
+                      {!!u.is_tra_ncc     && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>Trả NCC</span>}
+                    </div>
+                  )}
                   <div style={{ display:'flex', gap:'8px' }}>
                     <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
                     {isSuperAdmin && (
