@@ -1215,12 +1215,11 @@ export default function WorkSchedule() {
         );
       })()}
 
-      {/* ── Báo cáo cần nộp — chỉ nhân viên thường (không phải admin/TP/phân lịch) */}
+      {/* ── Báo cáo cần nộp — nhân viên thường + is_phan_lich (dept scheduler có thể là nhóm trưởng) */}
       {obligations.length > 0
         && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
         && !user?.is_phan_lich_all
         && !user?.is_truong_phong
-        && !user?.is_phan_lich
         && (() => {
         const pastObs  = obligations.filter(o => o.assigned_date < todayStr);
         const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
