@@ -4,8 +4,9 @@ import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
-  const [form, setForm]     = useState({ username: '', password: '' });
-  const [error, setError]   = useState('');
+  const [form, setForm]       = useState({ username: '', password: '' });
+  const [showPwd, setShowPwd] = useState(false);
+  const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate  = useNavigate();
@@ -93,25 +94,39 @@ export default function Login() {
               <label style={{ display:'block', fontSize:'0.75rem', fontWeight:700, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'0.4rem' }}>
                 Mật khẩu
               </label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                placeholder="••••••••"
-                required
-                style={{
-                  width:'100%', padding:'0.6rem 0.875rem',
-                  background:'rgba(255,255,255,0.04)',
-                  border:'1px solid rgba(201,168,76,0.3)',
-                  borderRadius:'0.5rem',
-                  color:'#eeeef5', fontSize:'0.9rem',
-                  outline:'none', boxSizing:'border-box',
-                  transition:'border-color 0.2s, box-shadow 0.2s',
-                }}
-                onFocus={e => { e.target.style.borderColor='#c9a84c'; e.target.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'; }}
-                onBlur={e => { e.target.style.borderColor='rgba(201,168,76,0.3)'; e.target.style.boxShadow='none'; }}
-              />
+              <div style={{ position:'relative' }}>
+                <input
+                  type={showPwd ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="••••••••"
+                  required
+                  style={{
+                    width:'100%', padding:'0.6rem 2.5rem 0.6rem 0.875rem',
+                    background:'rgba(255,255,255,0.04)',
+                    border:'1px solid rgba(201,168,76,0.3)',
+                    borderRadius:'0.5rem',
+                    color:'#eeeef5', fontSize:'0.9rem',
+                    outline:'none', boxSizing:'border-box',
+                    transition:'border-color 0.2s, box-shadow 0.2s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor='#c9a84c'; e.target.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'; }}
+                  onBlur={e => { e.target.style.borderColor='rgba(201,168,76,0.3)'; e.target.style.boxShadow='none'; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd(v => !v)}
+                  style={{
+                    position:'absolute', right:'0.6rem', top:'50%', transform:'translateY(-50%)',
+                    background:'none', border:'none', cursor:'pointer', padding:'2px 4px',
+                    color:'#7878a0', fontSize:'1rem', lineHeight:1,
+                  }}
+                  tabIndex={-1}
+                >
+                  {showPwd ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
 
             {error && (
