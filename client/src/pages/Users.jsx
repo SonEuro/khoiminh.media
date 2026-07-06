@@ -169,31 +169,6 @@ export default function Users() {
                 💾 Backup
               </button>
 
-              {/* Google Drive */}
-              <button type="button"
-                onClick={async (e) => {
-                  const btn = e.currentTarget;
-                  btn.disabled = true;
-                  btn.textContent = '⏳ Uploading...';
-                  try {
-                    const token = localStorage.getItem('km_token');
-                    const res = await fetch('/api/backup/gdrive', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error);
-                    if (confirm(`✅ Backup thành công!\n\nFile: ${data.name}\n\nMở Google Drive?`)) {
-                      window.open(data.link, '_blank');
-                    }
-                  } catch (err) {
-                    alert('❌ ' + err.message);
-                  } finally {
-                    btn.disabled = false;
-                    btn.textContent = '☁️ Drive';
-                  }
-                }}
-                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(96,165,250,0.35)', background:'rgba(96,165,250,0.08)', color:'#60a5fa', cursor:'pointer', whiteSpace:'nowrap' }}
-              >
-                ☁️ Drive
-              </button>
             </>
           )}
           {isSuperAdmin && (
