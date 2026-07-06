@@ -427,9 +427,12 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
           {report.images.length > 1 && (
             <>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx - 1 + report.images.length) % report.images.length); }}
-                style={{ position:'absolute', left:'max(env(safe-area-inset-left, 0px), 20px)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>‹</button>
+                style={{ position:'absolute', left:'max(env(safe-area-inset-left, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>‹</button>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx + 1) % report.images.length); }}
-                style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 60px)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'white', fontSize:'1.2rem', cursor:'pointer' }}>›</button>
+                style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>›</button>
+              <div style={{ position:'absolute', bottom:'20px', left:'50%', transform:'translateX(-50%)', color:'rgba(255,255,255,0.7)', fontSize:'0.8rem', fontWeight:600, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:'999px' }}>
+                {imgIdx + 1} / {report.images.length}
+              </div>
             </>
           )}
         </div>
