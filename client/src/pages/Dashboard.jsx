@@ -336,7 +336,7 @@ function UpcomingScheduleSection({ userName }) {
     return (
       <div key={`${item.schedId}-${item.phase}-${item.date}`}
         onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
-        style={{ display:'flex', alignItems:'center', gap:'12px', padding:'10px 16px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
+        style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
         onMouseEnter={e => e.currentTarget.style.background = bgHover}
         onMouseLeave={e => e.currentTarget.style.background = bgBase}
       >
@@ -347,10 +347,10 @@ function UpcomingScheduleSection({ userName }) {
           </p>
         </div>
         {isToday
-          ? <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 7px' }}>{fmtD(item.date)} · HÔM NAY</span>
+          ? <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>HÔM NAY</span>
           : isTomorrow
-            ? <span style={{ fontSize:'0.7rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 7px' }}>{fmtD(item.date)} · NGÀY MAI</span>
-            : <span style={{ fontSize:'0.75rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0 }}>{fmtD(item.date)}</span>
+            ? <span style={{ fontSize:'0.7rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>NGÀY MAI</span>
+            : <span style={{ fontSize:'0.75rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0, whiteSpace:'nowrap' }}>{fmtD(item.date)}</span>
         }
       </div>
     );
