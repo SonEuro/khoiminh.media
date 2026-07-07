@@ -51,7 +51,9 @@ jobs:
             cd server && npm install && cd ..
 
             echo "━━━ Reload PM2 ━━━"
-            pm2 reload kho-khoiminh --update-env
+            fuser -k 3001/tcp 2>/dev/null || true
+            pm2 delete kho-khoiminh 2>/dev/null || true
+            pm2 start /var/www/kho-khoiminh/ecosystem.config.cjs
             pm2 save
 
             echo ""
