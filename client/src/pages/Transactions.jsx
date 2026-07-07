@@ -351,11 +351,18 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
                       >
-                        <div>
-                          <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                          <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <div>
+                            <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                            <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                          </div>
+                          {eq.category_name && (
+                            <div style={{ fontSize:'0.68rem', color:'#a0a0c0', marginTop:'1px' }}>
+                              {eq.category_icon} {eq.category_name}
+                            </div>
+                          )}
                         </div>
-                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
+                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
                           {inList ? '✓ Đã có' : `${freeQty} ${eq.unit}`}
                         </span>
                       </button>
@@ -649,11 +656,18 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center', opacity: inList ? 0.5 : 1 }}
                         onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}>
-                        <div>
-                          <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                          <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <div>
+                            <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                            <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                          </div>
+                          {eq.category_name && (
+                            <div style={{ fontSize:'0.68rem', color:'#a0a0c0', marginTop:'1px' }}>
+                              {eq.category_icon} {eq.category_name}
+                            </div>
+                          )}
                         </div>
-                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
+                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
                           {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
                         </span>
                       </button>
