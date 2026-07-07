@@ -81,13 +81,13 @@ async function uploadDailyBackupToDrive(db) {
 
   try { fs.unlinkSync(tmpFile); } catch (_) {}
 
-  // Giữ 30 bản daily
+  // Giữ 60 bản (12h/lần × 30 ngày)
   const list = await drive.files.list({
     q: `'${folderId}' in parents and name contains 'kho-khoiminh-daily' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
-  for (const f of (list.data.files || []).slice(30)) {
+  for (const f of (list.data.files || []).slice(60)) {
     await drive.files.delete({ fileId: f.id }).catch(() => {});
   }
 
@@ -120,8 +120,8 @@ function scheduleAutoBackup(db) {
 
   // Backup mỗi 2 phút
   setTimeout(() => { runShort(); setInterval(runShort, 2 * 60 * 1000); }, 60 * 1000);
-  // Backup hàng ngày (mỗi 24h)
-  setTimeout(() => { runDaily(); setInterval(runDaily, 24 * 60 * 60 * 1000); }, 2 * 60 * 1000);
+  // Backup mỗi 12h, giữ 60 bản (30 ngày)
+  setTimeout(() => { runDaily(); setInterval(runDaily, 12 * 60 * 60 * 1000); }, 2 * 60 * 1000);
 
   console.log('[AutoBackup] Lên lịch: backup 2 phút/lần + daily backup mỗi 24h');
 }
