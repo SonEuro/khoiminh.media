@@ -10,7 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        run: |
+          cd client
+          npm install
+          npm run build
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.git' --exclude='node_modules' --exclude='server/kho.db' --exclude='server/db.sqlite' --exclude='.env'
+          path: ./
+          remote_path: /var/www/kho-khoiminh/
+          remote_host: 103.15.51.119
+          remote_user: root
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Reload PM2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: 103.15.51.119
@@ -18,17 +42,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            echo "━━━ [1/4] Pull code mới nhất ━━━"
             cd /var/www/kho-khoiminh
-            git pull origin main
 
-            echo "━━━ [2/4] Cài dependencies ━━━"
-            npm install
+            echo "━━━ Cài server dependencies ━━━"
+            cd server && npm install && cd ..
 
-            echo "━━━ [3/4] Build frontend ━━━"
-            npm run build
-
-            echo "━━━ [4/4] Reload PM2 ━━━"
+            echo "━━━ Reload PM2 ━━━"
             pm2 reload kho-khoiminh --update-env
             pm2 save
 
