@@ -311,6 +311,23 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                 {reporterDept && <span style={{ color: getDeptColor(reporterDept), fontWeight:600, paddingLeft:'14px' }}>{reporterDept}</span>}
               </div>
             )}
+            {report.created_at && (
+              <div style={{ display:'inline-flex', alignItems:'center', gap:'5px', marginTop:'3px',
+                background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
+                borderRadius:'6px', padding:'3px 8px', alignSelf:'flex-start' }}>
+                <span style={{ fontSize:'0.65rem', color:'#7878a0' }}>Nộp lúc</span>
+                <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
+                  {(() => {
+                    const dt = report.created_at;
+                    if (!dt) return '';
+                    const [datePart, timePart] = dt.split(' ');
+                    const [y, m, d] = (datePart || '').split('-');
+                    const time = (timePart || '').slice(0, 5);
+                    return `${time} ${d}/${m}/${y?.slice(2)}`;
+                  })()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
@@ -343,33 +360,6 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                   <p style={{ fontSize:'0.9rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Timeline */}
-          {report.timeline?.length > 0 && (
-            <div style={{ marginBottom:'14px' }}>
-              <p style={{ ...labelStyle, marginBottom:'8px' }}>Lịch Sử Thời Gian</p>
-              <div style={{ position:'relative', paddingLeft:'16px', borderLeft:'2px solid rgba(201,168,76,0.2)' }}>
-                {report.timeline
-                  .filter(t => t.time)
-                  .sort((a, b) => a.time.localeCompare(b.time))
-                  .map((entry, i) => (
-                    <div key={i} style={{ display:'flex', gap:'10px', alignItems:'flex-start', marginBottom:'8px', position:'relative' }}>
-                      <div style={{
-                        position:'absolute', left:'-20px', top:'4px',
-                        width:'8px', height:'8px', borderRadius:'50%',
-                        background: GOLD, border:'2px solid #13131d', flexShrink:0,
-                      }} />
-                      <span style={{
-                        flexShrink:0, fontSize:'0.78rem', fontWeight:800, color: GOLD,
-                        background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.25)',
-                        borderRadius:'6px', padding:'2px 8px', minWidth:'48px', textAlign:'center',
-                      }}>{entry.time}</span>
-                      {entry.note && <span style={{ fontSize:'0.83rem', color:'#c0c0d4', lineHeight:1.5, paddingTop:'1px' }}>{entry.note}</span>}
-                    </div>
-                  ))}
-              </div>
             </div>
           )}
 
@@ -958,51 +948,6 @@ export default function EventReport() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* ── Lịch sử thời gian ── */}
-        <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 4px', textTransform:'uppercase' }}>
-            Lịch Sử Thời Gian
-          </h3>
-          <p style={{ color:'#7878a0', fontSize:'0.72rem', margin:'0 0 14px' }}>Ghi lại các mốc diễn biến trong ngày (tùy chọn)</p>
-
-          {form.timeline.length > 0 && (
-            <div style={{ marginBottom:'12px', display:'flex', flexDirection:'column', gap:'8px' }}>
-              {form.timeline.map((entry, i) => (
-                <div key={i} style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
-                  <div style={{ flexShrink:0, width:'90px' }}>
-                    <TimeInput
-                      value={entry.time}
-                      onChange={t => setField('timeline', form.timeline.map((e, j) => j === i ? { ...e, time: t } : e))}
-                    />
-                  </div>
-                  <input
-                    className="input"
-                    placeholder="Nội dung mốc thời gian..."
-                    value={entry.note}
-                    onChange={e => setField('timeline', form.timeline.map((en, j) => j === i ? { ...en, note: e.target.value } : en))}
-                    style={{ flex:1 }}
-                  />
-                  <button type="button"
-                    onClick={() => setField('timeline', form.timeline.filter((_, j) => j !== i))}
-                    style={{ flexShrink:0, background:'none', border:'none', color:'#f87171', fontSize:'1.2rem', cursor:'pointer', padding:'8px 4px', lineHeight:1 }}>
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button type="button"
-            onClick={() => setField('timeline', [...form.timeline, { time: '', note: '' }])}
-            style={{
-              padding:'7px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:700,
-              background:'rgba(201,168,76,0.07)', border:'1px solid rgba(201,168,76,0.25)',
-              color: GOLD, cursor:'pointer',
-            }}>
-            + Thêm mốc
-          </button>
         </div>
 
         {/* ── Đánh giá ── */}
