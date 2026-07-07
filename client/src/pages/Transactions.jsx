@@ -258,11 +258,16 @@ function EditPendingModal({ txId, onClose, onSaved }) {
     });
   }, [txId]);
 
+  const { user: currentUser } = useAuth();
+  const ROLE_CAT = { TECHNICAL: ['TECH'], ATAS: ['LED','MATRIX','LIGHT','AUDIO'], STAGE: ['STAGE'], CSVC: ['CSVC'] };
+  const allowedCats = ROLE_CAT[currentUser?.role] || null;
+
   const filteredEq = search.length >= 1
     ? equipment
         .filter(eq =>
-          eq.name.toLowerCase().includes(search.toLowerCase()) ||
-          eq.code.toLowerCase().includes(search.toLowerCase())
+          (!allowedCats || allowedCats.includes(eq.category_code)) &&
+          (eq.name.toLowerCase().includes(search.toLowerCase()) ||
+           eq.code.toLowerCase().includes(search.toLowerCase()))
         )
         .slice(0, 8)
     : [];
@@ -553,8 +558,15 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
   }, [txId]);
 
+  const { user: currentUser } = useAuth();
+  const ROLE_CAT2 = { TECHNICAL: ['TECH'], ATAS: ['LED','MATRIX','LIGHT','AUDIO'], STAGE: ['STAGE'], CSVC: ['CSVC'] };
+  const allowedCats2 = ROLE_CAT2[currentUser?.role] || null;
+
   const filteredEq = search.length >= 1
-    ? equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()) || eq.code.toLowerCase().includes(search.toLowerCase())).slice(0, 8)
+    ? equipment.filter(eq =>
+        (!allowedCats2 || allowedCats2.includes(eq.category_code)) &&
+        (eq.name.toLowerCase().includes(search.toLowerCase()) || eq.code.toLowerCase().includes(search.toLowerCase()))
+      ).slice(0, 8)
     : [];
 
   const addEquipment = (eq) => {
