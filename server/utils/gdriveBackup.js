@@ -22,6 +22,11 @@ function getFolderId() {
     : rawId;
 }
 
+function isReady() {
+  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET &&
+            process.env.GOOGLE_REFRESH_TOKEN && process.env.GOOGLE_DRIVE_FOLDER_ID);
+}
+
 async function uploadBackupToDrive(db) {
   const auth     = getAuth();
   const drive    = google.drive({ version: 'v3', auth });
@@ -40,29 +45,59 @@ async function uploadBackupToDrive(db) {
 
   try { fs.unlinkSync(tmpFile); } catch (_) {}
 
-  // Giữ 10 bản gần nhất
+  // Giữ 50 bản gần nhất (tăng từ 10 lên 50)
   const list = await drive.files.list({
     q: `'${folderId}' in parents and name contains 'kho-khoiminh-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
-  for (const f of (list.data.files || []).slice(10)) {
+  for (const f of (list.data.files || []).slice(50)) {
     await drive.files.delete({ fileId: f.id }).catch(() => {});
   }
 
   return { name: uploaded.data.name, link: uploaded.data.webViewLink };
 }
 
-function isReady() {
-  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET &&
-            process.env.GOOGLE_REFRESH_TOKEN && process.env.GOOGLE_DRIVE_FOLDER_ID);
+async function uploadDailyBackupToDrive(db) {
+  const auth     = getAuth();
+  const drive    = google.drive({ version: 'v3', auth });
+  const folderId = getFolderId();
+
+  const now  = new Date();
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(now);
+  const time = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(now).replace(':', '');
+
+  const tmpFile = path.join(os.tmpdir(), `kho-daily-${Date.now()}.db`);
+  await db.backup(tmpFile);
+
+  const filename = `kho-khoiminh-daily-${date}_${time}.db`;
+  await drive.files.create({
+    requestBody: { name: filename, parents: [folderId] },
+    media: { mimeType: 'application/octet-stream', body: fs.createReadStream(tmpFile) },
+    fields: 'id',
+  });
+
+  try { fs.unlinkSync(tmpFile); } catch (_) {}
+
+  // Giữ 30 bản daily
+  const list = await drive.files.list({
+    q: `'${folderId}' in parents and name contains 'kho-khoiminh-daily' and trashed=false`,
+    fields: 'files(id,name,createdTime)',
+    orderBy: 'createdTime desc',
+  });
+  for (const f of (list.data.files || []).slice(30)) {
+    await drive.files.delete({ fileId: f.id }).catch(() => {});
+  }
+
+  return filename;
 }
 
 function scheduleAutoBackup(db) {
   if (!isReady()) return;
 
-  const run = () => {
-    // Không backup nếu DB rỗng — tránh ghi đè backup tốt trên Drive
+  const runShort = () => {
     let eventCount = 0;
     try { eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c; } catch(_) {}
     if (eventCount === 0) {
@@ -74,8 +109,21 @@ function scheduleAutoBackup(db) {
       .catch(e => console.error('[AutoBackup] ❌', e.message));
   };
 
-  setTimeout(() => { run(); setInterval(run, 2 * 60 * 1000); }, 60 * 1000);
-  console.log('[AutoBackup] Lên lịch tự động backup Google Drive mỗi 2 phút');
+  const runDaily = () => {
+    let eventCount = 0;
+    try { eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c; } catch(_) {}
+    if (eventCount === 0) return;
+    uploadDailyBackupToDrive(db)
+      .then(name => console.log(`[DailyBackup] ✅ ${name}`))
+      .catch(e => console.error('[DailyBackup] ❌', e.message));
+  };
+
+  // Backup mỗi 2 phút
+  setTimeout(() => { runShort(); setInterval(runShort, 2 * 60 * 1000); }, 60 * 1000);
+  // Backup hàng ngày (mỗi 24h)
+  setTimeout(() => { runDaily(); setInterval(runDaily, 24 * 60 * 60 * 1000); }, 2 * 60 * 1000);
+
+  console.log('[AutoBackup] Lên lịch: backup 2 phút/lần + daily backup mỗi 24h');
 }
 
 async function restoreFromDriveIfNeeded(db) {

@@ -27,6 +27,25 @@ jobs:
           rm -rf server/public
           cp -r client/dist server/public
 
+      - name: Pre-deploy database backup
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 103.15.51.119
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            DB_PATH=$(grep '^DATABASE_PATH=' /var/www/kho-khoiminh/.env 2>/dev/null | cut -d'=' -f2-)
+            DB_PATH="${DB_PATH:-/var/www/kho-khoiminh/server/kho.db}"
+            if [ -f "$DB_PATH" ]; then
+              mkdir -p /var/db/deploy-backups
+              DEST="/var/db/deploy-backups/pre-deploy-$(date +%Y%m%d_%H%M%S).db"
+              cp "$DB_PATH" "$DEST"
+              ls -t /var/db/deploy-backups/pre-deploy-*.db 2>/dev/null | tail -n +21 | xargs rm -f || true
+              echo "✅ Pre-deploy backup: $DEST"
+            else
+              echo "⚠️  Không tìm thấy DB tại $DB_PATH"
+            fi
+
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
         with:
