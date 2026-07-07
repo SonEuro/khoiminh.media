@@ -23,6 +23,9 @@ jobs:
           cd client
           npm install
           npm run build
+          cd ..
+          rm -rf server/public
+          cp -r client/dist server/public
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
