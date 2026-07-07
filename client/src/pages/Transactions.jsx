@@ -226,6 +226,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
   const mounted = useRef(true);
+  const searchWrapRef = useRef(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -314,48 +315,55 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         {/* Tìm kiếm thiết bị kho */}
         <div>
           <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
-          <div style={{ position:'relative' }}>
+          <div ref={searchWrapRef} style={{ position:'relative' }}>
             <input
               type="text" value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Tìm tên hoặc mã thiết bị..."
               style={inputStyle}
             />
-            {filteredEq.length > 0 && (
-              <div style={{
-                position:'absolute', top:'100%', left:0, right:0, zIndex:50,
-                marginTop:'3px', borderRadius:'8px',
-                border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e',
-                maxHeight:'176px', overflowY:'auto',
-                boxShadow:'0 8px 24px rgba(0,0,0,0.5)',
-              }}>
-                {filteredEq.map(eq => {
-                  const inList = khoItems.some(i => i.equipment_id === eq.id);
-                  const freeQty = eq.qty_available;
-                  return (
-                    <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
-                      style={{
-                        width:'100%', padding:'8px 12px', textAlign:'left',
-                        background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer',
-                        borderBottom:'1px solid rgba(255,255,255,0.04)',
-                        display:'flex', justifyContent:'space-between', alignItems:'center',
-                        opacity: inList ? 0.5 : 1,
-                      }}
-                      onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
-                    >
-                      <div>
-                        <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                        <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
-                      </div>
-                      <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
-                        {inList ? '✓ Đã có' : `${freeQty} ${eq.unit}`}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {filteredEq.length > 0 && (() => {
+              const rect = searchWrapRef.current?.getBoundingClientRect();
+              return (
+                <div style={{
+                  position:'fixed',
+                  top: rect ? rect.bottom + 3 : 0,
+                  left: rect ? rect.left : 0,
+                  width: rect ? rect.width : '100%',
+                  zIndex: 9999,
+                  borderRadius:'8px',
+                  border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e',
+                  maxHeight:'176px', overflowY:'auto',
+                  boxShadow:'0 8px 24px rgba(0,0,0,0.5)',
+                }}>
+                  {filteredEq.map(eq => {
+                    const inList = khoItems.some(i => i.equipment_id === eq.id);
+                    const freeQty = eq.qty_available;
+                    return (
+                      <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
+                        style={{
+                          width:'100%', padding:'8px 12px', textAlign:'left',
+                          background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer',
+                          borderBottom:'1px solid rgba(255,255,255,0.04)',
+                          display:'flex', justifyContent:'space-between', alignItems:'center',
+                          opacity: inList ? 0.5 : 1,
+                        }}
+                        onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
+                      >
+                        <div>
+                          <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                          <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                        </div>
+                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
+                          {inList ? '✓ Đã có' : `${freeQty} ${eq.unit}`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -508,6 +516,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
   const mounted = useRef(true);
+  const searchWrapRef = useRef(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -618,30 +627,41 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         {/* Tìm thiết bị */}
         <div>
           <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
-          <div style={{ position:'relative' }}>
+          <div ref={searchWrapRef} style={{ position:'relative' }}>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Tìm tên hoặc mã thiết bị..." style={inputStyle} />
-            {filteredEq.length > 0 && (
-              <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:50, marginTop:'3px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e', maxHeight:'176px', overflowY:'auto', boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
-                {filteredEq.map(eq => {
-                  const inList = khoItems.some(i => i.equipment_id === eq.id);
-                  return (
-                    <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
-                      style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center', opacity: inList ? 0.5 : 1 }}
-                      onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}>
-                      <div>
-                        <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                        <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
-                      </div>
-                      <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
-                        {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {filteredEq.length > 0 && (() => {
+              const rect = searchWrapRef.current?.getBoundingClientRect();
+              return (
+                <div style={{
+                  position:'fixed',
+                  top: rect ? rect.bottom + 3 : 0,
+                  left: rect ? rect.left : 0,
+                  width: rect ? rect.width : '100%',
+                  zIndex: 9999,
+                  borderRadius:'8px', border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e',
+                  maxHeight:'176px', overflowY:'auto', boxShadow:'0 8px 24px rgba(0,0,0,0.5)',
+                }}>
+                  {filteredEq.map(eq => {
+                    const inList = khoItems.some(i => i.equipment_id === eq.id);
+                    return (
+                      <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
+                        style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center', opacity: inList ? 0.5 : 1 }}
+                        onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}>
+                        <div>
+                          <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
+                          <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                        </div>
+                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
+                          {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
