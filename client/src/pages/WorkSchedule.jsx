@@ -1573,7 +1573,7 @@ export default function WorkSchedule() {
                               {members.map(n => (
                             <div key={n} style={{ ...kmItemStyle, display:'flex', alignItems:'center', gap:'5px' }}>
                               <span>• {n}</span>
-                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>HT {getDeptDisplay(KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || '')}</span>}
+                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>{getDeptDisplay(KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || '')} - HT</span>}
                             </div>
                           ))}
                             </div>
