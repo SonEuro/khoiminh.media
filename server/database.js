@@ -184,11 +184,15 @@ db.exec(`
   );
 `);
 
-// Migration: thêm job_content vào event_reports nếu chưa có
+// Migration: thêm job_content + timeline vào event_reports nếu chưa có
 const erCols = db.pragma('table_info(event_reports)').map(c => c.name);
 if (!erCols.includes('job_content')) {
   db.exec("ALTER TABLE event_reports ADD COLUMN job_content TEXT");
   console.log('[DB] Migration: thêm cột job_content vào event_reports');
+}
+if (!erCols.includes('timeline')) {
+  db.exec("ALTER TABLE event_reports ADD COLUMN timeline TEXT DEFAULT '[]'");
+  console.log('[DB] Migration: thêm cột timeline vào event_reports');
 }
 
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có

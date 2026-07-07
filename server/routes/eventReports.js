@@ -23,6 +23,7 @@ router.get('/', (req, res) => {
     ...r,
     km_staff: JSON.parse(r.km_staff || '[]'),
     images:   JSON.parse(r.images   || '[]'),
+    timeline: JSON.parse(r.timeline || '[]'),
   })));
 });
 
@@ -34,7 +35,7 @@ router.get('/:id', (req, res) => {
     WHERE er.id = ?
   `).get(req.params.id);
   if (!r) return res.status(404).json({ error: 'Không tìm thấy' });
-  res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]') });
+  res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]'), timeline: JSON.parse(r.timeline || '[]') });
 });
 
 router.post('/', requireAuth, (req, res) => {
@@ -43,7 +44,7 @@ router.post('/', requireAuth, (req, res) => {
     km_staff, freelancer_staff,
     time_present, time_onset, time_off, time_end,
     incomplete, incidents, progress, completed_work, service_quality,
-    images, reporter_name, job_content,
+    images, reporter_name, job_content, timeline,
   } = req.body;
 
   const result = db.prepare(`
@@ -51,8 +52,8 @@ router.post('/', requireAuth, (req, res) => {
       (event_id, event_label, location, report_date, km_staff, freelancer_staff,
        time_present, time_onset, time_off, time_end,
        incomplete, incidents, progress, completed_work, service_quality,
-       images, reporter_name, reporter_user_id, job_content)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       images, reporter_name, reporter_user_id, job_content, timeline)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     event_id || null, event_label || '', location || '', report_date || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
@@ -61,6 +62,7 @@ router.post('/', requireAuth, (req, res) => {
     JSON.stringify(images || []), reporter_name || '',
     req.user?.id || null,
     job_content || '',
+    JSON.stringify((timeline || []).filter(t => t.time)),
   );
   res.json({ id: result.lastInsertRowid });
 });
