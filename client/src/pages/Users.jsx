@@ -210,17 +210,17 @@ export default function Users() {
                       {!!u.is_tra_ncc     && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>Trả NCC</span>}
                     </div>
                   )}
-                  <div style={{ display:'flex', gap:'8px' }}>
-                    <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
-                    {isSuperAdmin && (
+                  {isSuperAdmin && (
+                    <div style={{ display:'flex', gap:'8px' }}>
+                      <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
                       <button onClick={() => handleReset(u)}
                         style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
                         title="Reset mật khẩu">
                         🔑
                       </button>
-                    )}
-                    <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
-                  </div>
+                      <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

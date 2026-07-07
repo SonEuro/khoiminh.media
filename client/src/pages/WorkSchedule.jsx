@@ -1107,7 +1107,12 @@ export default function WorkSchedule() {
     load();
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
     api.getEvents().then(data => {
-      setEvents(data.filter(e => e.status !== 'cancelled' && (!e.start_date || e.start_date >= today)));
+      // Hiển thị sự kiện chưa kết thúc: bao gồm sự kiện đang diễn ra (start_date < today nhưng end_date >= today)
+      setEvents(data.filter(e => e.status !== 'cancelled' && (
+        !e.start_date ||
+        e.start_date >= today ||
+        (e.end_date && e.end_date >= today)
+      )));
     }).catch(() => {});
   }, [load]);
 

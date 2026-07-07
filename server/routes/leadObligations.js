@@ -8,28 +8,28 @@ router.get('/', (req, res) => {
   const { role, id: userId, full_name, is_truong_phong } = req.user;
   const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_truong_phong;
 
-  const joinReport = `
-    LEFT JOIN event_reports er
-      ON er.report_date = o.assigned_date
-      AND er.event_id IS o.event_id
-      AND (er.reporter_user_id = o.user_id OR er.reporter_name = o.lead_name)
+  // Dùng correlated subquery thay vì LEFT JOIN để tránh duplicate rows khi có nhiều report khớp
+  const reportSubquery = `
+    (SELECT id FROM event_reports
+     WHERE report_date = o.assigned_date
+       AND event_id IS o.event_id
+       AND (reporter_user_id = o.user_id OR reporter_name = o.lead_name)
+     ORDER BY created_at ASC LIMIT 1) AS report_id
   `;
 
   let rows;
   if (isAdmin) {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display, er.id AS report_id
+      SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
-      ${joinReport}
       ORDER BY o.assigned_date DESC
     `).all();
   } else {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display, er.id AS report_id
+      SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
-      ${joinReport}
       WHERE o.user_id = ? OR o.lead_name = ?
       ORDER BY o.assigned_date DESC
     `).all(userId, full_name);
