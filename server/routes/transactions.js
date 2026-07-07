@@ -191,7 +191,7 @@ router.get('/', (req, res) => {
            (SELECT COUNT(*) FROM external_items ei WHERE ei.transaction_id = t.id) as ext_count
     FROM transactions t
     LEFT JOIN events e ON e.id = t.event_id
-    WHERE 1=1
+    WHERE t.deleted_at IS NULL
   `;
   const params = [];
   if (type)         { sql += ' AND t.type = ?'; params.push(type); }
@@ -201,6 +201,21 @@ router.get('/', (req, res) => {
   sql += ' ORDER BY t.created_at DESC LIMIT ?';
   params.push(parseInt(limit));
   res.json(db.prepare(sql).all(...params));
+});
+
+// ── Thùng rác: danh sách phiếu đã xóa (SUPER_ADMIN/DIRECTOR) ─────────────────
+router.get('/trash', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const rows = db.prepare(`
+    SELECT t.*, e.name as event_name,
+           (SELECT COUNT(*) FROM transaction_items ti WHERE ti.transaction_id = t.id) as item_count,
+           (SELECT COUNT(*) FROM external_items ei WHERE ei.transaction_id = t.id) as ext_count
+    FROM transactions t
+    LEFT JOIN events e ON e.id = t.event_id
+    WHERE t.deleted_at IS NOT NULL
+    ORDER BY t.deleted_at DESC
+    LIMIT 200
+  `).all();
+  res.json(rows);
 });
 
 router.get('/:id', (req, res) => {
@@ -635,8 +650,19 @@ router.put('/:id/edit-completed', (req, res, next) => {
 });
 
 // Xóa phiếu — SUPER_ADMIN hoặc người tạo phiếu
+
+// ── Xóa vĩnh viễn khỏi thùng rác (SUPER_ADMIN only) ─────────────────────────
+router.delete('/trash/:id', requireRole('SUPER_ADMIN'), (req, res) => {
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ? AND deleted_at IS NOT NULL').get(req.params.id);
+  if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu trong thùng rác' });
+  db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
+  db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
+  db.prepare('DELETE FROM transactions WHERE id = ?').run(tx.id);
+  res.json({ ok: true });
+});
+
 router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCOUNTING', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'), (req, res) => {
-  const tx = db.prepare('SELECT * FROM transactions WHERE id = ?').get(req.params.id);
+  const tx = db.prepare('SELECT * FROM transactions WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!tx) return res.status(404).json({ error: 'Không tìm thấy phiếu' });
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
   const isCreator = tx.created_by_id === req.user.id;
@@ -687,16 +713,10 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
           .run(item.quantity, item.quantity, item.equipment_id);
       }
     }
-    // Ghi log lý do xóa (phiếu xuất đã xác nhận)
-    if (tx.type === 'OUT' && tx.status === 'completed' && reason?.trim()) {
-      db.prepare(`INSERT INTO transaction_edits (transaction_id, edited_by_id, edited_by_name, reason, items_before, items_after) VALUES (?, ?, ?, ?, ?, ?)`)
-        .run(tx.id, req.user.id, req.user.full_name, `[XÓA PHIẾU] ${reason.trim()}`,
-          JSON.stringify(items.map(i => ({ equipment_id: i.equipment_id, quantity: i.quantity }))),
-          JSON.stringify([]));
-    }
-    db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
-    db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
-    db.prepare('DELETE FROM transactions WHERE id = ?').run(tx.id);
+    // Soft delete — chuyển vào thùng rác
+    const now = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium' }).format(new Date()).replace('T', ' ');
+    db.prepare(`UPDATE transactions SET deleted_at = ?, deleted_by_id = ?, deleted_by_name = ?, deleted_reason = ? WHERE id = ?`)
+      .run(now, req.user.id, req.user.full_name, reason?.trim() || null, tx.id);
   });
 
   try {

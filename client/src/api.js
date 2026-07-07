@@ -110,6 +110,8 @@ export const api = {
   clearAllEvents: () => request('/admin/clear-all-events', { method: 'POST' }),
   deleteEvents: (ids) => request('/admin/delete-events', { method: 'POST', body: { ids } }),
   deleteTransaction: (id, reason) => request(`/transactions/${id}`, { method: 'DELETE', body: reason ? { reason } : undefined }),
+  getTransactionTrash: () => request('/transactions/trash'),
+  permanentDeleteTransaction: (id) => request(`/transactions/trash/${id}`, { method: 'DELETE' }),
   updatePendingItems: (id, data) => request(`/transactions/${id}/items`, { method: 'PUT', body: data }),
   editCompletedItems: (id, data) => request(`/transactions/${id}/edit-completed`, { method: 'PUT', body: data }),
 

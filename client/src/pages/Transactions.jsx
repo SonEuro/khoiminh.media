@@ -9,7 +9,7 @@ import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, ChevronUp, ChevronDown,
-  Printer, MapPin, User, Archive, ArchiveRestore,
+  Printer, MapPin, User, Archive, ArchiveRestore, Trash2,
 } from 'lucide-react';
 
 const GOLD = '#c9a84c';
@@ -1167,6 +1167,8 @@ export default function Transactions() {
   const [deletingCompletedTx, setDeletingCompletedTx] = useState(null);
   const [confirming,          setConfirming]          = useState(null);
   const [traNccTx,            setTraNccTx]            = useState(null);
+  const [trashedTxs,          setTrashedTxs]          = useState([]);
+  const [trashLoaded,         setTrashLoaded]         = useState(false);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1211,6 +1213,22 @@ export default function Transactions() {
     try {
       await api.deleteTransaction(tx.id);
       load();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function loadTrash() {
+    try {
+      const data = await api.getTransactionTrash();
+      setTrashedTxs(data);
+      setTrashLoaded(true);
+    } catch (err) { alert(err.message); }
+  }
+
+  async function handlePermanentDelete(tx) {
+    if (!confirm(`Xóa vĩnh viễn phiếu ${tx.code}?\n\nThao tác này không thể hoàn tác.`)) return;
+    try {
+      await api.permanentDeleteTransaction(tx.id);
+      setTrashedTxs(p => p.filter(t => t.id !== tx.id));
     } catch (err) { alert(err.message); }
   }
 
@@ -1290,6 +1308,50 @@ export default function Transactions() {
               onDelete={handleDeleteArchivedEvent}
             />
           </Section>
+
+          {isSuperAdmin && (
+            <Section Icon={Trash2} title="Thùng Rác" color="#f87171" border="rgba(248,113,113,0.18)" count={trashLoaded ? trashedTxs.length : '?'}>
+              {!trashLoaded ? (
+                <div style={{ textAlign:'center', padding:'12px 0' }}>
+                  <button onClick={loadTrash} style={{ padding:'7px 18px', background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'8px', color:'#f87171', fontWeight:700, fontSize:'0.82rem', cursor:'pointer' }}>
+                    Tải thùng rác
+                  </button>
+                </div>
+              ) : trashedTxs.length === 0 ? (
+                <p style={{ color:'#7878a0', fontSize:'0.82rem', padding:'8px 0' }}>Thùng rác trống</p>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                  {trashedTxs.map(tx => {
+                    const typeLabel = tx.type === 'OUT' ? '⬆ Xuất' : tx.type === 'RETURN' ? '⬇ Nhập' : tx.type === 'INTAKE' ? '📦 Nhập NCC' : tx.type === 'FIX' ? '🔧 Bảo trì' : tx.type;
+                    const typeColor = tx.type === 'OUT' ? '#f87171' : tx.type === 'RETURN' ? '#4ade80' : '#a78bfa';
+                    return (
+                      <div key={tx.id} style={{ padding:'10px 12px', background:'rgba(248,113,113,0.05)', border:'1px solid rgba(248,113,113,0.15)', borderRadius:'8px', display:'flex', alignItems:'flex-start', gap:'10px' }}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'3px' }}>
+                            <span style={{ fontWeight:700, color:typeColor, fontSize:'0.78rem' }}>{typeLabel}</span>
+                            <span style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.85rem' }}>{tx.code}</span>
+                            {tx.event_name && <span style={{ color:'#7878a0', fontSize:'0.75rem' }}>— {tx.event_name}</span>}
+                          </div>
+                          <div style={{ fontSize:'0.75rem', color:'#7878a0' }}>
+                            {tx.item_count > 0 && <span>{tx.item_count} thiết bị · </span>}
+                            Xóa bởi <span style={{ color:'#c0c0d8' }}>{tx.deleted_by_name}</span> lúc {fmtDT(tx.deleted_at)}
+                          </div>
+                          {tx.deleted_reason && (
+                            <div style={{ fontSize:'0.75rem', color:'#f87171', marginTop:'2px' }}>Lý do: {tx.deleted_reason}</div>
+                          )}
+                        </div>
+                        {user?.role === 'SUPER_ADMIN' && (
+                          <button onClick={() => handlePermanentDelete(tx)} style={{ padding:'5px 10px', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'6px', color:'#f87171', fontWeight:700, fontSize:'0.72rem', cursor:'pointer', flexShrink:0, whiteSpace:'nowrap' }}>
+                            Xóa vĩnh viễn
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Section>
+          )}
         </>
       )}
 
