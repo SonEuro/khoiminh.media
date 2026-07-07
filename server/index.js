@@ -1,4 +1,5 @@
 process.env.TZ = 'Asia/Ho_Chi_Minh'; // Bắt buộc đặt trước mọi require
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const express = require('express');
 const cors = require('cors');
