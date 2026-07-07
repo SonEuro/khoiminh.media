@@ -1502,9 +1502,12 @@ export default function WorkSchedule() {
                   const daySupport = kmSupportMapD[date] || {}; // {name: forDept}
                   const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads).filter(l => !viewerDept || l.department === viewerDept);
                   const allDayStaff = kmMapD ? (kmMapD[date] || []) : flatStaff;
-                  const dayStaff = allDayStaff.filter(n => !viewerDept || (daySupport[n] ? daySupport[n] === viewerDept : KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n))));
+                  const dayStaff = allDayStaff.filter(n => !viewerDept ||
+                    KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)) ||
+                    daySupport[n] === viewerDept
+                  );
                   const byDeptKM = dayStaff.reduce((acc, n) => {
-                    const d = daySupport[n] || KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                    const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
                     (acc[d] = acc[d] || []).push(n); return acc;
                   }, {});
                   let freeDepts = [];
@@ -1573,7 +1576,7 @@ export default function WorkSchedule() {
                               {members.map(n => (
                             <div key={n} style={{ ...kmItemStyle, display:'flex', alignItems:'center', gap:'5px' }}>
                               <span>• {n}</span>
-                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>HT</span>}
+                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>HT {getDeptDisplay(daySupport[n])}</span>}
                             </div>
                           ))}
                             </div>
