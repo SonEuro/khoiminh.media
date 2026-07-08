@@ -1724,10 +1724,12 @@ export default function WorkSchedule() {
                     const dt = new Date(h.edited_at);
                     const dtStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
                     return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', minHeight: '24px' }}>
-                        <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
-                        <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
-                        <span style={{ color: '#555570', marginLeft: 'auto', flexShrink: 0, fontFamily: 'monospace', fontSize: '0.78rem' }}>{dtStr}</span>
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '1px', fontSize: '0.82rem', padding: '3px 0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
+                          <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
+                        </div>
+                        <span style={{ color: '#555570', fontFamily: 'monospace', fontSize: '0.75rem' }}>{dtStr}</span>
                       </div>
                     );
                   })}
