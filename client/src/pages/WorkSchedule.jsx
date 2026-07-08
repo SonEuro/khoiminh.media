@@ -1038,26 +1038,24 @@ function MySchedulesSection({ schedules, user, onSelect }) {
         <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
         {/* Hàng 2: Địa điểm */}
         {s.location && <p style={{ margin: '4px 0 0', fontSize: '0.80rem', color: '#7878a0' }}>📍 {s.location}</p>}
-        {/* Hàng 3: Ngày – scroll ngang */}
-        <div style={{ overflowX: 'auto', marginTop: '5px', paddingBottom: '2px' }}>
-          <div style={{ display: 'inline-flex', gap: '10px', alignItems: 'center', whiteSpace: 'nowrap', fontSize: '0.80rem', color: '#a0a0b8' }}>
-            {[['🏗', s.setup_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true], ['📦', s.teardown_dates, false]]
-              .filter(([, d]) => d?.length > 0)
-              .map(([icon, dates, isFilming]) => (
-                <span key={icon} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: isFilming ? '#fb923c' : undefined, fontWeight: isFilming ? 700 : undefined }}>
-                  <span>{icon}</span>
-                  {[...dates].sort().map((d, i) => (
-                    <span key={d} style={{
-                      color: d === today ? '#f87171' : d === tomorrow ? '#4ade80' : isFilming ? '#fb923c' : '#a0a0b8',
-                      fontWeight: (d === today || d === tomorrow) ? 800 : undefined,
-                    }}>
-                      {i > 0 && <span style={{ color: '#555570' }}> · </span>}{fmtD(d)}
-                    </span>
-                  ))}
-                </span>
-              ))
-            }
-          </div>
+        {/* Hàng 3: Ngày */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '5px', fontSize: '0.80rem', alignItems: 'center' }}>
+          {[['🏗', s.setup_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true], ['📦', s.teardown_dates, false]]
+            .filter(([, d]) => d?.length > 0)
+            .map(([icon, dates, isFilming]) => (
+              <span key={icon} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: isFilming ? '#fb923c' : '#a0a0b8', fontWeight: isFilming ? 700 : undefined }}>
+                <span>{icon}</span>
+                {[...dates].sort().map((d, i) => (
+                  <span key={d} style={{
+                    color: d === today ? '#f87171' : d === tomorrow ? '#4ade80' : isFilming ? '#fb923c' : '#a0a0b8',
+                    fontWeight: (d === today || d === tomorrow) ? 800 : undefined,
+                  }}>
+                    {i > 0 && <span style={{ color: '#555570' }}> · </span>}{fmtD(d)}
+                  </span>
+                ))}
+              </span>
+            ))
+          }
         </div>
       </div>
     );
