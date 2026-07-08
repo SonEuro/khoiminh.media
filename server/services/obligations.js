@@ -90,11 +90,13 @@ function syncObligations(scheduleId) {
 
 function checkAndCreateViolations() {
   const now = getVNNow();
+  // Lấy tất cả obligations đã qua deadline — cả violation_created=0 lẫn =1
+  // (violation_created=1 có thể bị set sai trước đây do FK error, cần kiểm tra lại)
   const overdue = db.prepare(`
     SELECT o.*, e.name AS ev_display
     FROM lead_report_obligations o
     LEFT JOIN events e ON e.id = o.event_id
-    WHERE o.deadline <= ? AND o.violation_created = 0
+    WHERE o.deadline <= ?
   `).all(now);
 
   for (const ob of overdue) {
@@ -122,25 +124,34 @@ function checkAndCreateViolations() {
         ? (db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id) ? ob.event_id : null)
         : null;
 
+      // Kiểm tra vi phạm đã tồn tại chưa (tránh tạo trùng khi reprocess)
+      const violationExists = !!db.prepare(`
+        SELECT id FROM violations
+        WHERE violator = ? AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
+          AND description LIKE ? LIMIT 1
+      `).get(ob.lead_name, `%ngày ${ob.assigned_date}%`);
+
       const doInsertAndFlag = db.transaction(() => {
-        if (!reportRow) {
-          db.prepare(`
-            INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
-            VALUES (?, ?, 'Hệ thống', ?, 'Không nộp báo cáo', ?)
-          `).run(
-            safeEventId, label, ob.lead_name,
-            `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn chót: ${ob.deadline}.`,
-          );
-        } else if (submittedAt > ob.deadline) {
-          db.prepare(`
-            INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
-            VALUES (?, ?, 'Hệ thống', ?, 'Nộp báo cáo trễ', ?)
-          `).run(
-            safeEventId, label, ob.lead_name,
-            `Nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}) sau hạn chót ${ob.deadline} (nộp lúc ${reportRow.created_at}).`,
-          );
+        if (!violationExists) {
+          if (!reportRow) {
+            db.prepare(`
+              INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
+              VALUES (?, ?, 'Hệ thống', ?, 'Không nộp báo cáo', ?)
+            `).run(
+              safeEventId, label, ob.lead_name,
+              `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn chót: ${ob.deadline}.`,
+            );
+          } else if (submittedAt > ob.deadline) {
+            db.prepare(`
+              INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
+              VALUES (?, ?, 'Hệ thống', ?, 'Nộp báo cáo trễ', ?)
+            `).run(
+              safeEventId, label, ob.lead_name,
+              `Nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}) sau hạn chót ${ob.deadline} (nộp lúc ${reportRow.created_at}).`,
+            );
+          }
         }
-        // Nộp trước hạn → không tạo vi phạm
+        // Nộp trước hạn hoặc vi phạm đã tồn tại → chỉ đánh dấu đã xử lý
         db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
       });
       doInsertAndFlag();

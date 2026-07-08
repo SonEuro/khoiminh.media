@@ -134,7 +134,7 @@ app.listen(PORT, async () => {
     }
   }
   runViolationCheck();                          // chạy ngay khi server khởi động
-  setInterval(runViolationCheck, 60 * 60_000); // chạy lại mỗi 1 giờ
+  setInterval(runViolationCheck, 5 * 60_000);  // chạy lại mỗi 5 phút
 });
 
 // Backup lên Google Drive trước khi Render tắt server (SIGTERM)
