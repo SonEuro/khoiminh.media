@@ -452,7 +452,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {todayEvs.length === 0
           ? <AEmpty text="Không có sự kiện nào hôm nay" />
           : todayEvs.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => navigate('/events')}>
+            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -471,7 +471,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {planned.length === 0
           ? <AEmpty text="Không có sự kiện đang lên kế hoạch" />
           : planned.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => navigate('/events')}>
+            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -520,7 +520,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {completed.length === 0
           ? <AEmpty text="Không có sự kiện đã hoàn thành" />
           : completed.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => navigate('/events')}>
+            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:GOLD, flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>

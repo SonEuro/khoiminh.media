@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import MultiDatePicker from '../components/MultiDatePicker';
@@ -716,12 +717,14 @@ export default function Events() {
     if (!ev.created_by_id || !ev.created_by_role) return true; // sự kiện cũ chưa có created_by_id
     return ev.created_by_role === user?.role;
   };
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [showTrash, setShowTrash] = useState(false);
+  const handledNavId = useRef(null);
 
   const load = useCallback(() => {
     const params = statusFilter ? { status: statusFilter } : {};
@@ -739,6 +742,18 @@ export default function Events() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  // Mở modal chi tiết khi navigate từ Dashboard với openEventId
+  useEffect(() => {
+    const id = location.state?.openEventId;
+    if (!id || !events.length || handledNavId.current === id) return;
+    const ev = events.find(e => e.id === id);
+    if (ev) {
+      handledNavId.current = id;
+      setSelected(ev);
+      setModal('detail');
+    }
+  }, [events, location.state]);
 
   const handleSave = async (form) => {
     try {
