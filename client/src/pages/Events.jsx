@@ -731,19 +731,16 @@ export default function Events() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
-  // Cuộn đến và highlight card khi navigate từ Dashboard với openEventId
+  // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {
-    const id = location.state?.openEventId;
-    if (!id || !events.length || handledNavId.current === id) return;
-    const el = document.getElementById(`ev-card-${id}`);
-    if (el) {
-      handledNavId.current = id;
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.style.transition = 'box-shadow 0.3s, outline 0.3s';
-      el.style.outline = '2px solid #c9a84c';
-      el.style.boxShadow = '0 0 0 4px rgba(201,168,76,0.25)';
-      setTimeout(() => { el.style.outline = ''; el.style.boxShadow = ''; }, 2000);
-    }
+    const { openEventId, openModal } = location.state || {};
+    if (!openEventId || !events.length || handledNavId.current === openEventId) return;
+    const ev = events.find(e => e.id === openEventId);
+    if (!ev) return;
+    handledNavId.current = openEventId;
+    setSelected(ev);
+    if (openModal === 'staff') setModal('staff');
+    else setModal('detail');
   }, [events, location.state]);
 
   const handleSave = async (form) => {

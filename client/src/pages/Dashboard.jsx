@@ -4,7 +4,6 @@ import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import EventDetailModal from '../components/EventDetailModal';
 
 const GOLD = '#c9a84c';
 
@@ -382,6 +381,60 @@ function UpcomingScheduleSection({ userName }) {
   );
 }
 
+// ── Event Card Popup (Dashboard) ───────────────────────────────────────────
+
+const EV_STATUS = {
+  active:    { label: 'Đang diễn ra',      color: '#4ade80', bg: 'rgba(74,222,128,0.15)',  border: 'rgba(74,222,128,0.4)'  },
+  planned:   { label: 'Đang lên kế hoạch', color: '#60a5fa', bg: 'rgba(96,165,250,0.15)',  border: 'rgba(96,165,250,0.4)'  },
+  completed: { label: 'Đã hoàn thành',     color: GOLD,      bg: 'rgba(201,168,76,0.15)',  border: 'rgba(201,168,76,0.4)'  },
+};
+
+function DashEventCard({ ev, onClose }) {
+  const navigate = useNavigate();
+  if (!ev) return null;
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const s = EV_STATUS[ev.status] || EV_STATUS.planned;
+  const filmDates = (() => { try { return JSON.parse(ev.filming_dates || '[]'); } catch {} return ev.filming_date ? [ev.filming_date] : []; })();
+  const isToday = ev.start_date === todayStr || ev.end_date === todayStr || filmDates.includes(todayStr);
+
+  const go = (openModal) => { onClose(); navigate('/events', { state: { openEventId: ev.id, openModal } }); };
+
+  return (
+    <div
+      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
+      onClick={onClose}
+    >
+      <div onClick={e => e.stopPropagation()}
+        style={{ background:'#15151f', border:`1px solid ${s.border}`, borderRadius:'14px', padding:'18px', width:'100%', maxWidth:'380px', boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}
+      >
+        <div style={{ display:'flex', alignItems:'center', gap:'7px', flexWrap:'wrap', marginBottom:'9px' }}>
+          <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0' }}>{ev.code}</span>
+          <span style={{ fontSize:'0.65rem', fontWeight:700, color:s.color, background:s.bg, border:`1px solid ${s.border}`, borderRadius:'999px', padding:'2px 9px' }}>{s.label}</span>
+          {isToday && <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.45)', borderRadius:'999px', padding:'2px 9px' }}>HÔM NAY</span>}
+        </div>
+        <h3 style={{ fontWeight:700, fontSize:'1.05rem', color:'#eeeef5', margin:'0 0 11px', lineHeight:1.3 }}>{ev.name}</h3>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'6px 14px', fontSize:'0.77rem', color:'#a0a0b8', marginBottom:'16px' }}>
+          {ev.client   && <span>👤 {ev.client}</span>}
+          {ev.location && <span>📍 {ev.location}</span>}
+          {ev.start_date && <span>📅 {fmtD(ev.start_date)}</span>}
+          {filmDates.length > 0 && <span style={{ color: filmDates.includes(todayStr) ? '#f87171' : '#fb923c', fontWeight:600 }}>🎬 {filmDates.map(d => fmtD(d)).join(', ')}</span>}
+          {ev.end_date && <span>🏁 {fmtD(ev.end_date)}</span>}
+        </div>
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button onClick={() => go('detail')}
+            style={{ flex:1, padding:'10px', borderRadius:'9px', border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.12)', color:'#f87171', fontWeight:700, fontSize:'0.85rem', cursor:'pointer' }}>
+            🗂 Thiết bị
+          </button>
+          <button onClick={() => go('staff')}
+            style={{ flex:1, padding:'10px', borderRadius:'9px', border:'1px solid rgba(96,165,250,0.5)', background:'rgba(96,165,250,0.12)', color:'#60a5fa', fontWeight:700, fontSize:'0.85rem', cursor:'pointer' }}>
+            👥 Nhân sự
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Admin Dashboard Components ─────────────────────────────────────────────
 
 const PHASE_LABEL_MAP = { setup: 'Setup', teardown: 'Tháo dỡ', rehearsal: 'Rehearsal', filming: 'Ghi hình' };
@@ -432,7 +485,7 @@ function AEmpty({ text }) {
 
 function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, userName }) {
   const navigate = useNavigate();
-  const [detailId, setDetailId] = useState(null);
+  const [cardEv, setCardEv] = useState(null);
 
   const todayEvs   = dash?.today_events || [];
   const planned    = events.filter(e => e.status === 'planned');
@@ -440,12 +493,17 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
   const topObs     = lockedObs;
   const topViols   = violations;
 
+  const openCard = (ev) => {
+    const full = events.find(e => e.id === ev.id) || ev;
+    setCardEv(full);
+  };
+
   const T = { name: { fontWeight:600, color:'#e0e0ee', fontSize:'0.83rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
               sub:  { fontSize:'0.68rem', color:'#7878a0', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {detailId && <EventDetailModal eventId={detailId} onClose={() => setDetailId(null)} />}
+      {cardEv && <DashEventCard ev={cardEv} onClose={() => setCardEv(null)} />}
 
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} />}
@@ -455,7 +513,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {todayEvs.length === 0
           ? <AEmpty text="Không có sự kiện nào hôm nay" />
           : todayEvs.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => setDetailId(ev.id)}>
+            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => openCard(ev)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -474,7 +532,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {planned.length === 0
           ? <AEmpty text="Không có sự kiện đang lên kế hoạch" />
           : planned.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => setDetailId(ev.id)}>
+            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => openCard(ev)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -523,7 +581,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {completed.length === 0
           ? <AEmpty text="Không có sự kiện đã hoàn thành" />
           : completed.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => setDetailId(ev.id)}>
+            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => openCard(ev)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:GOLD, flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
