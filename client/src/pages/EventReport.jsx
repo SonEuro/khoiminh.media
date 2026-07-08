@@ -47,6 +47,15 @@ function getUserKmDept(user) {
     || '—';
 }
 
+// Cho phép report_date = ngày làm việc HOẶC ngày hôm sau (±1 ngày)
+function dateMatchesSched(schedDate, reportDate) {
+  if (schedDate === reportDate) return true;
+  const [y, m, d] = schedDate.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  const nextStr = `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-${String(next.getUTCDate()).padStart(2, '0')}`;
+  return nextStr === reportDate;
+}
+
 const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Hoàn thành sớm', 'Chậm tiến độ', 'Trễ tiến độ'];
 const COMPLETED_CHIPS  = ['Hoàn thành tất cả hạng mục', 'Hoàn thành với điều chỉnh nhỏ', 'Hoàn thành một phần', 'Chưa hoàn thành'];
 const QUALITY_CHIPS    = ['Xuất sắc', 'Tốt', 'Đạt yêu cầu', 'Cần cải thiện'];
@@ -632,20 +641,21 @@ export default function EventReport() {
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-          if (!dates.includes(form.report_date)) continue;
-          const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
+          const matchDate = dates.find(d => dateMatchesSched(d, form.report_date));
+          if (!matchDate) continue;
+          const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
           leadsForDate.forEach(l => {
             const n = typeof l === 'string' ? l : l?.name;
             if (n && (!deptFilter || deptFilter.has(n) || n === myName)) names.add(n);
           });
-          const kmForDate = s[`${key}_km_staff_map`]?.[form.report_date] || s[`${key}_km_staff`] || [];
+          const kmForDate = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
           kmForDate.forEach(n => {
             if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
           });
           // Freelancer: lọc theo dept + ngày, thu vào mảng để dedup sau
           const freeMap = s[`${key}_freelancers_map`];
           if (freeMap) {
-            const dateEntry = freeMap[form.report_date];
+            const dateEntry = freeMap[matchDate];
             if (dateEntry && typeof dateEntry === 'object') {
               const txt = validDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
               if (txt) freeParts.push(txt);
@@ -682,8 +692,9 @@ export default function EventReport() {
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-          if (!dates.includes(form.report_date)) continue;
-          const leadsForDate = s[`${key}_leads_map`]?.[form.report_date] || s[`${key}_leads`] || [];
+          const matchDate = dates.find(d => dateMatchesSched(d, form.report_date));
+          if (!matchDate) continue;
+          const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
           leadsForDate.forEach(l => {
             const n = typeof l === 'string' ? l : l?.name;
             if (!n) return;
@@ -693,14 +704,14 @@ export default function EventReport() {
             if (deptMembers.has(n) || n === myName) staffNames.add(n);
           });
           const kmMap = s[`${key}_km_staff_map`] || {};
-          (kmMap[form.report_date] || []).forEach(n => {
+          (kmMap[matchDate] || []).forEach(n => {
             if (deptMembers.has(n) || n === myName) staffNames.add(n);
           });
           // Freelancer theo dept + ngày cho nhóm trưởng
           if (user?.is_truong_phong) {
             const freeMap = s[`${key}_freelancers_map`];
             if (freeMap) {
-              const dateEntry = freeMap[form.report_date];
+              const dateEntry = freeMap[matchDate];
               if (dateEntry && typeof dateEntry === 'object') {
                 freeTextParts.push(dateEntry[userDept] || '');
               } else if (typeof dateEntry === 'string') {
@@ -948,7 +959,7 @@ export default function EventReport() {
             <div>
               <label style={labelStyle}>Ngày báo cáo *</label>
               <input type="date" className="input" value={form.report_date}
-                min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 86400000))}
+                min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 14 * 86400000))}
                 max={todayVN()}
                 onChange={e => setField('report_date', e.target.value)} required />
             </div>
