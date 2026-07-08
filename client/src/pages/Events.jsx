@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api';
 import Modal from '../components/Modal';
+import EventDetailModal from '../components/EventDetailModal';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
 import { KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
@@ -396,24 +397,11 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
   );
 }
 
-function EventDetailModal({ eventId, onClose }) {
-  const [ev, setEv]   = useState(null);
-  const [err, setErr] = useState(false);
-  useEffect(() => { api.getEventById(eventId).then(setEv).catch(() => setErr(true)); }, [eventId]);
-
-  if (err) return (
-    <Modal title="Sự kiện" onClose={onClose}>
-      <div className="text-center py-8" style={{ color:'#f87171' }}>Không thể tải sự kiện.</div>
-    </Modal>
-  );
-  if (!ev) return (
-    <Modal title="Sự kiện" onClose={onClose}>
-      <div className="text-center py-8 text-gray-400">Đang tải...</div>
-    </Modal>
-  );
-
+function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
+  // Moved to components/EventDetailModal.jsx
+  return null; /* dead code below kept for diff reference only */
   return (
-    <Modal title={`${ev.code} · ${ev.name}`} onClose={onClose} size="lg">
+    <Modal title={``} onClose={onClose} size="lg">
       <div className="space-y-4">
         <div style={{ display:'flex', flexDirection:'column', gap:'6px', fontSize:'0.88rem' }}>
           <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}><span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Khách hàng:</span><strong>{ev.client || '—'}</strong></div>

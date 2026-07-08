@@ -4,6 +4,7 @@ import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import EventDetailModal from '../components/EventDetailModal';
 
 const GOLD = '#c9a84c';
 
@@ -431,6 +432,7 @@ function AEmpty({ text }) {
 
 function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, userName }) {
   const navigate = useNavigate();
+  const [detailId, setDetailId] = useState(null);
 
   const todayEvs   = dash?.today_events || [];
   const planned    = events.filter(e => e.status === 'planned');
@@ -443,6 +445,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {detailId && <EventDetailModal eventId={detailId} onClose={() => setDetailId(null)} />}
 
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} />}
@@ -452,7 +455,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {todayEvs.length === 0
           ? <AEmpty text="Không có sự kiện nào hôm nay" />
           : todayEvs.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
+            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => setDetailId(ev.id)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -471,7 +474,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {planned.length === 0
           ? <AEmpty text="Không có sự kiện đang lên kế hoạch" />
           : planned.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
+            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => setDetailId(ev.id)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
@@ -520,7 +523,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         {completed.length === 0
           ? <AEmpty text="Không có sự kiện đã hoàn thành" />
           : completed.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => navigate('/events', { state: { openEventId: ev.id } })}>
+            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => setDetailId(ev.id)}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:GOLD, flexShrink:0 }} />
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={T.name}>{ev.name}</p>
