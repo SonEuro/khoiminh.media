@@ -1301,7 +1301,7 @@ export default function WorkSchedule() {
                   }}>
                     <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      <div style={{ fontSize:'0.88rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                         {ob.event_display || ob.event_name || 'Sự kiện'}
                       </div>
                       <div style={{ fontSize:'0.75rem', color:'#a0a0b8' }}>
@@ -1370,7 +1370,7 @@ export default function WorkSchedule() {
                         )}
                       </div>
                       <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'2px' }}>
-                        {ob.event_display || ob.event_name || 'Sự kiện'} · {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
+                        <span style={{ color: GOLD, fontWeight:600 }}>{ob.event_display || ob.event_name || 'Sự kiện'}</span> · {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
                         {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
