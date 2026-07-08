@@ -1097,8 +1097,10 @@ export default function WorkSchedule() {
 
   const load = useCallback(() => {
     api.getWorkSchedules().then(setSchedules).catch(() => {});
-    api.getLeadObligations().then(setObligations).catch(() => {});
-    api.getViolations()
+    // getLeadObligations chạy checkAndCreateViolations() trên server,
+    // nên fetch violations SAU để đảm bảo vi phạm mới đã được ghi vào DB
+    api.getLeadObligations()
+      .then(obs => { setObligations(obs); return api.getViolations(); })
       .then(vs => setReportViolations(vs.filter(v => REPORT_VIOL_TYPES.includes(v.violation_type))))
       .catch(() => {});
   }, []);
