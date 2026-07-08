@@ -415,7 +415,7 @@ function DashEventCard({ ev, onClose }) {
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
       onClick={onClose}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background:'#15151f', border:`1px solid rgba(255,255,255,0.1)`, borderRadius:'14px', overflow:'hidden', width:'100%', maxWidth:'380px', boxShadow:'0 24px 64px rgba(0,0,0,0.7)', borderLeft:`4px solid ${s.color}` }}>
+        style={{ background:'#15151f', border:`2px solid ${s.border}`, borderRadius:'14px', overflow:'hidden', width:'100%', maxWidth:'380px', boxShadow:`0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px ${s.border}`, borderLeft:`6px solid ${s.color}` }}>
 
         {/* Header */}
         <div style={{ padding:'12px 14px 10px', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
