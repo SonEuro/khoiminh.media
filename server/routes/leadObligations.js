@@ -8,11 +8,11 @@ router.get('/', (req, res) => {
   const { role, id: userId, full_name, is_truong_phong, is_phan_lich_all } = req.user;
   const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_truong_phong || !!is_phan_lich_all;
 
-  // Dùng correlated subquery thay vì LEFT JOIN để tránh duplicate rows khi có nhiều report khớp
+  // Cho phép report_date = assigned_date HOẶC ngày hôm sau (người dùng có thể nộp muộn 1 ngày)
   const reportSubquery = `
     (SELECT id FROM event_reports
-     WHERE report_date = o.assigned_date
-       AND event_id IS o.event_id
+     WHERE report_date IN (o.assigned_date, date(o.assigned_date, '+1 day'))
+       AND (o.event_id IS NULL OR event_id = o.event_id)
        AND (reporter_user_id = o.user_id OR reporter_name = o.lead_name)
      ORDER BY created_at ASC LIMIT 1) AS report_id
   `;

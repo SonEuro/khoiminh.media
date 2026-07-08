@@ -102,18 +102,27 @@ function checkAndCreateViolations() {
   for (const ob of overdue) {
     try {
       // Tìm báo cáo đã nộp (nếu có) — lấy cả created_at để biết nộp đúng hay trễ hạn
+      // Cho phép report_date = assigned_date HOẶC ngày hôm sau
+      const nextDay = (() => {
+        const [y, m, d] = ob.assigned_date.split('-').map(Number);
+        const dt = new Date(Date.UTC(y, m - 1, d + 1));
+        return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
+      })();
       const reportRow = ob.user_id
         ? db.prepare(`
             SELECT created_at FROM event_reports
-            WHERE report_date = ? AND event_id IS ?
+            WHERE report_date IN (?, ?)
+              AND (? IS NULL OR event_id = ?)
               AND (reporter_user_id = ? OR reporter_name = ?)
             ORDER BY created_at ASC LIMIT 1
-          `).get(ob.assigned_date, ob.event_id, ob.user_id, ob.lead_name)
+          `).get(ob.assigned_date, nextDay, ob.event_id, ob.event_id, ob.user_id, ob.lead_name)
         : db.prepare(`
             SELECT created_at FROM event_reports
-            WHERE report_date = ? AND event_id IS ? AND reporter_name = ?
+            WHERE report_date IN (?, ?)
+              AND (? IS NULL OR event_id = ?)
+              AND reporter_name = ?
             ORDER BY created_at ASC LIMIT 1
-          `).get(ob.assigned_date, ob.event_id, ob.lead_name);
+          `).get(ob.assigned_date, nextDay, ob.event_id, ob.event_id, ob.lead_name);
 
       const label = ob.ev_display || ob.event_name || 'Sự kiện';
       const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
