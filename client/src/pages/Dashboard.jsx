@@ -407,7 +407,7 @@ function AdminSec({ title, color, rgb, count, linkTo, defaultOpen = true, childr
         )}
         <span style={{ fontSize: '0.65rem', color: `rgba(${rgb},0.6)`, flexShrink: 0, marginLeft: '2px', transition: 'transform 0.18s', display: 'inline-block', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
       </div>
-      {open && <div style={{ background: '#13131d' }}>{children}</div>}
+      {open && <div style={{ background: '#13131d', maxHeight: '232px', overflowY: 'auto' }}>{children}</div>}
     </div>
   );
 }
@@ -432,11 +432,11 @@ function AEmpty({ text }) {
 function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
   const navigate = useNavigate();
 
-  const todayEvs   = (dash?.today_events || []).slice(0, 5);
-  const planned    = events.filter(e => e.status === 'planned').slice(0, 5);
-  const completed  = events.filter(e => e.status === 'completed').slice(0, 5);
-  const topObs     = lockedObs.slice(0, 5);
-  const topViols   = violations.slice(0, 5);
+  const todayEvs   = dash?.today_events || [];
+  const planned    = events.filter(e => e.status === 'planned');
+  const completed  = events.filter(e => e.status === 'completed');
+  const topObs     = lockedObs;
+  const topViols   = violations;
 
   const T = { name: { fontWeight:600, color:'#e0e0ee', fontSize:'0.83rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
               sub:  { fontSize:'0.68rem', color:'#7878a0', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } };
