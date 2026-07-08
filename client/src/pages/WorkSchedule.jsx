@@ -9,6 +9,20 @@ import { fmtD } from '../utils/fmt';
 
 const GOLD = '#c9a84c';
 
+// Tính số giờ còn lại trong grace period (lock_time là chuỗi "YYYY-MM-DD HH:mm" giờ VN)
+function graceLeft(lockTime) {
+  if (!lockTime) return null;
+  const [date, time] = lockTime.split(' ');
+  const [y, m, d] = date.split('-').map(Number);
+  const [h, mi] = time.split(':').map(Number);
+  const lockMs = Date.UTC(y, m - 1, d, h - 7, mi); // VN = UTC+7
+  const diffMs = lockMs - Date.now();
+  if (diffMs <= 0) return null;
+  const diffH = Math.floor(diffMs / 3600000);
+  const diffM = Math.floor((diffMs % 3600000) / 60000);
+  return diffH >= 1 ? `còn ${diffH}h` : `còn ${diffM}ph`;
+}
+
 const labelStyle = {
   display: 'block', fontSize: '0.72rem', fontWeight: 700,
   color: GOLD, letterSpacing: '0.06em', marginBottom: '5px',
@@ -1268,8 +1282,8 @@ export default function WorkSchedule() {
           ? obligations.filter(o => o.lead_name === user.full_name || o.user_id === user.id)
           : obligations;
         const pastObs  = myObs.filter(o => o.assigned_date < todayStr);
-        const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
-        const overdue  = pastObs.filter(o => o.overdue);
+        const pending  = pastObs.filter(o => !o.submitted && !o.overdue && !o.locked);
+        const overdue  = pastObs.filter(o => o.overdue && !o.locked);
         if (!pending.length && !overdue.length) return null;
         const phaseIcon = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
@@ -1292,6 +1306,7 @@ export default function WorkSchedule() {
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {[...overdue, ...pending].map(ob => {
                 const isOver = ob.overdue;
+                const left = isOver ? graceLeft(ob.lock_time) : null;
                 return (
                   <div key={ob.id} style={{
                     display:'flex', alignItems:'center', gap:'8px',
@@ -1306,7 +1321,7 @@ export default function WorkSchedule() {
                       </div>
                       <div style={{ fontSize:'0.72rem', color:'#a0a0b8' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
-                        {isOver && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn</span>}
+                        {isOver && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn{left ? ` · ${left}` : ''}</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'5px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
                     </div>
@@ -1327,8 +1342,8 @@ export default function WorkSchedule() {
       {/* ── Tổng quan báo cáo — chỉ is_phan_lich_all (giám sát toàn bộ leads) */}
       {obligations.length > 0 && !!user?.is_phan_lich_all && (() => {
         const pastObs = obligations.filter(o => o.assigned_date < todayStr);
-        const overdue = pastObs.filter(o => o.overdue);
-        const pending = pastObs.filter(o => !o.submitted && !o.overdue);
+        const overdue = pastObs.filter(o => o.overdue && !o.locked);
+        const pending = pastObs.filter(o => !o.submitted && !o.overdue && !o.locked);
         if (!overdue.length && !pending.length) return null;
         const phaseIcon  = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };

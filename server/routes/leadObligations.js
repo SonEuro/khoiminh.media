@@ -20,14 +20,18 @@ router.get('/', (req, res) => {
   let rows;
   if (isAdmin) {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display, ${reportSubquery}
+      SELECT o.*, e.name AS event_display,
+        datetime(o.deadline, '+24 hours') AS lock_time,
+        ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
       ORDER BY o.assigned_date DESC
     `).all();
   } else {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display, ${reportSubquery}
+      SELECT o.*, e.name AS event_display,
+        datetime(o.deadline, '+24 hours') AS lock_time,
+        ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
       WHERE o.user_id = ? OR o.lead_name = ?
@@ -36,11 +40,12 @@ router.get('/', (req, res) => {
   }
 
   const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
-  res.json(rows.map(r => ({
-    ...r,
-    submitted: !!r.report_id,
-    overdue: !r.report_id && r.deadline <= now,
-  })));
+  res.json(rows.map(r => {
+    const submitted = !!r.report_id;
+    const overdue = !submitted && !!r.deadline && r.deadline <= now;
+    const locked  = !submitted && !!r.lock_time && r.lock_time <= now;
+    return { ...r, submitted, overdue, locked };
+  }));
 });
 
 module.exports = router;
