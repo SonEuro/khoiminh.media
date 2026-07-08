@@ -296,7 +296,7 @@ function UpcomingScheduleSection({ userName }) {
             const key = `${s.id}-${p}-${date}`;
             if (seen.has(key)) continue;
             seen.add(key);
-            found.push({ date, phase: p, eventName: s.event_name, schedId: s.id });
+            found.push({ date, phase: p, eventName: s.event_name, schedId: s.id, location: s.location });
           }
         }
       }
@@ -305,11 +305,33 @@ function UpcomingScheduleSection({ userName }) {
     }).catch(() => {});
   }, [userName]);
 
-  const todayItems    = upcoming.filter(i => i.date === todayVN);
-  const tomorrowItems = upcoming.filter(i => i.date === tomorrowVN);
-  const upcomingItems = upcoming.filter(i => i.date > tomorrowVN);
-  const pastItems     = [...upcoming.filter(i => i.date < todayVN)].reverse();
-  const totalFuture   = todayItems.length + tomorrowItems.length + upcomingItems.length;
+  // Group items by event (schedId)
+  const PHASE_ORDER = ['setup', 'rehearsal', 'filming', 'teardown'];
+  const PHASE_ICON  = { setup:'🏗', rehearsal:'🎤', filming:'🎬', teardown:'📦' };
+
+  const evMap = {};
+  for (const item of upcoming) {
+    if (!evMap[item.schedId]) {
+      evMap[item.schedId] = { schedId: item.schedId, eventName: item.eventName, location: item.location, dates: {} };
+    }
+    const g = evMap[item.schedId];
+    if (!g.dates[item.phase]) g.dates[item.phase] = [];
+    if (!g.dates[item.phase].includes(item.date)) g.dates[item.phase].push(item.date);
+  }
+  const eventGroups = Object.values(evMap);
+
+  const getZone = (g) => {
+    const all = Object.values(g.dates).flat();
+    if (all.includes(todayVN))    return 'today';
+    if (all.includes(tomorrowVN)) return 'tomorrow';
+    if (all.some(d => d > tomorrowVN)) return 'upcoming';
+    return 'past';
+  };
+  const todayEvs    = eventGroups.filter(g => getZone(g) === 'today');
+  const tomorrowEvs = eventGroups.filter(g => getZone(g) === 'tomorrow');
+  const upcomingEvs = eventGroups.filter(g => getZone(g) === 'upcoming');
+  const pastEvs     = eventGroups.filter(g => getZone(g) === 'past');
+  const totalFuture = todayEvs.length + tomorrowEvs.length + upcomingEvs.length;
 
   if (upcoming.length === 0) return null;
 
@@ -325,33 +347,42 @@ function UpcomingScheduleSection({ userName }) {
     );
   }
 
-  function SchedRow({ item, isPast }) {
-    const isToday    = item.date === todayVN;
-    const isTomorrow = item.date === tomorrowVN;
-    const dotColor = isToday ? '#f87171' : isTomorrow ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa';
-    const dotGlow  = isToday ? 'rgba(248,113,113,0.8)' : isTomorrow ? 'rgba(74,222,128,0.8)' : isPast ? 'rgba(120,120,160,0.5)' : 'rgba(96,165,250,0.8)';
-    const bgBase   = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
-    const bgHover  = isToday ? 'rgba(248,113,113,0.1)' : isTomorrow ? 'rgba(74,222,128,0.09)' : 'rgba(96,165,250,0.05)';
-    const textColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : isPast ? '#7878a0' : '#e0e0ee';
+  function EventCard({ group, isPast }) {
+    const allDates   = Object.values(group.dates).flat();
+    const isToday    = allDates.includes(todayVN);
+    const isTomorrow = allDates.includes(tomorrowVN);
+    const bgBase  = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
+    const bgHover = isToday ? 'rgba(248,113,113,0.1)'  : isTomorrow ? 'rgba(74,222,128,0.09)'  : 'rgba(96,165,250,0.05)';
+    const nameColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : isPast ? '#7878a0' : '#e8c97a';
     return (
-      <div key={`${item.schedId}-${item.phase}-${item.date}`}
-        onClick={() => navigate('/work-schedule', { state: { schedId: item.schedId } })}
-        style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
+      <div
+        onClick={() => navigate('/work-schedule', { state: { schedId: group.schedId } })}
+        style={{ padding:'10px 14px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
         onMouseEnter={e => e.currentTarget.style.background = bgHover}
         onMouseLeave={e => e.currentTarget.style.background = bgBase}
       >
-        <div style={{ width:7, height:7, borderRadius:'50%', background:dotColor, flexShrink:0, boxShadow:`0 0 6px ${dotGlow}` }} />
-        <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontWeight:600, color:textColor, fontSize:'0.87rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            {PHASE_LABELS[item.phase]} — {item.eventName}
-          </p>
+        {/* Hàng 1: Tên sự kiện */}
+        <p style={{ fontWeight:700, color:nameColor, fontSize:'0.87rem', margin:0 }}>{group.eventName}</p>
+        {/* Hàng 2: Ngày theo phase */}
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'5px', alignItems:'center' }}>
+          {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
+            const sorted = [...group.dates[p]].sort();
+            return (
+              <span key={p} style={{ display:'inline-flex', alignItems:'center', gap:'3px', fontSize:'0.80rem' }}>
+                <span>{PHASE_ICON[p]}</span>
+                {sorted.map((d, i) => (
+                  <span key={d} style={{ color: d === todayVN ? '#f87171' : d === tomorrowVN ? '#4ade80' : '#a0a0b8', fontWeight: (d === todayVN || d === tomorrowVN) ? 700 : 400 }}>
+                    {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
+                  </span>
+                ))}
+              </span>
+            );
+          })}
         </div>
-        {isToday
-          ? <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>HÔM NAY</span>
-          : isTomorrow
-            ? <span style={{ fontSize:'0.78rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>NGÀY MAI</span>
-            : <span style={{ fontSize:'0.82rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0, whiteSpace:'nowrap' }}>{fmtD(item.date)}</span>
-        }
+        {/* Hàng 3: Địa điểm */}
+        {group.location && (
+          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'4px 0 0' }}>📍 {group.location}</p>
+        )}
       </div>
     );
   }
@@ -360,21 +391,21 @@ function UpcomingScheduleSection({ userName }) {
     <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.35)', marginBottom:'10px' }}>
       <SectionHeader title="Lịch làm việc của bạn" color="#4ade80" colorRgb="74,222,128" count={totalFuture} />
       <div style={{ background:'#13131d' }}>
-        {todayItems.length > 0 && <>
-          <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayItems.length} />
-          {todayItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        {todayEvs.length > 0 && <>
+          <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayEvs.length} />
+          {todayEvs.map(g => <EventCard key={g.schedId} group={g} />)}
         </>}
-        {tomorrowItems.length > 0 && <>
-          <ZoneDivider color="#4ade80" border="rgba(74,222,128,0.35)" label="NGÀY MAI" count={tomorrowItems.length} />
-          {tomorrowItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        {tomorrowEvs.length > 0 && <>
+          <ZoneDivider color="#4ade80" border="rgba(74,222,128,0.35)" label="NGÀY MAI" count={tomorrowEvs.length} />
+          {tomorrowEvs.map(g => <EventCard key={g.schedId} group={g} />)}
         </>}
-        {upcomingItems.length > 0 && <>
-          <ZoneDivider color="#60a5fa" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={upcomingItems.length} />
-          {upcomingItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} />)}
+        {upcomingEvs.length > 0 && <>
+          <ZoneDivider color="#60a5fa" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={upcomingEvs.length} />
+          {upcomingEvs.map(g => <EventCard key={g.schedId} group={g} />)}
         </>}
-        {pastItems.length > 0 && <>
-          <ZoneDivider color="#7878a0" border="rgba(120,120,160,0.25)" label="NGÀY LÀM VIỆC ĐÃ HOÀN THÀNH" count={pastItems.length} />
-          {pastItems.map(item => <SchedRow key={`${item.schedId}-${item.phase}-${item.date}`} item={item} isPast />)}
+        {pastEvs.length > 0 && <>
+          <ZoneDivider color="#7878a0" border="rgba(120,120,160,0.25)" label="ĐÃ HOÀN THÀNH" count={pastEvs.length} />
+          {pastEvs.map(g => <EventCard key={g.schedId} group={g} isPast />)}
         </>}
       </div>
     </div>
