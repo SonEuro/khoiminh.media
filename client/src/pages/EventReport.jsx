@@ -280,12 +280,30 @@ const fmtDate = (d) => {
   return d;
 };
 
+// Tính deadline và lock_time từ report_date (deadline = report_date+1 ngày 12:00, lock = deadline+24h)
+function getReportLateness(reportDate, createdAt) {
+  if (!reportDate || !createdAt) return null;
+  const [y, m, d] = reportDate.split('-').map(Number);
+  const nextDay = new Date(Date.UTC(y, m - 1, d + 1));
+  const ny = nextDay.getUTCFullYear();
+  const nm = String(nextDay.getUTCMonth() + 1).padStart(2, '0');
+  const nd = String(nextDay.getUTCDate()).padStart(2, '0');
+  const deadline = `${ny}-${nm}-${nd} 12:00`;
+  const lockDay = new Date(Date.UTC(y, m - 1, d + 2));
+  const lock = `${lockDay.getUTCFullYear()}-${String(lockDay.getUTCMonth() + 1).padStart(2, '0')}-${String(lockDay.getUTCDate()).padStart(2, '0')} 12:00`;
+  const sub = createdAt.slice(0, 16);
+  if (sub > lock) return 'qua_han';
+  if (sub > deadline) return 'nop_tre';
+  return null;
+}
+
 // ── Report detail card ────────────────────────────────────────────────────────
 function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
 
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
+  const lateness = getReportLateness(report.report_date, report.created_at);
 
   return (
     <div style={{
@@ -321,20 +339,32 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
               </div>
             )}
             {report.created_at && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:'5px', marginTop:'3px',
-                background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
-                borderRadius:'6px', padding:'3px 8px', alignSelf:'flex-start' }}>
-                <span style={{ fontSize:'0.65rem', color:'#7878a0' }}>Nộp lúc</span>
-                <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
-                  {(() => {
-                    const dt = report.created_at;
-                    if (!dt) return '';
-                    const [datePart, timePart] = dt.split(' ');
-                    const [y, m, d] = (datePart || '').split('-');
-                    const time = (timePart || '').slice(0, 5);
-                    return `${time} ${d}/${m}/${y?.slice(2)}`;
-                  })()}
-                </span>
+              <div style={{ display:'flex', alignItems:'center', gap:'5px', marginTop:'3px', flexWrap:'wrap' }}>
+                <div style={{ display:'inline-flex', alignItems:'center', gap:'5px',
+                  background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
+                  borderRadius:'6px', padding:'3px 8px' }}>
+                  <span style={{ fontSize:'0.65rem', color:'#7878a0' }}>Nộp lúc</span>
+                  <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
+                    {(() => {
+                      const dt = report.created_at;
+                      if (!dt) return '';
+                      const [datePart, timePart] = dt.split(' ');
+                      const [y, m, d] = (datePart || '').split('-');
+                      const time = (timePart || '').slice(0, 5);
+                      return `${time} ${d}/${m}/${y?.slice(2)}`;
+                    })()}
+                  </span>
+                </div>
+                {lateness === 'qua_han' && (
+                  <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'4px', padding:'2px 7px' }}>
+                    Quá hạn
+                  </span>
+                )}
+                {lateness === 'nop_tre' && (
+                  <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'4px', padding:'2px 7px' }}>
+                    Nộp trễ
+                  </span>
+                )}
               </div>
             )}
           </div>
