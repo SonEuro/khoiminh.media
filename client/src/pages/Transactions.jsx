@@ -33,7 +33,7 @@ function Badge({ color, bg, border, label }) {
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: '6px',
-      fontSize: '0.68rem', fontWeight: 700, whiteSpace: 'nowrap',
+      fontSize: '0.82rem', fontWeight: 700, whiteSpace: 'nowrap',
       background: bg, color, border: `1px solid ${border || color + '55'}`,
     }}>{label}</span>
   );
@@ -90,7 +90,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
             ['PHỤ TRÁCH', tx.responsible_person || '—'],
           ].map(([lbl, val]) => (
             <div key={lbl}>
-              <span style={{ color:'#7878a0', fontSize:'0.7rem' }}>{lbl}</span>
+              <span style={{ color:'#7878a0', fontSize:'0.78rem' }}>{lbl}</span>
               <p style={{ color:'#e0e0ee', fontWeight:600, marginTop:'3px' }}>{val}</p>
             </div>
           ))}
@@ -115,12 +115,12 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                 }}>
                   <div>
                     <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
-                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}{it.category ? ` · ${it.category}` : ''}</p>
+                    <p style={{ fontSize:'0.82rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}{it.category ? ` · ${it.category}` : ''}</p>
                   </div>
-                  <span style={{ fontSize:'0.7rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
+                  <span style={{ fontSize:'0.78rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
                     {condLabel[it.condition] || it.condition}
                   </span>
-                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.92rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
                     {it.quantity} {it.unit}
                   </span>
                 </div>
@@ -130,7 +130,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
               {tx.items?.length > 0 && tx.external_items?.length > 0 && (
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'2px 0' }}>
                   <div style={{ flex:1, height:'1px', background:'rgba(96,165,250,0.2)' }} />
-                  <span style={{ fontSize:'0.65rem', color:'#60a5fa', fontWeight:700 }}>NCC</span>
+                  <span style={{ fontSize:'0.80rem', color:'#60a5fa', fontWeight:700 }}>NCC</span>
                   <div style={{ flex:1, height:'1px', background:'rgba(96,165,250,0.2)' }} />
                 </div>
               )}
@@ -146,15 +146,15 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                 }}>
                   <div>
                     <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.84rem' }}>🏪 {it.name}</p>
-                    <p style={{ fontSize:'0.68rem', color:'#7878a0', margin:'2px 0 0' }}>{it.supplier || 'Không rõ NCC'}</p>
+                    <p style={{ fontSize:'0.82rem', color:'#7878a0', margin:'2px 0 0' }}>{it.supplier || 'Không rõ NCC'}</p>
                     {(it.rental_days > 0 || it.notes) && (
-                      <p style={{ fontSize:'0.68rem', color:'#e8c97a', margin:'3px 0 0' }}>
+                      <p style={{ fontSize:'0.82rem', color:'#e8c97a', margin:'3px 0 0' }}>
                         {[it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ')}
                       </p>
                     )}
                   </div>
-                  <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
-                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.9rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                  <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
+                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
                     {it.quantity} {it.unit || 'Cái'}
                   </span>
                 </div>
@@ -166,7 +166,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
         {/* Lịch sử chỉnh sửa */}
         {tx.edits?.length > 0 && (
           <div>
-            <h3 style={{ fontWeight:700, color:'#fbbf24', marginBottom:'8px', fontSize:'0.8rem', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+            <h3 style={{ fontWeight:700, color:'#fbbf24', marginBottom:'8px', fontSize:'0.84rem', textTransform:'uppercase', letterSpacing:'0.06em' }}>
               📝 Lịch sử chỉnh sửa ({tx.edits.length})
             </h3>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
@@ -177,13 +177,13 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                 return (
                   <div key={i} style={{ padding:'10px 12px', borderRadius:'8px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.2)' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px', flexWrap:'wrap', marginBottom:'6px' }}>
-                      <span style={{ fontWeight:700, color:'#fbbf24', fontSize:'0.8rem' }}>{e.edited_by_name}</span>
-                      <span style={{ fontSize:'0.7rem', color:'#7878a0', whiteSpace:'nowrap' }}>{fmtDT(e.created_at)}</span>
+                      <span style={{ fontWeight:700, color:'#fbbf24', fontSize:'0.84rem' }}>{e.edited_by_name}</span>
+                      <span style={{ fontSize:'0.78rem', color:'#7878a0', whiteSpace:'nowrap' }}>{fmtDT(e.created_at)}</span>
                     </div>
-                    <p style={{ fontSize:'0.78rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'normal' }}>
+                    <p style={{ fontSize:'0.84rem', color:'#e0e0ee', margin:'0 0 6px', fontStyle:'normal' }}>
                       Lý do: {e.reason}
                     </p>
-                    <div style={{ fontSize:'0.72rem', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'6px', overflow:'hidden' }}>
+                    <div style={{ fontSize:'0.84rem', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'6px', overflow:'hidden' }}>
                       {/* Header */}
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'rgba(255,255,255,0.06)' }}>
                         <span style={{ padding:'4px 8px', color:'#f87171', fontWeight:700, borderRight:'1px solid rgba(255,255,255,0.15)' }}>Trước</span>
@@ -311,7 +311,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   );
 
   const inputStyle = { padding:'7px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.83rem', width:'100%', boxSizing:'border-box' };
-  const extInputStyle = { padding:'6px 8px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.22)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.8rem', width:'100%', boxSizing:'border-box' };
+  const extInputStyle = { padding:'6px 8px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.22)', background:'rgba(255,255,255,0.06)', color:'#e0e0ee', fontSize:'0.84rem', width:'100%', boxSizing:'border-box' };
 
   return (
     <Modal title={`Chỉnh sửa: ${tx.code}`} onClose={onClose} size="lg">
@@ -319,7 +319,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
 
         {/* Tìm kiếm thiết bị kho */}
         <div>
-          <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
+          <p style={{ fontSize:'0.82rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
           <div ref={searchWrapRef} style={{ position:'relative' }}>
             <input
               type="text" value={search}
@@ -359,15 +359,15 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         <div style={{ minWidth:0, flex:1 }}>
                           <div>
                             <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                            <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                            <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{eq.code}</span>
                           </div>
                           {eq.category_name && (
-                            <div style={{ fontSize:'0.68rem', color:'#a0a0c0', marginTop:'1px' }}>
+                            <div style={{ fontSize:'0.82rem', color:'#a0a0c0', marginTop:'1px' }}>
                               {eq.category_icon} {eq.category_name}
                             </div>
                           )}
                         </div>
-                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
+                        <span style={{ fontSize:'0.84rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : freeQty > 0 ? '#4ade80' : '#f87171' }}>
                           {inList ? '✓ Đã có' : `${freeQty} ${eq.unit}`}
                         </span>
                       </button>
@@ -382,7 +382,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         {/* Danh sách thiết bị kho */}
         {khoItems.length > 0 && (
           <div>
-            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị KHO ({khoItems.length})</p>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị KHO ({khoItems.length})</p>
             <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
               {khoItems.map((it, idx) => {
                 const eq = equipment.find(e => e.id === it.equipment_id);
@@ -399,7 +399,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                 }}>
                   <div>
                     <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
-                    <p style={{ fontSize:'0.68rem', margin:'2px 0 0', color: over ? '#f87171' : '#7878a0' }}>
+                    <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color: over ? '#f87171' : '#7878a0' }}>
                       {it.eq_code}{eq ? ` · còn ${free} ${it.unit}` : ''}
                       {over && <span style={{ marginLeft:'5px' }}>⚠ vượt tồn kho</span>}
                     </p>
@@ -408,12 +408,12 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateKhoQty(idx, e.target.value, false)}
                       onBlur={e => updateKhoQty(idx, e.target.value, true)}
-                      style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:`1px solid ${over ? 'rgba(248,113,113,0.6)' : 'rgba(201,168,76,0.3)'}`, color: over ? '#f87171' : '#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                      style={{ width:'60px', padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:`1px solid ${over ? 'rgba(248,113,113,0.6)' : 'rgba(201,168,76,0.3)'}`, color: over ? '#f87171' : '#e0e0ee', fontSize:'0.92rem', fontWeight:700 }}
                     />
-                    <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>{it.unit}</span>
+                    <span style={{ fontSize:'0.84rem', color:'#7878a0' }}>{it.unit}</span>
                   </div>
                   <button onClick={() => removeKhoItem(idx)}
-                    style={{ padding:'5px 8px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>
+                    style={{ padding:'5px 8px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>
                     ✕
                   </button>
                 </div>
@@ -426,9 +426,9 @@ function EditPendingModal({ txId, onClose, onSaved }) {
         {/* NCC items */}
         <div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
-            <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#60a5fa', margin:0 }}>Thiết bị NCC ({extItems.length})</p>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, color:'#60a5fa', margin:0 }}>Thiết bị NCC ({extItems.length})</p>
             <button onClick={addExtItem}
-              style={{ padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'#60a5fa', cursor:'pointer', fontSize:'0.74rem' }}>
+              style={{ padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'#60a5fa', cursor:'pointer', fontSize:'0.80rem' }}>
               + Thêm
             </button>
           </div>
@@ -442,17 +442,17 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         onChange={e => updateExtItem(idx, 'name', e.target.value)} style={extInputStyle} />
                       <input placeholder="Nhà cung cấp" value={it.supplier}
                         onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
-                        style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.73rem' }} />
+                        style={{ ...extInputStyle, color:'#a0a0c0', fontSize:'0.80rem' }} />
                       <input placeholder="Ghi chú..." value={it.notes || ''}
                         onChange={e => updateExtItem(idx, 'notes', e.target.value)}
-                        style={{ ...extInputStyle, color:'#7878a0', fontSize:'0.72rem', fontStyle:'normal' }} />
+                        style={{ ...extInputStyle, color:'#7878a0', fontSize:'0.84rem', fontStyle:'normal' }} />
                     </div>
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', e.target.value)}
                       onBlur={e => updateExtItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
-                      style={{ padding:'5px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(96,165,250,0.2)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }} />
+                      style={{ padding:'5px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(96,165,250,0.2)', color:'#e0e0ee', fontSize:'0.92rem', fontWeight:700 }} />
                     <button onClick={() => removeExtItem(idx)}
-                      style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>
+                      style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>
                       ✕
                     </button>
                   </div>
@@ -501,7 +501,7 @@ function DeleteReasonModal({ tx, onClose, onDeleted }) {
           ⚠️ Thao tác này sẽ <strong>hoàn tác tồn kho</strong> và không thể khôi phục.
         </p>
         <div>
-          <p style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, marginBottom: '6px' }}>Lý do xóa *</p>
+          <p style={{ fontSize: '0.82rem', color: '#fbbf24', fontWeight: 700, marginBottom: '6px' }}>Lý do xóa *</p>
           <textarea rows={3} value={reason} onChange={e => setReason(e.target.value)} placeholder="Nhập lý do (bắt buộc)..." style={inputStyle} />
         </div>
         {error && <p style={{ color: '#f87171', fontSize: '0.82rem', margin: 0 }}>⚠️ {error}</p>}
@@ -612,7 +612,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
 
         {/* Lý do — bắt buộc */}
         <div style={{ padding:'12px 14px', borderRadius:'10px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.3)' }}>
-          <p style={{ fontSize:'0.75rem', color:'#fbbf24', fontWeight:700, margin:'0 0 6px' }}>⚠ Lý do chỉnh sửa *</p>
+          <p style={{ fontSize:'0.82rem', color:'#fbbf24', fontWeight:700, margin:'0 0 6px' }}>⚠ Lý do chỉnh sửa *</p>
           <textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
@@ -625,19 +625,19 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         {/* NCC section — đặt trên để luôn thấy */}
         <div style={{ padding:'10px 12px', borderRadius:'10px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: extItems.length ? '8px' : 0 }}>
-            <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
-            <button onClick={addExtItem} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
+            <p style={{ fontSize: '0.82rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
+            <button onClick={addExtItem} style={{ fontSize: '0.84rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
           </div>
           {extItems.map((it, idx) => (
             <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '5px', marginBottom: '5px', padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.15)' }}>
-              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
-              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
+              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
               <button onClick={() => removeExtItem(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', cursor: 'pointer' }}>✕</button>
-              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.78rem' }} />
+              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
               <div style={{ display: 'flex', gap: '4px' }}>
-                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
-                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.78rem' }} />
-                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.78rem' }} />
+                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.84rem' }} />
+                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.84rem' }} />
+                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.84rem' }} />
               </div>
             </div>
           ))}
@@ -645,7 +645,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
 
         {/* Tìm thiết bị */}
         <div>
-          <p style={{ fontSize:'0.75rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
+          <p style={{ fontSize:'0.82rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
           <div ref={searchWrapRef} style={{ position:'relative' }}>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Tìm tên hoặc mã thiết bị..." style={inputStyle} />
@@ -671,15 +671,15 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         <div style={{ minWidth:0, flex:1 }}>
                           <div>
                             <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                            <span style={{ color:'#7878a0', fontSize:'0.7rem', marginLeft:'8px' }}>{eq.code}</span>
+                            <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{eq.code}</span>
                           </div>
                           {eq.category_name && (
-                            <div style={{ fontSize:'0.68rem', color:'#a0a0c0', marginTop:'1px' }}>
+                            <div style={{ fontSize:'0.82rem', color:'#a0a0c0', marginTop:'1px' }}>
                               {eq.category_icon} {eq.category_name}
                             </div>
                           )}
                         </div>
-                        <span style={{ fontSize:'0.72rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
+                        <span style={{ fontSize:'0.84rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
                           {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
                         </span>
                       </button>
@@ -694,7 +694,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         {/* Danh sách thiết bị */}
         {khoItems.length > 0 && (
           <div>
-            <p style={{ fontSize:'0.75rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị ({khoItems.length})</p>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị ({khoItems.length})</p>
             <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
               {khoItems.map((it, idx) => {
                 const eq = equipment.find(e => e.id === it.equipment_id);
@@ -703,16 +703,16 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                   <div key={idx} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
-                      <p style={{ fontSize:'0.68rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                      <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
                     </div>
                     <input type="number" min="1" value={it.quantity}
                       onChange={e => updateQty(idx, e.target.value)}
                       onBlur={e => updateQty(idx, e.target.value, true)}
-                      style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.9rem', fontWeight:700 }}
+                      style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.92rem', fontWeight:700 }}
                     />
-                    <span style={{ width:'58px', flexShrink:0, fontSize:'0.72rem', color:'#7878a0', textAlign:'left' }}>{it.unit}</span>
+                    <span style={{ width:'58px', flexShrink:0, fontSize:'0.84rem', color:'#7878a0', textAlign:'left' }}>{it.unit}</span>
                     <button onClick={() => removeItem(idx)}
-                      style={{ width:'30px', height:'30px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.8rem' }}>✕</button>
+                      style={{ width:'30px', height:'30px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>✕</button>
                   </div>
                 );
               })}
@@ -777,7 +777,7 @@ function TraNccModal({ txId, onClose }) {
   };
 
   const thStyle = (col) => ({
-    padding:'7px 10px', textAlign:'left', fontSize:'0.72rem', fontWeight:800,
+    padding:'7px 10px', textAlign:'left', fontSize:'0.84rem', fontWeight:800,
     color: sortBy === col ? '#60a5fa' : '#a0a0b8',
     cursor:'pointer', userSelect:'none', background:'rgba(255,255,255,0.03)',
     borderBottom:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap',
@@ -798,17 +798,17 @@ function TraNccModal({ txId, onClose }) {
         <div style={{ textAlign:'center', padding:'32px', color:'#7878a0' }}>Đang tải...</div>
       ) : (
         <>
-          <div style={{ fontSize:'0.78rem', color:'#7878a0', marginBottom:'12px' }}>
+          <div style={{ fontSize:'0.84rem', color:'#7878a0', marginBottom:'12px' }}>
             <span style={{ color:'#c9a84c', fontWeight:700 }}>{tx.code}</span>
             {tx.event_name && <> · {tx.event_name}</>}
             {tx.responsible_person && <> · {tx.responsible_person}</>}
           </div>
           {/* Sort bar */}
           <div style={{ display:'flex', gap:'6px', marginBottom:'10px', alignItems:'center', flexWrap:'wrap' }}>
-            <span style={{ color:'#5a5a80', fontSize:'0.72rem' }}>Sắp xếp:</span>
+            <span style={{ color:'#5a5a80', fontSize:'0.84rem' }}>Sắp xếp:</span>
             {[['supplier','NCC'],['name','Tên thiết bị']].map(([col, label]) => (
               <button key={col} onClick={() => toggleSort(col)}
-                style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:'4px', color:'#a0a0b8', fontSize:'0.72rem', padding:'3px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:'3px' }}>
+                style={{ background:'rgba(255,255,255,0.06)', border:'none', borderRadius:'4px', color:'#a0a0b8', fontSize:'0.84rem', padding:'3px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:'3px' }}>
                 {label} <SortArrow col={col} />
               </button>
             ))}
@@ -816,7 +816,7 @@ function TraNccModal({ txId, onClose }) {
           {/* Cards */}
           <div>
             {sorted.length === 0 && (
-              <div style={{ textAlign:'center', padding:'24px', color:'#7878a0', fontSize:'0.8rem' }}>Chưa có thiết bị NCC. Nhấn "+ Thêm dòng" để nhập.</div>
+              <div style={{ textAlign:'center', padding:'24px', color:'#7878a0', fontSize:'0.84rem' }}>Chưa có thiết bị NCC. Nhấn "+ Thêm dòng" để nhập.</div>
             )}
             {sorted.map((row, i) => {
               const realIdx = items.indexOf(row);
@@ -829,7 +829,7 @@ function TraNccModal({ txId, onClose }) {
                 <div key={i} style={{ background:'rgba(255,255,255,0.04)', borderRadius:'8px', padding:'10px 12px', marginBottom:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
                   {/* Dòng 1: index + bộ phận + xóa */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
-                    <span style={{ color:'#5a5a80', fontSize:'0.72rem', minWidth:'18px' }}>{i + 1}</span>
+                    <span style={{ color:'#5a5a80', fontSize:'0.84rem', minWidth:'18px' }}>{i + 1}</span>
                     <select value={row.dept || ''} onChange={e => updateRow(realIdx, 'dept', e.target.value)}
                       style={{ flex:1, background:'#16162a', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.82rem', height:'32px', padding:'0 6px', cursor:'pointer' }}>
                       <option value="">— Bộ phận —</option>
@@ -840,7 +840,7 @@ function TraNccModal({ txId, onClose }) {
                   </div>
                   {/* Dòng 2: NCC */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
-                    <span style={{ color:'#5a5a80', fontSize:'0.7rem', width:'30px', flexShrink:0 }}>NCC</span>
+                    <span style={{ color:'#5a5a80', fontSize:'0.78rem', width:'30px', flexShrink:0 }}>NCC</span>
                     <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
                       list={dlId} placeholder="Chọn hoặc nhập NCC..."
                       style={{ ...ipt, color:'#60a5fa' }} />
@@ -848,26 +848,26 @@ function TraNccModal({ txId, onClose }) {
                   </div>
                   {/* Dòng 3: Tên thiết bị */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
-                    <span style={{ color:'#5a5a80', fontSize:'0.7rem', width:'30px', flexShrink:0 }}>Tên</span>
+                    <span style={{ color:'#5a5a80', fontSize:'0.78rem', width:'30px', flexShrink:0 }}>Tên</span>
                     <input value={row.name} onChange={e => updateRow(realIdx, 'name', e.target.value)}
                       placeholder="Tên thiết bị..."
                       style={{ ...ipt, color:'#e0e0f0' }} />
                   </div>
                   {/* Dòng 4: SL + ĐV + Ghi chú */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <span style={{ color:'#5a5a80', fontSize:'0.7rem', flexShrink:0 }}>SL</span>
+                    <span style={{ color:'#5a5a80', fontSize:'0.78rem', flexShrink:0 }}>SL</span>
                     <input type="number" min={1} value={row.quantity} onChange={e => updateRow(realIdx, 'quantity', parseInt(e.target.value) || 1)}
                       style={{ width:'52px', background:'transparent', border:'none', outline:'none', color:'#fbbf24', fontWeight:700, fontSize:'0.85rem', textAlign:'center' }} />
                     <input value={row.unit} onChange={e => updateRow(realIdx, 'unit', e.target.value)} placeholder="ĐV"
                       style={{ width:'48px', background:'transparent', border:'none', outline:'none', color:'#a0a0b8', fontSize:'0.82rem' }} />
                     <input value={row.notes} onChange={e => updateRow(realIdx, 'notes', e.target.value)} placeholder="Ghi chú..."
-                      style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.8rem' }} />
+                      style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#7878a0', fontSize:'0.84rem' }} />
                   </div>
                 </div>
               );
             })}
           </div>
-          <p style={{ fontSize:'0.72rem', color:'#5a5a80', marginTop:'8px' }}>{sorted.length} dòng</p>
+          <p style={{ fontSize:'0.84rem', color:'#5a5a80', marginTop:'8px' }}>{sorted.length} dòng</p>
         </>
       )}
     </Modal>
@@ -908,7 +908,7 @@ function Section({ Icon, title, color, border, count, children }) {
 
         {count != null && (
           <span style={{
-            fontSize: '0.72rem', fontWeight: 800,
+            fontSize: '0.84rem', fontWeight: 800,
             color: count > 0 ? '#08080e' : color,
             background: count > 0 ? color : 'transparent',
             border: count > 0 ? 'none' : `1px solid ${border}`,
@@ -939,7 +939,7 @@ function hexToRgb(hex) {
 }
 
 function Empty({ text }) {
-  return <p style={{ color:'#7878a0', fontSize:'0.8rem', padding:'12px 0', textAlign:'center' }}>{text}</p>;
+  return <p style={{ color:'#7878a0', fontSize:'0.84rem', padding:'12px 0', textAlign:'center' }}>{text}</p>;
 }
 
 // ── Section contents ──────────────────────────────────────────────────────────
@@ -953,12 +953,12 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
           <div key={ev.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
             <div style={{ flex:1, minWidth:0 }}>
               <p style={{ fontWeight:600, color:'#e0e0ee', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</p>
-              <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                 {[ev.client, ev.location].filter(Boolean).join(' · ')}
               </p>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-              {ev.start_date && <span style={{ fontSize:'0.7rem', color:cfg.color }}>{fmtDate(ev.start_date)}</span>}
+              {ev.start_date && <span style={{ fontSize:'0.78rem', color:cfg.color }}>{fmtDate(ev.start_date)}</span>}
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
               {isSuperAdmin && (
                 <button
@@ -967,7 +967,7 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
                   style={{
                     padding:'6px 12px', borderRadius:'6px', cursor:'pointer',
                     border:'1px solid rgba(120,120,160,0.3)', background:'transparent',
-                    color:'#7878a0', fontSize:'0.7rem', fontWeight:700,
+                    color:'#7878a0', fontSize:'0.78rem', fontWeight:700,
                     whiteSpace:'nowrap', transition:'all 0.15s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background='rgba(120,120,160,0.15)'; e.currentTarget.style.color='#a0a0c0'; }}
@@ -998,7 +998,7 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete }) {
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
             </div>
             {/* Hàng 2: client/location · ngày · phiếu */}
-            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {[ev.client, ev.location].filter(Boolean).join(' · ')}
               {ev.start_date && <span> · {fmtDate(ev.start_date)}</span>}
               {ev.tx_count > 0 && <span> · {ev.tx_count} phiếu</span>}
@@ -1008,11 +1008,11 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete }) {
             {isSuperAdmin && (
               <div style={{ display:'flex', gap:'6px' }}>
                 <button onClick={() => onUnarchive(ev)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.7rem', fontWeight:700 }}>
+                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.78rem', fontWeight:700 }}>
                   Bỏ lưu trữ
                 </button>
                 <button onClick={() => onDelete(ev)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.7rem', fontWeight:700 }}>
+                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.78rem', fontWeight:700 }}>
                   Xoá vĩnh viễn
                 </button>
               </div>
@@ -1036,10 +1036,10 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
           borderLeft:'3px solid #fbbf24',
         }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
-            <p style={{ fontSize:'0.75rem', color:PENDING_COLOR, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0, flex:1 }}>{tx.code}</p>
-            <span style={{ fontSize:'0.68rem', background:'rgba(251,191,36,0.15)', color:PENDING_COLOR, border:'1px solid rgba(251,191,36,0.4)', borderRadius:'6px', padding:'2px 7px', fontWeight:700, flexShrink:0 }}>Chờ xuất</span>
+            <p style={{ fontSize:'0.82rem', color:PENDING_COLOR, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0, flex:1 }}>{tx.code}</p>
+            <span style={{ fontSize:'0.82rem', background:'rgba(251,191,36,0.15)', color:PENDING_COLOR, border:'1px solid rgba(251,191,36,0.4)', borderRadius:'6px', padding:'2px 7px', fontWeight:700, flexShrink:0 }}>Chờ xuất</span>
           </div>
-          <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 8px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 8px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại
           </p>
           <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
@@ -1048,7 +1048,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
                 onClick={() => onConfirm(tx)}
                 disabled={confirming === tx.id}
                 style={{
-                  flex:1, padding:'6px 10px', borderRadius:'7px', cursor: confirming === tx.id ? 'not-allowed' : 'pointer', fontWeight:700, fontSize:'0.78rem',
+                  flex:1, padding:'6px 10px', borderRadius:'7px', cursor: confirming === tx.id ? 'not-allowed' : 'pointer', fontWeight:700, fontSize:'0.84rem',
                   background:'linear-gradient(135deg, rgba(251,191,36,0.25), rgba(251,191,36,0.12))',
                   border:'1px solid rgba(251,191,36,0.5)', color:PENDING_COLOR,
                   opacity: confirming === tx.id ? 0.5 : 1,
@@ -1077,17 +1077,17 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
         return (
           <div key={tx.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
-              <p style={{ fontSize:'0.75rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
-              <span style={{ fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
+              <p style={{ fontSize:'0.82rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
+              <span style={{ fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
             </div>
-            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
             </p>
             <div style={{ display:'flex', gap:'4px', flexWrap:'wrap' }}>
               <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
               {onTraNcc && tx.ext_count > 0 && (
                 <button onClick={() => onTraNcc(tx.id)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', border:'1px solid rgba(74,222,128,0.35)', background:'transparent', color:'#4ade80', cursor:'pointer', fontSize:'0.72rem', fontWeight:700, whiteSpace:'nowrap' }}>
+                  style={{ padding:'5px 10px', borderRadius:'6px', border:'1px solid rgba(74,222,128,0.35)', background:'transparent', color:'#4ade80', cursor:'pointer', fontSize:'0.84rem', fontWeight:700, whiteSpace:'nowrap' }}>
                   🏪 Trả NCC
                 </button>
               )}
@@ -1113,12 +1113,12 @@ function ReportRows({ reports }) {
         <div key={r.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', display:'flex', alignItems:'center', gap:'12px' }}>
           <div style={{ flex:1, minWidth:0 }}>
             <p style={{ fontWeight:600, color:'#e0e0ee', margin:'0 0 2px', fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.event_label || 'Sự kiện'}</p>
-            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0 }}>
+            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
               {r.location && <span style={{ marginRight:'8px', display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {r.location}</span>}
               {r.reporter_name && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><User size={11} /> {r.reporter_name}</span>}
             </p>
           </div>
-          <div style={{ textAlign:'right', fontSize:'0.7rem', flexShrink:0 }}>
+          <div style={{ textAlign:'right', fontSize:'0.78rem', flexShrink:0 }}>
             {r.report_date && <div style={{ color:'#7878a0' }}>{fmtDate(r.report_date)}</div>}
             {r.service_quality && <div style={{ color:GOLD, fontWeight:600 }}>{r.service_quality}</div>}
           </div>
@@ -1136,11 +1136,11 @@ function ViolationRows({ violations }) {
         <div key={v.id} style={{ padding:'9px 12px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.12)', borderRadius:'8px', display:'flex', alignItems:'center', gap:'12px' }}>
           <div style={{ flex:1, minWidth:0 }}>
             <p style={{ fontWeight:700, color:'#f87171', margin:'0 0 2px', fontSize:'0.84rem' }}>{v.violator}</p>
-            <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:0 }}>
+            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
               {v.violation_type}{v.event_label ? ` · ${v.event_label}` : ''}
             </p>
           </div>
-          <div style={{ textAlign:'right', fontSize:'0.7rem', color:'#7878a0', flexShrink:0 }}>
+          <div style={{ textAlign:'right', fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
             <div>{fmtD(v.created_at)}</div>
           </div>
@@ -1328,20 +1328,20 @@ export default function Transactions() {
                       <div key={tx.id} style={{ padding:'10px 12px', background:'rgba(248,113,113,0.05)', border:'1px solid rgba(248,113,113,0.15)', borderRadius:'8px', display:'flex', alignItems:'flex-start', gap:'10px' }}>
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'3px' }}>
-                            <span style={{ fontWeight:700, color:typeColor, fontSize:'0.78rem' }}>{typeLabel}</span>
+                            <span style={{ fontWeight:700, color:typeColor, fontSize:'0.84rem' }}>{typeLabel}</span>
                             <span style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.85rem' }}>{tx.code}</span>
-                            {tx.event_name && <span style={{ color:'#7878a0', fontSize:'0.75rem' }}>— {tx.event_name}</span>}
+                            {tx.event_name && <span style={{ color:'#7878a0', fontSize:'0.82rem' }}>— {tx.event_name}</span>}
                           </div>
-                          <div style={{ fontSize:'0.75rem', color:'#7878a0' }}>
+                          <div style={{ fontSize:'0.82rem', color:'#7878a0' }}>
                             {tx.item_count > 0 && <span>{tx.item_count} thiết bị · </span>}
                             Xóa bởi <span style={{ color:'#c0c0d8' }}>{tx.deleted_by_name}</span> lúc {fmtDT(tx.deleted_at)}
                           </div>
                           {tx.deleted_reason && (
-                            <div style={{ fontSize:'0.75rem', color:'#f87171', marginTop:'2px' }}>Lý do: {tx.deleted_reason}</div>
+                            <div style={{ fontSize:'0.82rem', color:'#f87171', marginTop:'2px' }}>Lý do: {tx.deleted_reason}</div>
                           )}
                         </div>
                         {user?.role === 'SUPER_ADMIN' && (
-                          <button onClick={() => handlePermanentDelete(tx)} style={{ padding:'5px 10px', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'6px', color:'#f87171', fontWeight:700, fontSize:'0.72rem', cursor:'pointer', flexShrink:0, whiteSpace:'nowrap' }}>
+                          <button onClick={() => handlePermanentDelete(tx)} style={{ padding:'5px 10px', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'6px', color:'#f87171', fontWeight:700, fontSize:'0.84rem', cursor:'pointer', flexShrink:0, whiteSpace:'nowrap' }}>
                             Xóa vĩnh viễn
                           </button>
                         )}

@@ -67,7 +67,7 @@ function StaffScheduleModal({ event, onClose }) {
     return (
       <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 4px' }}>
         <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-        <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
+        <span style={{ fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
           {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
         </span>
         <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
@@ -82,7 +82,7 @@ function StaffScheduleModal({ event, onClose }) {
       <div key={`${phase.key}-${date}`} style={{ marginBottom:'6px', padding:'10px 12px', background: isPast ? 'rgba(120,120,160,0.04)' : 'rgba(201,168,76,0.04)', border:`1px solid ${isPast ? 'rgba(120,120,160,0.15)' : 'rgba(201,168,76,0.12)'}`, borderRadius:'8px', opacity: isPast ? 0.65 : 1 }}>
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
           <span style={{ fontWeight:700, color:GOLD, fontSize:'0.82rem' }}>{phase.label}</span>
-          <span style={{ fontSize:'0.75rem', color: dateColor, fontWeight:700 }}>{fmtD(date)}</span>
+          <span style={{ fontSize:'0.82rem', color: dateColor, fontWeight:700 }}>{fmtD(date)}</span>
         </div>
         {dLeads.map((l, i) => {
           const dc = getDeptColor(l.department);
@@ -192,7 +192,7 @@ function StaffScheduleModal({ event, onClose }) {
 
         return (
           <div key={s.id} style={{ marginBottom:'16px', paddingBottom:'16px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
-            <p style={{ fontSize:'0.8rem', color:'#7878a0', marginBottom:'8px' }}>
+            <p style={{ fontSize:'0.84rem', color:'#7878a0', marginBottom:'8px' }}>
               👤 Người phân lịch: <strong style={{ color:GOLD }}>{s.scheduler_name}</strong> ·{' '}
               <span style={{ color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24' }}>
                 {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
@@ -316,7 +316,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
             marginTop: '4px', overflow: 'hidden',
           }}>
-            <p style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#7878a0', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+            <p style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#7878a0', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
               Sự kiện đã có — click để dùng tên này
             </p>
             {suggestions.map(ev => (
@@ -333,9 +333,9 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
-                <span style={{ color: '#c9a84c', fontWeight: 600, fontSize: '0.9rem' }}>{ev.name}</span>
-                {ev.start_date && <span style={{ fontSize: '0.72rem', color: '#7878a0', marginLeft: 'auto' }}>{fmtD(ev.start_date)}</span>}
+                <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
+                <span style={{ color: '#c9a84c', fontWeight: 600, fontSize: '0.92rem' }}>{ev.name}</span>
+                {ev.start_date && <span style={{ fontSize: '0.84rem', color: '#7878a0', marginLeft: 'auto' }}>{fmtD(ev.start_date)}</span>}
               </button>
             ))}
           </div>
@@ -372,7 +372,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         <div>
           <label className="label" style={{ color:'#fb923c' }}>Ngày ghi hình {!initial && <span style={{ color:'#f87171' }}>*</span>}</label>
           <MultiDatePicker value={form.filming_dates || []} onChange={v => set('filming_dates', v)} error={dateError} placeholder="Chọn ngày ghi hình..." />
-          {dateError && <p style={{ color:'#f87171', fontSize:'0.75rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
+          {dateError && <p style={{ color:'#f87171', fontSize:'0.82rem', marginTop:'4px' }}>Vui lòng chọn ít nhất một ngày ghi hình</p>}
         </div>
         <div>
           <label className="label">Ngày kết thúc</label>
@@ -467,8 +467,8 @@ function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
               paddingBottom: '8px',
               borderBottom: '1px solid rgba(201,168,76,0.15)',
             }}>
-              <span style={{ fontSize: '0.9rem' }}>📋</span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ fontSize: '0.92rem' }}>📋</span>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Ghi chú
               </span>
             </div>
@@ -514,7 +514,7 @@ function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
                             <td colSpan={5} style={{ padding:'8px 0 4px' }}>
                               <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${color}, transparent)`, opacity:0.5 }} />
-                                <span style={{ fontSize:'0.65rem', fontWeight:800, color, letterSpacing:'0.1em', whiteSpace:'nowrap' }}>{cat}</span>
+                                <span style={{ fontSize:'0.80rem', fontWeight:800, color, letterSpacing:'0.1em', whiteSpace:'nowrap' }}>{cat}</span>
                                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${color}, transparent)`, opacity:0.5 }} />
                               </div>
                             </td>
@@ -608,7 +608,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
         <p style={{ textAlign:'center', color:'var(--text-muted)', padding:'32px' }}>Thùng rác trống</p>
       ) : (
         <div className="space-y-3">
-          <p style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginBottom:'8px' }}>
+          <p style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom:'8px' }}>
             Sự kiện bị xóa sẽ tự động xóa vĩnh viễn sau 30 ngày.
           </p>
           {trash.map(ev => (
@@ -620,9 +620,9 @@ function TrashView({ onClose, canPermanentDelete, user }) {
               <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px', flexWrap:'wrap' }}>
-                    <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'var(--text-muted)' }}>{ev.code}</span>
+                    <span style={{ fontFamily:'monospace', fontSize:'0.84rem', color:'var(--text-muted)' }}>{ev.code}</span>
                     <span style={{
-                      fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
+                      fontSize:'0.78rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
                       background: ev.days_left <= 5 ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)',
                       color: ev.days_left <= 5 ? '#f87171' : '#fbbf24',
                       border: `1px solid ${ev.days_left <= 5 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)'}`,
@@ -632,7 +632,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
                     </span>
                   </div>
                   <p style={{ fontWeight:700, color:'var(--text-primary)', margin:'0 0 2px', wordBreak:'break-word' }}>{ev.name}</p>
-                  <p style={{ fontSize:'0.75rem', color:'var(--text-muted)', margin:0 }}>
+                  <p style={{ fontSize:'0.82rem', color:'var(--text-muted)', margin:0 }}>
                     Xóa lúc: {ev.deleted_at?.slice(0, 16)}
                   </p>
                 </div>
@@ -657,7 +657,7 @@ function ZoneHeader({ color, bg, border, label, count }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
-      <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
       </span>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />
@@ -843,9 +843,9 @@ export default function Events() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
                   <span className={s.cls}>{s.label}</span>
-                  {isToday    && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
-                  {isTomorrow && <span style={{ fontSize:'0.63rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
-                  {ev.archived_at && <span style={{ fontSize:'0.7rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
+                  {isToday    && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
+                  {isTomorrow && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
+                  {ev.archived_at && <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>

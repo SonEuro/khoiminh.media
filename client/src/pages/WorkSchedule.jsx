@@ -24,7 +24,7 @@ function graceLeft(lockTime) {
 }
 
 const labelStyle = {
-  display: 'block', fontSize: '0.72rem', fontWeight: 700,
+  display: 'block', fontSize: '0.84rem', fontWeight: 700,
   color: GOLD, letterSpacing: '0.06em', marginBottom: '5px',
   textTransform: 'uppercase',
 };
@@ -147,7 +147,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
           color: visibleSelected.length ? '#e8c97a' : '#7878a0',
         }}>
         <span>{visibleSelected.length === 0 ? 'Chọn nhân sự Khôi Minh...' : `Đã chọn ${visibleSelected.length} người`}</span>
-        <span style={{ color: GOLD, fontSize: '0.75rem' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: GOLD, fontSize: '0.82rem' }}>{open ? '▲' : '▼'}</span>
       </button>
 
       {visibleSelected.length > 0 && (
@@ -160,7 +160,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
             }}>
               <span style={{ fontSize: '0.82rem', color: '#e8c97a' }}>{s}</span>
               <button type="button" onClick={() => toggle(s)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.92rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
             </div>
           ))}
         </div>
@@ -176,7 +176,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
           {sortedGroups.map((g, gi) => (
             <div key={g.dept} style={{ borderBottom: gi < sortedGroups.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
               <div style={{
-                padding: '6px 14px', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
+                padding: '6px 14px', fontSize: '0.80rem', fontWeight: 800, letterSpacing: '0.1em',
                 color: priorityDepts.includes(g.dept) ? '#60a5fa' : GOLD,
                 background: 'rgba(201,168,76,0.04)',
               }}>
@@ -237,7 +237,7 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
         })}
       </div>
       <button type="button" onClick={addRow}
-        style={{ marginTop: '6px', padding: '5px 12px', borderRadius: '7px', fontSize: '0.76rem', fontWeight: 700,
+        style={{ marginTop: '6px', padding: '5px 12px', borderRadius: '7px', fontSize: '0.82rem', fontWeight: 700,
           background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
         + Thêm nhóm trưởng
       </button>
@@ -271,7 +271,7 @@ function FreelancerDeptInput({ dept, value, onChange }) {
         onChange={e => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        style={{ width:'100%', height:'30px', padding:'0 8px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#c0c0d8', fontSize:'0.8rem', outline:'none' }}
+        style={{ width:'100%', height:'30px', padding:'0 8px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#c0c0d8', fontSize:'0.84rem', outline:'none' }}
       />
       {open && suggestions.length > 0 && (
         <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:300, background:'#1a1a2e', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'8px', maxHeight:'160px', overflowY:'auto', marginTop:'2px', boxShadow:'0 8px 24px rgba(0,0,0,0.6)' }}>
@@ -305,11 +305,11 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px', padding: '8px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: '8px' }}>
       {availableDepts.length > 1 ? (
         <select value={dept} onChange={e => setDept(e.target.value)}
-          style={{ width: '100%', height: '44px', padding: '0 8px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
+          style={{ width: '100%', height: '44px', padding: '0 8px', background: '#161628', border: '1px solid rgba(167,139,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.84rem', outline: 'none', cursor: 'pointer' }}>
           {availableDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
       ) : (
-        <span style={{ fontSize: '0.72rem', color: '#a78bfa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
+        <span style={{ fontSize: '0.84rem', color: '#a78bfa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
       )}
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -317,7 +317,7 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
         </div>
         <button
           onMouseDown={e => { e.preventDefault(); handleAdd(); }}
-          style={{ height: '42px', padding: '0 10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+          style={{ height: '42px', padding: '0 10px', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', fontSize: '0.84rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
           + Thêm
         </button>
         <button
@@ -341,21 +341,21 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px', padding: '8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
       {kmDepts.length > 1 ? (
         <select value={dept} onChange={e => { setDept(e.target.value); setName(''); }}
-          style={{ width: '100%', height: '44px', padding: '0 8px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
+          style={{ width: '100%', height: '44px', padding: '0 8px', background: '#161628', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.84rem', outline: 'none', cursor: 'pointer' }}>
           {kmDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
       ) : (
-        <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
+        <span style={{ fontSize: '0.84rem', color: '#60a5fa', fontWeight: 700, padding: '0 2px' }}>{getDeptDisplay(dept)}</span>
       )}
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         <select value={name} onChange={e => setName(e.target.value)}
-          style={{ flex: 1, height: '42px', padding: '0 6px', background: '#161628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none', cursor: 'pointer' }}>
+          style={{ flex: 1, height: '42px', padding: '0 6px', background: '#161628', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.84rem', outline: 'none', cursor: 'pointer' }}>
           <option value="">-- Chọn nhân sự --</option>
           {members.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
         <button
           onMouseDown={e => { e.preventDefault(); if (!name) return; onAdd(name); setName(''); }}
-          style={{ height: '42px', padding: '0 10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
+          style={{ height: '42px', padding: '0 10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.84rem', cursor: 'pointer', flexShrink: 0, fontWeight: 700 }}>
           + Thêm
         </button>
         <button
@@ -395,9 +395,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
 
-  const subLabel  = { ...labelStyle, fontSize: '0.62rem', color: '#a0a0b8', marginBottom: '4px' };
-  const deptLbl   = { fontSize: '0.6rem', color: '#6b7280', fontWeight: 700, display: 'block', marginBottom: '2px', letterSpacing: '0.04em' };
-  const deptInput = { width: '100%', height: '42px', padding: '0 8px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.8rem', outline: 'none' };
+  const subLabel  = { ...labelStyle, fontSize: '0.80rem', color: '#a0a0b8', marginBottom: '4px' };
+  const deptLbl   = { fontSize: '0.72rem', color: '#6b7280', fontWeight: 700, display: 'block', marginBottom: '2px', letterSpacing: '0.04em' };
+  const deptInput = { width: '100%', height: '42px', padding: '0 8px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#c0c0d8', fontSize: '0.84rem', outline: 'none' };
 
   function setFree(dateKey, dept, val) {
     const cur = typeof freelancersMap[dateKey] === 'object' ? (freelancersMap[dateKey] || {}) : {};
@@ -421,7 +421,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
     return (
       <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.18)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.06em' }}>⏰ GIỜ BẮT ĐẦU</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#60a5fa', letterSpacing: '0.06em' }}>⏰ GIỜ BẮT ĐẦU</span>
           <div style={{ flex: 1, height: '1px', background: 'rgba(96,165,250,0.2)' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '6px 12px' }}>
@@ -429,7 +429,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             const dc = getDeptColor(dept);
             return (
               <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '7px', padding: '8px 10px' }}>
-                <span style={{ fontSize: '0.75rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDeptDisplay(dept)}</span>
+                <span style={{ fontSize: '0.82rem', color: dc.color, fontWeight: 700, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDeptDisplay(dept)}</span>
                 <input
                   type="time"
                   value={timesObj[dept] ?? ''}
@@ -470,11 +470,11 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                       const dc = getDeptColor(dept);
                       return (
                         <div key={`${dept}-${name}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                          <span style={{ fontSize: '0.72rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
+                          <span style={{ fontSize: '0.84rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
                           <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
                           <button
                             onMouseDown={e => { e.preventDefault(); removeName(dept, name); }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.92rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                         </div>
                       );
                     })}
@@ -493,7 +493,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 ) : (
                   <button
                     onClick={() => setShowAddRow(p => ({ ...p, [dateKey]: true }))}
-                    style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.75rem', cursor: 'pointer' }}>
+                    style={{ marginTop: '2px', width: '100%', padding: '5px 0', background: 'rgba(167,139,250,0.05)', border: '1px dashed rgba(167,139,250,0.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '0.82rem', cursor: 'pointer' }}>
                     + Thêm nhân sự freelancer
                   </button>
                 )}
@@ -526,11 +526,11 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                     const dc = getDeptColor(dept);
                     return (
                       <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                        <span style={{ fontSize: '0.72rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
-                        <span style={{ fontSize: '0.8rem', color: '#d4c8a0', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
+                        <span style={{ fontSize: '0.84rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(dept)}</span>
+                        <span style={{ fontSize: '0.84rem', color: '#d4c8a0', flex: 1, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notesDeptObj[dept]}</span>
                         <button
                           onMouseDown={e => { e.preventDefault(); setNote(dateKey, dept, ''); }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.92rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                       </div>
                     );
                   })}
@@ -539,7 +539,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
               <select
                 value={activeNoteDept}
                 onChange={e => setNoteDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
-                style={{ width: '100%', height: '42px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '6px', color: '#c9b98a', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+                style={{ width: '100%', height: '42px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '6px', color: '#c9b98a', fontSize: '0.84rem', outline: 'none', cursor: 'pointer' }}>
                 {visibleNoteDepts.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
               </select>
               <input
@@ -607,12 +607,12 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 const dc = getDeptColor(displayDept);
                 return (
                   <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 10px', background: dc.bg, border: `1px solid ${dc.border}`, borderRadius: '6px' }}>
-                    <span style={{ fontSize: '0.6rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(displayDept)}</span>
+                    <span style={{ fontSize: '0.72rem', color: dc.color, fontWeight: 700, flexShrink: 0 }}>{getDeptDisplay(displayDept)}</span>
                     <span style={{ fontSize: '0.82rem', color: '#e0e0ee', flex: 1 }}>{name}</span>
-                    {forDept && <span style={{ fontSize: '0.6rem', background: 'rgba(96,165,250,0.2)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.4)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>HT</span>}
+                    {forDept && <span style={{ fontSize: '0.72rem', background: 'rgba(96,165,250,0.2)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.4)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>HT</span>}
                     <button
                       onMouseDown={e => { e.preventDefault(); removeStaff(name); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: dc.color, fontSize: '0.92rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
                   </div>
                 );
               })}
@@ -622,7 +622,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
         <select
           value={activeDept}
           onChange={e => setKMDeptFilter(p => ({ ...p, [dateKey]: e.target.value }))}
-          style={{ width: '100%', height: '42px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#93c5fd', fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+          style={{ width: '100%', height: '42px', padding: '0 8px', marginBottom: '5px', background: '#161628', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '6px', color: '#93c5fd', fontSize: '0.84rem', outline: 'none', cursor: 'pointer' }}>
           {deptList.map(d => <option key={d} value={d}>{getDeptDisplay(d)}</option>)}
         </select>
         <StaffMultiSelect
@@ -646,7 +646,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             : <button
                 type="button"
                 onMouseDown={e => { e.preventDefault(); setShowSupportRow(p => ({ ...p, [dateKey]: true })); }}
-                style={{ marginTop: '5px', padding: '6px 12px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ marginTop: '5px', padding: '6px 12px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '6px', color: '#60a5fa', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
                 + Hỗ trợ
               </button>
         )}
@@ -688,9 +688,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             const isPastLocked = d < todayStr && !isSADir;
             return (
               <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: isPastLocked ? 'rgba(120,120,160,0.04)' : 'rgba(251,191,36,0.04)', border: `1px solid ${isPastLocked ? 'rgba(120,120,160,0.15)' : 'rgba(251,191,36,0.12)'}` }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   📅 {fmtD(d)}
-                  {isPastLocked && <span style={{ fontSize: '0.65rem', color: '#555570' }}>🔒 Ngày đã qua</span>}
+                  {isPastLocked && <span style={{ fontSize: '0.80rem', color: '#555570' }}>🔒 Ngày đã qua</span>}
                 </div>
                 <div style={isPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
                   {renderDateSection(d)}
@@ -704,7 +704,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
         return (
           <>
             {singleIsPastLocked && (
-              <div style={{ fontSize: '0.65rem', color: '#555570', marginBottom: '8px' }}>🔒 Ngày đã qua – chỉ Super Admin / Giám đốc mới chỉnh được</div>
+              <div style={{ fontSize: '0.80rem', color: '#555570', marginBottom: '8px' }}>🔒 Ngày đã qua – chỉ Super Admin / Giám đốc mới chỉnh được</div>
             )}
             <div style={singleIsPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
               {renderStartTimes(singleKey)}
@@ -881,7 +881,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
                   <button
                     type="button"
                     onClick={() => onSwitchToEdit(existingForEvent)}
-                    style={{ padding: '6px 14px', borderRadius: '7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ padding: '6px 14px', borderRadius: '7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.4)', color: '#f87171', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}>
                     ✏️ Chuyển sang chỉnh sửa
                   </button>
                 );
@@ -925,7 +925,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
             return (
               <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 2px' }}>
                 <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-                <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>{label}</span>
+                <span style={{ fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>{label}</span>
                 <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
               </div>
             );
@@ -956,12 +956,12 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
 
         {conflicts.length > 0 && (
           <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.35)', borderRadius: '10px', padding: '12px 14px' }}>
-            <p style={{ margin: '0 0 8px', fontSize: '0.72rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.06em' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '0.84rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.06em' }}>
               ⚠️ CẢNH BÁO TRÙNG LỊCH — chỉ để tham khảo, vẫn có thể lưu
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {conflicts.map((c, i) => (
-                <p key={i} style={{ margin: 0, fontSize: '0.8rem', color: '#fde68a' }}>
+                <p key={i} style={{ margin: 0, fontSize: '0.84rem', color: '#fde68a' }}>
                   • <strong>{c.name}</strong> đã có lịch ngày <strong>{fmtD(c.date)}</strong> trong "<em>{c.otherEvent}</em>"
                 </p>
               ))}
@@ -1035,12 +1035,12 @@ function MySchedulesSection({ schedules, user, onSelect }) {
         onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
       >
         <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem', color: '#a0a0b8' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.84rem', color: '#a0a0b8' }}>
           {[['🏗', s.setup_dates, false], ['📦', s.teardown_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true]]
             .filter(([, d]) => d?.length > 0)
             .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
             .map(([icon, dates, isFilming]) => (
-              <span key={icon} style={isFilming ? { color:'#fb923c', fontWeight:700, fontSize:'0.78rem' } : undefined}>
+              <span key={icon} style={isFilming ? { color:'#fb923c', fontWeight:700, fontSize:'0.84rem' } : undefined}>
                 {icon} {dates.map((d, i) => (
                   <span key={d} style={
                     d === today    ? { color: '#f87171', fontWeight: 800 } :
@@ -1065,12 +1065,12 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       border: '1px solid rgba(167,139,250,0.25)', borderRadius: '14px',
       padding: '16px', marginBottom: '20px',
     }}>
-      <h2 style={{ margin: '0 0 12px', fontSize: '0.9rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.04em' }}>
+      <h2 style={{ margin: '0 0 12px', fontSize: '0.92rem', fontWeight: 800, color: '#4ade80', letterSpacing: '0.04em' }}>
         📅 Lịch làm việc của bạn
       </h2>
       {ongoing.length > 0 && (
         <div style={{ marginBottom: upcoming.length ? '14px' : 0 }}>
-          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#f87171', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '0.80rem', fontWeight: 800, color: '#f87171', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             ● Đang diễn ra hôm nay
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1080,7 +1080,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       )}
       {upcoming.length > 0 && (
         <div>
-          <p style={{ margin: '0 0 6px', fontSize: '0.65rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '0.80rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             ● Sắp tới
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1210,7 +1210,7 @@ export default function WorkSchedule() {
       {!canPhanLich && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: '10px', padding: '11px 16px', marginBottom: '16px' }}>
           <span>🔒</span>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#60a5fa' }}>Bạn chỉ có thể xem lịch làm việc, không có quyền tạo/sửa.</p>
+          <p style={{ margin: 0, fontSize: '0.84rem', color: '#60a5fa' }}>Bạn chỉ có thể xem lịch làm việc, không có quyền tạo/sửa.</p>
         </div>
       )}
 
@@ -1231,7 +1231,7 @@ export default function WorkSchedule() {
             <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
               <span style={{ fontSize:'1rem' }}>🔔</span>
               <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
-              <span style={{ background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+              <span style={{ background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                 {filtered.length} vi phạm
               </span>
             </div>
@@ -1246,18 +1246,18 @@ export default function WorkSchedule() {
                   : null;
                 return (
                   <div key={v.id} style={{ display:'flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.15)', border:`1px solid ${color}33`, borderRadius:'8px', padding:'8px 12px' }}>
-                    <span style={{ fontSize:'0.9rem' }}>{typeIcon(v.violation_type)}</span>
+                    <span style={{ fontSize:'0.92rem' }}>{typeIcon(v.violation_type)}</span>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                         <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{v.violator}</span>
                         {getUserDept(v.violator) && (
-                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: vDept.color, background: vDept.bg, border:`1px solid ${vDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
+                          <span style={{ fontSize:'0.84rem', fontWeight:600, color: vDept.color, background: vDept.bg, border:`1px solid ${vDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
                             {getUserDept(v.violator)}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'3px', display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:`${color}18`, borderRadius:'4px', padding:'1px 6px' }}>
+                      <div style={{ fontSize:'0.82rem', color:'#a0a0b8', marginTop:'3px', display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                        <span style={{ fontSize:'0.84rem', fontWeight:700, color, background:`${color}18`, borderRadius:'4px', padding:'1px 6px' }}>
                           {v.violation_type}
                         </span>
                         {v.event_label && v.event_label !== 'Nội bộ' && <span>{v.event_label}</span>}
@@ -1293,12 +1293,12 @@ export default function WorkSchedule() {
               <span style={{ fontSize:'1rem' }}>📋</span>
               <span style={{ fontSize:'0.82rem', fontWeight:800, color: GOLD, letterSpacing:'0.05em' }}>BÁO CÁO CẦN NỘP</span>
               {overdue.length > 0 && (
-                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {overdue.length} quá hạn
                 </span>
               )}
               {pending.length > 0 && (
-                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#fbbf24' }}>
+                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
                   {pending.length} chờ nộp
                 </span>
               )}
@@ -1319,7 +1319,7 @@ export default function WorkSchedule() {
                       <div style={{ fontSize:'0.85rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                         {ob.event_display || ob.event_name || 'Sự kiện'}
                       </div>
-                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8' }}>
+                      <div style={{ fontSize:'0.84rem', color:'#a0a0b8' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
                         {isOver && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn{left ? ` · ${left}` : ''}</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'5px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
@@ -1327,7 +1327,7 @@ export default function WorkSchedule() {
                     </div>
                     <button
                       onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
-                      style={{ flexShrink:0, background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 10px', fontSize:'0.72rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
+                      style={{ flexShrink:0, background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 10px', fontSize:'0.84rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
                     >
                       Nộp →
                     </button>
@@ -1353,12 +1353,12 @@ export default function WorkSchedule() {
               <span style={{ fontSize:'1rem' }}>📋</span>
               <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP</span>
               {overdue.length > 0 && (
-                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {overdue.length} quá hạn
                 </span>
               )}
               {pending.length > 0 && (
-                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#fbbf24' }}>
+                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
                   {pending.length} chờ nộp
                 </span>
               )}
@@ -1379,15 +1379,15 @@ export default function WorkSchedule() {
                       <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                         <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
                         {getUserDept(ob.lead_name) && (
-                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: leadDept.color, background: leadDept.bg, border:`1px solid ${leadDept.border}`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>
+                          <span style={{ fontSize:'0.84rem', fontWeight:600, color: leadDept.color, background: leadDept.bg, border:`1px solid ${leadDept.border}`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>
                             {getUserDept(ob.lead_name)}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize:'0.78rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
+                      <div style={{ fontSize:'0.84rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
                         {ob.event_display || ob.event_name || 'Sự kiện'}
                       </div>
-                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
+                      <div style={{ fontSize:'0.84rem', color:'#a0a0b8', marginTop:'1px' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
                         {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
@@ -1439,12 +1439,12 @@ export default function WorkSchedule() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#7878a0' }}>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: '#7878a0' }}>
                     👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
                   </p>
                 </div>
                 <span style={{
-                  padding: '3px 10px', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
+                  padding: '3px 10px', borderRadius: '9999px', fontSize: '0.84rem', fontWeight: 700, flexShrink: 0,
                   background: s.status === 'confirmed' ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)',
                   color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24',
                   border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`,
@@ -1452,7 +1452,7 @@ export default function WorkSchedule() {
                   {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.75rem', color: '#a0a0b8' }}>
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.82rem', color: '#a0a0b8' }}>
                 {[['filming', s.filming_dates], ['setup', s.setup_dates], ['rehearsal', s.rehearsal_dates], ['teardown', s.teardown_dates]]
                   .filter(([, d]) => d?.length)
                   .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
@@ -1471,7 +1471,7 @@ export default function WorkSchedule() {
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '6px 0 4px' }}>
               <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, ${border}, transparent)` }} />
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', color, background: bg, border: `1px solid ${border}`, borderRadius: '999px', padding: '3px 12px', whiteSpace: 'nowrap', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {label} <span style={{ opacity: 0.7, fontWeight: 600 }}>({count})</span>
               </span>
               <div style={{ flex: 1, height: '1px', background: `linear-gradient(270deg, ${border}, transparent)` }} />
@@ -1551,7 +1551,7 @@ export default function WorkSchedule() {
                 return (
                   <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'10px 0 4px' }}>
                     <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-                    <span style={{ fontSize:'0.7rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
+                    <span style={{ fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.08em', color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'3px 12px', whiteSpace:'nowrap' }}>
                       {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
                     </span>
                     <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
@@ -1618,7 +1618,7 @@ export default function WorkSchedule() {
                   <div key={`${phase.key}-${date}`} style={{ ...sectionStyle, opacity: isPast ? 0.65 : 1, marginBottom:'6px' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
                       <span style={{ fontWeight:700, color:GOLD, fontSize:'0.88rem' }}>{phase.label}</span>
-                      <span style={{ fontSize:'0.75rem', color: date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa', fontWeight:700 }}>{fmtD(date)}</span>
+                      <span style={{ fontSize:'0.82rem', color: date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa', fontWeight:700 }}>{fmtD(date)}</span>
                     </div>
                     {timeDepts.length > 0 && (
                       <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'6px', marginBottom:'8px' }} className="time-badge-wrap">
@@ -1626,7 +1626,7 @@ export default function WorkSchedule() {
                           const dc = getDeptColor(dept);
                           return (
                             <div key={dept} style={{ background:dc.bg, border:`1px solid ${dc.border}`, borderRadius:'8px', padding:'9px 14px', textAlign:'center' }}>
-                              <div style={{ fontSize:'0.72rem', color:dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
+                              <div style={{ fontSize:'0.84rem', color:dc.color, fontWeight:700, letterSpacing:'0.03em' }}>⏰ {getDeptDisplay(dept)}</div>
                               <div style={{ fontSize:'0.95rem', color:'#fbbf24', fontWeight:800 }}>{time}</div>
                             </div>
                           );
@@ -1648,7 +1648,7 @@ export default function WorkSchedule() {
                               {members.map(n => (
                             <div key={n} style={{ ...kmItemStyle, display:'flex', alignItems:'center', gap:'5px' }}>
                               <span>• {n}</span>
-                              {daySupport[n] && <span style={{ fontSize:'0.6rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>{getDeptDisplay(KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || '')} - HT</span>}
+                              {daySupport[n] && <span style={{ fontSize:'0.72rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>{getDeptDisplay(KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || '')} - HT</span>}
                             </div>
                           ))}
                             </div>
@@ -1714,7 +1714,7 @@ export default function WorkSchedule() {
             })()}
             {scheduleHistory.length > 0 && (
               <div style={{ marginTop: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
-                <p style={{ fontSize: '0.78rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
+                <p style={{ fontSize: '0.84rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: `${5 * 28}px`, overflowY: 'auto' }}>
                   {scheduleHistory.map((h, i) => {
                     const actionLabel = h.action === 'confirm' ? '✅ Xác nhận lịch' : '✏️ Chỉnh sửa';
@@ -1722,10 +1722,10 @@ export default function WorkSchedule() {
                     const dt = new Date(h.edited_at);
                     const dtStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
                     return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', minHeight: '24px' }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', minHeight: '24px' }}>
                         <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
                         <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
-                        <span style={{ color: '#555570', marginLeft: 'auto', flexShrink: 0, fontFamily: 'monospace', fontSize: '0.7rem' }}>{dtStr}</span>
+                        <span style={{ color: '#555570', marginLeft: 'auto', flexShrink: 0, fontFamily: 'monospace', fontSize: '0.78rem' }}>{dtStr}</span>
                       </div>
                     );
                   })}

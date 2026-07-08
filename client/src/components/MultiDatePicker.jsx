@@ -105,7 +105,7 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
             {/* Day-of-week headers */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:'4px' }}>
               {DAY_NAMES.map(d => (
-                <div key={d} style={{ textAlign:'center', fontSize:'0.6rem', color:'#555570', fontWeight:700, padding:'2px 0' }}>{d}</div>
+                <div key={d} style={{ textAlign:'center', fontSize:'0.72rem', color:'#555570', fontWeight:700, padding:'2px 0' }}>{d}</div>
               ))}
             </div>
 
@@ -138,7 +138,7 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
                 {value.map(d => {
                   const [,m,day] = d.split('-');
                   return (
-                    <span key={d} style={{ fontSize:'0.68rem', background:'rgba(167,139,250,0.18)', border:'1px solid rgba(167,139,250,0.35)', color:'#c4b5fd', borderRadius:'20px', padding:'2px 8px', cursor:'pointer' }}
+                    <span key={d} style={{ fontSize:'0.75rem', background:'rgba(167,139,250,0.18)', border:'1px solid rgba(167,139,250,0.35)', color:'#c4b5fd', borderRadius:'20px', padding:'2px 8px', cursor:'pointer' }}
                       onClick={() => onChange(value.filter(v => v !== d))}>
                       {day}/{m} ×
                     </span>

@@ -72,7 +72,7 @@ export default function Reports() {
             borderRadius: '12px',
             padding: '12px',
           }}>
-            <p style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color: s.labelColor, opacity:0.85, margin:0, whiteSpace:'nowrap' }}>{s.label}</p>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color: s.labelColor, opacity:0.85, margin:0, whiteSpace:'nowrap' }}>{s.label}</p>
             <p style={{ fontSize:'1.5rem', fontWeight:800, color: s.valColor, margin:'4px 0 0', lineHeight:1 }}>{s.val}</p>
           </div>
         ))}
@@ -93,7 +93,7 @@ export default function Reports() {
           <div key={cat} className="card p-0 overflow-hidden">
             <div style={{ padding:'10px 16px', background:'rgba(201,168,76,0.08)', borderBottom:'1px solid rgba(201,168,76,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.95rem' }}>{items[0]?.icon || ''} {cat}</h2>
-              <span style={{ fontSize:'0.78rem', color:'var(--text-muted)' }}>{items.length} loại · tổng {catTotal.qty_total}</span>
+              <span style={{ fontSize:'0.84rem', color:'var(--text-muted)' }}>{items.length} loại · tổng {catTotal.qty_total}</span>
             </div>
             <div className="table-wrap">
             <table className="w-full text-sm" style={{ minWidth: '580px' }}>
@@ -113,9 +113,9 @@ export default function Reports() {
               <tbody>
                 {items.map(r => (
                   <tr key={r.code}>
-                    <td style={{ textAlign:'center', padding:'9px 12px', fontFamily:'monospace', fontSize:'0.75rem', color:'var(--text-muted)' }}>{r.code}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontFamily:'monospace', fontSize:'0.82rem', color:'var(--text-muted)' }}>{r.code}</td>
                     <td style={{ textAlign:'left',   padding:'9px 12px', fontWeight:600, color:'var(--text-primary)' }}>{r.name}</td>
-                    <td style={{ textAlign:'center', padding:'9px 12px', fontSize:'0.78rem', color:'var(--text-muted)' }}>{r.unit}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontSize:'0.84rem', color:'var(--text-muted)' }}>{r.unit}</td>
                     <td style={{ textAlign:'center', padding:'9px 12px', fontWeight:700, color:'var(--text-primary)' }}>{r.qty_total}</td>
                     <td style={{ textAlign:'center', padding:'9px 12px', fontWeight:700, color: r.qty_available === 0 ? '#f87171' : '#4ade80' }}>{r.qty_available}</td>
                     <td style={{ textAlign:'center', padding:'9px 12px', color:'#60a5fa' }}>{r.qty_in_use || 0}</td>
@@ -125,7 +125,7 @@ export default function Reports() {
                   </tr>
                 ))}
                 <tr style={{ borderTop:'1px solid rgba(201,168,76,0.25)', background:'rgba(201,168,76,0.05)' }}>
-                  <td colSpan={3} style={{ padding:'8px 12px', fontWeight:700, color:'var(--gold)', fontSize:'0.8rem', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tổng cộng</td>
+                  <td colSpan={3} style={{ padding:'8px 12px', fontWeight:700, color:'var(--gold)', fontSize:'0.84rem', textTransform:'uppercase', letterSpacing:'0.04em' }}>Tổng cộng</td>
                   <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:800, color:'var(--text-primary)' }}>{catTotal.qty_total}</td>
                   <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#4ade80' }}>{catTotal.qty_available}</td>
                   <td style={{ textAlign:'center', padding:'8px 12px', fontWeight:700, color:'#60a5fa' }}>{catTotal.qty_in_use}</td>

@@ -13,7 +13,7 @@ function Badge({ count, color = GOLD }) {
   if (!count) return null;
   return (
     <span style={{
-      fontSize: '0.7rem', fontWeight: 800, minWidth: '22px', textAlign: 'center',
+      fontSize: '0.78rem', fontWeight: 800, minWidth: '22px', textAlign: 'center',
       background: color, color: '#08080e', borderRadius: '9999px', padding: '2px 8px',
     }}>{count}</span>
   );
@@ -43,7 +43,7 @@ function TodaySection({ events }) {
       <SectionHeader title="Sự kiện hôm nay" color="#4ade80" colorRgb="74,222,128" count={events.length} />
       <div style={{ background: '#13131d' }}>
         {events.length === 0 ? (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 18px', margin: 0 }}>Không có sự kiện nào hôm nay</p>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có sự kiện nào hôm nay</p>
         ) : events.map((ev, i) => (
           <div key={ev.id}
             onClick={() => navigate('/events')}
@@ -60,13 +60,13 @@ function TodaySection({ events }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</p>
               {(ev.client || ev.location) && (
-                <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: '0.84rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {[ev.client, ev.location].filter(Boolean).join(' · ')}
                 </p>
               )}
             </div>
             {ev.filming_dates?.length > 0 && (
-              <span style={{ fontSize: '0.7rem', color: '#4ade80', fontWeight: 700, flexShrink: 0 }}>
+              <span style={{ fontSize: '0.78rem', color: '#4ade80', fontWeight: 700, flexShrink: 0 }}>
                 GH {ev.filming_dates.filter(d => d).map(d => fmtD(d)).join(', ')}
               </span>
             )}
@@ -99,7 +99,7 @@ function ConfirmSection({ items, onConfirmed }) {
       <SectionHeader title="Xuất kho tạm — cần xác nhận" color="#fbbf24" colorRgb="251,191,36" count={items.length} />
       <div style={{ background: '#13131d' }}>
         {items.length === 0 ? (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 18px', margin: 0 }}>Không có phiếu nào cần xác nhận</p>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có phiếu nào cần xác nhận</p>
         ) : items.map((tx, i) => (
           <div key={tx.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
@@ -108,8 +108,8 @@ function ConfirmSection({ items, onConfirmed }) {
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 600, color: '#fbbf24', fontSize: '0.83rem', margin: 0, fontFamily: 'monospace' }}>{tx.code}</p>
-              <p style={{ fontSize: '0.75rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
-              <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: '1px 0 0' }}>{tx.item_count} loại thiết bị</p>
+              <p style={{ fontSize: '0.82rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
+              <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '1px 0 0' }}>{tx.item_count} loại thiết bị</p>
             </div>
             <button
               onClick={() => confirm(tx.id)}
@@ -118,7 +118,7 @@ function ConfirmSection({ items, onConfirmed }) {
                 padding: '6px 14px', borderRadius: '7px', cursor: 'pointer',
                 border: '1px solid rgba(251,191,36,0.5)',
                 background: confirming === tx.id ? 'rgba(251,191,36,0.08)' : 'rgba(251,191,36,0.15)',
-                color: '#fbbf24', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                color: '#fbbf24', fontSize: '0.82rem', fontWeight: 700, flexShrink: 0,
               }}>
               {confirming === tx.id ? '...' : 'Xác nhận'}
             </button>
@@ -138,7 +138,7 @@ function OverdueSection({ items }) {
       <SectionHeader title="Quá hạn trả thiết bị" color="#f87171" colorRgb="248,113,113" count={items.length} />
       <div style={{ background: '#13131d' }}>
         {items.length === 0 ? (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 18px', margin: 0 }}>Không có phiếu nào quá hạn</p>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có phiếu nào quá hạn</p>
         ) : items.map((tx, i) => (
           <div key={tx.id}
             onClick={() => navigate('/event-return')}
@@ -153,11 +153,11 @@ function OverdueSection({ items }) {
           >
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 600, color: '#f87171', fontSize: '0.83rem', margin: 0, fontFamily: 'monospace' }}>{tx.code}</p>
-              <p style={{ fontSize: '0.75rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
+              <p style={{ fontSize: '0.82rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <p style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 700, margin: 0 }}>Hạn {fmtD(tx.expected_return_date)}</p>
-              <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '2px 0 0' }}>→ Nhập kho</p>
+              <p style={{ fontSize: '0.78rem', color: '#f87171', fontWeight: 700, margin: 0 }}>Hạn {fmtD(tx.expected_return_date)}</p>
+              <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '2px 0 0' }}>→ Nhập kho</p>
             </div>
           </div>
         ))}
@@ -174,7 +174,7 @@ function ConflictSection({ conflicts }) {
       <SectionHeader title="Xung đột thiết bị" color="#fb7185" colorRgb="251,113,133" count={conflicts.length} />
       <div style={{ background: '#13131d' }}>
         {conflicts.length === 0 ? (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 18px', margin: 0 }}>Không có xung đột nào</p>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có xung đột nào</p>
         ) : conflicts.map((c, i) => {
           const total = c.events.reduce((s, e) => s + e.qty, 0);
           return (
@@ -183,16 +183,16 @@ function ConflictSection({ conflicts }) {
               borderTop: i > 0 ? '1px solid rgba(251,113,133,0.08)' : 'none',
             }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '5px' }}>
-                <span style={{ fontSize: '0.72rem', color: '#fb7185', fontWeight: 700 }}>GH {fmtD(c.date)}</span>
+                <span style={{ fontSize: '0.84rem', color: '#fb7185', fontWeight: 700 }}>GH {fmtD(c.date)}</span>
                 <span style={{ fontSize: '0.85rem', color: '#e0e0ee', fontWeight: 700, flex: 1 }}>{c.eq_name}</span>
-                <span style={{ fontSize: '0.7rem', color: '#fb7185', fontWeight: 800, flexShrink: 0 }}>
+                <span style={{ fontSize: '0.78rem', color: '#fb7185', fontWeight: 800, flexShrink: 0 }}>
                   cần {total} / có {c.qty_available} {c.unit}
                 </span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                 {c.events.map(ev => (
                   <span key={ev.id} style={{
-                    fontSize: '0.68rem', padding: '2px 8px', borderRadius: '9999px',
+                    fontSize: '0.82rem', padding: '2px 8px', borderRadius: '9999px',
                     background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.3)',
                     color: '#fda4af',
                   }}>
@@ -231,7 +231,7 @@ function EventGroup({ status, events }) {
         </div>
         <span style={{ fontWeight: 800, color, fontSize: '0.92rem', flex: 1, letterSpacing: '0.01em' }}>{label}</span>
         <span style={{
-          fontSize: '0.72rem', fontWeight: 800,
+          fontSize: '0.84rem', fontWeight: 800,
           color: list.length > 0 ? '#08080e' : color,
           background: list.length > 0 ? color : 'transparent',
           border: list.length > 0 ? 'none' : `1px solid rgba(${rgb},0.3)`,
@@ -241,7 +241,7 @@ function EventGroup({ status, events }) {
       </div>
       <div style={{ background: '#13131d' }}>
         {list.length === 0 ? (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 20px', margin: 0 }}>Không có sự kiện</p>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 20px', margin: 0 }}>Không có sự kiện</p>
         ) : list.map((ev, i) => (
           <Link key={ev.id} to="/events"
             style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', textDecoration: 'none', borderTop: i > 0 ? `1px solid rgba(${rgb},0.08)` : 'none', transition: 'background 0.13s' }}
@@ -251,12 +251,12 @@ function EventGroup({ status, events }) {
             <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 6px rgba(${rgb},0.8)` }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</p>
-              <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontSize: '0.84rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {[ev.client, ev.location].filter(Boolean).join(' · ')}
               </p>
             </div>
             {ev.start_date && (
-              <span style={{ fontSize: '0.72rem', color, fontWeight: 700, flexShrink: 0 }}>{fmtD(ev.start_date)}</span>
+              <span style={{ fontSize: '0.84rem', color, fontWeight: 700, flexShrink: 0 }}>{fmtD(ev.start_date)}</span>
             )}
           </Link>
         ))}
@@ -317,7 +317,7 @@ function UpcomingScheduleSection({ userName }) {
     return (
       <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'6px 16px 2px' }}>
         <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${border},transparent)` }} />
-        <span style={{ fontSize:'0.65rem', fontWeight:800, letterSpacing:'0.08em', color, background:`${color}18`, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 10px', whiteSpace:'nowrap' }}>
+        <span style={{ fontSize:'0.80rem', fontWeight:800, letterSpacing:'0.08em', color, background:`${color}18`, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 10px', whiteSpace:'nowrap' }}>
           {label} <span style={{ opacity:0.7, fontWeight:600 }}>({count})</span>
         </span>
         <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${border},transparent)` }} />
@@ -347,10 +347,10 @@ function UpcomingScheduleSection({ userName }) {
           </p>
         </div>
         {isToday
-          ? <span style={{ fontSize:'0.7rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>HÔM NAY</span>
+          ? <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:800, flexShrink:0, background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>HÔM NAY</span>
           : isTomorrow
-            ? <span style={{ fontSize:'0.7rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>NGÀY MAI</span>
-            : <span style={{ fontSize:'0.75rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0, whiteSpace:'nowrap' }}>{fmtD(item.date)}</span>
+            ? <span style={{ fontSize:'0.78rem', color:'#4ade80', fontWeight:800, flexShrink:0, background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'6px', padding:'1px 6px', whiteSpace:'nowrap' }}>NGÀY MAI</span>
+            : <span style={{ fontSize:'0.82rem', color: isPast ? '#7878a0' : '#60a5fa', fontWeight:700, flexShrink:0, whiteSpace:'nowrap' }}>{fmtD(item.date)}</span>
         }
       </div>
     );
@@ -403,10 +403,10 @@ function DashEventCard({ ev, onClose }) {
   const isToday   = [...startDates, ...endDates, ...filmDates].includes(todayStr);
 
   const Pill = ({ color, bg, border, children }) => (
-    <span style={{ fontSize:'0.63rem', fontWeight:800, color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 9px', whiteSpace:'nowrap' }}>{children}</span>
+    <span style={{ fontSize:'0.80rem', fontWeight:800, color, background:bg, border:`1px solid ${border}`, borderRadius:'999px', padding:'2px 9px', whiteSpace:'nowrap' }}>{children}</span>
   );
   const Info = ({ icon, text, color }) => text ? (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', fontSize:'0.77rem', color: color || '#a0a0b8', whiteSpace:'nowrap' }}>{icon} {text}</span>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:'4px', fontSize:'0.82rem', color: color || '#a0a0b8', whiteSpace:'nowrap' }}>{icon} {text}</span>
   ) : null;
 
   const go = (openModal) => { onClose(); navigate('/events', { state: { openEventId: ev.id, openModal } }); };
@@ -420,7 +420,7 @@ function DashEventCard({ ev, onClose }) {
         {/* Header */}
         <div style={{ padding:'12px 14px 10px', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'7px' }}>
-            <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0' }}>{ev.code}</span>
+            <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0' }}>{ev.code}</span>
             <Pill color={s.color} bg={s.bg} border={s.border}>{s.label}</Pill>
             {isToday && <Pill color='#f87171' bg='rgba(248,113,113,0.15)' border='rgba(248,113,113,0.45)'>HÔM NAY</Pill>}
           </div>
@@ -480,14 +480,14 @@ function AdminSec({ title, color, rgb, count, linkTo, defaultOpen = true, childr
           borderLeft: `3px solid ${color}`, cursor: 'pointer', userSelect: 'none',
         }}
       >
-        <span style={{ fontWeight: 700, color, fontSize: '0.8rem', flex: 1, letterSpacing: '0.04em' }}>{title}</span>
+        <span style={{ fontWeight: 700, color, fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>{title}</span>
         {count > 0 && <Badge count={count} color={color} />}
         {linkTo && (
-          <Link to={linkTo} onClick={e => e.stopPropagation()} style={{ fontSize: '0.68rem', color: '#7878a0', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          <Link to={linkTo} onClick={e => e.stopPropagation()} style={{ fontSize: '0.82rem', color: '#7878a0', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
             Xem tất cả →
           </Link>
         )}
-        <span style={{ fontSize: '0.65rem', color: `rgba(${rgb},0.6)`, flexShrink: 0, marginLeft: '2px', transition: 'transform 0.18s', display: 'inline-block', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+        <span style={{ fontSize: '0.80rem', color: `rgba(${rgb},0.6)`, flexShrink: 0, marginLeft: '2px', transition: 'transform 0.18s', display: 'inline-block', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
       </div>
       {open && <div style={{ background: '#13131d', maxHeight: '232px', overflowY: 'auto' }}>{children}</div>}
     </div>
@@ -508,7 +508,7 @@ function ARow({ i, rgb, onClick, children }) {
 }
 
 function AEmpty({ text }) {
-  return <p style={{ color: '#7878a0', fontSize: '0.75rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
+  return <p style={{ color: '#7878a0', fontSize: '0.82rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
 }
 
 function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, userName }) {
@@ -527,7 +527,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
   };
 
   const T = { name: { fontWeight:600, color:'#e0e0ee', fontSize:'0.83rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
-              sub:  { fontSize:'0.68rem', color:'#7878a0', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } };
+              sub:  { fontSize:'0.82rem', color:'#7878a0', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -548,7 +548,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
                 {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
               {ev.filming_dates?.length > 0 && (
-                <span style={{ fontSize:'0.67rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
+                <span style={{ fontSize:'0.80rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
               )}
             </ARow>
           ))
@@ -566,7 +566,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
                 <p style={T.name}>{ev.name}</p>
                 {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.start_date && <span style={{ fontSize:'0.67rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>{fmtD(ev.start_date)}</span>}
+              {ev.start_date && <span style={{ fontSize:'0.80rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>{fmtD(ev.start_date)}</span>}
             </ARow>
           ))
         }
@@ -582,7 +582,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
                 <p style={{ ...T.name, color:'#fca5a5' }}>{ob.lead_name}</p>
                 <p style={T.sub}>{ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
               </div>
-              <span style={{ fontSize:'0.67rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
+              <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
             </ARow>
           ))
         }
@@ -598,7 +598,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
                 <p style={T.name}>{v.violator}</p>
                 <p style={T.sub}>{v.violation_type}</p>
               </div>
-              <span style={{ fontSize:'0.67rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
+              <span style={{ fontSize:'0.80rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
             </ARow>
           ))
         }
@@ -615,7 +615,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
                 <p style={T.name}>{ev.name}</p>
                 {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.end_date && <span style={{ fontSize:'0.67rem', color:GOLD, fontWeight:700, flexShrink:0 }}>{fmtD(ev.end_date)}</span>}
+              {ev.end_date && <span style={{ fontSize:'0.80rem', color:GOLD, fontWeight:700, flexShrink:0 }}>{fmtD(ev.end_date)}</span>}
             </ARow>
           ))
         }

@@ -214,7 +214,7 @@ export default function EventReturn() {
             <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
           </div>
           <button onClick={() => { setDone(null); setEventId(''); setEventSearch(''); setEventName(''); setOutstanding([]); }}
-            style={{ color:'var(--text-muted)', fontSize:'0.8rem', background:'none', border:'none', cursor:'pointer' }}>
+            style={{ color:'var(--text-muted)', fontSize:'0.84rem', background:'none', border:'none', cursor:'pointer' }}>
             + Nhập kho sự kiện khác
           </button>
         </div>
@@ -241,7 +241,7 @@ export default function EventReturn() {
             </span>
             {!loadingPending && (
               <span style={{
-                fontSize:'0.7rem', fontWeight:700, padding:'2px 8px', borderRadius:'9999px',
+                fontSize:'0.78rem', fontWeight:700, padding:'2px 8px', borderRadius:'9999px',
                 background: pendingReturns.length > 0 ? 'rgba(251,191,36,0.15)' : 'rgba(74,222,128,0.12)',
                 color: pendingReturns.length > 0 ? '#fbbf24' : '#4ade80',
               }}>
@@ -287,16 +287,16 @@ export default function EventReturn() {
                   <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem' }}>
                     {row.event_name}
                   </span>
-                  <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0' }}>
+                  <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0' }}>
                     {row.event_code}
                   </span>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'3px', flexWrap:'wrap' }}>
                   {row.start_date && (
-                    <span style={{ fontSize:'0.7rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
+                    <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
                   )}
                   {row.out_codes && (
-                    <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace' }}>
+                    <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:'monospace' }}>
                       {row.out_codes.split(',').map(c => c.trim()).slice(0, 3).join(', ')}
                       {row.out_codes.split(',').length > 3 ? ' ...' : ''}
                     </span>
@@ -307,7 +307,7 @@ export default function EventReturn() {
               {/* Right: badge */}
               <div style={{
                 flexShrink:0, textAlign:'right',
-                fontSize:'0.75rem', fontWeight:700,
+                fontSize:'0.82rem', fontWeight:700,
                 background:'rgba(248,113,113,0.12)', color:'#f87171',
                 padding:'4px 12px', borderRadius:'9999px', whiteSpace:'nowrap',
               }}>
@@ -330,7 +330,7 @@ export default function EventReturn() {
             onClick={() => { setEventId(''); setEventName(''); setEventSearch(''); setOutstanding([]); }}
             style={{
               display:'inline-flex', alignItems:'center', gap:'6px',
-              fontSize:'0.78rem', color:'var(--text-muted)',
+              fontSize:'0.84rem', color:'var(--text-muted)',
               background:'none', border:'none', cursor:'pointer', padding:'0',
             }}
           >
@@ -351,7 +351,7 @@ export default function EventReturn() {
             onBlur={() => setTimeout(() => setShowEvSuggest(false), 150)}
           />
           {eventId && (
-            <p style={{ fontSize:'0.75rem', color:'#4ade80', marginTop:'4px' }}>
+            <p style={{ fontSize:'0.82rem', color:'#4ade80', marginTop:'4px' }}>
               ✅ {eventName}
             </p>
           )}
@@ -373,9 +373,9 @@ export default function EventReturn() {
                   onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}
                 >
-                  <span style={{ fontFamily:'monospace', fontSize:'0.7rem', color:'#7878a0' }}>{ev.code}</span>
+                  <span style={{ fontFamily:'monospace', fontSize:'0.78rem', color:'#7878a0' }}>{ev.code}</span>
                   <span style={{ color:'#c9a84c', fontWeight:600 }}>{ev.name}</span>
-                  {ev.start_date && <span style={{ fontSize:'0.7rem', color:'#7878a0', marginLeft:'auto' }}>{fmtD(ev.start_date)}</span>}
+                  {ev.start_date && <span style={{ fontSize:'0.78rem', color:'#7878a0', marginLeft:'auto' }}>{fmtD(ev.start_date)}</span>}
                 </button>
               ))}
             </div>
@@ -406,7 +406,7 @@ export default function EventReturn() {
                 disabled={isLocked && d.value !== deptFilter}
                 onClick={() => { if (!isLocked) setDeptFilter(d.value); }}
                 style={{
-                  padding:'6px 14px', borderRadius:'9999px', fontSize:'0.8rem', fontWeight:600,
+                  padding:'6px 14px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:600,
                   display:'inline-flex', alignItems:'center', gap:'6px',
                   border: deptFilter === d.value ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.25)',
                   background: deptFilter === d.value ? '#c9a84c' : 'transparent',
@@ -439,7 +439,7 @@ export default function EventReturn() {
           <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
             Chưa có thiết bị nào được xuất cho sự kiện này.
           </p>
-          <p style={{ color:'var(--text-muted)', fontSize:'0.8rem' }}>
+          <p style={{ color:'var(--text-muted)', fontSize:'0.84rem' }}>
             Hãy tạo phiếu xuất kho (ExportForm) trước, sau đó quay lại đây để nhập kho.
           </p>
         </div>
@@ -448,7 +448,7 @@ export default function EventReturn() {
         <div className="card text-center py-10">
           <p className="text-3xl mb-2">🔍</p>
           <p style={{ color:'var(--text-muted)', fontWeight:600 }}>Không có thiết bị của bộ phận này cần nhập kho.</p>
-          <p style={{ color:'var(--text-muted)', fontSize:'0.8rem', marginTop:'4px' }}>Chọn bộ phận khác hoặc "Tất cả" để xem.</p>
+          <p style={{ color:'var(--text-muted)', fontSize:'0.84rem', marginTop:'4px' }}>Chọn bộ phận khác hoặc "Tất cả" để xem.</p>
         </div>
       )}
 
@@ -470,7 +470,7 @@ export default function EventReturn() {
                 setEditCond({});
                 setChecked(new Set(visibleItems.map(r => r.equipment_id)));
               }}
-              style={{ fontSize:'0.75rem', color:'#c9a84c', background:'none', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
+              style={{ fontSize:'0.82rem', color:'#c9a84c', background:'none', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
               Chọn tất cả
             </button>
           </div>
@@ -501,7 +501,7 @@ export default function EventReturn() {
                   <tr key={r.equipment_id}>
                     <td style={{ padding:'10px 14px', maxWidth:0, overflow:'hidden' }}>
                       <div style={{ fontWeight:600, color:'#c9a84c', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={r.eq_name}>{r.eq_name}</div>
-                      <div style={{ fontSize:'0.72rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
+                      <div style={{ fontSize:'0.84rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
                     </td>
                     <td style={{ textAlign:'center', padding:'10px 6px', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>{r.qty_out} {r.unit}</td>
                     <td style={{ textAlign:'center', padding:'10px 6px' }}>
@@ -532,7 +532,7 @@ export default function EventReturn() {
                             }}
                             style={{ width:'30px', background:'transparent', border:'none', outline:'none', color:'#4ade80', fontSize:'0.85rem', fontWeight:800, textAlign:'center', padding:0 }}
                           />
-                          <span style={{ color:'#4ade80', fontSize:'0.8rem', fontWeight:700 }}>: Tốt</span>
+                          <span style={{ color:'#4ade80', fontSize:'0.84rem', fontWeight:700 }}>: Tốt</span>
                         </div>
 
                         {/* Conditions đang active (val > 0 hoặc đang edit) */}
@@ -548,7 +548,7 @@ export default function EventReturn() {
                               minWidth:'110px',
                             }}>
                               <div style={{ display:'flex', alignItems:'center', gap:'3px' }}>
-                                <span style={{ color, fontSize:'0.75rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
+                                <span style={{ color, fontSize:'0.82rem', fontWeight:700, whiteSpace:'nowrap' }}>{label}:</span>
                                 <input
                                   type="number" min="0"
                                   autoFocus={editCond[r.equipment_id] === cond && val === 0}
@@ -565,13 +565,13 @@ export default function EventReturn() {
                                     setCondNotes(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: '' } }));
                                     setEditCond(prev => ({ ...prev, [r.equipment_id]: null }));
                                   }}
-                                  style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'0.8rem', padding:'0 0 0 1px', lineHeight:1, marginLeft:'auto' }}>×</button>
+                                  style={{ background:'none', border:'none', color:`rgba(${rgb},0.65)`, cursor:'pointer', fontSize:'0.84rem', padding:'0 0 0 1px', lineHeight:1, marginLeft:'auto' }}>×</button>
                               </div>
                               <input
                                 placeholder="Ghi chú..."
                                 value={condNotes[r.equipment_id]?.[cond] || ''}
                                 onChange={e => setCondNotes(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: e.target.value } }))}
-                                style={{ background:'transparent', border:'none', borderTop:`1px solid rgba(${rgb},0.25)`, outline:'none', color:'rgba(255,255,255,0.55)', fontSize:'0.7rem', padding:'3px 0 0', width:'100%' }}
+                                style={{ background:'transparent', border:'none', borderTop:`1px solid rgba(${rgb},0.25)`, outline:'none', color:'rgba(255,255,255,0.55)', fontSize:'0.78rem', padding:'3px 0 0', width:'100%' }}
                               />
                             </div>
                           );
@@ -589,7 +589,7 @@ export default function EventReturn() {
                               style={{
                                 padding:'3px 8px', borderRadius:'20px', cursor:'pointer',
                                 background:'transparent', border:'1px solid rgba(255,255,255,0.18)',
-                                color:'#8888a8', fontSize:'0.75rem', fontWeight:600,
+                                color:'#8888a8', fontSize:'0.82rem', fontWeight:600,
                                 outline:'none', appearance:'none',
                               }}
                             >
@@ -602,7 +602,7 @@ export default function EventReturn() {
                     </td>
                     <td style={{ padding:'8px' }}>
                       <input placeholder="Ghi chú..." value={itemNotes[r.equipment_id] || ''} onChange={e => setItemNotes(prev => ({ ...prev, [r.equipment_id]: e.target.value }))}
-                        style={{ width:'100%', minWidth:'100px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
+                        style={{ width:'100%', minWidth:'100px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.84rem' }}
                       />
                     </td>
                   </tr>
@@ -627,11 +627,11 @@ export default function EventReturn() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.92rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.68rem', color:'#555570', fontFamily:'monospace' }}>{r.eq_code}</span>
-                        <span style={{ fontSize:'0.65rem', color:'#44445a' }}>·</span>
-                        <span style={{ fontSize:'0.68rem', color:'#555570' }}>{r.category_code}</span>
-                        <span style={{ fontSize:'0.65rem', color:'#44445a' }}>·</span>
-                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#fbbf24' }}>Nợ {r.qty_pending} {r.unit}</span>
+                        <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:'monospace' }}>{r.eq_code}</span>
+                        <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>
+                        <span style={{ fontSize:'0.82rem', color:'#555570' }}>{r.category_code}</span>
+                        <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>
+                        <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#fbbf24' }}>Nợ {r.qty_pending} {r.unit}</span>
                       </div>
                     </div>
                     <button type="button" onClick={() => toggleCheck(r.equipment_id)}
@@ -710,7 +710,7 @@ export default function EventReturn() {
                             placeholder="Ghi chú..."
                             value={condNotes[r.equipment_id]?.[cond] || ''}
                             onChange={e => setCondNotes(prev => ({ ...prev, [r.equipment_id]: { ...(prev[r.equipment_id] || {}), [cond]: e.target.value } }))}
-                            style={{ background:'transparent', border:'none', borderTop:`1px solid rgba(${rgb},0.25)`, outline:'none', color:'rgba(255,255,255,0.55)', fontSize:'0.78rem', padding:'4px 0 0', width:'100%' }}
+                            style={{ background:'transparent', border:'none', borderTop:`1px solid rgba(${rgb},0.25)`, outline:'none', color:'rgba(255,255,255,0.55)', fontSize:'0.84rem', padding:'4px 0 0', width:'100%' }}
                           />
                         </div>
                       );
@@ -764,7 +764,7 @@ export default function EventReturn() {
                 setExtNotes({});
                 setCheckedExt(new Set(outstandingExt.map(extKey)));
               }}
-              style={{ fontSize:'0.75rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
+              style={{ fontSize:'0.82rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
               Chọn tất cả
             </button>
           </div>
@@ -787,7 +787,7 @@ export default function EventReturn() {
                     <tr key={k}>
                       <td style={{ padding:'10px 14px' }}>
                         <p style={{ fontWeight:600, color:'#93c5fd' }}>{r.name}</p>
-                        <p style={{ fontSize:'0.72rem', color:'#7878a0' }}>{r.supplier} · {r.rental_days} ngày</p>
+                        <p style={{ fontSize:'0.84rem', color:'#7878a0' }}>{r.supplier} · {r.rental_days} ngày</p>
                       </td>
                       <td style={{ textAlign:'center', padding:'10px 8px' }}>
                         <span style={{ color:'#fbbf24', fontWeight:700 }}>{r.qty_pending} {r.unit}</span>
@@ -809,7 +809,7 @@ export default function EventReturn() {
                       </td>
                       <td style={{ padding:'8px' }}>
                         <input placeholder="Ghi chú..." value={extNotes[k] || ''} onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
-                          style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.8rem' }}
+                          style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.84rem' }}
                         />
                       </td>
                     </tr>
@@ -828,16 +828,16 @@ export default function EventReturn() {
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.88rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.name}</p>
-                      <p style={{ fontSize:'0.7rem', color:'#7878a0', margin:'2px 0 0' }}>{r.supplier} · {r.rental_days} ngày</p>
+                      <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'2px 0 0' }}>{r.supplier} · {r.rental_days} ngày</p>
                     </div>
                     <div style={{ textAlign:'right', flexShrink:0, marginLeft:'10px' }}>
-                      <p style={{ fontSize:'0.6rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
+                      <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
                       <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
                     </div>
                   </div>
                   <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', marginBottom:'8px' }}>
                     <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
-                      <span style={{ fontSize:'0.62rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số trả</span>
+                      <span style={{ fontSize:'0.80rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số trả</span>
                       <input type="number" min="0" max={r.qty_pending}
                         value={extQty[k] ?? r.qty_pending}
                         onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}

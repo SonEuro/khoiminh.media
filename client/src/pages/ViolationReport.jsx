@@ -76,7 +76,7 @@ const cardStyle = {
 
 const labelStyle = {
   display: 'block',
-  fontSize: '0.72rem',
+  fontSize: '0.84rem',
   fontWeight: 700,
   color: GOLD,
   textTransform: 'uppercase',
@@ -167,7 +167,7 @@ export default function ViolationReport() {
 
       {/* ── FORM ── */}
       <div style={cardStyle} className="mb-6">
-        <h2 style={{ color: GOLD, fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '16px' }}>
+        <h2 style={{ color: GOLD, fontSize: '0.84rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '16px' }}>
           Tạo báo cáo mới
         </h2>
         <form onSubmit={submit} className="space-y-4">
@@ -192,7 +192,7 @@ export default function ViolationReport() {
             <label style={labelStyle}>Người báo cáo</label>
             <input className="input" value={user?.full_name || ''} readOnly
               style={{ opacity: 0.55, cursor: 'default' }} />
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               Tên này chỉ hiển thị với Tổng Giám Đốc và Giám Đốc Sản Xuất
             </p>
           </div>
@@ -276,7 +276,7 @@ export default function ViolationReport() {
                         position: 'absolute', top: '-7px', right: '-7px',
                         background: '#e53e3e', color: '#fff', border: 'none',
                         borderRadius: '50%', width: '20px', height: '20px',
-                        fontSize: '0.65rem', cursor: 'pointer', lineHeight: '20px',
+                        fontSize: '0.80rem', cursor: 'pointer', lineHeight: '20px',
                         textAlign: 'center',
                       }}>✕</button>
                   </div>
@@ -301,7 +301,7 @@ export default function ViolationReport() {
 
       {/* ── DANH SÁCH ── */}
       <div>
-        <h2 style={{ color: GOLD, fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px' }}>
+        <h2 style={{ color: GOLD, fontSize: '0.84rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px' }}>
           Lịch sử báo cáo ({violations.length})
         </h2>
 
@@ -344,13 +344,13 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
             <span style={{
               background: 'rgba(229,62,62,0.15)', color: '#fc8181',
-              fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
+              fontSize: '0.78rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
             }}>
               {v.violation_type}
             </span>
             <span style={{
               background: 'rgba(201,168,76,0.08)', color: GOLD,
-              fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px',
+              fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px',
             }}>
               {v.event_name || v.event_label || 'Nội bộ'}
             </span>
@@ -361,12 +361,12 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
           </p>
 
           {isSuperAdmin && v.reporter_name && (
-            <p style={{ fontSize: '0.75rem', color: GOLD, marginBottom: '2px' }}>
+            <p style={{ fontSize: '0.82rem', color: GOLD, marginBottom: '2px' }}>
               Báo cáo bởi: {v.reporter_name}
             </p>
           )}
 
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fmtD(v.created_at)}</p>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{fmtD(v.created_at)}</p>
         </div>
 
         {/* Actions */}
@@ -375,7 +375,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
             <button onClick={() => setOpen(x => !x)} style={{
               background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)',
               color: GOLD, borderRadius: '6px', padding: '4px 10px',
-              cursor: 'pointer', fontSize: '0.72rem',
+              cursor: 'pointer', fontSize: '0.84rem',
             }}>
               {open ? '▲' : '▼'}
             </button>
@@ -384,7 +384,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
             <button onClick={onDelete} style={{
               background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.2)',
               color: '#fc8181', borderRadius: '6px', padding: '4px 8px',
-              cursor: 'pointer', fontSize: '0.72rem',
+              cursor: 'pointer', fontSize: '0.84rem',
             }}>🗑</button>
           )}
         </div>

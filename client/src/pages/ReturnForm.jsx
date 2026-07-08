@@ -21,7 +21,7 @@ const ROLE_TO_CATS = {
 };
 
 const labelStyle = {
-  display: 'block', fontSize: '0.72rem', fontWeight: 700,
+  display: 'block', fontSize: '0.84rem', fontWeight: 700,
   color: GOLD, letterSpacing: '0.06em', marginBottom: '5px',
   textTransform: 'uppercase',
 };
@@ -78,13 +78,13 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
             style={{ fontSize: '0.85rem', borderColor: isManual ? 'rgba(96,165,250,0.5)' : undefined }}
           />
           {row.equipment_id && (
-            <p style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '3px' }}>
+            <p style={{ fontSize: '0.78rem', color: '#4ade80', marginTop: '3px' }}>
               ✅ {equipment.find(e => e.id === row.equipment_id)?.code}
               {filterFn && ` · Đang bảo trì: ${equipment.find(e => e.id === row.equipment_id)?.qty_maintenance ?? 0}`}
             </p>
           )}
           {isManual && (
-            <p style={{ fontSize: '0.7rem', color: '#93c5fd', marginTop: '3px' }}>
+            <p style={{ fontSize: '0.78rem', color: '#93c5fd', marginTop: '3px' }}>
               ✏️ Nhập thủ công — không cập nhật tồn kho
             </p>
           )}
@@ -95,7 +95,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
               borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', maxHeight: '220px', overflowY: 'auto',
             }}>
               {suggestions[0]?._fallback && (
-                <div style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#7878a0', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ padding: '6px 12px', fontSize: '0.78rem', color: '#7878a0', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                   Không có trong danh sách bảo trì — tìm toàn bộ kho:
                 </div>
               )}
@@ -112,7 +112,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <span style={{ color: eq._fallback ? '#93c5fd' : '#e8c97a', fontSize: '0.82rem', fontWeight: 600 }}>{eq.name}</span>
-                  <span style={{ color: '#7878a0', fontSize: '0.7rem' }}>{eq.code}</span>
+                  <span style={{ color: '#7878a0', fontSize: '0.78rem' }}>{eq.code}</span>
                 </button>
               ))}
               {search.trim() && (
@@ -130,7 +130,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(96,165,250,0.16)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(96,165,250,0.08)'}
                 >
-                  <span style={{ fontSize: '0.9rem' }}>✏️</span>
+                  <span style={{ fontSize: '0.92rem' }}>✏️</span>
                   <span style={{ color: '#93c5fd', fontSize: '0.82rem', fontWeight: 600 }}>
                     Nhập thủ công: <strong>"{search.trim()}"</strong>
                   </span>
@@ -157,7 +157,7 @@ function EqRow({ equipment, row, onChange, onRemove, filterFn, placeholder }) {
               style={{ width:'60px', fontSize:'0.82rem', textAlign:'center', color:'#93c5fd' }}
             />
           ) : (
-            <span style={{ fontSize:'0.78rem', color:'#7878a0', whiteSpace:'nowrap', minWidth:'28px' }}>
+            <span style={{ fontSize:'0.84rem', color:'#7878a0', whiteSpace:'nowrap', minWidth:'28px' }}>
               {equipment.find(e => e.id === row.equipment_id)?.unit || ''}
             </span>
           )}
@@ -228,7 +228,7 @@ function FixTab({ equipment, onDone }) {
           </div>
           <div>
             <label style={labelStyle}>Ngày nhập</label>
-            <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.9rem' }}>
+            <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.92rem' }}>
               {today.split('-').reverse().join('/')}
             </div>
           </div>
@@ -252,7 +252,7 @@ function FixTab({ equipment, onDone }) {
             Danh sách thiết bị đã sửa
           </span>
           <button type="button" onClick={addRow}
-            style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+            style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.84rem', fontWeight: 700,
               background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
             + Thêm
           </button>
@@ -268,7 +268,7 @@ function FixTab({ equipment, onDone }) {
           ))}
         </div>
         {maintenanceEq.length === 0 && (
-          <p style={{ color: '#7878a0', fontSize: '0.78rem', marginTop: '10px' }}>
+          <p style={{ color: '#7878a0', fontSize: '0.84rem', marginTop: '10px' }}>
             Hiện không có thiết bị nào đang bảo trì
           </p>
         )}
@@ -313,7 +313,7 @@ function IntakeTab({ onDone }) {
     finally { setSubmitting(false); }
   }
 
-  const colHdr = { fontSize: '0.68rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' };
+  const colHdr = { fontSize: '0.82rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' };
 
   return (
     <form onSubmit={submit}>
@@ -324,7 +324,7 @@ function IntakeTab({ onDone }) {
           borderRadius: '10px', padding: '11px 16px', marginBottom: '14px',
         }}>
           <span>🔒</span>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#f87171' }}>
+          <p style={{ margin: 0, fontSize: '0.84rem', color: '#f87171' }}>
             Chỉ <strong>Tổng Giám Đốc</strong>, <strong>Super Admin</strong> hoặc chức vụ <strong>Kế Toán</strong> mới có thể nhập thiết bị mới
           </p>
         </div>
@@ -343,7 +343,7 @@ function IntakeTab({ onDone }) {
             </div>
             <div>
               <label style={labelStyle}>Ngày nhập</label>
-              <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.9rem' }}>
+              <div style={{ padding:'10px 14px', borderRadius:'8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#e0e0ee', fontWeight:600, fontSize:'0.92rem' }}>
                 {today.split('-').reverse().join('/')}
               </div>
             </div>
@@ -353,7 +353,7 @@ function IntakeTab({ onDone }) {
             <div style={{
               padding: '10px 14px', borderRadius: '8px',
               background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.22)',
-              color: '#e8c97a', fontWeight: 700, fontSize: '0.9rem',
+              color: '#e8c97a', fontWeight: 700, fontSize: '0.92rem',
             }}>{person || '—'}</div>
           </div>
         </div>
@@ -363,7 +363,7 @@ function IntakeTab({ onDone }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.85rem' }}>Danh sách thiết bị nhập mới</span>
             <button type="button" onClick={addRow}
-              style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+              style={{ padding: '5px 12px', borderRadius: '7px', fontSize: '0.84rem', fontWeight: 700,
                 background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: GOLD, cursor: 'pointer' }}>
               + Thêm
             </button>
@@ -382,7 +382,7 @@ function IntakeTab({ onDone }) {
                   <input
                     className="input" placeholder="Nhập tên thiết bị..."
                     value={row.name} onChange={e => updateRow(i, 'name', e.target.value)}
-                    style={{ flex: 1, fontSize: '0.9rem', height: '40px' }}
+                    style={{ flex: 1, fontSize: '0.92rem', height: '40px' }}
                   />
                   <button type="button" onClick={() => removeRow(i)}
                     style={{ flexShrink: 0, width: '38px', height: '40px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', color: '#f87171', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

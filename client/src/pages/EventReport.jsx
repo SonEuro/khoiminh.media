@@ -96,7 +96,7 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
           <button key={c} type="button"
             onClick={() => onChange(c)}
             style={{
-              padding:'4px 10px', borderRadius:'9999px', fontSize:'0.72rem', fontWeight:600,
+              padding:'4px 10px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:600,
               border: value === c ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
               background: value === c ? GOLD : 'rgba(255,255,255,0.05)',
               color: value === c ? '#08080e' : '#a0a0b8',
@@ -141,7 +141,7 @@ function StaffSelect({ selected, onChange }) {
         <span>
           {selected.length === 0 ? 'Chọn nhân sự...' : `Đã chọn ${selected.length} người`}
         </span>
-        <span style={{ color: GOLD, fontSize:'0.75rem' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: GOLD, fontSize:'0.82rem' }}>{open ? '▲' : '▼'}</span>
       </button>
 
       {/* Selected pills (always visible below trigger) */}
@@ -152,11 +152,11 @@ function StaffSelect({ selected, onChange }) {
               display:'inline-flex', alignItems:'center', gap:'4px',
               padding:'3px 8px', borderRadius:'9999px',
               background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.35)',
-              color: GOLD, fontSize:'0.72rem', fontWeight:600,
+              color: GOLD, fontSize:'0.84rem', fontWeight:600,
             }}>
               {s}
               <button type="button" onClick={() => toggle(s)}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.8rem', lineHeight:1, padding:0 }}>
+                style={{ background:'none', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.84rem', lineHeight:1, padding:0 }}>
                 ×
               </button>
             </span>
@@ -175,7 +175,7 @@ function StaffSelect({ selected, onChange }) {
           {KM_STAFF_GROUPS.map((g, gi) => (
             <div key={g.dept} style={{ borderBottom: gi < KM_STAFF_GROUPS.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
               <div style={{
-                padding:'6px 14px', fontSize:'0.65rem', fontWeight:800, letterSpacing:'0.1em',
+                padding:'6px 14px', fontSize:'0.80rem', fontWeight:800, letterSpacing:'0.1em',
                 color: GOLD, background:'rgba(201,168,76,0.04)',
                 display:'flex', alignItems:'center', justifyContent:'space-between',
               }}>
@@ -186,7 +186,7 @@ function StaffSelect({ selected, onChange }) {
                     if (allIn) onChange(selected.filter(s => !g.members.includes(s)));
                     else onChange([...new Set([...selected, ...g.members])]);
                   }}
-                  style={{ fontSize:'0.65rem', color:'#7878a0', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
+                  style={{ fontSize:'0.80rem', color:'#7878a0', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>
                   {g.members.every(m => selected.includes(m)) ? 'Bỏ tất cả' : 'Chọn tất cả'}
                 </button>
               </div>
@@ -217,7 +217,7 @@ function StaffSelect({ selected, onChange }) {
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const labelStyle = {
-  display:'block', fontSize:'0.72rem', fontWeight:700,
+  display:'block', fontSize:'0.84rem', fontWeight:700,
   color: GOLD, letterSpacing:'0.06em', marginBottom:'5px',
   textTransform:'uppercase',
 };
@@ -343,7 +343,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                 <div style={{ display:'inline-flex', alignItems:'center', gap:'5px',
                   background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
                   borderRadius:'6px', padding:'3px 8px' }}>
-                  <span style={{ fontSize:'0.73rem', color:'#7878a0' }}>Nộp lúc</span>
+                  <span style={{ fontSize:'0.80rem', color:'#7878a0' }}>Nộp lúc</span>
                   <span style={{ fontSize:'0.81rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
                     {(() => {
                       const dt = report.created_at;
@@ -356,12 +356,12 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                   </span>
                 </div>
                 {lateness === 'qua_han' && (
-                  <span style={{ fontSize:'0.73rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
+                  <span style={{ fontSize:'0.80rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
                     Quá hạn
                   </span>
                 )}
                 {lateness === 'nop_tre' && (
-                  <span style={{ fontSize:'0.73rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
+                  <span style={{ fontSize:'0.80rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
                     Nộp trễ
                   </span>
                 )}
@@ -395,8 +395,8 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                 ['Kết thúc', report.time_end],
               ].map(([l, v]) => v && (
                 <div key={l} style={{ textAlign:'center' }}>
-                  <p style={{ fontSize:'0.65rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
-                  <p style={{ fontSize:'0.9rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+                  <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
+                  <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
                 </div>
               ))}
             </div>
@@ -411,7 +411,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                   <span key={s} style={{
                     padding:'3px 9px', borderRadius:'9999px',
                     background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.3)',
-                    color:GOLD, fontSize:'0.75rem', fontWeight:600,
+                    color:GOLD, fontSize:'0.82rem', fontWeight:600,
                   }}>{s}</span>
                 ))}
               </div>
@@ -457,7 +457,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
           {isSuperAdmin && (
             <button type="button" onClick={() => { if (confirm('Xoá báo cáo này?')) onDelete(report.id); }}
               style={{
-                marginTop:'6px', padding:'6px 14px', borderRadius:'6px', fontSize:'0.75rem',
+                marginTop:'6px', padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
                 background:'rgba(220,50,50,0.12)', border:'1px solid rgba(220,50,50,0.3)',
                 color:'#f87171', cursor:'pointer',
               }}>
@@ -486,7 +486,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                 style={{ position:'absolute', left:'max(env(safe-area-inset-left, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>‹</button>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx + 1) % report.images.length); }}
                 style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>›</button>
-              <div style={{ position:'absolute', bottom:'20px', left:'50%', transform:'translateX(-50%)', color:'rgba(255,255,255,0.7)', fontSize:'0.8rem', fontWeight:600, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:'999px' }}>
+              <div style={{ position:'absolute', bottom:'20px', left:'50%', transform:'translateX(-50%)', color:'rgba(255,255,255,0.7)', fontSize:'0.84rem', fontWeight:600, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:'999px' }}>
                 {imgIdx + 1} / {report.images.length}
               </div>
             </>
@@ -867,7 +867,7 @@ export default function EventReport() {
             {[['event', 'Theo sự kiện'], ['dept', 'Theo bộ phận']].map(([mode, label]) => (
               <button key={mode} type="button" onClick={() => setListMode(mode)}
                 style={{
-                  padding:'6px 16px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
+                  padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
                   border: listMode === mode ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
                   background: listMode === mode ? GOLD : 'rgba(255,255,255,0.04)',
                   color: listMode === mode ? '#08080e' : '#a0a0b8',
@@ -884,7 +884,7 @@ export default function EventReport() {
           <div className="card text-center py-14">
             <p style={{ fontSize:'2.5rem', marginBottom:'8px' }}>📋</p>
             <p style={{ color:'#7878a0', fontWeight:600 }}>Chưa có báo cáo nào</p>
-            <p style={{ color:'#7878a0', fontSize:'0.8rem', marginTop:'4px' }}>Nhấn "+ Tạo báo cáo" để tạo báo cáo đầu tiên</p>
+            <p style={{ color:'#7878a0', fontSize:'0.84rem', marginTop:'4px' }}>Nhấn "+ Tạo báo cáo" để tạo báo cáo đầu tiên</p>
           </div>
         )}
 
@@ -923,7 +923,7 @@ export default function EventReport() {
               <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
                 <span>🚫</span>
                 <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
-                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {lockedObs.length} mục
                 </span>
               </div>
@@ -937,12 +937,12 @@ export default function EventReport() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                           <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
-                          {deptC && <span style={{ fontSize:'0.7rem', fontWeight:600, color: deptC, background:`${deptC}22`, border:`1px solid ${deptC}55`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>{obDept}</span>}
+                          {deptC && <span style={{ fontSize:'0.78rem', fontWeight:600, color: deptC, background:`${deptC}22`, border:`1px solid ${deptC}55`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>{obDept}</span>}
                         </div>
-                        <div style={{ fontSize:'0.78rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
+                        <div style={{ fontSize:'0.84rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
                           {ob.event_display || ob.event_name || 'Sự kiện'}
                         </div>
-                        <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
+                        <div style={{ fontSize:'0.84rem', color:'#a0a0b8', marginTop:'1px' }}>
                           {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
                           <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
                         </div>
@@ -979,7 +979,7 @@ export default function EventReport() {
         <button onClick={() => setView('list')} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
         <div>
           <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Tạo Báo Cáo Sự Kiện</h1>
-          <p style={{ color:'#7878a0', fontSize:'0.8rem', margin:0 }}>Điền đầy đủ thông tin sau sự kiện</p>
+          <p style={{ color:'#7878a0', fontSize:'0.84rem', margin:0 }}>Điền đầy đủ thông tin sau sự kiện</p>
         </div>
       </div>
 
@@ -987,7 +987,7 @@ export default function EventReport() {
 
         {/* ── Sự kiện & Địa điểm ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Thông Tin Sự Kiện
           </h3>
 
@@ -1004,7 +1004,7 @@ export default function EventReport() {
               onBlur={() => setTimeout(() => setShowEvDrop(false), 150)}
             />
             {form.event_id && (
-              <p style={{ fontSize:'0.72rem', color:'#4ade80', marginTop:'4px' }}>✅ {form.event_label}</p>
+              <p style={{ fontSize:'0.84rem', color:'#4ade80', marginTop:'4px' }}>✅ {form.event_label}</p>
             )}
             {showEvDrop && evSuggestions.length > 0 && (
               <div style={{
@@ -1023,10 +1023,10 @@ export default function EventReport() {
                     onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
+                    <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
                     <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'2px' }}>
                       <span style={{ color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
-                      {ev.location && <span style={{ fontSize:'0.68rem', color:'#60a5fa' }}>📍 {ev.location}</span>}
+                      {ev.location && <span style={{ fontSize:'0.82rem', color:'#60a5fa' }}>📍 {ev.location}</span>}
                     </div>
                   </button>
                 ))}
@@ -1082,12 +1082,12 @@ export default function EventReport() {
 
         {/* ── Nhân sự ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Nhân Sự Tham Gia
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)} />
-            {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
+            {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
             <label style={labelStyle}>Nhân sự Freelancer</label>
@@ -1098,7 +1098,7 @@ export default function EventReport() {
 
         {/* ── Thời gian ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Mốc Thời Gian
           </h3>
           <div className="grid grid-cols-2 gap-4 time-grid-keep-2">
@@ -1111,7 +1111,7 @@ export default function EventReport() {
               <div key={key}>
                 <label style={labelStyle}>{label} <span style={{ color:'#f87171' }}>*</span></label>
                 <TimeInput value={form[key]} onChange={v => setField(key, v)} hasError={!!errors[key]} />
-                {errors[key] && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
+                {errors[key] && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
               </div>
             ))}
           </div>
@@ -1119,7 +1119,7 @@ export default function EventReport() {
 
         {/* ── Đánh giá ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Đánh Giá & Kết Quả
           </h3>
           <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
@@ -1132,24 +1132,24 @@ export default function EventReport() {
             <div>
               <ChipInput label={<>Tiến độ công việc <span style={{ color:'#f87171' }}>*</span></>} value={form.progress}
                 onChange={v => setField('progress', v)} chips={PROGRESS_CHIPS} />
-              {errors.progress && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.progress}</p>}
+              {errors.progress && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors.progress}</p>}
             </div>
             <div>
               <ChipInput label={<>Công việc hoàn thành <span style={{ color:'#f87171' }}>*</span></>} value={form.completed_work}
                 onChange={v => setField('completed_work', v)} chips={COMPLETED_CHIPS} />
-              {errors.completed_work && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.completed_work}</p>}
+              {errors.completed_work && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors.completed_work}</p>}
             </div>
             <div>
               <ChipInput label={<>Chất lượng dịch vụ <span style={{ color:'#f87171' }}>*</span></>} value={form.service_quality}
                 onChange={v => setField('service_quality', v)} chips={QUALITY_CHIPS} />
-              {errors.service_quality && <p style={{ color:'#f87171', fontSize:'0.73rem', marginTop:'3px' }}>⚠ {errors.service_quality}</p>}
+              {errors.service_quality && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors.service_quality}</p>}
             </div>
           </div>
         </div>
 
         {/* ── Vấn đề ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Tồn Đọng & Sự Cố
           </h3>
           <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
@@ -1170,7 +1170,7 @@ export default function EventReport() {
 
         {/* ── Hình ảnh ── */}
         <div style={sectionStyle}>
-          <h3 style={{ color: GOLD, fontSize:'0.78rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
+          <h3 style={{ color: GOLD, fontSize:'0.84rem', fontWeight:800, letterSpacing:'0.1em', margin:'0 0 16px', textTransform:'uppercase' }}>
             Hình Ảnh Đính Kèm
           </h3>
           <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display:'none' }}
@@ -1193,7 +1193,7 @@ export default function EventReport() {
                     style={{
                       position:'absolute', top:'-6px', right:'-6px',
                       background:'#f87171', border:'none', borderRadius:'50%',
-                      width:'18px', height:'18px', cursor:'pointer', color:'white', fontSize:'0.65rem', lineHeight:1,
+                      width:'18px', height:'18px', cursor:'pointer', color:'white', fontSize:'0.80rem', lineHeight:1,
                       display:'flex', alignItems:'center', justifyContent:'center',
                     }}>×</button>
                 </div>

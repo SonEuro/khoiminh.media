@@ -40,7 +40,7 @@ export default function Login() {
           <img src="/logo.png" alt="Khôi Minh" style={{ height:'60px', margin:'0 auto' }} />
           <div style={{ marginTop:'1rem', display:'flex', alignItems:'center', gap:'12px' }}>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(90deg,transparent,rgba(201,168,76,0.5))' }} />
-            <span style={{ color:'rgba(201,168,76,0.7)', fontSize:'0.6rem', letterSpacing:'0.2em', fontWeight:700 }}>
+            <span style={{ color:'rgba(201,168,76,0.7)', fontSize:'0.72rem', letterSpacing:'0.2em', fontWeight:700 }}>
               QUẢN LÝ KHO THIẾT BỊ
             </span>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(270deg,transparent,rgba(201,168,76,0.5))' }} />
@@ -65,7 +65,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
             <div>
-              <label style={{ display:'block', fontSize:'0.75rem', fontWeight:700, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'0.4rem' }}>
+              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:700, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'0.4rem' }}>
                 Tên đăng nhập
               </label>
               <input
@@ -91,7 +91,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display:'block', fontSize:'0.75rem', fontWeight:700, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'0.4rem' }}>
+              <label style={{ display:'block', fontSize:'0.82rem', fontWeight:700, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'0.4rem' }}>
                 Mật khẩu
               </label>
               <div style={{ position:'relative' }}>

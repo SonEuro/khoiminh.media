@@ -33,7 +33,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
         </Link>
         <div style={{ marginTop:'8px', display:'flex', alignItems:'center', gap:'8px' }}>
           <div style={{ flex:1, height:'1px', background:`linear-gradient(90deg,${GOLD},transparent)` }} />
-          <span style={{ color: GOLD, fontSize:'0.65rem', letterSpacing:'0.12em', fontWeight:700 }}>QUẢN LÝ NỘI BỘ</span>
+          <span style={{ color: GOLD, fontSize:'0.73rem', letterSpacing:'0.12em', fontWeight:700 }}>QUẢN LÝ NỘI BỘ</span>
           <div style={{ flex:1, height:'1px', background:`linear-gradient(270deg,${GOLD},transparent)` }} />
         </div>
       </div>
@@ -97,7 +97,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
             <p style={{ fontSize:'0.72rem', fontWeight:600, color: TEXT_PRIMARY, margin:0, lineHeight:1.35, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {user?.full_name}
             </p>
-            <p style={{ fontSize:'0.65rem', color: GOLD, margin:'2px 0 0', whiteSpace:'nowrap' }}>
+            <p style={{ fontSize:'0.73rem', color: GOLD, margin:'2px 0 0', whiteSpace:'nowrap' }}>
               {ROLE_LABELS[user?.role] || user?.role}
             </p>
           </div>

@@ -92,8 +92,8 @@ export default function EventDetailModal({ eventId, onClose }) {
             position: 'relative',
           }}>
             <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'10px', paddingBottom:'8px', borderBottom:'1px solid rgba(201,168,76,0.15)' }}>
-              <span style={{ fontSize:'0.9rem' }}>📋</span>
-              <span style={{ fontSize:'0.7rem', fontWeight:700, color:'#c9a84c', textTransform:'uppercase', letterSpacing:'0.08em' }}>Ghi chú</span>
+              <span style={{ fontSize:'0.92rem' }}>📋</span>
+              <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#c9a84c', textTransform:'uppercase', letterSpacing:'0.08em' }}>Ghi chú</span>
             </div>
             <p style={{ fontSize:'0.87rem', lineHeight:'1.75', color:'var(--text-main)', whiteSpace:'pre-wrap', wordBreak:'break-word', margin:0 }}>{ev.notes}</p>
           </div>
@@ -125,7 +125,7 @@ export default function EventDetailModal({ eventId, onClose }) {
                             <td colSpan={5} style={{ padding:'8px 0 4px' }}>
                               <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${color}, transparent)`, opacity:0.5 }} />
-                                <span style={{ fontSize:'0.65rem', fontWeight:800, color, letterSpacing:'0.1em', whiteSpace:'nowrap' }}>{cat}</span>
+                                <span style={{ fontSize:'0.80rem', fontWeight:800, color, letterSpacing:'0.1em', whiteSpace:'nowrap' }}>{cat}</span>
                                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${color}, transparent)`, opacity:0.5 }} />
                               </div>
                             </td>

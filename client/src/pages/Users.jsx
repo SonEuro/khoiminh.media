@@ -164,7 +164,7 @@ export default function Users() {
                     URL.revokeObjectURL(url);
                   } catch (err) { alert('Lỗi: ' + err.message); }
                 }}
-                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', cursor:'pointer', whiteSpace:'nowrap' }}
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'7px 14px', borderRadius:'8px', fontSize:'0.84rem', fontWeight:600, border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', cursor:'pointer', whiteSpace:'nowrap' }}
               >
                 💾 Backup
               </button>
@@ -188,7 +188,7 @@ export default function Users() {
             <div key={`mgroup-${group.role}`} style={{ marginBottom:'8px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'12px 0 8px' }}>
                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to right, ${rc.color}, transparent)`, opacity:0.45 }} />
-                <span style={{ fontSize:'0.7rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
+                <span style={{ fontSize:'0.78rem', fontWeight:800, color: rc.color, letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap' }}>
                   {group.label} <span style={{ opacity:0.6, fontWeight:600 }}>({group.members.length})</span>
                 </span>
                 <div style={{ height:'1px', flex:1, background:`linear-gradient(to left, ${rc.color}, transparent)`, opacity:0.45 }} />
@@ -198,23 +198,23 @@ export default function Users() {
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px' }}>
                     <span style={{ flex:1, fontWeight:700, color:'#c9a84c', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name}</span>
                     {u.is_active
-                      ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Hoạt động</span>
-                      : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.72rem', flexShrink:0 }}>● Vô hiệu</span>}
+                      ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Hoạt động</span>
+                      : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
-                  <div style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) ? '6px' : '10px' }}>{u.username}</div>
+                  <div style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) ? '6px' : '10px' }}>{u.username}</div>
                   {(u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'10px' }}>
-                      {!!u.is_truong_phong  && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
-                      {!!u.is_phan_lich_all && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
-                      {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
-                      {!!u.is_tra_ncc     && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>Trả NCC</span>}
+                      {!!u.is_truong_phong  && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
+                      {!!u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
+                      {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
+                      {!!u.is_tra_ncc     && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>Trả NCC</span>}
                     </div>
                   )}
                   {isSuperAdmin && (
                     <div style={{ display:'flex', gap:'8px' }}>
                       <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
                       <button onClick={() => handleReset(u)}
-                        style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.78rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
+                        style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.84rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
                         title="Reset mật khẩu">
                         🔑
                       </button>
@@ -235,7 +235,7 @@ export default function Users() {
           border: '1px solid rgba(248,113,113,0.35)',
           background: 'rgba(248,113,113,0.04)',
         }}>
-          <p style={{ color: '#f87171', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <p style={{ color: '#f87171', fontWeight: 700, fontSize: '0.84rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
             ⚠️ Khu vực nguy hiểm
           </p>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '14px' }}>
@@ -297,17 +297,17 @@ export default function Users() {
               <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'center' }}>
                 <button
                   onClick={() => setSelectedIds(new Set(eventList.map(e => e.id)))}
-                  style={{ fontSize: '0.78rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  style={{ fontSize: '0.84rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
                 >
                   Chọn tất cả
                 </button>
                 <button
                   onClick={() => setSelectedIds(new Set())}
-                  style={{ fontSize: '0.78rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  style={{ fontSize: '0.84rem', padding: '4px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', cursor: 'pointer' }}
                 >
                   Bỏ chọn
                 </button>
-                <span style={{ fontSize: '0.8rem', color: selectedIds.size > 0 ? '#f87171' : 'var(--text-muted)', marginLeft: 'auto', fontWeight: selectedIds.size > 0 ? 700 : 400 }}>
+                <span style={{ fontSize: '0.84rem', color: selectedIds.size > 0 ? '#f87171' : 'var(--text-muted)', marginLeft: 'auto', fontWeight: selectedIds.size > 0 ? 700 : 400 }}>
                   {selectedIds.size > 0 ? `Đã chọn ${selectedIds.size} sự kiện` : `${eventList.length} sự kiện`}
                 </span>
               </div>
@@ -349,25 +349,25 @@ export default function Users() {
                         })}
                         style={{ width: '15px', height: '15px', accentColor: '#f87171', flexShrink: 0 }}
                       />
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--text-muted)', flexShrink: 0, minWidth: '80px' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', color: 'var(--text-muted)', flexShrink: 0, minWidth: '80px' }}>
                         {ev.code}
                       </span>
                       <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ev.name}
                       </span>
                       <span style={{
-                        fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '99px',
+                        fontSize: '0.78rem', fontWeight: 700, padding: '2px 8px', borderRadius: '99px',
                         color: st.color, background: st.color + '22', flexShrink: 0,
                       }}>
                         {st.label}
                       </span>
                       {ev.start_date && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', flexShrink: 0 }}>
                           {fmtD(ev.start_date)}
                         </span>
                       )}
                       {ev.tx_count > 0 && (
-                        <span style={{ fontSize: '0.72rem', color: '#fbbf24', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.84rem', color: '#fbbf24', flexShrink: 0 }}>
                           {ev.tx_count} phiếu
                         </span>
                       )}
@@ -490,7 +490,7 @@ export default function Users() {
                 <input type="checkbox" checked={form.is_active}
                   onChange={e => set('is_active', e.target.checked)}
                   style={{ width: '16px', height: '16px', accentColor: 'var(--gold)' }} />
-                <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>Tài khoản đang hoạt động</span>
+                <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>Tài khoản đang hoạt động</span>
               </label>
             )}
 
@@ -498,8 +498,8 @@ export default function Users() {
               <input type="checkbox" checked={!!form.is_truong_phong}
                 onChange={e => set('is_truong_phong', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#2dd4bf' }} />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                🏅 Trưởng phòng <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                🏅 Trưởng phòng <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
               </span>
             </label>
 
@@ -507,8 +507,8 @@ export default function Users() {
               <input type="checkbox" checked={!!form.is_phan_lich}
                 onChange={e => set('is_phan_lich', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#60a5fa' }} />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                🗓 Phân lịch làm việc <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(tạo &amp; sửa lịch nháp bộ phận mình)</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                🗓 Phân lịch làm việc <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(tạo &amp; sửa lịch nháp bộ phận mình)</span>
               </span>
             </label>
 
@@ -516,8 +516,8 @@ export default function Users() {
               <input type="checkbox" checked={!!form.is_phan_lich_all}
                 onChange={e => set('is_phan_lich_all', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#f97316' }} />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                📋 Phân lịch tất cả <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(tạo, sửa, xác nhận tất cả lịch + chọn nhân sự tất cả bộ phận)</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                📋 Phân lịch tất cả <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(tạo, sửa, xác nhận tất cả lịch + chọn nhân sự tất cả bộ phận)</span>
               </span>
             </label>
 
@@ -525,14 +525,14 @@ export default function Users() {
               <input type="checkbox" checked={!!form.is_tra_ncc}
                 onChange={e => set('is_tra_ncc', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#4ade80' }} />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                🏪 Trả NCC <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                🏪 Trả NCC <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
               </span>
             </label>
 
             <div>
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Zalo User ID <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 400, textTransform: 'none' }}>(để nhận thông báo Zalo)</span>
+              <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
+                Zalo User ID <span style={{ fontSize: '0.78rem', color: '#60a5fa', fontWeight: 400, textTransform: 'none' }}>(để nhận thông báo Zalo)</span>
               </label>
               <input className="input" placeholder="Nhập Zalo User ID..."
                 value={form.zalo_uid || ''} onChange={e => set('zalo_uid', e.target.value)}
@@ -564,7 +564,7 @@ export default function Users() {
               Mật khẩu của <strong style={{ color: 'var(--text-primary)' }}>{resetInfo.name}</strong> đã được reset về mặc định.
             </p>
             <div style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid var(--gold-dim)', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Thông tin đăng nhập</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Thông tin đăng nhập</p>
               <p style={{ color: 'var(--gold)', fontFamily: 'monospace', fontSize: '1rem', marginBottom: '4px' }}>
                 👤 {resetInfo.username}
               </p>
@@ -572,7 +572,7 @@ export default function Users() {
                 🔒 {resetInfo.password}
               </p>
             </div>
-            <p style={{ color: '#fbbf24', fontSize: '0.78rem' }}>⚠️ Vui lòng thông báo cho người dùng đổi mật khẩu sau khi đăng nhập.</p>
+            <p style={{ color: '#fbbf24', fontSize: '0.84rem' }}>⚠️ Vui lòng thông báo cho người dùng đổi mật khẩu sau khi đăng nhập.</p>
             <button onClick={() => setResetInfo(null)} className="btn-primary" style={{ marginTop: '16px', width: '100%' }}>
               Đã hiểu
             </button>

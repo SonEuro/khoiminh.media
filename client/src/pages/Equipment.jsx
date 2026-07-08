@@ -333,7 +333,7 @@ export default function Equipment() {
                   background: `linear-gradient(135deg, rgba(${s.rgb},0.16), rgba(${s.rgb},0.04))`,
                   borderLeft: `4px solid ${s.color}`,
                 }}>
-                  <p style={{ fontSize: '0.6rem', color: '#7878a0', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{s.label}</p>
+                  <p style={{ fontSize: '0.72rem', color: '#7878a0', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{s.label}</p>
                   <p style={{ fontSize: '1.25rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value.toLocaleString()}</p>
                 </div>
               </div>
@@ -359,11 +359,11 @@ export default function Equipment() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
               }}>⭐</div>
               <span style={{ fontWeight: 800, color: '#c9a84c', fontSize: '0.92rem', flex: 1 }}>Thiết Bị Sử Dụng Nổi Bật</span>
-              <span style={{ fontSize: '0.7rem', color: '#7878a0' }}>theo lần dùng gần nhất</span>
+              <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>theo lần dùng gần nhất</span>
             </div>
             <div style={{ background: '#13131d' }}>
               {(topData.topUsed || []).length === 0 ? (
-                <p style={{ color: '#7878a0', fontSize: '0.8rem', padding: '14px 20px', margin: 0 }}>Chưa có dữ liệu sử dụng</p>
+                <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 20px', margin: 0 }}>Chưa có dữ liệu sử dụng</p>
               ) : (
                 topData.topUsed.map((eq, i) => {
                   const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
@@ -375,7 +375,7 @@ export default function Equipment() {
                       padding: '11px 18px',
                       borderTop: i > 0 ? '1px solid rgba(201,168,76,0.07)' : 'none',
                     }}>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7878a0', width: '18px', textAlign: 'center', flexShrink: 0 }}>#{i+1}</span>
+                      <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#7878a0', width: '18px', textAlign: 'center', flexShrink: 0 }}>#{i+1}</span>
                       <div style={{
                         width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
                         background: `rgba(${catC.rgb},0.15)`, border: `1px solid rgba(${catC.rgb},0.3)`,
@@ -385,11 +385,11 @@ export default function Equipment() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontWeight: 700, color: '#e0e0ee', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
-                        <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: '2px 0 0' }}>{eq.category_name} · {eq.code}</p>
+                        <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '2px 0 0' }}>{eq.category_name} · {eq.code}</p>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{eq.qty_in_use} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>đang dùng</span></p>
-                        <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '2px 0 0' }}>{lastDate}</p>
+                        <p style={{ fontSize: '0.84rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{eq.qty_in_use} <span style={{ fontSize: '0.80rem', fontWeight: 400, color: '#7878a0' }}>đang dùng</span></p>
+                        <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '2px 0 0' }}>{lastDate}</p>
                       </div>
                     </div>
                   );
@@ -403,7 +403,7 @@ export default function Equipment() {
       {/* ── Báo cáo tồn kho thời gian thực ── */}
       {catSummary.length > 0 && (
         <div style={{ marginBottom: '22px' }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 800, color: '#c9a84c', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
+          <p style={{ fontSize: '0.84rem', fontWeight: 800, color: '#c9a84c', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
             Báo cáo tồn kho theo thời gian thực
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -437,7 +437,7 @@ export default function Equipment() {
                       {cat.name}
                     </span>
                     <span style={{
-                      fontSize: '0.78rem', fontWeight: 800,
+                      fontSize: '0.84rem', fontWeight: 800,
                       color: '#08080e', background: barColor,
                       borderRadius: '9999px', padding: '3px 12px',
                       boxShadow: `0 0 12px rgba(${hexToRgb(barColor)},0.55)`,
@@ -476,9 +476,9 @@ export default function Equipment() {
                                     cursor: s.value > 0 ? 'pointer' : 'default',
                                     transition: 'all 0.15s', userSelect: 'none',
                                   }}>
-                                  <p style={{ fontSize: '0.6rem', color: isActive ? s.color : '#7878a0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: isActive ? 700 : 400 }}>{s.label}</p>
+                                  <p style={{ fontSize: '0.72rem', color: isActive ? s.color : '#7878a0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: isActive ? 700 : 400 }}>{s.label}</p>
                                   <p style={{ fontSize: '1.1rem', fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
-                                  {s.value > 0 && <p style={{ fontSize: '0.55rem', color: isActive ? s.color : '#555570', margin: '3px 0 0' }}>{isActive ? '▲ đóng' : '▼ xem'}</p>}
+                                  {s.value > 0 && <p style={{ fontSize: '0.84rem', color: isActive ? s.color : '#555570', margin: '3px 0 0' }}>{isActive ? '▲ đóng' : '▼ xem'}</p>}
                                 </div>
                               );
                             })}
@@ -494,16 +494,16 @@ export default function Equipment() {
                                     borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                                   }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                      <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
+                                      <span style={{ fontFamily: 'monospace', fontSize: '0.80rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
                                       <span style={{ flex: 1, fontSize: '0.82rem', color: '#e0e0ee', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
                                       <span style={{ fontSize: '0.85rem', fontWeight: 800, color: activeStatCfg.color, flexShrink: 0 }}>
-                                        {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.65rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
+                                        {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.80rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
                                       </span>
                                     </div>
                                     {activeStat === 'in_use' && inUseEvents[eq.id]?.length > 0 && (
                                       <div style={{ marginTop: '5px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                                         {inUseEvents[eq.id].map(ev => (
-                                          <span key={ev.event_id} style={{ fontSize: '0.78rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: '#93c5fd', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                          <span key={ev.event_id} style={{ fontSize: '0.84rem', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: '#93c5fd', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
                                             {ev.event_name} <span style={{ opacity: 0.7 }}>({ev.qty})</span>
                                           </span>
                                         ))}
@@ -512,7 +512,7 @@ export default function Equipment() {
                                     {activeStat === 'reserved' && reservedEvents[eq.id]?.length > 0 && (
                                       <div style={{ marginTop: '5px', paddingLeft: '80px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                                         {reservedEvents[eq.id].map(ev => (
-                                          <span key={ev.event_id} style={{ fontSize: '0.78rem', background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                          <span key={ev.event_id} style={{ fontSize: '0.84rem', background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', fontWeight: 500 }}>
                                             {ev.event_name} <span style={{ opacity: 0.7 }}>({ev.qty})</span>
                                           </span>
                                         ))}
@@ -532,7 +532,7 @@ export default function Equipment() {
                       <div style={{ width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: '9999px', height: '5px', marginBottom: '5px' }}>
                         <div style={{ height: '5px', borderRadius: '9999px', width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${barColor})`, boxShadow: `0 0 8px rgba(${rgb},0.5)`, transition: 'width 0.6s ease' }} />
                       </div>
-                      <p style={{ fontSize: '0.68rem', color: '#7878a0', margin: 0, textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: 0, textAlign: 'right' }}>
                         Tổng: <strong style={{ color: '#a0a0b8' }}>{cat.total}</strong>
                       </p>
                     </div>
@@ -592,21 +592,21 @@ export default function Equipment() {
                     <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: '0.83rem', color: '#e0e0ee', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
-                      <p style={{ fontSize: '0.65rem', color: '#7878a0', margin: '1px 0 0', fontFamily: 'monospace' }}>{eq.code}</p>
+                      <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0', fontFamily: 'monospace' }}>{eq.code}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', minWidth: '28px', textAlign: 'right' }}>{eq.qty_available}</span>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', minWidth: '28px', textAlign: 'right' }}>{eq.qty_available}</span>
                       <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('qr'); setShowSearchDrop(false); }}
-                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:'#c9a84c', cursor:'pointer', fontSize:'0.7rem', fontWeight:700 }}>QR</button>
+                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:'#c9a84c', cursor:'pointer', fontSize:'0.78rem', fontWeight:700 }}>QR</button>
                       <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('history'); setShowSearchDrop(false); }}
-                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.7rem' }}>📋</button>
+                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>📋</button>
                       {can('editEquipment') && (
                         <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('edit'); setShowSearchDrop(false); }}
-                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.7rem' }}>✏️</button>
+                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>✏️</button>
                       )}
                       {can('deleteEquipment') && (
                         <button onMouseDown={e => { e.stopPropagation(); handleDelete(eq); setShowSearchDrop(false); }}
-                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.7rem' }}>🗑</button>
+                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.78rem' }}>🗑</button>
                       )}
                     </div>
                   </div>

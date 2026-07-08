@@ -60,7 +60,7 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
           color: visibleSelected.length ? '#e8c97a' : '#7878a0',
         }}>
         <span>{visibleSelected.length === 0 ? 'Chọn freelancer...' : `Đã chọn ${visibleSelected.length} người`}</span>
-        <span style={{ color: GOLD, fontSize: '0.75rem' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: GOLD, fontSize: '0.82rem' }}>{open ? '▲' : '▼'}</span>
       </button>
 
       {visibleSelected.length > 0 && (
@@ -75,7 +75,7 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
                 {!KNOWN_FREELANCERS.has(s) && '✏️ '}{s}
               </span>
               <button type="button" onClick={() => toggle(s)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.9rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '0.92rem', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
             </div>
           ))}
         </div>
@@ -93,10 +93,10 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
               value={customInput} onChange={e => setCustomInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
               placeholder="Thêm tên khác không có trong danh sách..."
-              className="input" style={{ fontSize: '0.8rem', height: '32px', flex: 1 }}
+              className="input" style={{ fontSize: '0.84rem', height: '32px', flex: 1 }}
             />
             <button type="button" onClick={addCustom}
-              style={{ padding: '0 12px', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700,
+              style={{ padding: '0 12px', borderRadius: '7px', fontSize: '0.84rem', fontWeight: 700,
                 background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', cursor: 'pointer' }}>
               + Thêm
             </button>
@@ -104,7 +104,7 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
           {sortedGroups.map((g, gi) => (
             <div key={g.dept} style={{ borderBottom: gi < sortedGroups.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
               <div style={{
-                padding: '6px 14px', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em',
+                padding: '6px 14px', fontSize: '0.80rem', fontWeight: 800, letterSpacing: '0.1em',
                 color: priorityDepts.includes(g.dept) ? '#60a5fa' : GOLD,
                 background: 'rgba(201,168,76,0.04)',
               }}>
