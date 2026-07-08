@@ -1256,9 +1256,10 @@ export default function WorkSchedule() {
         );
       })()}
 
-      {/* ── Báo cáo cần nộp — nhân viên + nhóm trưởng + phan_lich_all (trừ SUPER_ADMIN/DIRECTOR) */}
+      {/* ── Báo cáo cần nộp — nhân viên + nhóm trưởng (trừ SUPER_ADMIN/DIRECTOR) */}
       {obligations.length > 0
         && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
+        && !user?.is_phan_lich_all
         && (() => {
         // is_truong_phong nhận ALL obligations từ server → lọc lại theo chính họ
         const myObs = user?.is_truong_phong
@@ -1320,6 +1321,65 @@ export default function WorkSchedule() {
                         </button>
                       )
                     }
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Tổng quan báo cáo — chỉ is_phan_lich_all (giám sát toàn bộ leads) */}
+      {obligations.length > 0 && !!user?.is_phan_lich_all && (() => {
+        const pastObs = obligations.filter(o => o.assigned_date < todayStr);
+        const overdue = pastObs.filter(o => o.overdue);
+        const pending = pastObs.filter(o => !o.submitted && !o.overdue);
+        if (!overdue.length && !pending.length) return null;
+        const phaseIcon  = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
+        const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
+        return (
+          <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+              <span style={{ fontSize:'1rem' }}>📋</span>
+              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP</span>
+              {overdue.length > 0 && (
+                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                  {overdue.length} quá hạn
+                </span>
+              )}
+              {pending.length > 0 && (
+                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#fbbf24' }}>
+                  {pending.length} chờ nộp
+                </span>
+              )}
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+              {[...overdue, ...pending].map(ob => {
+                const isOver = ob.overdue;
+                const leadDept = getDeptColor(getUserDept(ob.lead_name));
+                return (
+                  <div key={ob.id} style={{
+                    display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap',
+                    background: isOver ? 'rgba(248,113,113,0.06)' : 'rgba(251,191,36,0.04)',
+                    border: `1px solid ${isOver ? 'rgba(248,113,113,0.25)' : 'rgba(251,191,36,0.15)'}`,
+                    borderRadius:'8px', padding:'8px 12px',
+                  }}>
+                    <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                        <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
+                        {getUserDept(ob.lead_name) && (
+                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: leadDept.color, background: leadDept.bg, border:`1px solid ${leadDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
+                            {getUserDept(ob.lead_name)}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'2px' }}>
+                        {ob.event_display || ob.event_name || 'Sự kiện'} · {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
+                        {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
+                        {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
+                      </div>
+                    </div>
                   </div>
                 );
               })}

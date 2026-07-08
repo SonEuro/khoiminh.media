@@ -5,8 +5,8 @@ const { checkAndCreateViolations } = require('../services/obligations');
 router.get('/', (req, res) => {
   try { checkAndCreateViolations(); } catch (e) { console.error('[obligations] check error:', e.message); }
 
-  const { role, id: userId, full_name, is_truong_phong } = req.user;
-  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_truong_phong;
+  const { role, id: userId, full_name, is_truong_phong, is_phan_lich_all } = req.user;
+  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_truong_phong || !!is_phan_lich_all;
 
   // Dùng correlated subquery thay vì LEFT JOIN để tránh duplicate rows khi có nhiều report khớp
   const reportSubquery = `
