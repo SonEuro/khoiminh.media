@@ -383,7 +383,6 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
           </div>
         )}
       </div>
-      </div>
 
       {expanded && (
         <div style={{ padding:'16px 18px' }}>
