@@ -385,23 +385,29 @@ function UpcomingScheduleSection({ userName }) {
 
 const PHASE_LABEL_MAP = { setup: 'Setup', teardown: 'Tháo dỡ', rehearsal: 'Rehearsal', filming: 'Ghi hình' };
 
-function AdminSec({ title, color, rgb, count, linkTo, children }) {
+function AdminSec({ title, color, rgb, count, linkTo, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid rgba(${rgb},0.30)` }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px',
-        background: `linear-gradient(135deg,rgba(${rgb},0.16) 0%,rgba(${rgb},0.04) 100%)`,
-        borderBottom: `1px solid rgba(${rgb},0.18)`, borderLeft: `4px solid ${color}`,
-      }}>
-        <span style={{ fontWeight: 700, color, fontSize: '0.85rem', flex: 1 }}>{title}</span>
+    <div style={{ borderRadius: '10px', overflow: 'hidden', border: `1px solid rgba(${rgb},0.28)` }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px',
+          background: `linear-gradient(135deg,rgba(${rgb},0.14) 0%,rgba(${rgb},0.03) 100%)`,
+          borderBottom: open ? `1px solid rgba(${rgb},0.16)` : 'none',
+          borderLeft: `3px solid ${color}`, cursor: 'pointer', userSelect: 'none',
+        }}
+      >
+        <span style={{ fontWeight: 700, color, fontSize: '0.8rem', flex: 1, letterSpacing: '0.04em' }}>{title}</span>
         {count > 0 && <Badge count={count} color={color} />}
         {linkTo && (
-          <Link to={linkTo} style={{ fontSize: '0.7rem', color: '#7878a0', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          <Link to={linkTo} onClick={e => e.stopPropagation()} style={{ fontSize: '0.68rem', color: '#7878a0', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
             Xem tất cả →
           </Link>
         )}
+        <span style={{ fontSize: '0.65rem', color: `rgba(${rgb},0.6)`, flexShrink: 0, marginLeft: '2px', transition: 'transform 0.18s', display: 'inline-block', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
       </div>
-      <div style={{ background: '#13131d' }}>{children}</div>
+      {open && <div style={{ background: '#13131d' }}>{children}</div>}
     </div>
   );
 }
@@ -410,7 +416,7 @@ function ARow({ i, rgb, onClick, children }) {
   return (
     <div
       onClick={onClick}
-      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 16px', cursor: onClick ? 'pointer' : 'default', borderTop: i > 0 ? `1px solid rgba(${rgb},0.08)` : 'none', transition: 'background 0.13s' }}
+      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', cursor: onClick ? 'pointer' : 'default', borderTop: i > 0 ? `1px solid rgba(${rgb},0.07)` : 'none', transition: 'background 0.13s' }}
       onMouseEnter={e => onClick && (e.currentTarget.style.background = `rgba(${rgb},0.05)`)}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
@@ -420,7 +426,7 @@ function ARow({ i, rgb, onClick, children }) {
 }
 
 function AEmpty({ text }) {
-  return <p style={{ color: '#7878a0', fontSize: '0.78rem', padding: '14px 18px', margin: 0 }}>{text}</p>;
+  return <p style={{ color: '#7878a0', fontSize: '0.75rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
 }
 
 function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
@@ -432,8 +438,11 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
   const topObs     = lockedObs.slice(0, 5);
   const topViols   = violations.slice(0, 5);
 
+  const T = { name: { fontWeight:600, color:'#e0e0ee', fontSize:'0.83rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
+              sub:  { fontSize:'0.68rem', color:'#7878a0', margin:'1px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' } };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
       {/* 1. Vận hành hôm nay */}
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#4ade80" rgb="74,222,128" count={todayEvs.length} linkTo="/events">
@@ -441,17 +450,13 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
           ? <AEmpty text="Không có sự kiện nào hôm nay" />
           : todayEvs.map((ev, i) => (
             <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => navigate('/events')}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</p>
-                {(ev.client || ev.location) && (
-                  <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>
-                )}
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
               {ev.filming_dates?.length > 0 && (
-                <span style={{ fontSize: '0.7rem', color: '#4ade80', fontWeight: 700, flexShrink: 0 }}>
-                  GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}
-                </span>
+                <span style={{ fontSize:'0.67rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
               )}
             </ARow>
           ))
@@ -459,19 +464,17 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
       </AdminSec>
 
       {/* 2. Đang lên kế hoạch */}
-      <AdminSec title="ĐANG LÊN KẾ HOẠCH" color="#60a5fa" rgb="96,165,250" count={planned.length} linkTo="/events">
+      <AdminSec title="ĐANG LÊN KẾ HOẠCH" color="#60a5fa" rgb="96,165,250" count={planned.length} linkTo="/events" defaultOpen={false}>
         {planned.length === 0
           ? <AEmpty text="Không có sự kiện đang lên kế hoạch" />
           : planned.map((ev, i) => (
             <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => navigate('/events')}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#60a5fa', flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</p>
-                {(ev.client || ev.location) && (
-                  <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>
-                )}
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0 }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.start_date && <span style={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 700, flexShrink: 0 }}>{fmtD(ev.start_date)}</span>}
+              {ev.start_date && <span style={{ fontSize:'0.67rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>{fmtD(ev.start_date)}</span>}
             </ARow>
           ))
         }
@@ -483,13 +486,11 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
           ? <AEmpty text="Không có báo cáo vi phạm" />
           : topObs.map((ob, i) => (
             <ARow key={ob.id} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, color: '#eeeef5', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ob.lead_name}</p>
-                <p style={{ fontSize: '0.72rem', color: '#a0a0b8', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}
-                </p>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ ...T.name, color:'#fca5a5' }}>{ob.lead_name}</p>
+                <p style={T.sub}>{ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
               </div>
-              <span style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 700, flexShrink: 0 }}>{fmtD(ob.assigned_date)}</span>
+              <span style={{ fontSize:'0.67rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
             </ARow>
           ))
         }
@@ -501,30 +502,28 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
           ? <AEmpty text="Không có vi phạm gần đây" />
           : topViols.map((v, i) => (
             <ARow key={v.id} i={i} rgb="251,146,60" onClick={() => navigate('/violations')}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: '#eeeef5', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.violator}</p>
-                <p style={{ fontSize: '0.72rem', color: '#a0a0b8', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.violation_type}</p>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{v.violator}</p>
+                <p style={T.sub}>{v.violation_type}</p>
               </div>
-              <span style={{ fontSize: '0.7rem', color: '#fb923c', fontWeight: 700, flexShrink: 0 }}>{fmtD(v.created_at?.slice(0, 10))}</span>
+              <span style={{ fontSize:'0.67rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
             </ARow>
           ))
         }
       </AdminSec>
 
       {/* 5. Đã hoàn thành */}
-      <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events">
+      <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events" defaultOpen={false}>
         {completed.length === 0
           ? <AEmpty text="Không có sự kiện đã hoàn thành" />
           : completed.map((ev, i) => (
             <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => navigate('/events')}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: GOLD, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: '#e0e0ee', fontSize: '0.87rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</p>
-                {(ev.client || ev.location) && (
-                  <p style={{ fontSize: '0.71rem', color: '#7878a0', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>
-                )}
+              <div style={{ width:6, height:6, borderRadius:'50%', background:GOLD, flexShrink:0 }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.end_date && <span style={{ fontSize: '0.72rem', color: GOLD, fontWeight: 700, flexShrink: 0 }}>{fmtD(ev.end_date)}</span>}
+              {ev.end_date && <span style={{ fontSize:'0.67rem', color:GOLD, fontWeight:700, flexShrink:0 }}>{fmtD(ev.end_date)}</span>}
             </ARow>
           ))
         }
@@ -532,7 +531,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
 
       {/* Xuất kho + quá hạn trả (vẫn cần cho admin) */}
       {(dash?.need_confirm?.length > 0 || dash?.overdue?.length > 0 || dash?.conflicts?.length > 0) && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {dash.need_confirm.length > 0 && <ConfirmSection items={dash.need_confirm} onConfirmed={onConfirmed} />}
           {dash.overdue.length > 0 && <OverdueSection items={dash.overdue} />}
           {dash.conflicts.length > 0 && <ConflictSection conflicts={dash.conflicts} />}
