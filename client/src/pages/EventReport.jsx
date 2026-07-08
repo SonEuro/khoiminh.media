@@ -323,11 +323,11 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
       >
         <div style={{ flex:1 }}>
           {!hideEventName && (
-            <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.95rem', margin:0 }}>
+            <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.0rem', margin:0 }}>
               {report.event_label || 'Sự kiện không rõ'}
             </p>
           )}
-          <div style={{ fontSize:'0.72rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0', display:'flex', flexDirection:'column', gap:'3px' }}>
+          <div style={{ fontSize:'0.81rem', color:'#7878a0', margin: hideEventName ? 0 : '3px 0 0', display:'flex', flexDirection:'column', gap:'3px' }}>
             <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px' }}>
               {!hideEventName && report.location && <span>📍 {report.location}</span>}
               {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
@@ -343,8 +343,8 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                 <div style={{ display:'inline-flex', alignItems:'center', gap:'5px',
                   background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
                   borderRadius:'6px', padding:'3px 8px' }}>
-                  <span style={{ fontSize:'0.65rem', color:'#7878a0' }}>Nộp lúc</span>
-                  <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
+                  <span style={{ fontSize:'0.73rem', color:'#7878a0' }}>Nộp lúc</span>
+                  <span style={{ fontSize:'0.81rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
                     {(() => {
                       const dt = report.created_at;
                       if (!dt) return '';
@@ -356,12 +356,12 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
                   </span>
                 </div>
                 {lateness === 'qua_han' && (
-                  <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'4px', padding:'2px 7px' }}>
+                  <span style={{ fontSize:'0.73rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
                     Quá hạn
                   </span>
                 )}
                 {lateness === 'nop_tre' && (
-                  <span style={{ fontSize:'0.65rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'4px', padding:'2px 7px' }}>
+                  <span style={{ fontSize:'0.73rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'4px', padding:'2px 8px' }}>
                     Nộp trễ
                   </span>
                 )}
@@ -371,12 +371,12 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           {report.images?.length > 0 && (
-            <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
+            <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
           )}
           {report.km_staff?.length > 0 && (
-            <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>👥 {report.km_staff.length}</span>
+            <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {report.km_staff.length}</span>
           )}
-          <span style={{ color: GOLD, fontSize:'0.8rem' }}>{expanded ? '▲' : '▼'}</span>
+          <span style={{ color: GOLD, fontSize:'0.88rem' }}>{expanded ? '▲' : '▼'}</span>
         </div>
       </div>
 
@@ -506,14 +506,14 @@ function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
         style={{ padding:'12px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px' }}>
         <div style={{ width:'10px', height:'10px', borderRadius:'50%', background: color, flexShrink:0 }} />
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontWeight:700, color, fontSize:'0.95rem', margin:0 }}>{dept}</p>
+          <p style={{ fontWeight:700, color, fontSize:'1.0rem', margin:0 }}>{dept}</p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
           <span style={{
-            fontSize:'0.72rem', background:`${color}22`,
+            fontSize:'0.81rem', background:`${color}22`,
             color, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
           }}>{reports.length}</span>
-          <span style={{ color, fontSize:'0.8rem' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ color, fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
         </div>
       </div>
       {open && (
@@ -542,20 +542,20 @@ function EventZone({ group, onDelete, canDeleteReport }) {
         style={{ padding:'14px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px' }}
       >
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.97rem', margin:0 }}>{group.event_label}</p>
-          <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'10px' }}>
+          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.05rem', margin:0 }}>{group.event_label}</p>
+          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'10px' }}>
             {group.location && <span>📍 {group.location}</span>}
             {allDates.length > 0 && <span>📅 {allDates.map(fmtDate).join(' · ')}</span>}
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-          {totalImages > 0 && <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
-          {totalStaff  > 0 && <span style={{ fontSize:'0.72rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
+          {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
+          {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
           <span style={{
-            fontSize:'0.72rem', background:'rgba(201,168,76,0.12)',
+            fontSize:'0.81rem', background:'rgba(201,168,76,0.12)',
             color: GOLD, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
           }}>{group.reports.length}</span>
-          <span style={{ color: GOLD, fontSize:'0.8rem' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ color: GOLD, fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
         </div>
       </div>
 
