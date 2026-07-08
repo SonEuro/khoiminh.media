@@ -605,6 +605,7 @@ export default function EventReport() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [lockedObs, setLockedObs] = useState([]);
 
   const [form, setForm] = useState(makeEmptyForm);
   const [errors, setErrors] = useState({});
@@ -619,7 +620,17 @@ export default function EventReport() {
     Promise.all([api.getEventReports(), api.getEvents()])
       .then(([r, e]) => { setReports(r); setEvents(e); })
       .finally(() => setLoading(false));
-  }, []);
+    // Lấy các obligation đã bị khóa (vi phạm không nộp) của user hiện tại
+    api.getLeadObligations()
+      .then(obs => {
+        const myName = user?.full_name || '';
+        setLockedObs(obs.filter(o =>
+          o.locked && !o.submitted &&
+          (o.lead_name === myName || o.user_id === user?.id)
+        ));
+      })
+      .catch(() => {});
+  }, [user?.full_name, user?.id]);
 
   useEffect(() => {
     load();
@@ -865,13 +876,45 @@ export default function EventReport() {
 
         {loading && <div className="card text-center py-10" style={{ color:'#7878a0' }}>Đang tải...</div>}
 
-        {!loading && reports.length === 0 && (
+        {!loading && reports.length === 0 && lockedObs.length === 0 && (
           <div className="card text-center py-14">
             <p style={{ fontSize:'2.5rem', marginBottom:'8px' }}>📋</p>
             <p style={{ color:'#7878a0', fontWeight:600 }}>Chưa có báo cáo nào</p>
             <p style={{ color:'#7878a0', fontSize:'0.8rem', marginTop:'4px' }}>Nhấn "+ Tạo báo cáo" để tạo báo cáo đầu tiên</p>
           </div>
         )}
+
+        {/* Vi phạm báo cáo – obligations đã bị khóa (deadline+24h, không nộp) */}
+        {!loading && lockedObs.length > 0 && (() => {
+          const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
+          return (
+            <div style={{ marginBottom:'24px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:'12px', padding:'14px 16px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                <span>🚫</span>
+                <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
+                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.7rem', fontWeight:700, color:'#f87171' }}>
+                  {lockedObs.length} mục
+                </span>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                {lockedObs.map(ob => (
+                  <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.18)', borderRadius:'8px', padding:'8px 12px' }}>
+                    <span style={{ fontSize:'0.85rem', flexShrink:0 }}>🚫</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:'0.85rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                        {ob.event_display || ob.event_name || 'Sự kiện'}
+                      </div>
+                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
+                        {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
+                        <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Theo sự kiện */}
         {!loading && listMode === 'event' && (() => {
