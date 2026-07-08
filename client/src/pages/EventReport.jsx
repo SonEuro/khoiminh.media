@@ -458,6 +458,36 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
   );
 }
 
+// ── Dept section: nhóm báo cáo theo bộ phận ──────────────────────────────────
+function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{ background:'#13131d', border:`1px solid ${color}33`, borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
+      <div onClick={() => setOpen(v => !v)}
+        style={{ padding:'12px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px' }}>
+        <div style={{ width:'10px', height:'10px', borderRadius:'50%', background: color, flexShrink:0 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontWeight:700, color, fontSize:'0.95rem', margin:0 }}>{dept}</p>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+          <span style={{
+            fontSize:'0.72rem', background:`${color}22`,
+            color, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
+          }}>{reports.length}</span>
+          <span style={{ color, fontSize:'0.8rem' }}>{open ? '▲' : '▼'}</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ borderTop:`1px solid ${color}22`, padding:'8px 10px 10px' }}>
+          {reports.map(r => (
+            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
 function EventZone({ group, onDelete, canDeleteReport }) {
   const [open, setOpen] = useState(true);
@@ -521,6 +551,7 @@ export default function EventReport() {
   const { user } = useAuth();
   const location = useLocation();
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canViewAllDepts = isFullAdmin || !!user?.is_phan_lich_all;
   // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng
   const canDeleteReport = (report) => {
     if (isFullAdmin) return true;
@@ -530,6 +561,7 @@ export default function EventReport() {
   };
 
   const [view, setView] = useState('list'); // 'list' | 'form'
+  const [listMode, setListMode] = useState('event'); // 'event' | 'dept'
   const [reports, setReports] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -749,9 +781,21 @@ export default function EventReport() {
 
   // ── List view ───────────────────────────────────────────────────────────────
   if (view === 'list') {
+    // Dept-grouped view
+    const deptGroups = (() => {
+      const order = [];
+      const map = {};
+      reports.forEach(r => {
+        const dept = KM_STAFF_GROUPS.find(g => g.members.includes(r.reporter_name))?.dept || 'Khác';
+        if (!map[dept]) { map[dept] = []; order.push(dept); }
+        map[dept].push(r);
+      });
+      return { order, map };
+    })();
+
     return (
       <div className="p-6">
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px', flexWrap:'wrap', gap:'12px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap', gap:'12px' }}>
           <div style={{ minWidth:0 }}>
             <h1 style={{ fontSize:'1.5rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Báo Cáo Thực Hiện Sự Kiện</h1>
             <p style={{ color:'#7878a0', fontSize:'0.82rem', margin:'4px 0 0' }}>Nhân viên Khôi Minh báo cáo sau mỗi sự kiện</p>
@@ -760,6 +804,23 @@ export default function EventReport() {
             + Tạo báo cáo
           </button>
         </div>
+
+        {/* Tab toggle – only for admins + is_phan_lich_all */}
+        {canViewAllDepts && (
+          <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
+            {[['event', 'Theo sự kiện'], ['dept', 'Theo bộ phận']].map(([mode, label]) => (
+              <button key={mode} type="button" onClick={() => setListMode(mode)}
+                style={{
+                  padding:'6px 16px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
+                  border: listMode === mode ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
+                  background: listMode === mode ? GOLD : 'rgba(255,255,255,0.04)',
+                  color: listMode === mode ? '#08080e' : '#a0a0b8',
+                  transition:'all 0.15s',
+                }}
+              >{label}</button>
+            ))}
+          </div>
+        )}
 
         {loading && <div className="card text-center py-10" style={{ color:'#7878a0' }}>Đang tải...</div>}
 
@@ -771,8 +832,8 @@ export default function EventReport() {
           </div>
         )}
 
-        {!loading && (() => {
-          // Group reports by event_id
+        {/* Theo sự kiện */}
+        {!loading && listMode === 'event' && (() => {
           const order = [];
           const map = {};
           reports.forEach(r => {
@@ -787,6 +848,16 @@ export default function EventReport() {
             <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
           ));
         })()}
+
+        {/* Theo bộ phận – chỉ hiện khi canViewAllDepts */}
+        {!loading && listMode === 'dept' && canViewAllDepts && (
+          deptGroups.order.length === 0
+            ? null
+            : deptGroups.order.map(dept => (
+                <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
+                  onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+              ))
+        )}
       </div>
     );
   }
