@@ -1294,27 +1294,27 @@ export default function WorkSchedule() {
                 const isOver = ob.overdue;
                 return (
                   <div key={ob.id} style={{
-                    display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap',
+                    display:'flex', alignItems:'center', gap:'8px',
                     background: isOver ? 'rgba(248,113,113,0.06)' : 'rgba(251,191,36,0.04)',
                     border: `1px solid ${isOver ? 'rgba(248,113,113,0.25)' : 'rgba(251,191,36,0.15)'}`,
-                    borderRadius:'8px', padding:'8px 12px',
+                    borderRadius:'8px', padding:'8px 10px',
                   }}>
-                    <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
+                    <span style={{ fontSize:'0.85rem', flexShrink:0 }}>{phaseIcon[ob.phase]}</span>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:'0.88rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                      <div style={{ fontSize:'0.85rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                         {ob.event_display || ob.event_name || 'Sự kiện'}
                       </div>
-                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8' }}>
+                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
-                        {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
-                        {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
+                        {isOver && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn</span>}
+                        {!isOver && <span style={{ color:'#fbbf24', marginLeft:'5px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
                     </div>
                     <button
                       onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
-                      style={{ background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 12px', fontSize:'0.75rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
+                      style={{ flexShrink:0, background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 10px', fontSize:'0.72rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
                     >
-                      Nộp báo cáo →
+                      Nộp →
                     </button>
                   </div>
                 );
@@ -1354,23 +1354,26 @@ export default function WorkSchedule() {
                 const leadDept = getDeptColor(getUserDept(ob.lead_name));
                 return (
                   <div key={ob.id} style={{
-                    display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap',
+                    display:'flex', alignItems:'center', gap:'8px',
                     background: isOver ? 'rgba(248,113,113,0.06)' : 'rgba(251,191,36,0.04)',
                     border: `1px solid ${isOver ? 'rgba(248,113,113,0.25)' : 'rgba(251,191,36,0.15)'}`,
-                    borderRadius:'8px', padding:'8px 12px',
+                    borderRadius:'8px', padding:'8px 10px',
                   }}>
-                    <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
+                    <span style={{ fontSize:'0.85rem', flexShrink:0 }}>{phaseIcon[ob.phase]}</span>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                        <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
                         {getUserDept(ob.lead_name) && (
-                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: leadDept.color, background: leadDept.bg, border:`1px solid ${leadDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
+                          <span style={{ fontSize:'0.72rem', fontWeight:600, color: leadDept.color, background: leadDept.bg, border:`1px solid ${leadDept.border}`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>
                             {getUserDept(ob.lead_name)}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize:'0.75rem', color:'#a0a0b8', marginTop:'2px' }}>
-                        <span style={{ color: GOLD, fontWeight:600 }}>{ob.event_display || ob.event_name || 'Sự kiện'}</span> · {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
+                      <div style={{ fontSize:'0.78rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
+                        {ob.event_display || ob.event_name || 'Sự kiện'}
+                      </div>
+                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
+                        {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
                         {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
