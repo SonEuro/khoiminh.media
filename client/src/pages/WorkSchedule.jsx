@@ -1715,14 +1715,14 @@ export default function WorkSchedule() {
             {scheduleHistory.length > 0 && (
               <div style={{ marginTop: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
                 <p style={{ fontSize: '0.78rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: `${5 * 28}px`, overflowY: 'auto' }}>
                   {scheduleHistory.map((h, i) => {
                     const actionLabel = h.action === 'confirm' ? '✅ Xác nhận lịch' : '✏️ Chỉnh sửa';
                     const actionColor = h.action === 'confirm' ? '#4ade80' : '#a78bfa';
                     const dt = new Date(h.edited_at);
                     const dtStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
                     return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem' }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', minHeight: '24px' }}>
                         <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
                         <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
                         <span style={{ color: '#555570', marginLeft: 'auto', flexShrink: 0, fontFamily: 'monospace', fontSize: '0.7rem' }}>{dtStr}</span>
