@@ -20,18 +20,14 @@ router.get('/', (req, res) => {
   let rows;
   if (isAdmin) {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display,
-        datetime(o.deadline, '+24 hours') AS lock_time,
-        ${reportSubquery}
+      SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
       ORDER BY o.assigned_date DESC
     `).all();
   } else {
     rows = db.prepare(`
-      SELECT o.*, e.name AS event_display,
-        datetime(o.deadline, '+24 hours') AS lock_time,
-        ${reportSubquery}
+      SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
       WHERE o.user_id = ? OR o.lead_name = ?
@@ -40,11 +36,22 @@ router.get('/', (req, res) => {
   }
 
   const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
+
+  // Tính lock_time = deadline + 24h (JS, tránh SQLite datetime parse HH:MM không có giây)
+  function addDay(dl) {
+    if (!dl) return null;
+    const [date, time] = dl.split(' ');
+    const [y, m, d] = date.split('-').map(Number);
+    const next = new Date(Date.UTC(y, m - 1, d + 1));
+    return `${next.getUTCFullYear()}-${String(next.getUTCMonth()+1).padStart(2,'0')}-${String(next.getUTCDate()).padStart(2,'0')} ${time || '12:00'}`;
+  }
+
   res.json(rows.map(r => {
     const submitted = !!r.report_id;
-    const overdue = !submitted && !!r.deadline && r.deadline <= now;
-    const locked  = !submitted && !!r.lock_time && r.lock_time <= now;
-    return { ...r, submitted, overdue, locked };
+    const lockTime  = addDay(r.deadline);
+    const overdue   = !submitted && !!r.deadline && r.deadline <= now;
+    const locked    = !submitted && !!lockTime && lockTime <= now;
+    return { ...r, lock_time: lockTime, submitted, overdue, locked };
   }));
 });
 
