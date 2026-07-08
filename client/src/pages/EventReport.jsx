@@ -539,29 +539,34 @@ function EventZone({ group, onDelete, canDeleteReport }) {
       {/* Zone header */}
       <div
         onClick={() => setOpen(v => !v)}
-        style={{ padding:'14px 18px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px' }}
+        style={{ padding:'14px 18px', cursor:'pointer' }}
       >
-        <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.05rem', margin:0 }}>{group.event_label}</p>
-          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'6px', alignItems:'center' }}>
-            {group.location && <span>📍 {group.location}</span>}
-            {allDates.length > 0 && <>
-              <span>📅</span>
-              {allDates.map((d, i) => (
-                <span key={d}>{i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtDate(d)}</span>
-              ))}
-            </>}
+        {/* Row 1: tên + icons */}
+        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.05rem', margin:0, flex:1, minWidth:0 }}>{group.event_label}</p>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+            {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
+            {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
+            <span style={{
+              fontSize:'0.81rem', background:'rgba(201,168,76,0.12)',
+              color: GOLD, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
+            }}>{group.reports.length}</span>
+            <span style={{ color: GOLD, fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
+          </div>
+        </div>
+        {/* Row 2: địa điểm */}
+        {group.location && (
+          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'5px 0 0' }}>📍 {group.location}</p>
+        )}
+        {/* Row 3: ngày */}
+        {allDates.length > 0 && (
+          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'3px 0 0', display:'flex', flexWrap:'wrap', gap:'3px', alignItems:'center' }}>
+            <span>📅</span>
+            {allDates.map((d, i) => (
+              <span key={d}>{i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtDate(d)}</span>
+            ))}
           </p>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-          {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
-          {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
-          <span style={{
-            fontSize:'0.81rem', background:'rgba(201,168,76,0.12)',
-            color: GOLD, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
-          }}>{group.reports.length}</span>
-          <span style={{ color: GOLD, fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
-        </div>
+        )}
       </div>
 
       {/* Reports inside */}
