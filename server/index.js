@@ -57,7 +57,7 @@ app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res)
   const tmpFile = path.join(os.tmpdir(), `kho-backup-${date}.db`);
   try {
     await db.backup(tmpFile);
-    const filename = `kho-khoiminh-backup-${date}.db`;
+    const filename = `km-media-backup-${date}.db`;
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/octet-stream');
     const stream = fs.createReadStream(tmpFile);

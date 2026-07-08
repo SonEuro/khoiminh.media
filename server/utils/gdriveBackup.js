@@ -36,7 +36,7 @@ async function uploadBackupToDrive(db) {
   const tmpFile = path.join(os.tmpdir(), `kho-backup-${Date.now()}.db`);
   await db.backup(tmpFile);
 
-  const filename = `kho-khoiminh-backup-${date}.db`;
+  const filename = `km-media-backup-${date}.db`;
   const uploaded = await drive.files.create({
     requestBody: { name: filename, parents: [folderId] },
     media: { mimeType: 'application/octet-stream', body: fs.createReadStream(tmpFile) },
@@ -47,7 +47,7 @@ async function uploadBackupToDrive(db) {
 
   // Giữ 50 bản gần nhất (tăng từ 10 lên 50)
   const list = await drive.files.list({
-    q: `'${folderId}' in parents and name contains 'kho-khoiminh-backup' and trashed=false`,
+    q: `'${folderId}' in parents and name contains 'km-media-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
@@ -72,7 +72,7 @@ async function uploadDailyBackupToDrive(db) {
   const tmpFile = path.join(os.tmpdir(), `kho-daily-${Date.now()}.db`);
   await db.backup(tmpFile);
 
-  const filename = `kho-khoiminh-daily-${date}_${time}.db`;
+  const filename = `km-media-daily-${date}_${time}.db`;
   await drive.files.create({
     requestBody: { name: filename, parents: [folderId] },
     media: { mimeType: 'application/octet-stream', body: fs.createReadStream(tmpFile) },
@@ -83,7 +83,7 @@ async function uploadDailyBackupToDrive(db) {
 
   // Giữ 60 bản (12h/lần × 30 ngày)
   const list = await drive.files.list({
-    q: `'${folderId}' in parents and name contains 'kho-khoiminh-daily' and trashed=false`,
+    q: `'${folderId}' in parents and name contains 'km-media-daily' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
@@ -140,7 +140,7 @@ async function restoreFromDriveIfNeeded(db) {
   const folderId = getFolderId();
 
   const list = await drive.files.list({
-    q: `'${folderId}' in parents and name contains 'kho-khoiminh-backup' and trashed=false`,
+    q: `'${folderId}' in parents and name contains 'km-media-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
     pageSize: 5,
