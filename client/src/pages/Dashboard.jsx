@@ -464,7 +464,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
       </AdminSec>
 
       {/* 2. Đang lên kế hoạch */}
-      <AdminSec title="ĐANG LÊN KẾ HOẠCH" color="#60a5fa" rgb="96,165,250" count={planned.length} linkTo="/events" defaultOpen={false}>
+      <AdminSec title="ĐANG LÊN KẾ HOẠCH" color="#60a5fa" rgb="96,165,250" count={planned.length} linkTo="/events">
         {planned.length === 0
           ? <AEmpty text="Không có sự kiện đang lên kế hoạch" />
           : planned.map((ev, i) => (
@@ -513,7 +513,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
       </AdminSec>
 
       {/* 5. Đã hoàn thành */}
-      <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events" defaultOpen={false}>
+      <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events">
         {completed.length === 0
           ? <AEmpty text="Không có sự kiện đã hoàn thành" />
           : completed.map((ev, i) => (
