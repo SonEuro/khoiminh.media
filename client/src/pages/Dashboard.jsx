@@ -363,7 +363,11 @@ function UpcomingScheduleSection({ userName }) {
       >
         {/* Hàng 1: Tên sự kiện */}
         <p style={{ fontWeight:700, color:nameColor, fontSize:'0.87rem', margin:0 }}>{group.eventName}</p>
-        {/* Hàng 2: Ngày theo phase – 1 dòng scroll ngang */}
+        {/* Hàng 2: Địa điểm */}
+        {group.location && (
+          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'4px 0 0' }}>📍 {group.location}</p>
+        )}
+        {/* Hàng 3: Ngày theo phase – 1 dòng scroll ngang */}
         <div style={{ overflowX:'auto', marginTop:'5px', paddingBottom:'2px' }}>
           <div style={{ display:'inline-flex', gap:'10px', alignItems:'center', whiteSpace:'nowrap' }}>
             {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
@@ -381,10 +385,6 @@ function UpcomingScheduleSection({ userName }) {
             })}
           </div>
         </div>
-        {/* Hàng 3: Địa điểm */}
-        {group.location && (
-          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'5px 0 0' }}>📍 {group.location}</p>
-        )}
       </div>
     );
   }
