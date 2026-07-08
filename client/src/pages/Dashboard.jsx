@@ -363,25 +363,27 @@ function UpcomingScheduleSection({ userName }) {
       >
         {/* Hàng 1: Tên sự kiện */}
         <p style={{ fontWeight:700, color:nameColor, fontSize:'0.87rem', margin:0 }}>{group.eventName}</p>
-        {/* Hàng 2: Ngày theo phase */}
-        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'5px', alignItems:'center' }}>
-          {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
-            const sorted = [...group.dates[p]].sort();
-            return (
-              <span key={p} style={{ display:'inline-flex', alignItems:'center', gap:'3px', fontSize:'0.80rem' }}>
-                <span>{PHASE_ICON[p]}</span>
-                {sorted.map((d, i) => (
-                  <span key={d} style={{ color: d === todayVN ? '#f87171' : d === tomorrowVN ? '#4ade80' : '#a0a0b8', fontWeight: (d === todayVN || d === tomorrowVN) ? 700 : 400 }}>
-                    {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
-                  </span>
-                ))}
-              </span>
-            );
-          })}
+        {/* Hàng 2: Ngày theo phase – 1 dòng scroll ngang */}
+        <div style={{ overflowX:'auto', marginTop:'5px', paddingBottom:'2px' }}>
+          <div style={{ display:'inline-flex', gap:'10px', alignItems:'center', whiteSpace:'nowrap' }}>
+            {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
+              const sorted = [...group.dates[p]].sort();
+              return (
+                <span key={p} style={{ display:'inline-flex', alignItems:'center', gap:'3px', fontSize:'0.80rem' }}>
+                  <span>{PHASE_ICON[p]}</span>
+                  {sorted.map((d, i) => (
+                    <span key={d} style={{ color: d === todayVN ? '#f87171' : d === tomorrowVN ? '#4ade80' : '#a0a0b8', fontWeight: (d === todayVN || d === tomorrowVN) ? 700 : 400 }}>
+                      {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
+                    </span>
+                  ))}
+                </span>
+              );
+            })}
+          </div>
         </div>
         {/* Hàng 3: Địa điểm */}
         {group.location && (
-          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'4px 0 0' }}>📍 {group.location}</p>
+          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'5px 0 0' }}>📍 {group.location}</p>
         )}
       </div>
     );
