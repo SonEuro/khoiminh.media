@@ -1034,26 +1034,30 @@ function MySchedulesSection({ schedules, user, onSelect }) {
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.08)'}
         onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
       >
-        <p style={{ margin: '0 0 3px', fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.84rem', color: '#a0a0b8' }}>
-          {[['🏗', s.setup_dates, false], ['📦', s.teardown_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true]]
-            .filter(([, d]) => d?.length > 0)
-            .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
-            .map(([icon, dates, isFilming]) => (
-              <span key={icon} style={isFilming ? { color:'#fb923c', fontWeight:700, fontSize:'0.84rem' } : undefined}>
-                {icon} {dates.map((d, i) => (
-                  <span key={d} style={
-                    d === today    ? { color: '#f87171', fontWeight: 800 } :
-                    d === tomorrow ? { color: '#4ade80', fontWeight: 800 } :
-                    isFilming      ? { color: '#fb923c' } : undefined
-                  }>
-                    {i > 0 && ' · '}{fmtD(d)}
-                  </span>
-                ))}
-              </span>
-            ))
-          }
-          {s.location && <span>📍 {s.location}</span>}
+        {/* Hàng 1: Tên */}
+        <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
+        {/* Hàng 2: Địa điểm */}
+        {s.location && <p style={{ margin: '4px 0 0', fontSize: '0.80rem', color: '#7878a0' }}>📍 {s.location}</p>}
+        {/* Hàng 3: Ngày – scroll ngang */}
+        <div style={{ overflowX: 'auto', marginTop: '5px', paddingBottom: '2px' }}>
+          <div style={{ display: 'inline-flex', gap: '10px', alignItems: 'center', whiteSpace: 'nowrap', fontSize: '0.80rem', color: '#a0a0b8' }}>
+            {[['🏗', s.setup_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true], ['📦', s.teardown_dates, false]]
+              .filter(([, d]) => d?.length > 0)
+              .map(([icon, dates, isFilming]) => (
+                <span key={icon} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: isFilming ? '#fb923c' : undefined, fontWeight: isFilming ? 700 : undefined }}>
+                  <span>{icon}</span>
+                  {[...dates].sort().map((d, i) => (
+                    <span key={d} style={{
+                      color: d === today ? '#f87171' : d === tomorrow ? '#4ade80' : isFilming ? '#fb923c' : '#a0a0b8',
+                      fontWeight: (d === today || d === tomorrow) ? 800 : undefined,
+                    }}>
+                      {i > 0 && <span style={{ color: '#555570' }}> · </span>}{fmtD(d)}
+                    </span>
+                  ))}
+                </span>
+              ))
+            }
+          </div>
         </div>
       </div>
     );
