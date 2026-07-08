@@ -1270,8 +1270,7 @@ export default function WorkSchedule() {
         const pastObs  = myObs.filter(o => o.assigned_date < todayStr);
         const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
         const overdue  = pastObs.filter(o => o.overdue);
-        const done     = pastObs.filter(o => o.submitted);
-        if (!pending.length && !overdue.length && !done.length) return null;
+        if (!pending.length && !overdue.length) return null;
         const phaseIcon = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
@@ -1291,14 +1290,13 @@ export default function WorkSchedule() {
               )}
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              {[...overdue, ...pending, ...done].map(ob => {
+              {[...overdue, ...pending].map(ob => {
                 const isOver = ob.overdue;
-                const isDone = ob.submitted;
                 return (
                   <div key={ob.id} style={{
                     display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap',
-                    background: isOver ? 'rgba(248,113,113,0.06)' : isDone ? 'rgba(74,222,128,0.04)' : 'rgba(251,191,36,0.04)',
-                    border: `1px solid ${isOver ? 'rgba(248,113,113,0.25)' : isDone ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.15)'}`,
+                    background: isOver ? 'rgba(248,113,113,0.06)' : 'rgba(251,191,36,0.04)',
+                    border: `1px solid ${isOver ? 'rgba(248,113,113,0.25)' : 'rgba(251,191,36,0.15)'}`,
                     borderRadius:'8px', padding:'8px 12px',
                   }}>
                     <span style={{ fontSize:'0.85rem' }}>{phaseIcon[ob.phase]}</span>
@@ -1309,20 +1307,15 @@ export default function WorkSchedule() {
                       <div style={{ fontSize:'0.75rem', color:'#a0a0b8' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
                         {isOver && <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>⚠ Quá hạn</span>}
-                        {!isDone && !isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
+                        {!isOver && <span style={{ color:'#fbbf24', marginLeft:'6px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
                     </div>
-                    {isDone
-                      ? <span style={{ fontSize:'0.75rem', color:'#4ade80', fontWeight:700 }}>✓ Đã nộp</span>
-                      : (
-                        <button
-                          onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
-                          style={{ background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 12px', fontSize:'0.75rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
-                        >
-                          Nộp báo cáo →
-                        </button>
-                      )
-                    }
+                    <button
+                      onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
+                      style={{ background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 12px', fontSize:'0.75rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
+                    >
+                      Nộp báo cáo →
+                    </button>
                   </div>
                 );
               })}
