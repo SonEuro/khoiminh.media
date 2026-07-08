@@ -545,7 +545,10 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
+    || !!user?.is_truong_phong
+    || !!user?.is_phan_lich
+    || !!user?.is_phan_lich_all;
   const [dash, setDash]       = useState(null);
   const [events, setEvents]   = useState([]);
   const [violations, setViolations] = useState([]);
