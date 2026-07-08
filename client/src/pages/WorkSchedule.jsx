@@ -1256,13 +1256,15 @@ export default function WorkSchedule() {
         );
       })()}
 
-      {/* ── Báo cáo cần nộp — nhân viên thường + is_phan_lich (dept scheduler có thể là nhóm trưởng) */}
+      {/* ── Báo cáo cần nộp — nhân viên + nhóm trưởng + phan_lich_all (trừ SUPER_ADMIN/DIRECTOR) */}
       {obligations.length > 0
         && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
-        && !user?.is_phan_lich_all
-        && !user?.is_truong_phong
         && (() => {
-        const pastObs  = obligations.filter(o => o.assigned_date < todayStr);
+        // is_truong_phong nhận ALL obligations từ server → lọc lại theo chính họ
+        const myObs = user?.is_truong_phong
+          ? obligations.filter(o => o.lead_name === user.full_name || o.user_id === user.id)
+          : obligations;
+        const pastObs  = myObs.filter(o => o.assigned_date < todayStr);
         const pending  = pastObs.filter(o => !o.submitted && !o.overdue);
         const overdue  = pastObs.filter(o => o.overdue);
         const done     = pastObs.filter(o => o.submitted);
