@@ -620,14 +620,18 @@ export default function EventReport() {
     Promise.all([api.getEventReports(), api.getEvents()])
       .then(([r, e]) => { setReports(r); setEvents(e); })
       .finally(() => setLoading(false));
-    // Lấy các obligation đã bị khóa (vi phạm không nộp) của user hiện tại
+    // Lấy các obligation đã bị khóa (vi phạm không nộp)
+    // Admin/is_phan_lich_all: thấy tất cả; lead/user thường: chỉ thấy của mình
     api.getLeadObligations()
       .then(obs => {
-        const myName = user?.full_name || '';
-        setLockedObs(obs.filter(o =>
-          o.locked && !o.submitted &&
-          (o.lead_name === myName || o.user_id === user?.id)
-        ));
+        const locked = obs.filter(o => o.locked && !o.submitted);
+        const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+        if (isAdmin) {
+          setLockedObs(locked);
+        } else {
+          const myName = user?.full_name || '';
+          setLockedObs(locked.filter(o => o.lead_name === myName || o.user_id === user?.id));
+        }
       })
       .catch(() => {});
   }, [user?.full_name, user?.id]);
@@ -897,20 +901,28 @@ export default function EventReport() {
                 </span>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-                {lockedObs.map(ob => (
-                  <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.18)', borderRadius:'8px', padding:'8px 12px' }}>
-                    <span style={{ fontSize:'0.85rem', flexShrink:0 }}>🚫</span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:'0.85rem', fontWeight:700, color: GOLD, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                        {ob.event_display || ob.event_name || 'Sự kiện'}
-                      </div>
-                      <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
-                        {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
-                        <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
+                {lockedObs.map(ob => {
+                  const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
+                  const deptC = obDept ? getDeptColor(obDept) : null;
+                  return (
+                    <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.18)', borderRadius:'8px', padding:'8px 12px' }}>
+                      <span style={{ fontSize:'0.85rem', flexShrink:0 }}>🚫</span>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                          <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
+                          {deptC && <span style={{ fontSize:'0.7rem', fontWeight:600, color: deptC, background:`${deptC}22`, border:`1px solid ${deptC}55`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>{obDept}</span>}
+                        </div>
+                        <div style={{ fontSize:'0.78rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginTop:'1px' }}>
+                          {ob.event_display || ob.event_name || 'Sự kiện'}
+                        </div>
+                        <div style={{ fontSize:'0.72rem', color:'#a0a0b8', marginTop:'1px' }}>
+                          {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
+                          <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
