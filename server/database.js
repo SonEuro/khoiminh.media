@@ -305,6 +305,13 @@ db.exec(`
   );
 `);
 
+// Migration: thêm cột dismissed vào lead_report_obligations
+const oblCols = db.pragma('table_info(lead_report_obligations)').map(c => c.name);
+if (!oblCols.includes('dismissed')) {
+  db.prepare('ALTER TABLE lead_report_obligations ADD COLUMN dismissed INTEGER DEFAULT 0').run();
+  console.log('[DB] Migration: thêm cột dismissed vào lead_report_obligations');
+}
+
 // Migration: đổi tên Ngô Văn Hào → Ngô Văn Hảo
 const oldName = 'Ngô Văn Hào', newName = 'Ngô Văn Hảo';
 const hasOldName = db.prepare('SELECT 1 FROM users WHERE full_name = ? LIMIT 1').get(oldName);

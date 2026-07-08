@@ -44,6 +44,18 @@ router.post('/', requireAuth, (req, res) => {
 
 // DELETE /api/violations/:id  (SUPER_ADMIN, DIRECTOR)
 router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const viol = db.prepare('SELECT * FROM violations WHERE id = ?').get(req.params.id);
+  if (viol && viol.reporter_name === 'Hệ thống'
+      && ['Không nộp báo cáo', 'Nộp báo cáo trễ'].includes(viol.violation_type)) {
+    // Trích ngày từ description: "...ngày YYYY-MM-DD..."
+    const dateMatch = viol.description?.match(/ngày (\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      db.prepare(`
+        UPDATE lead_report_obligations SET dismissed = 1
+        WHERE lead_name = ? AND assigned_date = ?
+      `).run(viol.violator, dateMatch[1]);
+    }
+  }
   db.prepare('DELETE FROM violations WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

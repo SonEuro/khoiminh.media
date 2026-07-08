@@ -90,13 +90,13 @@ function syncObligations(scheduleId) {
 
 function checkAndCreateViolations() {
   const now = getVNNow();
-  // Lấy tất cả obligations đã qua deadline — cả violation_created=0 lẫn =1
-  // (violation_created=1 có thể bị set sai trước đây do FK error, cần kiểm tra lại)
+  // Lấy tất cả obligations đã qua deadline, chưa bị dismissed thủ công
+  // Bỏ filter violation_created=0 để reprocess các obligation có thể bị set sai trước đây
   const overdue = db.prepare(`
     SELECT o.*, e.name AS ev_display
     FROM lead_report_obligations o
     LEFT JOIN events e ON e.id = o.event_id
-    WHERE o.deadline <= ?
+    WHERE o.deadline <= ? AND (o.dismissed IS NULL OR o.dismissed = 0)
   `).all(now);
 
   for (const ob of overdue) {
