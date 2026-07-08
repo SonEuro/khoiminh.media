@@ -888,11 +888,38 @@ export default function EventReport() {
           </div>
         )}
 
-        {/* Vi phạm báo cáo – obligations đã bị khóa (deadline+24h, không nộp) */}
+        {/* Theo sự kiện */}
+        {!loading && listMode === 'event' && (() => {
+          const order = [];
+          const map = {};
+          reports.forEach(r => {
+            const key = r.event_id ? String(r.event_id) : `_${r.id}`;
+            if (!map[key]) {
+              map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] };
+              order.push(key);
+            }
+            map[key].reports.push(r);
+          });
+          return order.map(k => (
+            <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+          ));
+        })()}
+
+        {/* Theo bộ phận – chỉ hiện khi canViewAllDepts */}
+        {!loading && listMode === 'dept' && canViewAllDepts && (
+          deptGroups.order.length === 0
+            ? null
+            : deptGroups.order.map(dept => (
+                <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
+                  onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+              ))
+        )}
+
+        {/* Vi phạm báo cáo – obligations đã bị khóa, hiển thị cuối trang */}
         {!loading && lockedObs.length > 0 && (() => {
           const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
           return (
-            <div style={{ marginBottom:'24px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:'12px', padding:'14px 16px' }}>
+            <div style={{ marginTop:'8px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:'12px', padding:'14px 16px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
                 <span>🚫</span>
                 <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
@@ -927,33 +954,6 @@ export default function EventReport() {
             </div>
           );
         })()}
-
-        {/* Theo sự kiện */}
-        {!loading && listMode === 'event' && (() => {
-          const order = [];
-          const map = {};
-          reports.forEach(r => {
-            const key = r.event_id ? String(r.event_id) : `_${r.id}`;
-            if (!map[key]) {
-              map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] };
-              order.push(key);
-            }
-            map[key].reports.push(r);
-          });
-          return order.map(k => (
-            <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
-          ));
-        })()}
-
-        {/* Theo bộ phận – chỉ hiện khi canViewAllDepts */}
-        {!loading && listMode === 'dept' && canViewAllDepts && (
-          deptGroups.order.length === 0
-            ? null
-            : deptGroups.order.map(dept => (
-                <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
-                  onDelete={handleDelete} canDeleteReport={canDeleteReport} />
-              ))
-        )}
       </div>
     );
   }
