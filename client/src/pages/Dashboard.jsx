@@ -429,7 +429,7 @@ function AEmpty({ text }) {
   return <p style={{ color: '#7878a0', fontSize: '0.75rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
 }
 
-function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
+function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, userName }) {
   const navigate = useNavigate();
 
   const todayEvs   = dash?.today_events || [];
@@ -443,6 +443,9 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+      {/* Lịch làm việc cá nhân */}
+      {userName && <UpcomingScheduleSection userName={userName} />}
 
       {/* 1. Vận hành hôm nay */}
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#4ade80" rgb="74,222,128" count={todayEvs.length} linkTo="/events">
@@ -545,10 +548,6 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)
-    || !!user?.is_truong_phong
-    || !!user?.is_phan_lich
-    || !!user?.is_phan_lich_all;
   const [dash, setDash]       = useState(null);
   const [events, setEvents]   = useState([]);
   const [violations, setViolations] = useState([]);
@@ -563,13 +562,11 @@ export default function Dashboard() {
     } catch { /* dash stays null, handled in render */ } finally {
       setLoading(false);
     }
-    if (isFullAdmin) {
-      api.getViolations().then(vs => setViolations(vs)).catch(() => {});
-      api.getLeadObligations().then(obs => {
-        setLockedObs(obs.filter(o => o.locked && !o.submitted));
-      }).catch(() => {});
-    }
-  }, [isFullAdmin]);
+    api.getViolations().then(vs => setViolations(vs)).catch(() => {});
+    api.getLeadObligations().then(obs => {
+      setLockedObs(obs.filter(o => o.locked && !o.submitted));
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     load();
@@ -579,83 +576,18 @@ export default function Dashboard() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
-  const totalAlerts = dash
-    ? (dash.today_events.length > 0 ? 1 : 0) + dash.need_confirm.length + dash.overdue.length + dash.conflicts.length
-    : 0;
-
-  const scrollToAlerts = () => document.getElementById('alerts-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
   return (
     <div className="p-6 space-y-6">
       <div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: totalAlerts > 0 && !isFullAdmin ? '8px' : 0 }}>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: 0 }}>Trang Chủ</h1>
-        </div>
-        {!loading && totalAlerts > 0 && dash && !isFullAdmin && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {dash.today_events.length > 0 && (
-              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(74,222,128,0.15)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {dash.today_events.length} sự kiện hôm nay
-              </span>
-            )}
-            {dash.need_confirm.length > 0 && (
-              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {dash.need_confirm.length} chờ xác nhận
-              </span>
-            )}
-            {dash.overdue.length > 0 && (
-              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(248,113,113,0.15)', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {dash.overdue.length} quá hạn trả
-              </span>
-            )}
-            {dash.conflicts.length > 0 && (
-              <span onClick={scrollToAlerts} style={{ fontSize: '0.72rem', fontWeight: 700, background: 'rgba(251,113,133,0.15)', color: '#fb7185', border: '1px solid rgba(251,113,133,0.4)', borderRadius: '9999px', padding: '3px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {dash.conflicts.length} xung đột
-              </span>
-            )}
-          </div>
-        )}
+        <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: 0 }}>Trang Chủ</h1>
       </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</div>
       ) : !dash ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#f87171' }}>Không thể tải dữ liệu. Vui lòng thử lại.</div>
-      ) : isFullAdmin ? (
-        <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} onConfirmed={load} />
       ) : (
-        <>
-          {/* ── Lịch làm việc sắp tới ── */}
-          <UpcomingScheduleSection userName={user?.full_name || ''} />
-
-          {/* ── Cảnh báo vận hành ── */}
-          <div id="alerts-section">
-            <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a0a0b8', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Vận hành hôm nay
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <TodaySection events={dash.today_events} />
-              {dash.need_confirm.length > 0 && <ConfirmSection items={dash.need_confirm} onConfirmed={load} />}
-              {dash.overdue.length > 0 && <OverdueSection items={dash.overdue} />}
-              {dash.conflicts.length > 0 && <ConflictSection conflicts={dash.conflicts} />}
-            </div>
-          </div>
-
-          {/* ── Trạng thái sự kiện ── */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#a0a0b8', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Trạng thái sự kiện
-              </h2>
-              <Link to="/events" style={{ fontSize: '0.78rem', color: GOLD, textDecoration: 'none', fontWeight: 600 }}>Xem tất cả →</Link>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {['active', 'planned', 'completed'].map(s => (
-                <EventGroup key={s} status={s} events={events} />
-              ))}
-            </div>
-          </div>
-        </>
+        <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} onConfirmed={load} userName={user?.full_name || ''} />
       )}
     </div>
   );
