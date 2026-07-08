@@ -743,15 +743,18 @@ export default function Events() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
-  // Mở modal chi tiết khi navigate từ Dashboard với openEventId
+  // Cuộn đến và highlight card khi navigate từ Dashboard với openEventId
   useEffect(() => {
     const id = location.state?.openEventId;
     if (!id || !events.length || handledNavId.current === id) return;
-    const ev = events.find(e => e.id === id);
-    if (ev) {
+    const el = document.getElementById(`ev-card-${id}`);
+    if (el) {
       handledNavId.current = id;
-      setSelected(ev);
-      setModal('detail');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'box-shadow 0.3s, outline 0.3s';
+      el.style.outline = '2px solid #c9a84c';
+      el.style.boxShadow = '0 0 0 4px rgba(201,168,76,0.25)';
+      setTimeout(() => { el.style.outline = ''; el.style.boxShadow = ''; }, 2000);
     }
   }, [events, location.state]);
 
@@ -850,7 +853,7 @@ export default function Events() {
           function dateColor(d) { return d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : undefined; }
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
-            <div key={ev.id} className="card" style={cardStyle}>
+            <div key={ev.id} id={`ev-card-${ev.id}`} className="card" style={cardStyle}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
