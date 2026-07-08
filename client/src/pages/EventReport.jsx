@@ -543,9 +543,14 @@ function EventZone({ group, onDelete, canDeleteReport }) {
       >
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.05rem', margin:0 }}>{group.event_label}</p>
-          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'10px' }}>
+          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:'6px', alignItems:'center' }}>
             {group.location && <span>📍 {group.location}</span>}
-            {allDates.length > 0 && <span>📅 {allDates.map(fmtDate).join(' · ')}</span>}
+            {allDates.length > 0 && <>
+              <span>📅</span>
+              {allDates.map((d, i) => (
+                <span key={d}>{i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtDate(d)}</span>
+              ))}
+            </>}
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
