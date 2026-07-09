@@ -1266,6 +1266,15 @@ export default function WorkSchedule() {
                         {workDate && <span>· {workDate}</span>}
                       </div>
                     </div>
+                    {['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && (
+                      <button onClick={async () => {
+                        if (!confirm('Xóa vi phạm này?')) return;
+                        await api.deleteViolation(v.id).catch(e => alert(e.message));
+                        load();
+                      }} style={{ background:'rgba(229,62,62,0.08)', border:'1px solid rgba(229,62,62,0.2)', color:'#fc8181', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', fontSize:'0.84rem', flexShrink:0 }}>
+                        🗑
+                      </button>
+                    )}
                   </div>
                 );
               })}
