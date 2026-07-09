@@ -309,7 +309,10 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
     setConfirming(true);
     try {
       await api.confirmEventReport(report.id);
-      onConfirm?.();
+      if (onConfirm) onConfirm();
+      else window.location.reload();
+    } catch (err) {
+      alert('Lỗi xác nhận: ' + (err.message || err));
     } finally { setConfirming(false); }
   }
 
