@@ -311,37 +311,35 @@ function UpcomingScheduleSection({ userName, userId }) {
         }
       }
       found.sort((a, b) => a.date.localeCompare(b.date));
-      console.log('[Schedule Debug] user:', userName, 'userId:', userId, 'found:', found.length, found);
-      setUpcoming(found);
+setUpcoming(found);
     }).catch(() => {});
   }, [userName, userId]);
 
-  // Group items by event (schedId)
+  // Group items by (schedId × zone) — event đa ngày hiện ở từng zone tương ứng
   const PHASE_ORDER = ['setup', 'rehearsal', 'filming', 'teardown'];
   const PHASE_ICON  = { setup:'🏗', rehearsal:'🎤', filming:'🎬', teardown:'📦' };
 
-  const evMap = {};
+  const zoneOf = (date) => {
+    if (date === todayVN)    return 'today';
+    if (date === tomorrowVN) return 'tomorrow';
+    if (date > tomorrowVN)   return 'upcoming';
+    return 'past';
+  };
+
+  const groupMap = {};
   for (const item of upcoming) {
-    if (!evMap[item.schedId]) {
-      evMap[item.schedId] = { schedId: item.schedId, eventName: item.eventName, location: item.location, dates: {} };
-    }
-    const g = evMap[item.schedId];
+    const zone = zoneOf(item.date);
+    const key  = `${item.schedId}::${zone}`;
+    if (!groupMap[key]) groupMap[key] = { schedId: item.schedId, eventName: item.eventName, location: item.location, dates: {}, zone };
+    const g = groupMap[key];
     if (!g.dates[item.phase]) g.dates[item.phase] = [];
     if (!g.dates[item.phase].includes(item.date)) g.dates[item.phase].push(item.date);
   }
-  const eventGroups = Object.values(evMap);
-
-  const getZone = (g) => {
-    const all = Object.values(g.dates).flat();
-    if (all.includes(todayVN))    return 'today';
-    if (all.includes(tomorrowVN)) return 'tomorrow';
-    if (all.some(d => d > tomorrowVN)) return 'upcoming';
-    return 'past';
-  };
-  const todayEvs    = eventGroups.filter(g => getZone(g) === 'today');
-  const tomorrowEvs = eventGroups.filter(g => getZone(g) === 'tomorrow');
-  const upcomingEvs = eventGroups.filter(g => getZone(g) === 'upcoming');
-  const pastEvs     = eventGroups.filter(g => getZone(g) === 'past');
+  const allGroups   = Object.values(groupMap);
+  const todayEvs    = allGroups.filter(g => g.zone === 'today');
+  const tomorrowEvs = allGroups.filter(g => g.zone === 'tomorrow');
+  const upcomingEvs = allGroups.filter(g => g.zone === 'upcoming');
+  const pastEvs     = allGroups.filter(g => g.zone === 'past');
   const totalFuture = todayEvs.length + tomorrowEvs.length + upcomingEvs.length;
 
   if (upcoming.length === 0) return null;
