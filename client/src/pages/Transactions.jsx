@@ -1137,7 +1137,7 @@ function ViolationRows({ violations, isSuperAdmin, onDelete }) {
           <div style={{ flex:1, minWidth:0 }}>
             <p style={{ fontWeight:700, color:'#f87171', margin:'0 0 2px', fontSize:'0.84rem' }}>{v.violator}</p>
             <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
-              {v.violation_type}{v.event_label ? ` · ${v.event_label}` : ''}
+              {v.violation_type}{v.event_label ? <> · <span style={{ color:'#e8c97a' }}>{v.event_label}</span></> : ''}
             </p>
           </div>
           <div style={{ textAlign:'right', fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>
