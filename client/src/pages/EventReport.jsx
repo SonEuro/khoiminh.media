@@ -298,7 +298,7 @@ function getReportLateness(reportDate, createdAt) {
 }
 
 // ── Report detail card ────────────────────────────────────────────────────────
-function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
+function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
 
@@ -330,7 +330,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false }) {
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           <div style={{ flex:1, display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px', fontSize:'0.81rem', color:'#7878a0' }}>
             {!hideEventName && report.location && <span>📍 {report.location}</span>}
-            {report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
+            {!hideDateRow && report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
             {report.images?.length > 0 && (
@@ -536,27 +536,59 @@ function DateZone({ date, reports, onDelete, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
   const totalStaff  = new Set(reports.flatMap(r => r.km_staff || [])).size;
+
+  const dateLabel = (() => {
+    if (date === '__') return { day: '??', month: '??', year: '??' };
+    const [y, m, d] = date.split('-');
+    return { day: d, month: m, year: y };
+  })();
+
   return (
-    <div style={{ background:'#13131d', border:'1px solid rgba(96,165,250,0.22)', borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
-      <div onClick={() => setOpen(v => !v)} style={{ padding:'14px 18px', cursor:'pointer' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-          <p style={{ fontWeight:700, color:'#60a5fa', fontSize:'1.05rem', margin:0, flex:1, minWidth:0 }}>
-            📅 {date === '__' ? 'Không rõ ngày' : fmtDate(date)}
-          </p>
-          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-            {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
-            {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
-            <span style={{ fontSize:'0.81rem', background:'rgba(96,165,250,0.12)', color:'#60a5fa', padding:'2px 9px', borderRadius:'9999px', fontWeight:700 }}>
-              {reports.length}
-            </span>
-            <span style={{ color:'#60a5fa', fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
+    <div style={{ marginBottom: '28px' }}>
+      {/* Header: ngày nổi bật */}
+      <div
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '14px',
+          cursor: 'pointer', marginBottom: open ? '10px' : 0,
+          padding: '10px 14px',
+          background: 'rgba(201,168,76,0.07)',
+          border: '1px solid rgba(201,168,76,0.2)',
+          borderRadius: '12px',
+        }}
+      >
+        {/* Calendar badge */}
+        <div style={{
+          flexShrink: 0, width: '52px', textAlign: 'center',
+          background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
+          borderRadius: '10px', padding: '6px 0',
+        }}>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: GOLD, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            {dateLabel.day}
+          </div>
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#a0906a', letterSpacing: '0.04em', marginTop: '2px' }}>
+            TH{dateLabel.month}
           </div>
         </div>
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.95rem' }}>
+            {date === '__' ? 'Không rõ ngày' : `${dateLabel.day} tháng ${dateLabel.month}, ${dateLabel.year}`}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#7878a0', marginTop: '2px', display: 'flex', gap: '10px' }}>
+            <span>{reports.length} báo cáo</span>
+            {totalImages > 0 && <span>🖼 {totalImages}</span>}
+            {totalStaff  > 0 && <span>👥 {totalStaff}</span>}
+          </div>
+        </div>
+        <span style={{ color: GOLD, fontSize: '0.88rem', flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
       </div>
+
+      {/* Cards — ẩn ngày vì zone đã hiện rồi */}
       {open && (
-        <div style={{ borderTop:'1px solid rgba(96,165,250,0.12)', padding:'8px 10px 10px' }}>
+        <div style={{ paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.2)' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideDateRow />
           ))}
         </div>
       )}
