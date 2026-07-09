@@ -322,6 +322,26 @@ if (hasOldName) {
   console.log('[DB] Migration: đổi tên Ngô Văn Hào → Ngô Văn Hảo');
 }
 
+// Migration: đồng bộ tên sự kiện từ events sang các bảng liên quan
+try {
+  db.prepare(`
+    UPDATE work_schedules SET event_name = (SELECT name FROM events WHERE events.id = work_schedules.event_id)
+    WHERE event_id IS NOT NULL AND EXISTS (SELECT 1 FROM events WHERE events.id = work_schedules.event_id)
+  `).run();
+  db.prepare(`
+    UPDATE lead_report_obligations SET event_name = (SELECT name FROM events WHERE events.id = lead_report_obligations.event_id)
+    WHERE event_id IS NOT NULL AND EXISTS (SELECT 1 FROM events WHERE events.id = lead_report_obligations.event_id)
+  `).run();
+  db.prepare(`
+    UPDATE violations SET event_label = (SELECT name FROM events WHERE events.id = violations.event_id)
+    WHERE event_id IS NOT NULL AND EXISTS (SELECT 1 FROM events WHERE events.id = violations.event_id)
+  `).run();
+  db.prepare(`
+    UPDATE event_reports SET event_label = (SELECT name FROM events WHERE events.id = event_reports.event_id)
+    WHERE event_id IS NOT NULL AND EXISTS (SELECT 1 FROM events WHERE events.id = event_reports.event_id)
+  `).run();
+} catch (e) { console.error('[DB] Migration sync event names:', e.message); }
+
 // Seed admin mặc định nếu chưa có user nào
 const bcryptSeed = require('bcryptjs');
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
