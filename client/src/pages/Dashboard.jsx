@@ -288,11 +288,16 @@ function UpcomingScheduleSection({ userName }) {
       for (const s of schedules) {
         for (const p of phases) {
           const dates = s[`${p}_dates`] || (s[`${p}_date`] ? [s[`${p}_date`]] : []);
-          const leads = (s[`${p}_leads`] || []).map(l => l.name);
-          const staff = s[`${p}_km_staff`] || [];
-          if (!leads.includes(userName) && !staff.includes(userName)) continue;
+          const leadsFlat = (s[`${p}_leads`] || []).map(l => l.name);
+          const leadsMap  = s[`${p}_leads_map`];
+          const staffFlat = s[`${p}_km_staff`] || [];
+          const staffMap  = s[`${p}_km_staff_map`];
           for (const date of dates) {
             if (!date || date < pastStr || date > cutoffStr) continue;
+            // Kiểm tra per-date: chỉ hiện ngày nào user thực sự được phân lịch
+            const dateLeads = leadsMap ? (leadsMap[date] || []).map(l => l.name) : leadsFlat;
+            const dateStaff = staffMap ? (staffMap[date] || []) : staffFlat;
+            if (!dateLeads.includes(userName) && !dateStaff.includes(userName)) continue;
             const key = `${s.id}-${p}-${date}`;
             if (seen.has(key)) continue;
             seen.add(key);
