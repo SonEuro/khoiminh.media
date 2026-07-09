@@ -535,7 +535,7 @@ function PendingReportsSection({ obs }) {
             </p>
           </div>
           <button
-            onClick={() => navigate('/event-report')}
+            onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
             style={{
               flexShrink: 0, padding: '5px 12px', borderRadius: '7px', cursor: 'pointer', border: 'none',
               background: ob.overdue ? 'rgba(248,113,113,0.2)' : 'rgba(251,146,60,0.2)',
