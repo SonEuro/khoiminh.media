@@ -9,6 +9,7 @@ export function StaffGroupsProvider({ children }) {
   const [freelancerGroups, setFreelancerGroups] = useState(FREELANCER_GROUPS);
 
   const refresh = useCallback(() => {
+    if (!localStorage.getItem('km_token')) return;
     api.getStaffGroups('km').then(setKmGroups).catch(() => {});
     api.getStaffGroups('freelancer').then(setFreelancerGroups).catch(() => {});
   }, []);

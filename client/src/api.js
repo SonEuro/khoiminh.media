@@ -30,7 +30,9 @@ async function request(path, options = {}) {
     // All other 401s = session expired
     localStorage.removeItem('km_token');
     localStorage.removeItem('km_user');
-    window.location.href = '/login';
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login';
+    }
     throw new Error('Phiên đăng nhập hết hạn');
   }
 
