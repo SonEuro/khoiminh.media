@@ -627,6 +627,7 @@ export default function EventReport() {
   const [showEvDrop, setShowEvDrop] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [isAloneInDept, setIsAloneInDept] = useState(false);
+  const [dateLocked, setDateLocked] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -670,6 +671,7 @@ export default function EventReport() {
       report_date: prefill.report_date || f.report_date,
     }));
     if (prefill.event_label) setEvSearch(prefill.event_label);
+    if (prefill.report_date) setDateLocked(true);
   }, [location.state]);
 
   function setField(key, value) {
@@ -1060,7 +1062,10 @@ export default function EventReport() {
               <input type="date" className="input" value={form.report_date}
                 min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 2 * 86400000))}
                 max={todayVN()}
-                onChange={e => setField('report_date', e.target.value)} required />
+                readOnly={dateLocked}
+                onChange={dateLocked ? undefined : e => setField('report_date', e.target.value)}
+                style={dateLocked ? { opacity: 0.7, cursor: 'not-allowed', color: '#fb923c', fontWeight: 600 } : {}}
+                required />
             </div>
           </div>
 
