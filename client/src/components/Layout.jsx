@@ -28,7 +28,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
 
       {/* Logo */}
       <div style={{ padding:'16px 20px', borderBottom:`1px solid ${GOLD_DIM}` }}>
-        <Link to="/" onClick={onNavClick}>
+        <Link to="/" onClick={e => { e.preventDefault(); window.location.reload(); }}>
           <img src="/logo.png" alt="Khôi Minh" style={{ width:'100%', maxWidth:'150px', display:'block' }} />
         </Link>
         <div style={{ marginTop:'8px', display:'flex', alignItems:'center', gap:'8px' }}>
@@ -315,7 +315,7 @@ export default function Layout() {
           </button>
 
           {/* Logo */}
-          <Link to="/"><img src="/logo.png" alt="Khôi Minh" style={{ height:'42px', display:'block' }} /></Link>
+          <Link to="/" onClick={e => { e.preventDefault(); window.location.reload(); }}><img src="/logo.png" alt="Khôi Minh" style={{ height:'42px', display:'block' }} /></Link>
 
           {/* User avatar right */}
           <div style={{ marginLeft:'auto', position:'relative' }} ref={avatarRef}>
