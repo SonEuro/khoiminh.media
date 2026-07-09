@@ -344,6 +344,7 @@ router.put('/:id', (req, res, next) => {
   try { db.prepare('UPDATE work_schedules SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   try { db.prepare('UPDATE lead_report_obligations SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   try { db.prepare('UPDATE violations SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
+  try { db.prepare('UPDATE event_reports SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   res.json({ ok: true });
   notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${startDate2 || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
 });
