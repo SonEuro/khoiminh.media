@@ -1031,8 +1031,9 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       const kmFlat = s[`${p.key}_km_staff`] || [];
       const freeMap = s[`${p.key}_freelancers_map`];
       const freeFlat = (s[`${p.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
-      const todayLeads = leadsMap ? (leadsMap[today] || leadsFlat) : leadsFlat;
-      const todayKm    = kmMap    ? (kmMap[today]    || kmFlat)    : kmFlat;
+      // Nếu có per-date map thì dùng ngày cụ thể (không fallback flat — flat có thể bao gồm ngày khác)
+      const todayLeads = leadsMap ? (leadsMap[today] || []) : leadsFlat;
+      const todayKm    = kmMap    ? (kmMap[today]    || []) : kmFlat;
       const todayFree  = freeMap  ? Object.values(freeMap[today] || {}).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
       return todayLeads.some(l => l.name === userName)
           || todayKm.includes(userName)
