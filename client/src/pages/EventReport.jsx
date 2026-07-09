@@ -796,10 +796,24 @@ export default function EventReport() {
     }).catch(() => { setIsAloneInDept(false); });
   }, [form.report_date, user?.is_truong_phong, user?.full_name]);
 
+  const recentEvents = (() => {
+    const vnNow = new Date(Date.now() + 7 * 3600 * 1000);
+    const yesterday = new Date(vnNow); yesterday.setUTCDate(vnNow.getUTCDate() - 1);
+    const tomorrow  = new Date(vnNow); tomorrow.setUTCDate(vnNow.getUTCDate() + 1);
+    const yStr = yesterday.toISOString().slice(0, 10);
+    const tStr = tomorrow.toISOString().slice(0, 10);
+    return events.filter(ev => {
+      if (ev.status === 'cancelled') return false;
+      const start = ev.start_date || '';
+      const end   = ev.end_date   || ev.start_date || '';
+      return start <= tStr && end >= yStr;
+    });
+  })();
+
   const evSuggestions = showEvDrop
     ? (evSearch.trim()
-        ? events.filter(e => e.name.toLowerCase().includes(evSearch.toLowerCase())).slice(0, 8)
-        : events.slice(0, 8))
+        ? recentEvents.filter(e => e.name.toLowerCase().includes(evSearch.toLowerCase())).slice(0, 8)
+        : recentEvents.slice(0, 8))
     : [];
 
   async function handleImageFiles(files) {
