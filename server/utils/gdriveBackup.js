@@ -45,13 +45,13 @@ async function uploadBackupToDrive(db) {
 
   try { fs.unlinkSync(tmpFile); } catch (_) {}
 
-  // Giữ 30 bản gần nhất
+  // Giữ 50 bản gần nhất (tăng từ 10 lên 50)
   const list = await drive.files.list({
     q: `'${folderId}' in parents and name contains 'km-media-backup' and trashed=false`,
     fields: 'files(id,name,createdTime)',
     orderBy: 'createdTime desc',
   });
-  for (const f of (list.data.files || []).slice(30)) {
+  for (const f of (list.data.files || []).slice(50)) {
     await drive.files.delete({ fileId: f.id }).catch(() => {});
   }
 
@@ -118,28 +118,12 @@ function scheduleAutoBackup(db) {
       .catch(e => console.error('[DailyBackup] ❌', e.message));
   };
 
-  // Backup mỗi 30 phút, giữ 30 bản gần nhất
-  setTimeout(() => { runShort(); setInterval(runShort, 30 * 60 * 1000); }, 60 * 1000);
-  // Backup daily mỗi 12h, giữ 60 bản (30 ngày)
+  // Backup mỗi 2 phút
+  setTimeout(() => { runShort(); setInterval(runShort, 2 * 60 * 1000); }, 60 * 1000);
+  // Backup mỗi 12h, giữ 60 bản (30 ngày)
   setTimeout(() => { runDaily(); setInterval(runDaily, 12 * 60 * 60 * 1000); }, 2 * 60 * 1000);
 
-  // Dọn file backup cũ (prefix kho_) còn sót lại
-  setTimeout(async () => {
-    try {
-      const auth = getAuth(), drive = google.drive({ version: 'v3', auth }), folderId = getFolderId();
-      const list = await drive.files.list({
-        q: `'${folderId}' in parents and name contains 'kho_' and trashed=false`,
-        fields: 'files(id,name)', pageSize: 1000,
-      });
-      for (const f of list.data.files || []) {
-        await drive.files.delete({ fileId: f.id }).catch(() => {});
-      }
-      if ((list.data.files || []).length > 0)
-        console.log(`[AutoBackup] Đã xóa ${list.data.files.length} file backup cũ (kho_*)`);
-    } catch(e) { console.error('[AutoBackup] Lỗi dọn file cũ:', e.message); }
-  }, 3 * 60 * 1000);
-
-  console.log('[AutoBackup] Lên lịch: backup 30 phút/lần + daily backup mỗi 12h');
+  console.log('[AutoBackup] Lên lịch: backup 2 phút/lần + daily backup mỗi 24h');
 }
 
 async function restoreFromDriveIfNeeded(db) {
