@@ -1023,18 +1023,41 @@ function MySchedulesSection({ schedules, user, onSelect }) {
     return false;
   }
 
-  function nearestDate(s) {
-    const dates = PHASES.flatMap(p => s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : [])).sort();
-    return dates.find(d => d >= today) || null;
+  // Returns dates where THIS user is personally scheduled
+  function userDates(s) {
+    if (s.scheduler_user_id === userId) {
+      return PHASES.flatMap(p => s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []));
+    }
+    const result = [];
+    for (const p of PHASES) {
+      const dates = s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []);
+      for (const date of dates) {
+        const leadsMap  = s[`${p.key}_leads_map`];
+        const leadsFlat = s[`${p.key}_leads`] || [];
+        const kmMap     = s[`${p.key}_km_staff_map`];
+        const kmFlat    = s[`${p.key}_km_staff`] || [];
+        const freeMap   = s[`${p.key}_freelancers_map`];
+        const freeFlat  = (s[`${p.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+        const dateLeads = leadsMap ? (leadsMap[date] || []) : leadsFlat;
+        const dateKm    = kmMap    ? (kmMap[date]    || []) : kmFlat;
+        const dateFree  = freeMap
+          ? Object.values(freeMap[date] || {}).join(',').split(',').map(x => x.trim()).filter(Boolean)
+          : freeFlat;
+        if (dateLeads.some(l => l.name === userName) || dateKm.includes(userName) || dateFree.includes(userName)) {
+          result.push(date);
+        }
+      }
+    }
+    return result;
   }
 
   function isOngoing(s) {
-    // Event có bất kỳ phase nào diễn ra hôm nay → coi là đang diễn ra
-    // (đã lọc isMySchedule() trước, user chắc chắn có trong event này)
-    return PHASES.some(p => {
-      const dates = s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []);
-      return dates.includes(today);
-    });
+    return userDates(s).includes(today);
+  }
+
+  function nearestDate(s) {
+    const dates = userDates(s).sort();
+    return dates.find(d => d >= today) || null;
   }
 
   const mine = schedules.filter(s => isMySchedule(s));
