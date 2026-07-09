@@ -311,6 +311,7 @@ function UpcomingScheduleSection({ userName, userId }) {
         }
       }
       found.sort((a, b) => a.date.localeCompare(b.date));
+      console.log('[Schedule Debug] user:', userName, 'userId:', userId, 'found:', found.length, found);
       setUpcoming(found);
     }).catch(() => {});
   }, [userName, userId]);
