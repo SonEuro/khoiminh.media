@@ -647,26 +647,40 @@ function EventZone({ group, onDelete, canDeleteReport }) {
           byDate[d].push(r);
         }
         const dates = Object.keys(byDate).sort();
+        const multiDate = dates.length > 1;
         return (
-          <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'8px 10px 10px' }}>
-            {dates.map(d => (
-              <div key={d} style={{ marginBottom: dates.length > 1 ? '12px' : 0 }}>
-                {dates.length > 1 && (
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'4px 4px 8px' }}>
-                    <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#7878a0', letterSpacing:'0.05em' }}>
-                      📅 {d === '__' ? 'Không rõ ngày' : fmtDate(d)}
-                    </span>
-                    <span style={{ fontSize:'0.75rem', color:'#555570', background:'rgba(255,255,255,0.05)', borderRadius:'9999px', padding:'1px 7px' }}>
-                      {byDate[d].length} báo cáo
-                    </span>
-                    <div style={{ flex:1, height:'1px', background:'rgba(201,168,76,0.12)' }} />
+          <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'10px 10px 10px' }}>
+            {dates.map(d => {
+              const [y, m, day] = d !== '__' ? d.split('-') : ['??','??','??'];
+              return (
+                <div key={d} style={{ marginBottom: multiDate ? '16px' : 0 }}>
+                  {multiDate && (
+                    <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'8px' }}>
+                      <div style={{
+                        flexShrink:0, width:'44px', textAlign:'center',
+                        background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.25)',
+                        borderRadius:'8px', padding:'4px 0',
+                      }}>
+                        <div style={{ fontSize:'1.1rem', fontWeight:800, color:GOLD, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{day}</div>
+                        <div style={{ fontSize:'0.65rem', fontWeight:700, color:'#a0906a', marginTop:'1px' }}>TH{m}</div>
+                      </div>
+                      <span style={{ fontSize:'0.82rem', fontWeight:700, color:'#a0a0b8' }}>
+                        {d === '__' ? 'Không rõ ngày' : `${day} tháng ${m}`}
+                      </span>
+                      <span style={{ fontSize:'0.75rem', color:'#555570', background:'rgba(255,255,255,0.05)', borderRadius:'9999px', padding:'1px 7px' }}>
+                        {byDate[d].length} báo cáo
+                      </span>
+                      <div style={{ flex:1, height:'1px', background:'rgba(201,168,76,0.1)' }} />
+                    </div>
+                  )}
+                  <div style={multiDate ? { paddingLeft:'8px', borderLeft:'2px solid rgba(201,168,76,0.15)' } : {}}>
+                    {byDate[d].map(r => (
+                      <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
+                    ))}
                   </div>
-                )}
-                {byDate[d].map(r => (
-                  <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName />
-                ))}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         );
       })()}
