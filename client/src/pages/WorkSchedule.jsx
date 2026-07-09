@@ -1021,7 +1021,24 @@ function MySchedulesSection({ schedules, user, onSelect }) {
   }
 
   function isOngoing(s) {
-    return PHASES.some(p => (s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : [])).includes(today));
+    return PHASES.some(p => {
+      const dates = s[`${p.key}_dates`] || (s[`${p.key}_date`] ? [s[`${p.key}_date`]] : []);
+      if (!dates.includes(today)) return false;
+      // Kiểm tra user có trong lịch của ngày hôm nay cụ thể không
+      const leadsMap = s[`${p.key}_leads_map`];
+      const leadsFlat = s[`${p.key}_leads`] || [];
+      const kmMap = s[`${p.key}_km_staff_map`];
+      const kmFlat = s[`${p.key}_km_staff`] || [];
+      const freeMap = s[`${p.key}_freelancers_map`];
+      const freeFlat = (s[`${p.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+      const todayLeads = leadsMap ? (leadsMap[today] || leadsFlat) : leadsFlat;
+      const todayKm    = kmMap    ? (kmMap[today]    || kmFlat)    : kmFlat;
+      const todayFree  = freeMap  ? Object.values(freeMap[today] || {}).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
+      return todayLeads.some(l => l.name === userName)
+          || todayKm.includes(userName)
+          || todayFree.includes(userName)
+          || s.scheduler_user_id === userId;
+    });
   }
 
   const mine = schedules.filter(s => isMySchedule(s));
