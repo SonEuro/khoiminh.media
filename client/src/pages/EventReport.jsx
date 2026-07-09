@@ -390,9 +390,6 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
           {report.images?.length > 0 && (
             <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
           )}
-          {report.km_staff?.length > 0 && (
-            <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>👥 {report.km_staff.length}</span>
-          )}
           <span style={{ color: GOLD, fontSize:'0.82rem' }}>{expanded ? '▲' : '▼'}</span>
         </div>
       </div>
@@ -591,7 +588,6 @@ function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
           <div style={{ fontSize: '0.78rem', color: '#7878a0', marginTop: '2px', display: 'flex', gap: '10px' }}>
             <span>{reports.length} báo cáo</span>
             {totalImages > 0 && <span>🖼 {totalImages}</span>}
-            {totalStaff  > 0 && <span>👥 {totalStaff}</span>}
           </div>
         </div>
         <span style={{ color: GOLD, fontSize: '0.88rem', flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
@@ -628,7 +624,6 @@ function EventZone({ group, onDelete, onConfirm, canDeleteReport }) {
           <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.05rem', margin:0, flex:1, minWidth:0 }}>{group.event_label}</p>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
             {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
-            {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
             <span style={{
               fontSize:'0.81rem', background:'rgba(201,168,76,0.12)',
               color: GOLD, padding:'2px 9px', borderRadius:'9999px', fontWeight:700,
