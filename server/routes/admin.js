@@ -153,4 +153,29 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
   }
 });
 
+// Debug obligations state — SUPER_ADMIN only
+router.get('/debug-obligations', requireRole('SUPER_ADMIN'), (req, res) => {
+  const { checkAndCreateViolations } = require('../services/obligations');
+  try { checkAndCreateViolations(); } catch (e) {}
+
+  const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
+  const totalObs = db.prepare('SELECT COUNT(*) AS c FROM lead_report_obligations').get().c;
+  const overdueObs = db.prepare(
+    `SELECT COUNT(*) AS c FROM lead_report_obligations WHERE deadline <= ? AND (dismissed IS NULL OR dismissed = 0)`
+  ).get(now).c;
+  const dismissedObs = db.prepare('SELECT COUNT(*) AS c FROM lead_report_obligations WHERE dismissed = 1').get().c;
+  const totalViols = db.prepare('SELECT COUNT(*) AS c FROM violations').get().c;
+  const sysViols = db.prepare(`SELECT COUNT(*) AS c FROM violations WHERE reporter_name = 'Hệ thống'`).get().c;
+  const detail = db.prepare(
+    `SELECT o.id, o.lead_name, o.assigned_date, o.deadline, o.dismissed, o.violation_created,
+            (SELECT COUNT(*) FROM event_reports er WHERE er.report_date IN (o.assigned_date, date(o.assigned_date, '+1 day'))
+               AND (o.event_id IS NULL OR er.event_id = o.event_id)
+               AND (er.reporter_user_id = o.user_id OR er.reporter_name = o.lead_name)) AS has_report
+     FROM lead_report_obligations o
+     WHERE o.deadline <= ?
+     ORDER BY o.deadline DESC LIMIT 30`
+  ).all(now);
+  res.json({ now, totalObs, overdueObs, dismissedObs, totalViols, sysViols, detail });
+});
+
 module.exports = router;
