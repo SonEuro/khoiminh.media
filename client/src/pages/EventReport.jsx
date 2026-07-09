@@ -298,14 +298,24 @@ function getReportLateness(reportDate, createdAt) {
 }
 
 // ── Report detail card ────────────────────────────────────────────────────────
-function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
+function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
+  const [confirming, setConfirming] = useState(false);
   const { user: currentUser } = useAuth();
 
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
   const lateness = getReportLateness(report.report_date, report.created_at);
   const canViewAllDepts = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all;
+
+  async function handleConfirm(e) {
+    e.stopPropagation();
+    setConfirming(true);
+    try {
+      const res = await api.confirmEventReport(report.id);
+      onConfirm?.(report.id, res.confirmed_at);
+    } finally { setConfirming(false); }
+  }
 
   return (
     <div style={{
@@ -353,6 +363,12 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hid
         <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'5px' }}>
           {canViewAllDepts && report.confirmed_at && (
             <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#4ade80', background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'5px', padding:'1px 7px', flexShrink:0 }}>✓ Xác nhận</span>
+          )}
+          {canViewAllDepts && !report.confirmed_at && (
+            <button type="button" onClick={handleConfirm} disabled={confirming}
+              style={{ fontSize:'0.76rem', fontWeight:700, color:'#7878a0', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'5px', padding:'1px 7px', cursor:'pointer', flexShrink:0, opacity: confirming ? 0.5 : 1 }}>
+              {confirming ? '...' : 'Xác nhận'}
+            </button>
           )}
           {report.created_at && (
             <div style={{ display:'inline-flex', alignItems:'center', gap:'4px',
@@ -500,7 +516,7 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hid
 }
 
 // ── Dept section: nhóm báo cáo theo bộ phận ──────────────────────────────────
-function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
+function DeptSection({ dept, color, reports, onDelete, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ background:'#13131d', border:`1px solid ${color}33`, borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
@@ -521,7 +537,7 @@ function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
       {open && (
         <div style={{ borderTop:`1px solid ${color}22`, padding:'8px 10px 10px' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} />
           ))}
         </div>
       )}
@@ -530,7 +546,7 @@ function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
 }
 
 // ── Date zone: nhóm tất cả báo cáo cùng ngày ────────────────────────────────
-function DateZone({ date, reports, onDelete, canDeleteReport }) {
+function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
   const totalStaff  = new Set(reports.flatMap(r => r.km_staff || [])).size;
@@ -586,7 +602,7 @@ function DateZone({ date, reports, onDelete, canDeleteReport }) {
       {open && (
         <div style={{ paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideDateRow />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideDateRow />
           ))}
         </div>
       )}
@@ -595,7 +611,7 @@ function DateZone({ date, reports, onDelete, canDeleteReport }) {
 }
 
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
-function EventZone({ group, onDelete, canDeleteReport }) {
+function EventZone({ group, onDelete, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = group.reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
   const totalStaff  = new Set(group.reports.flatMap(r => r.km_staff || [])).size;
@@ -673,7 +689,7 @@ function EventZone({ group, onDelete, canDeleteReport }) {
                   )}
                   <div style={multiDate ? { paddingLeft:'8px', borderLeft:'2px solid rgba(201,168,76,0.35)' } : {}}>
                     {byDate[d].map(r => (
-                      <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
+                      <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
                     ))}
                   </div>
                 </div>
@@ -966,6 +982,10 @@ export default function EventReport() {
     }
   }
 
+  function handleConfirm(id, confirmed_at) {
+    setReports(r => r.map(x => x.id === id ? { ...x, confirmed_at } : x));
+  }
+
   // ── List view ───────────────────────────────────────────────────────────────
   if (view === 'list') {
     // Dept-grouped view
@@ -1032,7 +1052,7 @@ export default function EventReport() {
             map[key].reports.push(r);
           });
           return order.map(k => (
-            <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+            <EventZone key={k} group={map[k]} onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
           ));
         })()}
 
@@ -1047,7 +1067,7 @@ export default function EventReport() {
           });
           order.sort((a, b) => b.localeCompare(a)); // mới nhất lên trên
           return order.map(d => (
-            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
           ));
         })()}
 
@@ -1057,7 +1077,7 @@ export default function EventReport() {
             ? null
             : deptGroups.order.map(dept => (
                 <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
-                  onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+                  onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
               ))
         )}
 

@@ -67,6 +67,16 @@ router.post('/', requireAuth, (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
+router.patch('/:id/confirm', requireAuth, (req, res) => {
+  const { role, is_phan_lich_all } = req.user || {};
+  const canConfirm = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_phan_lich_all;
+  if (!canConfirm) return res.status(403).json({ error: 'Không có quyền xác nhận' });
+  const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace('T', ' ');
+  db.prepare('UPDATE event_reports SET confirmed_at = ?, confirmed_by_id = ? WHERE id = ?')
+    .run(now, req.user.id, req.params.id);
+  res.json({ ok: true, confirmed_at: now });
+});
+
 router.delete('/:id', canManage, (req, res) => {
   const { role, is_truong_phong } = req.user;
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role);
