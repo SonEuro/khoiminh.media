@@ -839,15 +839,17 @@ export default function Events() {
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
             <div key={ev.id} id={`ev-card-${ev.id}`} className="card" style={cardStyle}>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <div className="flex items-center gap-2 flex-wrap">
+              <div style={{ marginBottom:'6px' }}>
+                <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="font-mono text-xs text-gray-400">{ev.code}</span>
-                  <span className={s.cls}>{s.label}</span>
-                  {isToday    && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
-                  {isTomorrow && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
-                  {ev.archived_at && <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
+                  <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
                 </div>
-                <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', alignItems:'center' }}>
+                  <span className={s.cls}>{s.label}</span>
+                  {isToday    && <span className="badge-maintenance" style={{ color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)' }}>HÔM NAY</span>}
+                  {isTomorrow && <span className="badge-maintenance" style={{ color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)' }}>NGÀY MAI</span>}
+                  {ev.archived_at && <span className="badge-maintenance" style={{ color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)' }}>📦 Lưu trữ</span>}
+                </div>
               </div>
               <h3 className="font-semibold text-lg mb-1">{ev.name}</h3>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
