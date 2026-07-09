@@ -298,6 +298,7 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
   const [confirming, setConfirming] = useState(false);
+  const [confirmedAt, setConfirmedAt] = useState(report.confirmed_at || null);
   const { user: currentUser } = useAuth();
 
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
@@ -308,9 +309,8 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
     e.stopPropagation();
     setConfirming(true);
     try {
-      await api.confirmEventReport(report.id);
-      if (onConfirm) onConfirm();
-      else window.location.reload();
+      const res = await api.confirmEventReport(report.id);
+      setConfirmedAt(res.confirmed_at || new Date().toISOString());
     } catch (err) {
       alert('Lỗi xác nhận: ' + (err.message || err));
     } finally { setConfirming(false); }
@@ -360,10 +360,10 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
         </div>
         {/* Hàng 2: nộp lúc + xác nhận + icons + expand */}
         <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'5px' }}>
-          {canViewAllDepts && report.confirmed_at && (
+          {canViewAllDepts && confirmedAt && (
             <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#4ade80', background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'5px', padding:'1px 7px', flexShrink:0 }}>✓ Xác nhận</span>
           )}
-          {canViewAllDepts && !report.confirmed_at && (
+          {canViewAllDepts && !confirmedAt && (
             <button type="button" onClick={handleConfirm} disabled={confirming}
               style={{ fontSize:'0.76rem', fontWeight:700, color:'#7878a0', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'5px', padding:'1px 7px', cursor:'pointer', flexShrink:0, opacity: confirming ? 0.5 : 1 }}>
               {confirming ? '...' : 'Xác nhận'}
