@@ -1291,19 +1291,23 @@ export default function WorkSchedule() {
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
           <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', flexWrap:'wrap' }}>
-              <span style={{ fontSize:'1rem', flexShrink:0 }}>📋</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color: GOLD, letterSpacing:'0.05em', whiteSpace:'nowrap', flexShrink:0 }}>BÁO CÁO CẦN NỘP</span>
-              {overdue.length > 0 && (
-                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
-                  {overdue.length} quá hạn
-                </span>
-              )}
-              {pending.length > 0 && (
-                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
-                  {pending.length} chờ nộp
-                </span>
-              )}
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px', marginBottom:'10px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                <span style={{ fontSize:'1rem' }}>📋</span>
+                <span style={{ fontSize:'0.82rem', fontWeight:800, color: GOLD, letterSpacing:'0.05em' }}>BÁO CÁO CẦN NỘP</span>
+              </div>
+              <div style={{ display:'flex', gap:'6px' }}>
+                {overdue.length > 0 && (
+                  <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
+                    {overdue.length} quá hạn
+                  </span>
+                )}
+                {pending.length > 0 && (
+                  <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
+                    {pending.length} chờ nộp
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {[...overdue, ...pending].map(ob => {
@@ -1351,19 +1355,23 @@ export default function WorkSchedule() {
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
           <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', flexWrap:'wrap' }}>
-              <span style={{ fontSize:'1rem', flexShrink:0 }}>📋</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em', whiteSpace:'nowrap', flexShrink:0 }}>BÁO CÁO CHƯA NỘP</span>
-              {overdue.length > 0 && (
-                <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
-                  {overdue.length} quá hạn
-                </span>
-              )}
-              {pending.length > 0 && (
-                <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
-                  {pending.length} chờ nộp
-                </span>
-              )}
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px', marginBottom:'10px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                <span style={{ fontSize:'1rem' }}>📋</span>
+                <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP</span>
+              </div>
+              <div style={{ display:'flex', gap:'6px' }}>
+                {overdue.length > 0 && (
+                  <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
+                    {overdue.length} quá hạn
+                  </span>
+                )}
+                {pending.length > 0 && (
+                  <span style={{ background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#fbbf24' }}>
+                    {pending.length} chờ nộp
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {[...overdue, ...pending].map(ob => {
