@@ -301,9 +301,11 @@ function getReportLateness(reportDate, createdAt) {
 function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
+  const { user: currentUser } = useAuth();
 
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
   const lateness = getReportLateness(report.report_date, report.created_at);
+  const canViewAllDepts = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all;
 
   return (
     <div style={{
@@ -347,8 +349,11 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hid
             <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'5px', padding:'1px 7px' }}>Nộp trễ</span>
           )}
         </div>
-        {/* Hàng 2: nộp lúc + icons + expand */}
+        {/* Hàng 2: nộp lúc + xác nhận + icons + expand */}
         <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'5px' }}>
+          {canViewAllDepts && report.confirmed_at && (
+            <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#4ade80', background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'5px', padding:'1px 7px', flexShrink:0 }}>✓ Xác nhận</span>
+          )}
           {report.created_at && (
             <div style={{ display:'inline-flex', alignItems:'center', gap:'4px',
               background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
