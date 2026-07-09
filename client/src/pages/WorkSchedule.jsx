@@ -1107,18 +1107,9 @@ export default function WorkSchedule() {
   const [selected, setSelected] = useState(null);
   const [scheduleHistory, setScheduleHistory] = useState([]);
   const [obligations, setObligations] = useState([]);
-  const [reportViolations, setReportViolations] = useState([]);
-
-  const REPORT_VIOL_TYPES = ['Không nộp báo cáo', 'Nộp báo cáo trễ'];
-
   const load = useCallback(() => {
     api.getWorkSchedules().then(setSchedules).catch(() => {});
-    // getLeadObligations chạy checkAndCreateViolations() trên server,
-    // nên fetch violations SAU để đảm bảo vi phạm mới đã được ghi vào DB
-    api.getLeadObligations()
-      .then(obs => { setObligations(obs); return api.getViolations(); })
-      .then(vs => setReportViolations(vs.filter(v => REPORT_VIOL_TYPES.includes(v.violation_type))))
-      .catch(() => {});
+    api.getLeadObligations().then(setObligations).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -1215,73 +1206,6 @@ export default function WorkSchedule() {
           <p style={{ margin: 0, fontSize: '0.84rem', color: '#60a5fa' }}>Bạn chỉ có thể xem lịch làm việc, không có quyền tạo/sửa.</p>
         </div>
       )}
-
-      {/* ── Vi phạm báo cáo — dành cho admin/phân lịch ──── */}
-      {(['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all) && (() => {
-        const isAll = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
-        const myDept = getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null;
-        const filtered = reportViolations.filter(v =>
-          isAll ? true : getUserDept(v.violator) === myDept
-        );
-        if (!filtered.length) return null;
-
-        const typeColor = t => t === 'Không nộp báo cáo' ? '#f87171' : '#fb923c';
-        const typeIcon  = t => t === 'Không nộp báo cáo' ? '🚫' : '⏰';
-
-        return (
-          <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-              <span style={{ fontSize:'1rem' }}>🔔</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
-              <span style={{ background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
-                {filtered.length} vi phạm
-              </span>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              {filtered.map(v => {
-                const color = typeColor(v.violation_type);
-                const vDept = getDeptColor(getUserDept(v.violator));
-                // parse ngày làm việc từ description: "ngày 2026-07-04"
-                const workDateRaw = v.description?.match(/ngày (\d{4}-\d{2}-\d{2})/)?.[1];
-                const workDate = workDateRaw
-                  ? workDateRaw.split('-').slice(1).reverse().join('/') // "04/07"
-                  : null;
-                return (
-                  <div key={v.id} style={{ display:'flex', alignItems:'center', gap:'10px', background:'rgba(0,0,0,0.15)', border:`1px solid ${color}33`, borderRadius:'8px', padding:'8px 12px' }}>
-                    <span style={{ fontSize:'0.92rem' }}>{typeIcon(v.violation_type)}</span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#eeeef5' }}>{v.violator}</span>
-                        {getUserDept(v.violator) && (
-                          <span style={{ fontSize:'0.84rem', fontWeight:600, color: vDept.color, background: vDept.bg, border:`1px solid ${vDept.border}`, borderRadius:'4px', padding:'1px 6px' }}>
-                            {getUserDept(v.violator)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize:'0.82rem', color:'#a0a0b8', marginTop:'3px', display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.84rem', fontWeight:700, color, background:`${color}18`, borderRadius:'4px', padding:'1px 6px' }}>
-                          {v.violation_type}
-                        </span>
-                        {v.event_label && v.event_label !== 'Nội bộ' && <span>{v.event_label}</span>}
-                        {workDate && <span>· {workDate}</span>}
-                      </div>
-                    </div>
-                    {['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && (
-                      <button onClick={async () => {
-                        if (!confirm('Xóa vi phạm này?')) return;
-                        await api.deleteViolation(v.id).catch(e => alert(e.message));
-                        load();
-                      }} style={{ background:'rgba(229,62,62,0.08)', border:'1px solid rgba(229,62,62,0.2)', color:'#fc8181', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', fontSize:'0.84rem', flexShrink:0 }}>
-                        🗑
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
 
       {/* ── Báo cáo cần nộp — nhân viên + nhóm trưởng (trừ SUPER_ADMIN/DIRECTOR) */}
       {obligations.length > 0
