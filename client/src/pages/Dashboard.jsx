@@ -496,9 +496,46 @@ function DashEventCard({ ev, onClose }) {
   );
 }
 
-// ── Admin Dashboard Components ─────────────────────────────────────────────
+// ── Section: Báo cáo cần nộp (regular users) ──────────────────────────────
 
 const PHASE_LABEL_MAP = { setup: 'Setup', teardown: 'Tháo dỡ', rehearsal: 'Rehearsal', filming: 'Ghi hình' };
+
+function PendingReportsSection({ obs }) {
+  const navigate = useNavigate();
+  const sorted = [...obs].sort((a, b) => {
+    if (a.overdue && !b.overdue) return -1;
+    if (!a.overdue && b.overdue) return 1;
+    return (a.deadline || '').localeCompare(b.deadline || '');
+  });
+  return (
+    <AdminSec title="BÁO CÁO CẦN NỘP" color="#fb923c" rgb="251,146,60" count={obs.length} linkTo="/event-report">
+      {sorted.map((ob, i) => (
+        <ARow key={ob.id} i={i} rgb="251,146,60" onClick={() => navigate('/event-report')}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <p style={{ fontWeight: 600, color: ob.overdue ? '#fca5a5' : '#fbbf24', fontSize: '0.83rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ob.event_display || ob.event_name || 'Sự kiện'}
+              </p>
+              {ob.overdue && (
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.15)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>Quá hạn</span>
+              )}
+            </div>
+            <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '1px 0 0' }}>
+              {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)}
+            </p>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <p style={{ fontSize: '0.78rem', color: ob.overdue ? '#f87171' : '#fb923c', fontWeight: 700, margin: 0 }}>
+              Hạn {fmtD(ob.deadline?.slice(0, 10))}
+            </p>
+          </div>
+        </ARow>
+      ))}
+    </AdminSec>
+  );
+}
+
+// ── Admin Dashboard Components ─────────────────────────────────────────────
 
 function AdminSec({ title, color, rgb, count, linkTo, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -544,9 +581,11 @@ function AEmpty({ text }) {
   return <p style={{ color: '#7878a0', fontSize: '0.82rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
 }
 
-function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, userName }) {
+function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirmed, userName, user }) {
   const navigate = useNavigate();
   const [cardEv, setCardEv] = useState(null);
+
+  const isAdmin = user && (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role) || !!user.is_truong_phong || !!user.is_phan_lich_all);
 
   const todayEvs   = dash?.today_events || [];
   const planned    = events.filter(e => e.status === 'planned');
@@ -568,6 +607,9 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
 
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} />}
+
+      {/* Báo cáo cần nộp - chỉ hiện cho nhân viên thường (không phải admin) */}
+      {!isAdmin && myObs.length > 0 && <PendingReportsSection obs={myObs} />}
 
       {/* 1. Vận hành hôm nay */}
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#4ade80" rgb="74,222,128" count={todayEvs.length} linkTo="/events">
@@ -605,8 +647,8 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         }
       </AdminSec>
 
-      {/* 3+4. Tổng quan vi phạm (gộp báo cáo chưa nộp + vi phạm) */}
-      <AdminSec title="TỔNG QUAN VI PHẠM" color="#fb923c" rgb="251,146,60" count={topObs.length + topViols.length} linkTo="/violations">
+      {/* 3+4. Tổng quan vi phạm (chỉ admin) */}
+      {isAdmin && <AdminSec title="TỔNG QUAN VI PHẠM" color="#fb923c" rgb="251,146,60" count={topObs.length + topViols.length} linkTo="/violations">
         {topObs.length === 0 && topViols.length === 0
           ? <AEmpty text="Không có vi phạm gần đây" />
           : <>
@@ -633,7 +675,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
             ))}
           </>
         }
-      </AdminSec>
+      </AdminSec>}
 
       {/* 5. Đã hoàn thành */}
       <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events">
@@ -672,6 +714,7 @@ export default function Dashboard() {
   const [events, setEvents]   = useState([]);
   const [violations, setViolations] = useState([]);
   const [lockedObs, setLockedObs]   = useState([]);
+  const [myObs, setMyObs]           = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -685,6 +728,7 @@ export default function Dashboard() {
     api.getViolations().then(vs => setViolations(vs)).catch(() => {});
     api.getLeadObligations().then(obs => {
       setLockedObs(obs.filter(o => o.locked && !o.submitted));
+      setMyObs(obs.filter(o => !o.submitted));
     }).catch(() => {});
   }, []);
 
@@ -707,7 +751,7 @@ export default function Dashboard() {
       ) : !dash ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#f87171' }}>Không thể tải dữ liệu. Vui lòng thử lại.</div>
       ) : (
-        <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} onConfirmed={load} userName={user?.full_name || ''} />
+        <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} myObs={myObs} onConfirmed={load} userName={user?.full_name || ''} user={user} />
       )}
     </div>
   );
