@@ -733,7 +733,7 @@ export default function Dashboard() {
         d.setUTCDate(d.getUTCDate() - 1);
         return d.toISOString().slice(0, 10);
       })();
-      setMyObs(obs.filter(o => !o.submitted && o.assigned_date === yesterdayVN));
+      setMyObs(obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN));
     }).catch(() => {});
   }, []);
 
