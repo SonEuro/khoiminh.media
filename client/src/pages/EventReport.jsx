@@ -545,7 +545,6 @@ function DeptSection({ dept, color, reports, onDelete, onConfirm, canDeleteRepor
 function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
-  const totalStaff  = new Set(reports.flatMap(r => r.km_staff || [])).size;
 
   const dateLabel = (() => {
     if (date === '__') return { day: '??', month: '??', year: '??' };
@@ -609,7 +608,6 @@ function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
 function EventZone({ group, onDelete, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = group.reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
-  const totalStaff  = new Set(group.reports.flatMap(r => r.km_staff || [])).size;
   const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
 
   return (
