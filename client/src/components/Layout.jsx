@@ -1,4 +1,4 @@
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api';
@@ -199,6 +199,7 @@ function ChangePasswordModal({ onClose }) {
 export default function Layout() {
   const { user, can, logout, ROLE_LABELS } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [avatarMenu, setAvatarMenu] = useState(false);
   const [showChangePw, setShowChangePw] = useState(false);
@@ -366,7 +367,9 @@ export default function Layout() {
           paddingRight:'env(safe-area-inset-right, 0px)',
           paddingBottom:'env(safe-area-inset-bottom, 0px)',
         }}>
-          <Outlet />
+          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease' }}>
+            <Outlet />
+          </div>
         </main>
       </div>
 
@@ -374,6 +377,10 @@ export default function Layout() {
         @keyframes slideIn {
           from { transform: translateX(-100%); }
           to   { transform: translateX(0); }
+        }
+        @keyframes pageFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         /* Tablet / medium phone */
         @media (max-width: 1023px) {
