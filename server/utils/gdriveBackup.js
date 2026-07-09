@@ -118,6 +118,22 @@ function scheduleAutoBackup(db) {
       .catch(e => console.error('[DailyBackup] ❌', e.message));
   };
 
+  // Dọn file kho_* cũ trên Drive (1 lần khi khởi động)
+  setTimeout(async () => {
+    try {
+      const auth = getAuth(), drive = google.drive({ version: 'v3', auth }), folderId = getFolderId();
+      const list = await drive.files.list({
+        q: `'${folderId}' in parents and name contains 'kho_' and trashed=false`,
+        fields: 'files(id,name)', pageSize: 1000,
+      });
+      for (const f of list.data.files || []) {
+        await drive.files.delete({ fileId: f.id }).catch(() => {});
+      }
+      if ((list.data.files || []).length > 0)
+        console.log(`[AutoBackup] Đã xóa ${list.data.files.length} file kho_* cũ khỏi Drive`);
+    } catch(e) { console.error('[AutoBackup] Lỗi dọn file kho_*:', e.message); }
+  }, 3 * 60 * 1000);
+
   // Backup mỗi 2 phút
   setTimeout(() => { runShort(); setInterval(runShort, 2 * 60 * 1000); }, 60 * 1000);
   // Backup mỗi 12h, giữ 60 bản (30 ngày)
