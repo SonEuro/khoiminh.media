@@ -268,7 +268,7 @@ function EventGroup({ status, events }) {
 // ── Section: Lịch làm việc sắp tới ───────────────────────────────────────────
 const PHASE_LABELS = { filming: '🎬 Ghi hình', setup: '🏗 Setup', rehearsal: '🎤 Rehearsal', teardown: '📦 Tháo dỡ' };
 
-function UpcomingScheduleSection({ userName }) {
+function UpcomingScheduleSection({ userName, userId }) {
   const [upcoming, setUpcoming] = useState([]);
   const navigate = useNavigate();
   const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
@@ -286,18 +286,23 @@ function UpcomingScheduleSection({ userName }) {
       const found = [];
       const seen = new Set();
       for (const s of schedules) {
+        const isScheduler = userId && s.scheduler_user_id === userId;
         for (const p of phases) {
           const dates = s[`${p}_dates`] || (s[`${p}_date`] ? [s[`${p}_date`]] : []);
           const leadsFlat = (s[`${p}_leads`] || []).map(l => l.name);
           const leadsMap  = s[`${p}_leads_map`];
           const staffFlat = s[`${p}_km_staff`] || [];
           const staffMap  = s[`${p}_km_staff_map`];
+          const freeFlat  = (s[`${p}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+          const freeMap   = s[`${p}_freelancers_map`];
           for (const date of dates) {
             if (!date || date < pastStr || date > cutoffStr) continue;
-            // Kiểm tra per-date: chỉ hiện ngày nào user thực sự được phân lịch
-            const dateLeads = leadsMap ? (leadsMap[date] || []).map(l => l.name) : leadsFlat;
-            const dateStaff = staffMap ? (staffMap[date] || []) : staffFlat;
-            if (!dateLeads.includes(userName) && !dateStaff.includes(userName)) continue;
+            if (!isScheduler) {
+              const dateLeads = leadsMap ? (leadsMap[date] || []).map(l => l.name) : leadsFlat;
+              const dateStaff = staffMap ? (staffMap[date] || []) : staffFlat;
+              const dateFree  = freeMap  ? Object.values(freeMap[date] || {}).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
+              if (!dateLeads.includes(userName) && !dateStaff.includes(userName) && !dateFree.includes(userName)) continue;
+            }
             const key = `${s.id}-${p}-${date}`;
             if (seen.has(key)) continue;
             seen.add(key);
@@ -308,7 +313,7 @@ function UpcomingScheduleSection({ userName }) {
       found.sort((a, b) => a.date.localeCompare(b.date));
       setUpcoming(found);
     }).catch(() => {});
-  }, [userName]);
+  }, [userName, userId]);
 
   // Group items by event (schedId)
   const PHASE_ORDER = ['setup', 'rehearsal', 'filming', 'teardown'];
@@ -625,7 +630,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
       {myObs.length > 0 && <PendingReportsSection obs={myObs} />}
 
       {/* Lịch làm việc cá nhân */}
-      {userName && <UpcomingScheduleSection userName={userName} />}
+      {userName && <UpcomingScheduleSection userName={userName} userId={user?.id} />}
 
       {/* 1. Vận hành hôm nay */}
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#4ade80" rgb="74,222,128" count={todayEvs.length} linkTo="/events">
