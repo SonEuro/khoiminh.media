@@ -319,7 +319,7 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
   return (
     <div style={{
       background: hideEventName ? 'rgba(255,255,255,0.03)' : '#13131d',
-      border: hideEventName ? '1px solid rgba(201,168,76,0.1)' : '1px solid rgba(201,168,76,0.2)',
+      border: hideEventName ? '1px solid rgba(201,168,76,0.28)' : '1px solid rgba(201,168,76,0.42)',
       borderRadius: hideEventName ? '10px' : '12px',
       overflow:'hidden',
       marginBottom: hideEventName ? '8px' : '12px',
