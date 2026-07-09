@@ -1128,7 +1128,7 @@ function ReportRows({ reports }) {
   );
 }
 
-function ViolationRows({ violations }) {
+function ViolationRows({ violations, isSuperAdmin, onDelete }) {
   if (!violations.length) return <Empty text="Chưa có vi phạm nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
@@ -1144,6 +1144,12 @@ function ViolationRows({ violations }) {
             <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
             <div>{fmtD(v.created_at)}</div>
           </div>
+          {isSuperAdmin && (
+            <button onClick={() => { if (confirm('Xóa vi phạm này?')) onDelete(v.id); }}
+              style={{ background:'rgba(229,62,62,0.08)', border:'1px solid rgba(229,62,62,0.2)', color:'#fc8181', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', fontSize:'0.84rem', flexShrink:0 }}>
+              🗑
+            </button>
+          )}
         </div>
       ))}
     </div>
@@ -1297,7 +1303,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ShieldAlert} title="Vi phạm nội quy" color="#f87171" border="rgba(248,113,113,0.25)" count={violations.length}>
-            <ViolationRows violations={violations} />
+            <ViolationRows violations={violations} isSuperAdmin={isSuperAdmin} onDelete={id => api.deleteViolation(id).then(load).catch(e => alert(e.message))} />
           </Section>
 
           <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
