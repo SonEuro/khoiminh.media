@@ -531,6 +531,39 @@ function DeptSection({ dept, color, reports, onDelete, canDeleteReport }) {
   );
 }
 
+// ── Date zone: nhóm tất cả báo cáo cùng ngày ────────────────────────────────
+function DateZone({ date, reports, onDelete, canDeleteReport }) {
+  const [open, setOpen] = useState(true);
+  const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
+  const totalStaff  = new Set(reports.flatMap(r => r.km_staff || [])).size;
+  return (
+    <div style={{ background:'#13131d', border:'1px solid rgba(96,165,250,0.22)', borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
+      <div onClick={() => setOpen(v => !v)} style={{ padding:'14px 18px', cursor:'pointer' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+          <p style={{ fontWeight:700, color:'#60a5fa', fontSize:'1.05rem', margin:0, flex:1, minWidth:0 }}>
+            📅 {date === '__' ? 'Không rõ ngày' : fmtDate(date)}
+          </p>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+            {totalImages > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {totalImages}</span>}
+            {totalStaff  > 0 && <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {totalStaff}</span>}
+            <span style={{ fontSize:'0.81rem', background:'rgba(96,165,250,0.12)', color:'#60a5fa', padding:'2px 9px', borderRadius:'9999px', fontWeight:700 }}>
+              {reports.length}
+            </span>
+            <span style={{ color:'#60a5fa', fontSize:'0.88rem' }}>{open ? '▲' : '▼'}</span>
+          </div>
+        </div>
+      </div>
+      {open && (
+        <div style={{ borderTop:'1px solid rgba(96,165,250,0.12)', padding:'8px 10px 10px' }}>
+          {reports.map(r => (
+            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
 function EventZone({ group, onDelete, canDeleteReport }) {
   const [open, setOpen] = useState(true);
@@ -918,7 +951,7 @@ export default function EventReport() {
         {/* Tab toggle – only for admins + is_phan_lich_all */}
         {canViewAllDepts && (
           <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
-            {[['event', 'Theo sự kiện'], ['dept', 'Theo bộ phận']].map(([mode, label]) => (
+            {[['event', 'Theo sự kiện'], ['date', 'Theo ngày'], ['dept', 'Theo bộ phận']].map(([mode, label]) => (
               <button key={mode} type="button" onClick={() => setListMode(mode)}
                 style={{
                   padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
@@ -956,6 +989,21 @@ export default function EventReport() {
           });
           return order.map(k => (
             <EventZone key={k} group={map[k]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
+          ));
+        })()}
+
+        {/* Theo ngày */}
+        {!loading && listMode === 'date' && (() => {
+          const map = {};
+          const order = [];
+          reports.forEach(r => {
+            const d = r.report_date || '__';
+            if (!map[d]) { map[d] = []; order.push(d); }
+            map[d].push(r);
+          });
+          order.sort((a, b) => b.localeCompare(a)); // mới nhất lên trên
+          return order.map(d => (
+            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} canDeleteReport={canDeleteReport} />
           ));
         })()}
 
