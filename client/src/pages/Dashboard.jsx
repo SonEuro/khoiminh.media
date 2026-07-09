@@ -515,7 +515,7 @@ function PendingReportsSection({ obs }) {
   return (
     <AdminSec title="BÁO CÁO CẦN NỘP" color="#fb923c" rgb="251,146,60" count={obs.length} linkTo="/event-report">
       {sorted.map((ob, i) => (
-        <ARow key={ob.id} i={i} rgb="251,146,60" onClick={() => navigate('/event-report')}>
+        <ARow key={ob.id} i={i} rgb="251,146,60">
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <p style={{ fontWeight: 600, color: ob.overdue ? '#fca5a5' : '#fbbf24', fontSize: '0.83rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -526,14 +526,20 @@ function PendingReportsSection({ obs }) {
               )}
             </div>
             <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '1px 0 0' }}>
-              {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)}
+              {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)} · <span style={{ color: ob.overdue ? '#f87171' : '#fb923c', fontWeight: 700 }}>Hạn {fmtD(ob.deadline?.slice(0, 10))}</span>
             </p>
           </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <p style={{ fontSize: '0.78rem', color: ob.overdue ? '#f87171' : '#fb923c', fontWeight: 700, margin: 0 }}>
-              Hạn {fmtD(ob.deadline?.slice(0, 10))}
-            </p>
-          </div>
+          <button
+            onClick={() => navigate('/event-report')}
+            style={{
+              flexShrink: 0, padding: '5px 12px', borderRadius: '7px', cursor: 'pointer', border: 'none',
+              background: ob.overdue ? 'rgba(248,113,113,0.2)' : 'rgba(251,146,60,0.2)',
+              color: ob.overdue ? '#f87171' : '#fb923c',
+              fontSize: '0.80rem', fontWeight: 700,
+            }}
+          >
+            Nộp báo cáo
+          </button>
         </ARow>
       ))}
     </AdminSec>
