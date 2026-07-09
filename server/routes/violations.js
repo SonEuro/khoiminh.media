@@ -2,9 +2,11 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../database');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { checkAndCreateViolations } = require('../services/obligations');
 
 // GET /api/violations
 router.get('/', requireAuth, (req, res) => {
+  try { checkAndCreateViolations(); } catch (e) { console.error('[obligations]', e.message); }
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
   const rows = db.prepare(`
     SELECT v.*, e.name AS event_name
