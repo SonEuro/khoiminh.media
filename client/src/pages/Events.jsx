@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import EventDetailModal from '../components/EventDetailModal';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
-import { KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 
 import { fmtD } from '../utils/fmt';
 
@@ -57,6 +57,7 @@ function aggregateFreelancerMap(freeMap) {
 const itemStyle = { fontSize: '0.92rem', color: '#a0a0b8', padding: '2px 0 2px 10px' };
 
 function StaffScheduleModal({ event, onClose }) {
+  const { kmGroups } = useStaffGroups();
   const [schedules, setSchedules] = useState(null);
   useEffect(() => { api.getWorkSchedules({ event_id: event.id }).then(setSchedules).catch(() => setSchedules([])); }, [event.id]);
 
@@ -156,7 +157,7 @@ function StaffScheduleModal({ event, onClose }) {
             const dLeads   = leadsMap ? (leadsMap[date] || []) : leadsFlat;
             const dKm      = kmMap    ? (kmMap[date]    || []) : kmFlat;
             const byDeptKM = dKm.reduce((acc, n) => {
-              const d = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+              const d = kmGroups.find(g => g.members.includes(n))?.dept || 'Khác';
               (acc[d] = acc[d] || []).push(n); return acc;
             }, {});
 
