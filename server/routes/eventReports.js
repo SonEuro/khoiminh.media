@@ -11,9 +11,14 @@ function canManage(req, res, next) {
 router.get('/', (req, res) => {
   const { event_id } = req.query;
   let sql = `
-    SELECT er.*, u.role AS reporter_role
+    SELECT er.*, u.role AS reporter_role,
+      o.deadline AS obligation_deadline
     FROM event_reports er
     LEFT JOIN users u ON u.id = er.reporter_user_id
+    LEFT JOIN lead_report_obligations o
+      ON o.lead_name = er.reporter_name
+      AND o.assigned_date = er.report_date
+      AND (o.event_id = er.event_id OR (o.event_id IS NULL AND er.event_id IS NULL))
   `;
   const params = [];
   if (event_id) { sql += ' WHERE er.event_id = ?'; params.push(event_id); }

@@ -281,19 +281,15 @@ const fmtDate = (d) => {
 };
 
 // Tính deadline và lock_time từ report_date (deadline = report_date+1 ngày 12:00, lock = deadline+24h)
-function getReportLateness(reportDate, createdAt) {
-  if (!reportDate || !createdAt) return null;
+function getReportLateness(reportDate, createdAt, obligationDeadline) {
+  // Chỉ tính lateness khi có obligation thực sự (lead_report_obligations)
+  if (!obligationDeadline || !createdAt) return null;
+  const sub = createdAt.slice(0, 16);
   const [y, m, d] = reportDate.split('-').map(Number);
-  const nextDay = new Date(Date.UTC(y, m - 1, d + 1));
-  const ny = nextDay.getUTCFullYear();
-  const nm = String(nextDay.getUTCMonth() + 1).padStart(2, '0');
-  const nd = String(nextDay.getUTCDate()).padStart(2, '0');
-  const deadline = `${ny}-${nm}-${nd} 12:00`;
   const lockDay = new Date(Date.UTC(y, m - 1, d + 2));
   const lock = `${lockDay.getUTCFullYear()}-${String(lockDay.getUTCMonth() + 1).padStart(2, '0')}-${String(lockDay.getUTCDate()).padStart(2, '0')} 12:00`;
-  const sub = createdAt.slice(0, 16);
   if (sub > lock) return 'qua_han';
-  if (sub > deadline) return 'nop_tre';
+  if (sub > obligationDeadline) return 'nop_tre';
   return null;
 }
 
@@ -305,7 +301,7 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
   const { user: currentUser } = useAuth();
 
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
-  const lateness = getReportLateness(report.report_date, report.created_at);
+  const lateness = getReportLateness(report.report_date, report.created_at, report.obligation_deadline);
   const canViewAllDepts = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all;
 
   async function handleConfirm(e) {
