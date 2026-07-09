@@ -1113,16 +1113,22 @@ export default function WorkSchedule() {
   }, []);
 
   useEffect(() => {
-    load();
-    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
-    api.getEvents().then(data => {
-      // Hiển thị sự kiện chưa kết thúc: bao gồm sự kiện đang diễn ra (start_date < today nhưng end_date >= today)
-      setEvents(data.filter(e => e.status !== 'cancelled' && (
-        !e.start_date ||
-        e.start_date >= today ||
-        (e.end_date && e.end_date >= today)
-      )));
-    }).catch(() => {});
+    const loadAll = () => {
+      load();
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+      api.getEvents().then(data => {
+        setEvents(data.filter(e => e.status !== 'cancelled' && (
+          !e.start_date ||
+          e.start_date >= today ||
+          (e.end_date && e.end_date >= today)
+        )));
+      }).catch(() => {});
+    };
+    loadAll();
+    const timer = setInterval(loadAll, 60_000);
+    const onVisible = () => { if (!document.hidden) loadAll(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
   // Tự mở modal chi tiết khi navigate từ Dashboard
