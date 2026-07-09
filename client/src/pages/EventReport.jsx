@@ -646,7 +646,7 @@ function EventZone({ group, onDelete, canDeleteReport }) {
           if (!byDate[d]) byDate[d] = [];
           byDate[d].push(r);
         }
-        const dates = Object.keys(byDate).sort();
+        const dates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
         const multiDate = dates.length > 1;
         return (
           <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'10px 10px 10px' }}>
