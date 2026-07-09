@@ -1291,9 +1291,9 @@ export default function WorkSchedule() {
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
           <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-              <span style={{ fontSize:'1rem' }}>📋</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color: GOLD, letterSpacing:'0.05em' }}>BÁO CÁO CẦN NỘP</span>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', flexWrap:'wrap' }}>
+              <span style={{ fontSize:'1rem', flexShrink:0 }}>📋</span>
+              <span style={{ fontSize:'0.82rem', fontWeight:800, color: GOLD, letterSpacing:'0.05em', whiteSpace:'nowrap', flexShrink:0 }}>BÁO CÁO CẦN NỘP</span>
               {overdue.length > 0 && (
                 <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {overdue.length} quá hạn
@@ -1351,9 +1351,9 @@ export default function WorkSchedule() {
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
         return (
           <div style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-              <span style={{ fontSize:'1rem' }}>📋</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>BÁO CÁO CHƯA NỘP</span>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', flexWrap:'wrap' }}>
+              <span style={{ fontSize:'1rem', flexShrink:0 }}>📋</span>
+              <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em', whiteSpace:'nowrap', flexShrink:0 }}>BÁO CÁO CHƯA NỘP</span>
               {overdue.length > 0 && (
                 <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {overdue.length} quá hạn
