@@ -340,6 +340,10 @@ router.put('/:id', (req, res, next) => {
     showDate2,  showArr2.length  ? JSON.stringify(showArr2)  : null,
     status, notes, req.params.id
   );
+  // Đồng bộ tên sự kiện sang các bảng liên quan
+  try { db.prepare('UPDATE work_schedules SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
+  try { db.prepare('UPDATE lead_report_obligations SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
+  try { db.prepare('UPDATE violations SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   res.json({ ok: true });
   notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${startDate2 || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
 });
