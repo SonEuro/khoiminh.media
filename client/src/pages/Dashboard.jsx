@@ -605,11 +605,11 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {cardEv && <DashEventCard ev={cardEv} onClose={() => setCardEv(null)} />}
 
+      {/* Báo cáo cần nộp - đầu dashboard, chỉ nhân viên thường, chỉ ngày hôm qua */}
+      {!isAdmin && myObs.length > 0 && <PendingReportsSection obs={myObs} />}
+
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} />}
-
-      {/* Báo cáo cần nộp - chỉ hiện cho nhân viên thường (không phải admin) */}
-      {!isAdmin && myObs.length > 0 && <PendingReportsSection obs={myObs} />}
 
       {/* 1. Vận hành hôm nay */}
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#4ade80" rgb="74,222,128" count={todayEvs.length} linkTo="/events">
@@ -728,7 +728,12 @@ export default function Dashboard() {
     api.getViolations().then(vs => setViolations(vs)).catch(() => {});
     api.getLeadObligations().then(obs => {
       setLockedObs(obs.filter(o => o.locked && !o.submitted));
-      setMyObs(obs.filter(o => !o.submitted));
+      const yesterdayVN = (() => {
+        const d = new Date(Date.now() + 7 * 3600 * 1000);
+        d.setUTCDate(d.getUTCDate() - 1);
+        return d.toISOString().slice(0, 10);
+      })();
+      setMyObs(obs.filter(o => !o.submitted && o.assigned_date === yesterdayVN));
     }).catch(() => {});
   }, []);
 
