@@ -254,6 +254,18 @@ export default function Users() {
             >
               🔍 Debug Vi Phạm
             </button>
+            <button
+              onClick={async () => {
+                if (!confirm('Khôi phục vi phạm cho những người chưa nộp báo cáo (đang bị dismissed)?')) return;
+                try {
+                  const d = await api.resetDismissedObligations();
+                  alert(`✅ Đã reset ${d.reset} obligations. Vi phạm sẽ được tạo lại.`);
+                } catch(e) { alert('Lỗi: ' + e.message); }
+              }}
+              style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(251,146,60,0.5)', background:'rgba(251,146,60,0.15)', color:'#fb923c', cursor:'pointer' }}
+            >
+              🔄 Khôi phục vi phạm
+            </button>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button

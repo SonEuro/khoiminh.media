@@ -110,6 +110,7 @@ export const api = {
   clearAllEvents: () => request('/admin/clear-all-events', { method: 'POST' }),
   deleteEvents: (ids) => request('/admin/delete-events', { method: 'POST', body: { ids } }),
   debugObligations: () => request('/admin/debug-obligations'),
+  resetDismissedObligations: () => request('/admin/reset-dismissed-obligations', { method: 'POST' }),
   deleteTransaction: (id, reason) => request(`/transactions/${id}`, { method: 'DELETE', body: reason ? { reason } : undefined }),
   getTransactionTrash: () => request('/transactions/trash'),
   permanentDeleteTransaction: (id) => request(`/transactions/trash/${id}`, { method: 'DELETE' }),

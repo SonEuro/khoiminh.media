@@ -153,6 +153,24 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
   }
 });
 
+// Reset dismissed obligations (chưa có report) để tạo lại violations — SUPER_ADMIN only
+router.post('/reset-dismissed-obligations', requireRole('SUPER_ADMIN'), (req, res) => {
+  const result = db.prepare(`
+    UPDATE lead_report_obligations SET dismissed = 0
+    WHERE dismissed = 1
+      AND id NOT IN (
+        SELECT o.id FROM lead_report_obligations o
+        WHERE (SELECT COUNT(*) FROM event_reports er
+               WHERE er.report_date IN (o.assigned_date, date(o.assigned_date, '+1 day'))
+                 AND (o.event_id IS NULL OR er.event_id = o.event_id)
+                 AND (er.reporter_user_id = o.user_id OR er.reporter_name = o.lead_name)) > 0
+      )
+  `).run();
+  const { checkAndCreateViolations } = require('../services/obligations');
+  try { checkAndCreateViolations(); } catch(e) {}
+  res.json({ ok: true, reset: result.changes });
+});
+
 // Debug obligations state — SUPER_ADMIN only
 router.get('/debug-obligations', requireRole('SUPER_ADMIN'), (req, res) => {
   const { checkAndCreateViolations } = require('../services/obligations');
