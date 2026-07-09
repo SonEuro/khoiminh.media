@@ -605,35 +605,33 @@ function AdminDashboard({ dash, events, violations, lockedObs, onConfirmed, user
         }
       </AdminSec>
 
-      {/* 3. Báo cáo chưa nộp */}
-      <AdminSec title="BÁO CÁO CHƯA NỘP" color="#f87171" rgb="248,113,113" count={topObs.length} linkTo="/event-report">
-        {topObs.length === 0
-          ? <AEmpty text="Không có báo cáo vi phạm" />
-          : topObs.map((ob, i) => (
-            <ARow key={ob.id} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ ...T.name, color:'#fca5a5' }}>{ob.lead_name}</p>
-                <p style={T.sub}>{ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
-              </div>
-              <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
-            </ARow>
-          ))
-        }
-      </AdminSec>
-
-      {/* 4. Tổng quan vi phạm */}
-      <AdminSec title="TỔNG QUAN VI PHẠM" color="#fb923c" rgb="251,146,60" count={topViols.length} linkTo="/violations">
-        {topViols.length === 0
+      {/* 3+4. Tổng quan vi phạm (gộp báo cáo chưa nộp + vi phạm) */}
+      <AdminSec title="TỔNG QUAN VI PHẠM" color="#fb923c" rgb="251,146,60" count={topObs.length + topViols.length} linkTo="/violations">
+        {topObs.length === 0 && topViols.length === 0
           ? <AEmpty text="Không có vi phạm gần đây" />
-          : topViols.map((v, i) => (
-            <ARow key={v.id} i={i} rgb="251,146,60" onClick={() => navigate('/violations')}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={T.name}>{v.violator}</p>
-                <p style={T.sub}>{v.violation_type}</p>
-              </div>
-              <span style={{ fontSize:'0.80rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
-            </ARow>
-          ))
+          : <>
+            {topObs.map((ob, i) => (
+              <ARow key={`ob-${ob.id}`} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                    <p style={{ ...T.name, color:'#fca5a5', margin:0 }}>{ob.lead_name}</p>
+                    <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px' }}>Chưa nộp BC</span>
+                  </div>
+                  <p style={T.sub}>{ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
+                </div>
+                <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
+              </ARow>
+            ))}
+            {topViols.map((v, i) => (
+              <ARow key={`v-${v.id}`} i={topObs.length + i} rgb="251,146,60" onClick={() => navigate('/violations')}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={T.name}>{v.violator}</p>
+                  <p style={T.sub}>{v.violation_type}</p>
+                </div>
+                <span style={{ fontSize:'0.80rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
+              </ARow>
+            ))}
+          </>
         }
       </AdminSec>
 
