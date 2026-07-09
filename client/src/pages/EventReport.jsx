@@ -308,8 +308,8 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
     e.stopPropagation();
     setConfirming(true);
     try {
-      const res = await api.confirmEventReport(report.id);
-      onConfirm?.(report.id, res.confirmed_at);
+      await api.confirmEventReport(report.id);
+      onConfirm?.();
     } finally { setConfirming(false); }
   }
 
@@ -978,8 +978,8 @@ export default function EventReport() {
     }
   }
 
-  function handleConfirm(id, confirmed_at) {
-    setReports(r => r.map(x => x.id === id ? { ...x, confirmed_at } : x));
+  function handleConfirm() {
+    load();
   }
 
   // ── List view ───────────────────────────────────────────────────────────────
