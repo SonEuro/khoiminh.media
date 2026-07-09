@@ -18,7 +18,7 @@ const PHASES = [
 ];
 
 const DEPT_COLORS = {
-  'Âm Thanh Ánh Sáng': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
+  'ATAS-LED': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
   'Sân Khấu':          { color: '#fb923c', bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.22)' },
   'Kỹ Thuật':          { color: '#38bdf8', bg: 'rgba(56,189,248,0.08)',   border: 'rgba(56,189,248,0.22)' },
   'Cơ Sở Vật Chất':   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.22)' },

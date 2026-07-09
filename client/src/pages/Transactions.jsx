@@ -734,9 +734,9 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   );
 }
 
-const NCC_DEPTS   = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
-const DEPT_KEY    = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
-const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS – LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
+const NCC_DEPTS   = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS-LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY    = { 'Kỹ Thuật':'TECH', 'ATAS-LED':'ATAS', 'Sân Khấu':'STAGE' };
+const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS-LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
 
 // ── Trả NCC modal ─────────────────────────────────────────────────────────────
 function TraNccModal({ txId, onClose }) {

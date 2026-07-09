@@ -10,7 +10,7 @@ const ROLES = [
   { value: 'PRODUCTION', label: '🏗️ Bộ Phận Sản Xuất' },
   { value: 'ACCOUNTING', label: '💰 Kế Toán' },
   { value: 'TECHNICAL',  label: '🛠️ Kỹ Thuật' },
-  { value: 'ATAS',       label: '💡 ATAS – LED' },
+  { value: 'ATAS',       label: '💡 ATAS-LED' },
   { value: 'STAGE',      label: '🎭 Sân Khấu' },
   { value: 'CSVC',       label: '🏢 Cơ Sở Vật Chất' },
 ];

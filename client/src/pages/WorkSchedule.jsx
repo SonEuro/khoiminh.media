@@ -45,7 +45,7 @@ const FREELANCER_DEPT_LIST = FREELANCER_GROUPS.map(g => g.dept);
 
 const ROLE_DEPT_MAP = {
   TECHNICAL:  'Kỹ Thuật',
-  ATAS:       'Âm Thanh Ánh Sáng',
+  ATAS:       'ATAS-LED',
   STAGE:      'Sân Khấu',
   CSVC:       'Cơ Sở Vật Chất',
   ACCOUNTING: 'Kế Toán',
@@ -53,7 +53,7 @@ const ROLE_DEPT_MAP = {
 };
 
 const DEPT_COLORS = {
-  'Âm Thanh Ánh Sáng': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
+  'ATAS-LED': { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)' },
   'Sân Khấu':          { color: '#fb923c', bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.22)' },
   'Kỹ Thuật':          { color: '#38bdf8', bg: 'rgba(56,189,248,0.08)',   border: 'rgba(56,189,248,0.22)' },
   'Cơ Sở Vật Chất':   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.22)' },
@@ -65,7 +65,7 @@ const DEPT_COLORS = {
 function getDeptColor(dept) {
   return DEPT_COLORS[dept] || { color: '#7878a0', bg: 'rgba(120,120,160,0.06)', border: 'rgba(120,120,160,0.18)' };
 }
-const KM_DEPT_DISPLAY = { 'Âm Thanh Ánh Sáng': 'ATAS – LED', 'Kinh Doanh': 'Bộ Phận Sản Xuất' };
+const KM_DEPT_DISPLAY = { 'ATAS-LED': 'ATAS-LED', 'Kinh Doanh': 'Bộ Phận Sản Xuất' };
 function getDeptDisplay(dept) { return KM_DEPT_DISPLAY[dept] || dept; }
 
 function getUserDept(fullName) {

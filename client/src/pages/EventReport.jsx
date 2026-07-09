@@ -8,7 +8,7 @@ import FreelancerPicker from '../components/FreelancerPicker';
 const GOLD = '#c9a84c';
 
 const DEPT_COLORS = {
-  'Âm Thanh Ánh Sáng': '#a78bfa',
+  'ATAS-LED': '#a78bfa',
   'Sân Khấu':          '#fb923c',
   'Kỹ Thuật':          '#38bdf8',
   'Cơ Sở Vật Chất':   '#4ade80',
@@ -26,14 +26,14 @@ const ROLE_DEPT_LABEL = {
   PRODUCTION:  'Bộ Phận Sản Xuất',
   ACCOUNTING:  'Kế Toán',
   TECHNICAL:   'Kỹ Thuật',
-  ATAS:        'ATAS – LED',
+  ATAS:        'ATAS-LED',
   STAGE:       'Sân Khấu',
   CSVC:        'Cơ Sở Vật Chất',
 };
 
 // Mapping role → tên dept trong KM_STAFF_GROUPS (dùng để filter nhân sự khi auto-load)
 const ROLE_TO_KM_DEPT = {
-  ATAS:       'Âm Thanh Ánh Sáng',
+  ATAS:       'ATAS-LED',
   STAGE:      'Sân Khấu',
   TECHNICAL:  'Kỹ Thuật',
   CSVC:       'Cơ Sở Vật Chất',

@@ -31,9 +31,9 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
-const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS – LED','Sân Khấu','Cơ Sở Vật Chất'];
-const DEPT_KEY     = { 'Kỹ Thuật':'TECH', 'ATAS – LED':'ATAS', 'Sân Khấu':'STAGE' };
-const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS – LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
+const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS-LED','Sân Khấu','Cơ Sở Vật Chất'];
+const DEPT_KEY     = { 'Kỹ Thuật':'TECH', 'ATAS-LED':'ATAS', 'Sân Khấu':'STAGE' };
+const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS-LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
 
 export default function ExportForm() {
   const navigate = useNavigate();

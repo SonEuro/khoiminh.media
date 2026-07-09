@@ -1,5 +1,5 @@
 export const DEPARTMENTS = [
-  'Âm Thanh Ánh Sáng',
+  'ATAS-LED',
   'Sân Khấu',
   'Kỹ Thuật',
   'Cơ Sở Vật Chất',
@@ -8,7 +8,7 @@ export const DEPARTMENTS = [
 ];
 
 export const KM_STAFF_GROUPS = [
-  { dept: 'Âm Thanh Ánh Sáng', members: [
+  { dept: 'ATAS-LED', members: [
     'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
     'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
   ]},
@@ -34,7 +34,7 @@ export const KM_STAFF_GROUPS = [
 export const ALL_KM_STAFF = KM_STAFF_GROUPS.flatMap(g => g.members);
 
 export const FREELANCER_GROUPS = [
-  { dept: 'Âm Thanh Ánh Sáng', members: [
+  { dept: 'ATAS-LED', members: [
     'Đặng Hoàng Bi', 'Đỗ Hoàng Anh', 'Đỗ Thành Quang', 'Đoàn Quốc Vũ',
     'Lê Nguyễn Minh Kỳ', 'Ngô Công Thành Danh', 'Nguyễn Hữu Quang',
     'Nguyễn Ngọc Đăng Khoa', 'Nguyễn Thanh Tài', 'Nguyễn Văn Huy',

@@ -20,7 +20,7 @@ const VIOLATOR_GROUPS = [
   { dept: 'Cơ Sở Vật Chất', members: [
     'Đào Chí Hải', 'Ngô Văn Hảo',
   ]},
-  { dept: 'Âm Thanh Ánh Sáng', members: [
+  { dept: 'ATAS-LED', members: [
     'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
     'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
   ]},

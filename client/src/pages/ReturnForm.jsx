@@ -9,7 +9,7 @@ const GOLD = '#c9a84c';
 // Map role → bộ phận và danh mục thiết bị tương ứng
 const ROLE_TO_DEPT = {
   TECHNICAL: 'Kỹ Thuật',
-  ATAS:      'Âm Thanh Ánh Sáng',
+  ATAS:      'ATAS-LED',
   STAGE:     'Sân Khấu',
   CSVC:      'Cơ Sở Vật Chất',
 };

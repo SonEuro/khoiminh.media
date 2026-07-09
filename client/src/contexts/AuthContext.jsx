@@ -19,7 +19,7 @@ const ROLE_LABELS = {
   PRODUCTION:  'Bộ Phận Sản Xuất',
   ACCOUNTING:  'Kế Toán',
   TECHNICAL:   'Kỹ Thuật',
-  ATAS:        'ATAS – LED',
+  ATAS:        'ATAS-LED',
   STAGE:       'Sân Khấu',
   CSVC:        'Cơ Sở Vật Chất',
 };
