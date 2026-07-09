@@ -76,7 +76,7 @@ function StaffScheduleModal({ event, onClose }) {
     );
   }
 
-  function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote }) {
+  function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport = {} }) {
     const isPast = date < todayStr;
     const dateColor = date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa';
     return (
@@ -97,7 +97,14 @@ function StaffScheduleModal({ event, onClose }) {
               return (
                 <div key={dept} style={{ marginBottom:'3px', paddingLeft:'8px', borderLeft:`2px solid ${dc.border}` }}>
                   <span style={{ color:dc.color, fontWeight:700, fontSize:'0.85rem', display:'block' }}>{dept}</span>
-                  {members.map(n => <div key={n} style={{ ...itemStyle, color:'#eeeef5' }}>• {n}</div>)}
+                  {members.map(n => (
+                    <div key={n} style={{ ...itemStyle, color:'#eeeef5', display:'flex', alignItems:'center', gap:'5px' }}>
+                      <span>• {n}</span>
+                      {daySupport[n] && <span style={{ fontSize:'0.72rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>
+                        {kmGroups.find(g => g.members.includes(n))?.dept || ''} - HT
+                      </span>}
+                    </div>
+                  ))}
                 </div>
               );
             })}
@@ -153,11 +160,13 @@ function StaffScheduleModal({ event, onClose }) {
           const kmFlat    = s[`${phase.key}_km_staff`] || [];
           const isNewFree = freeMap && Object.values(freeMap).some(v => v && typeof v === 'object');
 
+          const kmSupportMap = s[`${phase.key}_km_support`] || {};
           for (const date of dates) {
+            const daySupport = kmSupportMap[date] || {};
             const dLeads   = leadsMap ? (leadsMap[date] || []) : leadsFlat;
             const dKm      = kmMap    ? (kmMap[date]    || []) : kmFlat;
             const byDeptKM = dKm.reduce((acc, n) => {
-              const d = kmGroups.find(g => g.members.includes(n))?.dept || 'Khác';
+              const d = daySupport[n] || kmGroups.find(g => g.members.includes(n))?.dept || 'Khác';
               (acc[d] = acc[d] || []).push(n); return acc;
             }, {});
 
@@ -178,7 +187,7 @@ function StaffScheduleModal({ event, onClose }) {
             const hasNote   = noteDepts.length > 0 || !!noteStr;
 
             if (!dLeads.length && !Object.keys(byDeptKM).length && !freeDepts.length && !hasNote) continue;
-            allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote });
+            allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport });
           }
         }
 
