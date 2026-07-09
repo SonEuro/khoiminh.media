@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 import MultiDatePicker from '../components/MultiDatePicker';
-import { DEPARTMENTS, KM_STAFF_GROUPS, FREELANCER_GROUPS } from '../constants/staff';
+import { DEPARTMENTS, KM_STAFF_GROUPS as KM_STAFF_GROUPS_DEFAULT, FREELANCER_GROUPS as FREELANCER_GROUPS_DEFAULT } from '../constants/staff';
 import { fmtD } from '../utils/fmt';
 
 const GOLD = '#c9a84c';
@@ -41,7 +42,7 @@ const PHASES = [
   { key: 'teardown',  label: '📦 Ngày Kết Thúc / Tháo Dỡ',  eventField: 'end_date' },
 ];
 
-const FREELANCER_DEPT_LIST = FREELANCER_GROUPS.map(g => g.dept);
+const FREELANCER_DEPT_LIST = FREELANCER_GROUPS_DEFAULT.map(g => g.dept);
 
 const ROLE_DEPT_MAP = {
   TECHNICAL:  'Kỹ Thuật',
@@ -68,8 +69,8 @@ function getDeptColor(dept) {
 const KM_DEPT_DISPLAY = { 'ATAS-LED': 'ATAS-LED', 'Kinh Doanh': 'Bộ Phận Sản Xuất' };
 function getDeptDisplay(dept) { return KM_DEPT_DISPLAY[dept] || dept; }
 
-function getUserDept(fullName) {
-  return KM_STAFF_GROUPS.find(g => g.members.includes(fullName || ''))?.dept || null;
+function getUserDept(fullName, kmGroups = KM_STAFF_GROUPS_DEFAULT) {
+  return kmGroups.find(g => g.members.includes(fullName || ''))?.dept || null;
 }
 
 function getTruongPhongDept(user) {
@@ -77,11 +78,11 @@ function getTruongPhongDept(user) {
   return getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null;
 }
 
-function groupFreelancersByDept(commaStr) {
+function groupFreelancersByDept(commaStr, freelancerGroups = FREELANCER_GROUPS_DEFAULT) {
   const names = (commaStr || '').split(',').map(s => s.trim()).filter(Boolean);
   const groups = {};
   for (const name of names) {
-    const dept = FREELANCER_GROUPS.find(g => g.members.includes(name))?.dept || 'Khác';
+    const dept = freelancerGroups.find(g => g.members.includes(name))?.dept || 'Khác';
     if (!groups[dept]) groups[dept] = [];
     groups[dept].push(name);
   }
@@ -110,6 +111,7 @@ function initPerDateMap(map, flat, dates, isString) {
 
 // ── KM Staff multi-select (ưu tiên bộ phận đã chọn nhóm trưởng) ────────────────
 function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [], restrictDept = null }) {
+  const { kmGroups } = useStaffGroups();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -123,7 +125,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
   }
 
-  const sortedGroups = [...KM_STAFF_GROUPS]
+  const sortedGroups = [...kmGroups]
     .filter(g => !restrictDept || g.dept === restrictDept)
     .sort((a, b) => {
       const aP = priorityDepts.includes(a.dept) ? 0 : 1;
@@ -133,7 +135,7 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
 
   // Chỉ hiện chips của bộ phận được phép — bộ phận khác giữ trong state nhưng ẩn
   const visibleSelected = restrictDept
-    ? selected.filter(s => KM_STAFF_GROUPS.some(g => g.dept === restrictDept && g.members.includes(s)))
+    ? selected.filter(s => kmGroups.some(g => g.dept === restrictDept && g.members.includes(s)))
     : selected;
 
   return (
@@ -206,8 +208,10 @@ function StaffMultiSelect({ selected, onChange, priorityDepts = [], excluded = [
 
 // ── Khối nhóm trưởng (mỗi dòng = 1 bộ phận + 1 người) ──────────────────────────
 function LeadsEditor({ leads, onChange, restrictDept = null }) {
-  const deptOptions = restrictDept ? DEPARTMENTS.filter(d => d === restrictDept) : DEPARTMENTS;
-  function addRow() { onChange([...leads, { department: restrictDept || DEPARTMENTS[0], name: '' }]); }
+  const { kmGroups } = useStaffGroups();
+  const kmDepts = kmGroups.map(g => g.dept);
+  const deptOptions = restrictDept ? DEPARTMENTS.filter(d => d === restrictDept) : (kmDepts.length ? kmDepts : DEPARTMENTS);
+  function addRow() { onChange([...leads, { department: restrictDept || deptOptions[0] || DEPARTMENTS[0], name: '' }]); }
   function updateRow(i, k, v) { onChange(leads.map((r, j) => j === i ? { ...r, [k]: v, ...(k === 'department' ? { name: '' } : {}) } : r)); }
   function removeRow(i) { onChange(leads.filter((_, j) => j !== i)); }
 
@@ -216,7 +220,7 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {leads.map((row, i) => {
           if (restrictDept && row.department !== restrictDept) return null;
-          const members = KM_STAFF_GROUPS.find(g => g.dept === row.department)?.members || [];
+          const members = kmGroups.find(g => g.dept === row.department)?.members || [];
           return (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '7px 8px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '8px' }}>
               {!restrictDept && (
@@ -247,7 +251,8 @@ function LeadsEditor({ leads, onChange, restrictDept = null }) {
 
 // ── Autocomplete input cho freelancer (single name mode) ────────────────────────
 function FreelancerDeptInput({ dept, value, onChange }) {
-  const members = FREELANCER_GROUPS.find(g => g.dept === dept)?.members || [];
+  const { freelancerGroups } = useStaffGroups();
+  const members = freelancerGroups.find(g => g.dept === dept)?.members || [];
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
 
@@ -332,10 +337,11 @@ function AddFreelancerRow({ availableDepts, onAdd, onCancel }) {
 
 // ── Thêm nhân sự KM (chọn bộ phận + tên, 1 người/lần) ──────────────────────────
 function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
-  const kmDepts = availableDepts.length ? availableDepts : KM_STAFF_GROUPS.map(g => g.dept);
+  const { kmGroups } = useStaffGroups();
+  const kmDepts = availableDepts.length ? availableDepts : kmGroups.map(g => g.dept);
   const [dept, setDept] = useState(kmDepts[0] || '');
   const [name, setName] = useState('');
-  const members = (KM_STAFF_GROUPS.find(g => g.dept === dept)?.members || []).filter(m => !excluded.includes(m));
+  const members = (kmGroups.find(g => g.dept === dept)?.members || []).filter(m => !excluded.includes(m));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px', padding: '8px', background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '8px' }}>
@@ -371,6 +377,7 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
 function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false }) {
   const { user } = useAuth();
+  const { kmGroups, freelancerGroups } = useStaffGroups();
   const isSADir  = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const leadsMap        = form[`${phase.key}_leads`]        || {};
   const kmMap           = form[`${phase.key}_km_staff`]     || {};
@@ -390,7 +397,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
   const priorityDepts  = [...new Set(allLeads.map(l => l.department).filter(Boolean))];
 
   // Depts visible to this user (restricted if Trưởng phòng)
-  const visibleFreeDepts  = userDept ? FREELANCER_DEPT_LIST.filter(d => d === userDept) : FREELANCER_DEPT_LIST;
+  const freelancerDeptList = freelancerGroups.map(g => g.dept);
+  const visibleFreeDepts  = userDept ? freelancerDeptList.filter(d => d === userDept) : freelancerDeptList;
   const visibleNoteDepts  = userDept ? DEPARTMENTS.filter(d => d === userDept) : DEPARTMENTS;
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })); }
@@ -556,8 +564,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
   }
 
   const kmDeptList = userDept
-    ? KM_STAFF_GROUPS.filter(g => g.dept === userDept).map(g => g.dept)
-    : KM_STAFF_GROUPS.map(g => g.dept);
+    ? kmGroups.filter(g => g.dept === userDept).map(g => g.dept)
+    : kmGroups.map(g => g.dept);
 
   function renderKMStaff(dateKey) {
     const selected = kmMap[dateKey] || [];
@@ -578,8 +586,8 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
     }
 
     const deptList = userDept
-      ? KM_STAFF_GROUPS.filter(g => g.dept === userDept).map(g => g.dept)
-      : KM_STAFF_GROUPS.map(g => g.dept);
+      ? kmGroups.filter(g => g.dept === userDept).map(g => g.dept)
+      : kmGroups.map(g => g.dept);
     const activeDept = kmDeptFilter[dateKey] || deptList[0] || '';
     const daySupport = supportMap[dateKey] || {}; // {name: forDept}
 
@@ -596,13 +604,13 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
         <label style={subLabel}>Nhân sự Khôi Minh</label>
         {(() => {
           const displayRows = userDept
-            ? selected.filter(name => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(name)) || daySupport[name] === userDept)
+            ? selected.filter(name => kmGroups.find(g => g.dept === userDept && g.members.includes(name)) || daySupport[name] === userDept)
             : selected;
           return displayRows.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
               {displayRows.map(name => {
                 const forDept = daySupport[name]; // dept được hỗ trợ (override)
-                const realDept = KM_STAFF_GROUPS.find(g => g.members.includes(name))?.dept || '';
+                const realDept = kmGroups.find(g => g.members.includes(name))?.dept || '';
                 const displayDept = forDept || realDept;
                 const dc = getDeptColor(displayDept);
                 return (
@@ -634,7 +642,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
         {isPhanLichAll && (
           showSupportRow[dateKey]
             ? <AddKMStaffRow
-                availableDepts={KM_STAFF_GROUPS.map(g => g.dept)}
+                availableDepts={kmGroups.map(g => g.dept)}
                 excluded={[...excluded, ...selected]}
                 onAdd={name => {
                   set(`${phase.key}_km_staff`, { ...kmMap, [dateKey]: [...selected, name] });
@@ -725,6 +733,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
 function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwitchToEdit }) {
   const { user } = useAuth();
+  const { kmGroups } = useStaffGroups();
   const isPhanLich = !!user?.is_phan_lich && !user?.is_phan_lich_all && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const userDept = getTruongPhongDept(user) ||
     (isPhanLich ? getUserDept(user?.full_name) || ROLE_DEPT_MAP[user?.role] || null : null);
@@ -757,7 +766,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
     if (!existingForEvent || !userDept) return false;
     return PHASES.some(p => {
       const km = existingForEvent[`${p.key}_km_staff`] || [];
-      if (km.some(name => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(name)))) return true;
+      if (km.some(name => kmGroups.find(g => g.dept === userDept && g.members.includes(name)))) return true;
       const leads = existingForEvent[`${p.key}_leads`] || [];
       if (leads.some(l => l.department === userDept)) return true;
       return false;
@@ -1097,6 +1106,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
 // ── Trang chính ──────────────────────────────────────────────────────────────────
 export default function WorkSchedule() {
   const { user } = useAuth();
+  const { kmGroups, freelancerGroups } = useStaffGroups();
   const navigate = useNavigate();
   const location = useLocation();
   const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
@@ -1520,15 +1530,15 @@ export default function WorkSchedule() {
                 const startTimesMapD = selected[`${phase.key}_start_times`] || {};
                 const kmSupportMapD  = selected[`${phase.key}_km_support`] || {};
                 const flatLeads      = (selected[`${phase.key}_leads`] || []).filter(l => !viewerDept || l.department === viewerDept);
-                const flatStaff      = (selected[`${phase.key}_km_staff`] || []).filter(n => !viewerDept || KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n)));
+                const flatStaff      = (selected[`${phase.key}_km_staff`] || []).filter(n => !viewerDept || kmGroups.find(g => g.dept === viewerDept && g.members.includes(n)));
                 const isNewFree      = freeMapD && Object.values(freeMapD).some(v => v && typeof v === 'object');
                 for (const date of rawDates) {
                   const daySupport = kmSupportMapD[date] || {}; // {name: forDept}
                   const dLeads = (leadsMapD ? (leadsMapD[date] || []) : flatLeads).filter(l => !viewerDept || l.department === viewerDept);
                   const allDayStaff = kmMapD ? (kmMapD[date] || []) : flatStaff;
-                  const dayStaff = allDayStaff.filter(n => !viewerDept || (daySupport[n] ? daySupport[n] === viewerDept : KM_STAFF_GROUPS.find(g => g.dept === viewerDept && g.members.includes(n))));
+                  const dayStaff = allDayStaff.filter(n => !viewerDept || (daySupport[n] ? daySupport[n] === viewerDept : kmGroups.find(g => g.dept === viewerDept && g.members.includes(n))));
                   const byDeptKM = dayStaff.reduce((acc, n) => {
-                    const d = daySupport[n] || KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+                    const d = daySupport[n] || kmGroups.find(g => g.members.includes(n))?.dept || 'Khác';
                     (acc[d] = acc[d] || []).push(n); return acc;
                   }, {});
                   let freeDepts = [];
@@ -1597,7 +1607,7 @@ export default function WorkSchedule() {
                               {members.map(n => (
                             <div key={n} style={{ ...kmItemStyle, display:'flex', alignItems:'center', gap:'5px' }}>
                               <span>• {n}</span>
-                              {daySupport[n] && <span style={{ fontSize:'0.72rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>{getDeptDisplay(KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || '')} - HT</span>}
+                              {daySupport[n] && <span style={{ fontSize:'0.72rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>{getDeptDisplay(kmGroups.find(g => g.members.includes(n))?.dept || '')} - HT</span>}
                             </div>
                           ))}
                             </div>

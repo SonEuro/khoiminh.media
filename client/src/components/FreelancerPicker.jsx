@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { FREELANCER_GROUPS } from '../constants/staff';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 
 const GOLD = '#c9a84c';
-const KNOWN_FREELANCERS = new Set(FREELANCER_GROUPS.flatMap(g => g.members));
 
 function parseList(str) {
   return (str || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -11,10 +10,13 @@ function parseList(str) {
 // Chọn freelancer từ danh sách có sẵn (ưu tiên theo bộ phận) + cho thêm tên thủ công.
 // Lưu trữ dưới dạng chuỗi text phân tách bằng dấu phẩy (tương thích với freelancer_staff cũ).
 export default function FreelancerPicker({ value, onChange, priorityDepts = [], restrictDepts = null }) {
+  const { freelancerGroups } = useStaffGroups();
   const [open, setOpen] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const ref = useRef(null);
   const selected = parseList(value);
+
+  const KNOWN_FREELANCERS = new Set(freelancerGroups.flatMap(g => g.members));
 
   useEffect(() => {
     function close(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
@@ -33,7 +35,7 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
     setCustomInput('');
   }
 
-  const sortedGroups = [...FREELANCER_GROUPS]
+  const sortedGroups = [...freelancerGroups]
     .filter(g => !restrictDepts || restrictDepts.includes(g.dept))
     .sort((a, b) => {
       const aP = priorityDepts.includes(a.dept) ? 0 : 1;
@@ -45,7 +47,7 @@ export default function FreelancerPicker({ value, onChange, priorityDepts = [], 
   const visibleSelected = restrictDepts
     ? selected.filter(s =>
         !KNOWN_FREELANCERS.has(s) || // tên nhập tay: luôn hiện
-        FREELANCER_GROUPS.some(g => restrictDepts.includes(g.dept) && g.members.includes(s))
+        freelancerGroups.some(g => restrictDepts.includes(g.dept) && g.members.includes(s))
       )
     : selected;
 

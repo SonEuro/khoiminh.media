@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
 
@@ -30,9 +31,13 @@ const EMPTY = { username: '', password: '', full_name: '', position: '', role: '
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
+  const { kmGroups, freelancerGroups, refresh: refreshStaff } = useStaffGroups();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const [users, setUsers]       = useState([]);
   const [modal, setModal]       = useState(null);
+  const [staffModal, setStaffModal]   = useState(null); // null | 'km' | 'freelancer'
+  const [staffDraft,  setStaffDraft]  = useState([]);   // [{dept, members: '...'}]
+  const [staffSaving, setStaffSaving] = useState(false);
   const [form, setForm]         = useState(EMPTY);
   const [editId, setEditId]     = useState(null);
   const [error, setError]       = useState('');
@@ -53,6 +58,31 @@ export default function Users() {
     } catch {}
   }
   useEffect(() => { load(); }, []);
+
+  function openStaffModal(type) {
+    const groups = type === 'km' ? kmGroups : freelancerGroups;
+    setStaffDraft(groups.map(g => ({ dept: g.dept, members: (g.members || []).join('\n') })));
+    setStaffModal(type);
+  }
+
+  async function saveStaff() {
+    setStaffSaving(true);
+    try {
+      const payload = staffDraft
+        .filter(g => g.dept.trim())
+        .map(g => ({
+          dept: g.dept.trim(),
+          members: g.members.split('\n').map(s => s.trim()).filter(Boolean),
+        }));
+      await api.updateStaffGroups(staffModal, payload);
+      await refreshStaff();
+      setStaffModal(null);
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    } finally {
+      setStaffSaving(false);
+    }
+  }
 
   async function openDeleteModal() {
     setDeleteModal(true);
@@ -227,6 +257,28 @@ export default function Users() {
           );
         })}
       </div>
+
+      {/* ── Quản lý nhân sự (SUPER_ADMIN only) ── */}
+      {isSuperAdmin && (
+        <div style={{ marginTop: '28px', padding: '20px', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.04)' }}>
+          <p style={{ color: '#c9a84c', fontWeight: 700, fontSize: '0.84rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            👥 Quản lý nhân sự
+          </p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '14px' }}>
+            Cập nhật danh sách nhân sự theo bộ phận — dùng cho lịch làm việc, báo cáo vi phạm.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button onClick={() => openStaffModal('km')}
+              style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(201,168,76,0.45)', background:'rgba(201,168,76,0.12)', color:'#c9a84c', cursor:'pointer' }}>
+              🏢 Nhân sự Khôi Minh
+            </button>
+            <button onClick={() => openStaffModal('freelancer')}
+              style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(96,165,250,0.45)', background:'rgba(96,165,250,0.1)', color:'#60a5fa', cursor:'pointer' }}>
+              🎯 Nhân sự Freelancer
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Danger Zone (SUPER_ADMIN only) ── */}
       {isSuperAdmin && (
@@ -577,6 +629,57 @@ export default function Users() {
               </button>
               <button onClick={() => setModal(null)} className="btn-secondary">Hủy</button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Staff management modal ── */}
+      {staffModal && (
+        <Modal
+          title={staffModal === 'km' ? '🏢 Nhân sự Khôi Minh' : '🎯 Nhân sự Freelancer'}
+          onClose={() => setStaffModal(null)}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '65vh', overflowY: 'auto' }}>
+            {staffDraft.map((g, i) => (
+              <div key={i} style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    className="input"
+                    placeholder="Bộ phận..."
+                    value={g.dept}
+                    onChange={e => setStaffDraft(d => d.map((x, j) => j === i ? { ...x, dept: e.target.value } : x))}
+                    style={{ flex: 1, fontWeight: 700, fontSize: '0.88rem' }}
+                  />
+                  <button
+                    onClick={() => setStaffDraft(d => d.filter((_, j) => j !== i))}
+                    style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.84rem', flexShrink: 0 }}
+                  >🗑</button>
+                </div>
+                <textarea
+                  className="input"
+                  rows={Math.min(Math.max((g.members.match(/\n/g) || []).length + 2, 3), 10)}
+                  placeholder={'Mỗi tên một dòng:\nNguyễn Văn A\nTrần Thị B'}
+                  value={g.members}
+                  onChange={e => setStaffDraft(d => d.map((x, j) => j === i ? { ...x, members: e.target.value } : x))}
+                  style={{ fontSize: '0.84rem', resize: 'vertical', lineHeight: '1.7' }}
+                />
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  {g.members.split('\n').filter(s => s.trim()).length} nhân sự
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setStaffDraft(d => [...d, { dept: '', members: '' }])}
+              style={{ padding: '10px', borderRadius: '8px', border: '2px dashed rgba(201,168,76,0.35)', background: 'transparent', color: '#c9a84c', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}
+            >
+              + Thêm bộ phận
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
+            <button onClick={saveStaff} disabled={staffSaving} className="btn-primary" style={{ flex: 1 }}>
+              {staffSaving ? 'Đang lưu...' : '💾 Lưu danh sách'}
+            </button>
+            <button onClick={() => setStaffModal(null)} className="btn-secondary">Hủy</button>
           </div>
         </Modal>
       )}

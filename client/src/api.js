@@ -145,4 +145,8 @@ export const api = {
 
   // Lead obligations (nghĩa vụ báo cáo của nhóm trưởng)
   getLeadObligations: () => request('/lead-obligations'),
+
+  // Staff groups (danh sách nhân sự theo bộ phận)
+  getStaffGroups: (type) => request(`/staff-groups?type=${type}`),
+  updateStaffGroups: (type, groups) => request(`/staff-groups/${type}`, { method: 'PUT', body: groups }),
 };

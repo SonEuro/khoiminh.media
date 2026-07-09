@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import { fmtD } from '../utils/fmt';
 
 // ── Danh sách vi phạm ──────────────────────────────────────────────────────
@@ -15,34 +16,6 @@ const VIOLATION_TYPES = [
   'Thái độ không chuyên nghiệp',
 ];
 
-// ── Danh sách nhân sự theo bộ phận ────────────────────────────────────────
-const VIOLATOR_GROUPS = [
-  { dept: 'Cơ Sở Vật Chất', members: [
-    'Đào Chí Hải', 'Ngô Văn Hảo',
-  ]},
-  { dept: 'ATAS-LED', members: [
-    'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
-    'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
-  ]},
-  { dept: 'Sân Khấu', members: [
-    'Trần Duy Hùng', 'Nguyễn Trường Chinh', 'Hứa Khắc Cần',
-    'Phạm Đăng Sinh', 'Nguyễn Ngọc Ly', 'Phạm Hữu Phúc Khang',
-  ]},
-  { dept: 'Kỹ Thuật', members: [
-    'Nguyễn Văn Linh', 'Nguyễn Trí Tài', 'Võ Chí Thiện',
-    'Lê Anh Kiệt', 'Nguyễn Thanh Sang', 'Phan Khắc Luyện',
-    'Vũ Đức Tài', 'Đỗ Quý Vượng', 'Nguyễn Thành Trung',
-    'Phan Ngọc Mạnh', 'Trần Đình Cương', 'Hồ Văn Toàn',
-    'Hồ Bảo Trường', 'Trần Triệu Vĩ', 'Hoàng Văn Tuân',
-  ]},
-  { dept: 'Kế Toán', members: [
-    'Đào Thái Hiền', 'Vũ Thị Hà', 'Lâm Kiều Duyên',
-    'Nguyễn Thị Anh Thư', 'Nguyễn Kim Huệ',
-  ]},
-  { dept: 'Kinh Doanh', members: [
-    'Nguyễn Thế Sơn', 'Lâm Tấn Nhân', 'Đào Nguyên Sơn',
-  ]},
-];
 
 // ── Resize ảnh về max 1000px để giảm dung lượng ───────────────────────────
 function resizeImage(file, maxPx = 1000) {
@@ -86,7 +59,9 @@ const labelStyle = {
 
 export default function ViolationReport() {
   const { user } = useAuth();
+  const { kmGroups, freelancerGroups } = useStaffGroups();
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const VIOLATOR_GROUPS = [...kmGroups, ...freelancerGroups];
 
   const [events,     setEvents]     = useState([]);
   const [violations, setViolations] = useState([]);

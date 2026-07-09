@@ -32,6 +32,7 @@ app.use('/api/admin',        requireAuth, require('./routes/admin'));
 app.use('/api/zalo',         requireAuth, require('./routes/zalo'));
 app.use('/api/work-schedules', requireAuth, require('./routes/workSchedule'));
 app.use('/api/lead-obligations', requireAuth, require('./routes/leadObligations'));
+app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
 
 app.get('/api/health', (req, res) => {
