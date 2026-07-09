@@ -1005,12 +1005,20 @@ function MySchedulesSection({ schedules, user, onSelect }) {
   function isMySchedule(s) {
     if (s.scheduler_user_id === userId) return true;
     for (const phase of PHASES) {
+      // Flat arrays
       const leads = s[`${phase.key}_leads`] || [];
       if (leads.some(l => l.name === userName)) return true;
       const km = s[`${phase.key}_km_staff`] || [];
       if (km.includes(userName)) return true;
       const free = (s[`${phase.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
       if (free.includes(userName)) return true;
+      // Per-date maps (khi phân công theo từng ngày)
+      const leadsMap = s[`${phase.key}_leads_map`];
+      if (leadsMap && Object.values(leadsMap).some(dl => dl.some(l => l.name === userName))) return true;
+      const kmMap = s[`${phase.key}_km_staff_map`];
+      if (kmMap && Object.values(kmMap).some(dk => dk.includes(userName))) return true;
+      const freeMap = s[`${phase.key}_freelancers_map`];
+      if (freeMap && Object.values(freeMap).some(df => Object.values(df).join(',').split(',').map(x => x.trim()).includes(userName))) return true;
     }
     return false;
   }
