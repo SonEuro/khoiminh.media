@@ -322,44 +322,39 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hid
         }}
       >
         {!hideEventName && (
-          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.0rem', margin:'0 0 4px' }}>
+          <p style={{ fontWeight:700, color:'#e8c97a', fontSize:'1.0rem', margin:'0 0 6px' }}>
             {report.event_label || 'Sự kiện không rõ'}
           </p>
         )}
-        {/* Row 1: ngày + icons */}
-        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-          <div style={{ flex:1, display:'flex', flexWrap:'wrap', alignItems:'center', gap:'8px', fontSize:'0.81rem', color:'#7878a0' }}>
+        {!hideEventName && (report.location || (!hideDateRow && report.report_date)) && (
+          <div style={{ fontSize:'0.80rem', color:'#7878a0', marginBottom:'6px', display:'flex', gap:'10px', flexWrap:'wrap' }}>
             {!hideEventName && report.location && <span>📍 {report.location}</span>}
             {!hideDateRow && report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-            {report.images?.length > 0 && (
-              <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
-            )}
-            {report.km_staff?.length > 0 && (
-              <span style={{ fontSize:'0.81rem', color:'#7878a0' }}>👥 {report.km_staff.length}</span>
-            )}
-            <span style={{ color: GOLD, fontSize:'0.88rem' }}>{expanded ? '▲' : '▼'}</span>
-          </div>
-        </div>
-        {/* Row 2: tên + bộ phận cùng dòng */}
-        {report.reporter_name && (
-          <div style={{ display:'flex', alignItems:'center', gap:'10px', marginTop:'5px', fontSize:'0.81rem' }}>
-            <span style={{ color:'#7878a0' }}>👤</span>
-            <span style={{ color:'#e8c97a', fontWeight:600 }}>{report.reporter_name}</span>
-            {reporterDept && (
-              <span style={{ color: getDeptColor(reporterDept), fontWeight:600 }}>{reporterDept}</span>
-            )}
-          </div>
         )}
-        {/* Row 3: nộp lúc + badge */}
-        {report.created_at && (
-          <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'6px', flexWrap:'wrap' }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'5px',
+        {/* Hàng 1: tên + bộ phận + nhãn trễ */}
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+          {report.reporter_name && (
+            <span style={{ fontWeight:700, color:'#e8c97a', fontSize:'0.88rem' }}>{report.reporter_name}</span>
+          )}
+          {reporterDept && (
+            <span style={{ fontSize:'0.80rem', fontWeight:600, color: getDeptColor(reporterDept) }}>{reporterDept}</span>
+          )}
+          {lateness === 'qua_han' && (
+            <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'5px', padding:'1px 7px' }}>Quá hạn</span>
+          )}
+          {lateness === 'nop_tre' && (
+            <span style={{ fontSize:'0.76rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'5px', padding:'1px 7px' }}>Nộp trễ</span>
+          )}
+        </div>
+        {/* Hàng 2: nộp lúc + icons + expand */}
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'5px' }}>
+          {report.created_at && (
+            <div style={{ display:'inline-flex', alignItems:'center', gap:'4px',
               background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)',
-              borderRadius:'6px', padding:'3px 8px' }}>
-              <span style={{ fontSize:'0.80rem', color:'#7878a0' }}>Nộp lúc</span>
-              <span style={{ fontSize:'0.81rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
+              borderRadius:'6px', padding:'2px 7px', flexShrink:0 }}>
+              <span style={{ fontSize:'0.76rem', color:'#7878a0' }}>Nộp lúc</span>
+              <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#60a5fa', fontVariantNumeric:'tabular-nums' }}>
                 {(() => {
                   const dt = report.created_at;
                   if (!dt) return '';
@@ -370,18 +365,16 @@ function ReportCard({ report, onDelete, isSuperAdmin, hideEventName = false, hid
                 })()}
               </span>
             </div>
-            {lateness === 'qua_han' && (
-              <span style={{ fontSize:'0.80rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'6px', padding:'3px 10px' }}>
-                Quá hạn
-              </span>
-            )}
-            {lateness === 'nop_tre' && (
-              <span style={{ fontSize:'0.80rem', fontWeight:700, color:'#fb923c', background:'rgba(251,146,60,0.15)', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'6px', padding:'3px 10px' }}>
-                Nộp trễ
-              </span>
-            )}
-          </div>
-        )}
+          )}
+          <div style={{ flex:1 }} />
+          {report.images?.length > 0 && (
+            <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
+          )}
+          {report.km_staff?.length > 0 && (
+            <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>👥 {report.km_staff.length}</span>
+          )}
+          <span style={{ color: GOLD, fontSize:'0.82rem' }}>{expanded ? '▲' : '▼'}</span>
+        </div>
       </div>
 
       {expanded && (
