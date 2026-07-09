@@ -845,6 +845,7 @@ export default function Events() {
                   <span className={s.cls}>{s.label}</span>
                   {isToday    && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'999px', padding:'2px 8px' }}>HÔM NAY</span>}
                   {isTomorrow && <span style={{ fontSize:'0.80rem', fontWeight:800, color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'999px', padding:'2px 8px' }}>NGÀY MAI</span>}
+                  {ev.archived_at && <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'9999px', padding:'1px 8px' }}>📦 Lưu trữ</span>}
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>
@@ -867,7 +868,7 @@ export default function Events() {
                 const showArchive  = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                 const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                 const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
-                const hasSecondary = showCancel || showArchive || showUnarch || showDelete;
+                const hasSecondary = showCancel || showArchive || showDelete;
                 return (
                   <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                     <div className="ev-card-row">
@@ -888,10 +889,9 @@ export default function Events() {
                         </button>
                       )}
                     </div>
-                    {(showArchive || showUnarch || showDelete) && (
+                    {(showArchive || showDelete) && (
                       <div className="ev-card-row">
                         {showArchive && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
-                        {showUnarch  && <button className="btn-secondary btn-sm ev-card-btn" style={{ borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }} onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu trữ</span></button>}
                         {showDelete  && <button className="btn-danger btn-sm ev-card-btn"    onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
                       </div>
                     )}
