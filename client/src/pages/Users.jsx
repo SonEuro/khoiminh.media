@@ -241,6 +241,20 @@ export default function Users() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '14px' }}>
             Xóa sự kiện, phiếu xuất/nhập, báo cáo, vi phạm. Dữ liệu thiết bị và tài khoản được giữ nguyên. <strong style={{ color: '#f87171' }}>Không thể hoàn tác.</strong>
           </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+            <button
+              onClick={async () => {
+                try {
+                  const d = await api.debugObligations();
+                  const summary = `📊 DB State:\n• Tổng obligations: ${d.totalObs}\n• Quá hạn (chưa dismissed): ${d.overdueObs}\n• Đã dismissed: ${d.dismissedObs}\n• Tổng violations: ${d.totalViols}\n• Vi phạm hệ thống: ${d.sysViols}\n\nChi tiết quá hạn:\n${d.detail.map(r=>`  ${r.lead_name} | ${r.assigned_date} | dismissed=${r.dismissed} | has_report=${r.has_report}`).join('\n')}`;
+                  alert(summary);
+                } catch(e) { alert('Lỗi: ' + e.message); }
+              }}
+              style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(96,165,250,0.5)', background:'rgba(96,165,250,0.15)', color:'#60a5fa', cursor:'pointer' }}
+            >
+              🔍 Debug Vi Phạm
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
               onClick={openDeleteModal}
