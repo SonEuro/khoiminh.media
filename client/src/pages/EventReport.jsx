@@ -573,14 +573,38 @@ function EventZone({ group, onDelete, canDeleteReport }) {
         )}
       </div>
 
-      {/* Reports inside */}
-      {open && (
-        <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'8px 10px 10px' }}>
-          {group.reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName />
-          ))}
-        </div>
-      )}
+      {/* Reports inside — grouped by date */}
+      {open && (() => {
+        const byDate = {};
+        for (const r of group.reports) {
+          const d = r.report_date || '__';
+          if (!byDate[d]) byDate[d] = [];
+          byDate[d].push(r);
+        }
+        const dates = Object.keys(byDate).sort();
+        return (
+          <div style={{ borderTop:'1px solid rgba(201,168,76,0.12)', padding:'8px 10px 10px' }}>
+            {dates.map(d => (
+              <div key={d} style={{ marginBottom: dates.length > 1 ? '12px' : 0 }}>
+                {dates.length > 1 && (
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'4px 4px 8px' }}>
+                    <span style={{ fontSize:'0.78rem', fontWeight:700, color:'#7878a0', letterSpacing:'0.05em' }}>
+                      📅 {d === '__' ? 'Không rõ ngày' : fmtDate(d)}
+                    </span>
+                    <span style={{ fontSize:'0.75rem', color:'#555570', background:'rgba(255,255,255,0.05)', borderRadius:'9999px', padding:'1px 7px' }}>
+                      {byDate[d].length} báo cáo
+                    </span>
+                    <div style={{ flex:1, height:'1px', background:'rgba(201,168,76,0.12)' }} />
+                  </div>
+                )}
+                {byDate[d].map(r => (
+                  <ReportCard key={r.id} report={r} onDelete={onDelete} isSuperAdmin={canDeleteReport(r)} hideEventName />
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
