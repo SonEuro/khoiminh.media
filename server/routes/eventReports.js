@@ -73,6 +73,51 @@ router.post('/', requireAuth, (req, res) => {
   res.json({ id: result.lastInsertRowid });
 });
 
+// Kiểm tra còn trong deadline chỉnh sửa: report_date + 1 ngày 12:00 VN
+function withinEditDeadline(reportDate) {
+  if (!reportDate) return false;
+  const [y, m, d] = reportDate.split('-').map(Number);
+  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 5, 0, 0)); // d+1 12:00 VN = d+1 05:00 UTC
+  return Date.now() <= deadlineUTC.getTime();
+}
+
+router.put('/:id', requireAuth, (req, res) => {
+  const report = db.prepare('SELECT * FROM event_reports WHERE id = ?').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
+
+  const { role } = req.user;
+  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role);
+  const isOwner = report.reporter_user_id === req.user.id;
+
+  if (!isAdmin && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
+  if (!withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 12:00 hôm sau)' });
+
+  const {
+    km_staff, freelancer_staff,
+    time_present, time_onset, time_off, time_end,
+    incomplete, incidents, progress, completed_work, service_quality,
+    images, job_content, timeline,
+  } = req.body;
+
+  db.prepare(`
+    UPDATE event_reports SET
+      km_staff=?, freelancer_staff=?,
+      time_present=?, time_onset=?, time_off=?, time_end=?,
+      incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
+      images=?, job_content=?, timeline=?
+    WHERE id=?
+  `).run(
+    JSON.stringify(km_staff || []), freelancer_staff || '',
+    time_present || '', time_onset || '', time_off || '', time_end || '',
+    incomplete || '', incidents || '', progress || '', completed_work || '', service_quality || '',
+    JSON.stringify(images || []),
+    job_content || '',
+    JSON.stringify((timeline || []).filter(t => t.time)),
+    req.params.id,
+  );
+  res.json({ ok: true });
+});
+
 router.patch('/:id/confirm', requireAuth, (req, res) => {
   const { role, is_phan_lich_all } = req.user || {};
   const canConfirm = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_phan_lich_all;

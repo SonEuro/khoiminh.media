@@ -293,8 +293,16 @@ function getReportLateness(reportDate, createdAt, obligationDeadline) {
   return null;
 }
 
+// Kiểm tra còn trong deadline chỉnh sửa: report_date + 1 ngày 12:00 VN
+function withinEditDeadline(reportDate) {
+  if (!reportDate) return false;
+  const [y, m, d] = reportDate.split('-').map(Number);
+  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 5, 0, 0)); // 12:00 VN = 05:00 UTC
+  return Date.now() <= deadlineUTC.getTime();
+}
+
 // ── Report detail card ────────────────────────────────────────────────────────
-function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
+function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
   const [confirming, setConfirming] = useState(false);
@@ -468,16 +476,30 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
             </div>
           )}
 
-          {isSuperAdmin && (
-            <button type="button" onClick={() => { if (confirm('Xoá báo cáo này?')) onDelete(report.id); }}
-              style={{
-                marginTop:'6px', padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
-                background:'rgba(220,50,50,0.12)', border:'1px solid rgba(220,50,50,0.3)',
-                color:'#f87171', cursor:'pointer',
-              }}>
-              🗑 Xoá báo cáo
-            </button>
-          )}
+          <div style={{ display:'flex', gap:'8px', marginTop:'6px', flexWrap:'wrap' }}>
+            {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
+            {(currentUser?.id === report.reporter_user_id || ['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role)) &&
+              withinEditDeadline(report.report_date) && (
+              <button type="button" onClick={() => onEdit(report)}
+                style={{
+                  padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
+                  background:'rgba(96,165,250,0.12)', border:'1px solid rgba(96,165,250,0.3)',
+                  color:'#60a5fa', cursor:'pointer',
+                }}>
+                ✏️ Sửa báo cáo
+              </button>
+            )}
+            {isSuperAdmin && (
+              <button type="button" onClick={() => { if (confirm('Xoá báo cáo này?')) onDelete(report.id); }}
+                style={{
+                  padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
+                  background:'rgba(220,50,50,0.12)', border:'1px solid rgba(220,50,50,0.3)',
+                  color:'#f87171', cursor:'pointer',
+                }}>
+                🗑 Xoá báo cáo
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -512,7 +534,7 @@ function ReportCard({ report, onDelete, onConfirm, isSuperAdmin, hideEventName =
 }
 
 // ── Dept section: nhóm báo cáo theo bộ phận ──────────────────────────────────
-function DeptSection({ dept, color, reports, onDelete, onConfirm, canDeleteReport }) {
+function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ background:'#13131d', border:`1px solid ${color}33`, borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
@@ -533,7 +555,7 @@ function DeptSection({ dept, color, reports, onDelete, onConfirm, canDeleteRepor
       {open && (
         <div style={{ borderTop:`1px solid ${color}22`, padding:'8px 10px 10px' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} />
           ))}
         </div>
       )}
@@ -542,7 +564,7 @@ function DeptSection({ dept, color, reports, onDelete, onConfirm, canDeleteRepor
 }
 
 // ── Date zone: nhóm tất cả báo cáo cùng ngày ────────────────────────────────
-function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
+function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
 
@@ -596,7 +618,7 @@ function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
       {open && (
         <div style={{ paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideDateRow />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideDateRow />
           ))}
         </div>
       )}
@@ -605,7 +627,7 @@ function DateZone({ date, reports, onDelete, onConfirm, canDeleteReport }) {
 }
 
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
-function EventZone({ group, onDelete, onConfirm, canDeleteReport }) {
+function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
   const totalImages = group.reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
   const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
@@ -681,7 +703,7 @@ function EventZone({ group, onDelete, onConfirm, canDeleteReport }) {
                   )}
                   <div style={multiDate ? { paddingLeft:'8px', borderLeft:'2px solid rgba(201,168,76,0.35)' } : {}}>
                     {byDate[d].map(r => (
-                      <ReportCard key={r.id} report={r} onDelete={onDelete} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
+                      <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
                     ))}
                   </div>
                 </div>
@@ -723,6 +745,7 @@ export default function EventReport() {
   };
 
   const [view, setView] = useState('list'); // 'list' | 'form'
+  const [editingId, setEditingId] = useState(null); // id báo cáo đang edit
   const [listMode, setListMode] = useState('event'); // 'event' | 'dept'
   const [reports, setReports] = useState([]);
   const [events, setEvents] = useState([]);
@@ -935,6 +958,34 @@ export default function EventReport() {
     }
   }
 
+  function handleEdit(report) {
+    setEditingId(report.id);
+    setForm({
+      event_id:        report.event_id   || '',
+      event_label:     report.event_label|| '',
+      location:        report.location   || '',
+      report_date:     report.report_date|| '',
+      km_staff:        report.km_staff   || [],
+      freelancer_staff:report.freelancer_staff || '',
+      time_present:    report.time_present || '',
+      time_onset:      report.time_onset   || '',
+      time_off:        report.time_off     || '',
+      time_end:        report.time_end     || '',
+      incomplete:      report.incomplete   || '',
+      incidents:       report.incidents    || '',
+      progress:        report.progress     || '',
+      completed_work:  report.completed_work || '',
+      service_quality: report.service_quality || '',
+      images:          report.images || [],
+      job_content:     report.job_content || '',
+      timeline:        report.timeline || [],
+    });
+    setEvSearch(report.event_label || '');
+    setDateLocked(true);
+    setView('form');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = {};
@@ -952,11 +1003,16 @@ export default function EventReport() {
     setErrors({});
     setSubmitting(true);
     try {
-      await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
+      if (editingId) {
+        await api.updateEventReport(editingId, form);
+      } else {
+        await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
+      }
       const updated = await api.getEventReports();
       setReports(updated);
       setForm(makeEmptyForm());
       setEvSearch('');
+      setEditingId(null);
       setView('list');
     } catch (err) {
       alert(err.message);
@@ -1044,7 +1100,7 @@ export default function EventReport() {
             map[key].reports.push(r);
           });
           return order.map(k => (
-            <EventZone key={k} group={map[k]} onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+            <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
           ));
         })()}
 
@@ -1059,7 +1115,7 @@ export default function EventReport() {
           });
           order.sort((a, b) => b.localeCompare(a)); // mới nhất lên trên
           return order.map(d => (
-            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
           ));
         })()}
 
@@ -1069,7 +1125,7 @@ export default function EventReport() {
             ? null
             : deptGroups.order.map(dept => (
                 <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
-                  onDelete={handleDelete} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+                  onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
               ))
         )}
 
@@ -1134,10 +1190,10 @@ export default function EventReport() {
   return (
     <div className="p-6">
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
-        <button onClick={() => setView('list')} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
+        <button onClick={() => { setView('list'); setEditingId(null); }} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
         <div>
-          <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>Tạo Báo Cáo Sự Kiện</h1>
-          <p style={{ color:'#7878a0', fontSize:'0.84rem', margin:0 }}>Điền đầy đủ thông tin sau sự kiện</p>
+          <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>{editingId ? 'Chỉnh Sửa Báo Cáo' : 'Tạo Báo Cáo Sự Kiện'}</h1>
+          <p style={{ color:'#7878a0', fontSize:'0.84rem', margin:0 }}>{editingId ? 'Cập nhật thông tin báo cáo' : 'Điền đầy đủ thông tin sau sự kiện'}</p>
         </div>
       </div>
 
@@ -1367,9 +1423,9 @@ export default function EventReport() {
         <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}>
           <button type="submit" disabled={submitting || !form.event_id} className="btn-primary"
             style={{ flex:1, padding:'13px', fontSize:'1rem' }}>
-            {submitting ? 'Đang lưu...' : '✅ Lưu báo cáo'}
+            {submitting ? 'Đang lưu...' : editingId ? '✅ Cập nhật báo cáo' : '✅ Lưu báo cáo'}
           </button>
-          <button type="button" onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); }}
+          <button type="button" onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); setEditingId(null); }}
             className="btn-secondary" style={{ padding:'13px 20px' }}>
             Huỷ
           </button>
