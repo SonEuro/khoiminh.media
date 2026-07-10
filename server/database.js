@@ -110,6 +110,17 @@ try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_at TEXT DEFAULT
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_by_id INTEGER DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN edit_history TEXT DEFAULT '[]'").run(); } catch (_) {}
 
+// Backfill location từ events table cho các báo cáo cũ chưa có địa điểm
+try {
+  db.prepare(`
+    UPDATE event_reports
+    SET location = (SELECT location FROM events WHERE id = event_reports.event_id)
+    WHERE event_id IS NOT NULL
+      AND (location IS NULL OR location = '')
+      AND EXISTS (SELECT 1 FROM events WHERE id = event_reports.event_id AND location IS NOT NULL AND location != '')
+  `).run();
+} catch (_) {}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS work_schedules (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
