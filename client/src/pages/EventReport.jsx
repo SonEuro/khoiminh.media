@@ -772,9 +772,37 @@ export default function EventReport() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [isAloneInDept, setIsAloneInDept] = useState(false);
   const [notInSchedule, setNotInSchedule] = useState(false);
+  const [allowedEventIds, setAllowedEventIds] = useState(null); // null = show all (admin), Set = filtered
   const [dateLocked, setDateLocked] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  // Build danh sách event_id mà user có lịch làm việc (dùng để lọc dropdown sự kiện)
+  useEffect(() => {
+    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+    if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
+    const myName = user.full_name;
+    const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+    api.getWorkSchedules({}).then(scheds => {
+      const ids = new Set();
+      for (const s of scheds) {
+        if (!s.event_id) continue;
+        let found = false;
+        for (const key of phaseKeys) {
+          const leads = s[`${key}_leads`] || [];
+          if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { found = true; break; }
+          const km = s[`${key}_km_staff`] || [];
+          if (km.includes(myName)) { found = true; break; }
+          const leadsMap = s[`${key}_leads_map`] || {};
+          if (Object.values(leadsMap).some(arr => arr?.some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
+          const kmMap = s[`${key}_km_staff_map`] || {};
+          if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
+        }
+        if (found) ids.add(String(s.event_id));
+      }
+      setAllowedEventIds(ids);
+    }).catch(() => setAllowedEventIds(null));
+  }, [user?.full_name, user?.role, user?.is_phan_lich_all]);
 
   const load = useCallback(() => {
     Promise.all([api.getEventReports(), api.getEvents()])
@@ -995,10 +1023,14 @@ export default function EventReport() {
     });
   })();
 
+  const scheduledEvents = allowedEventIds !== null
+    ? events.filter(ev => ev.status !== 'cancelled' && allowedEventIds.has(String(ev.id)))
+    : recentEvents;
+
   const evSuggestions = showEvDrop
     ? (evSearch.trim()
-        ? recentEvents.filter(e => e.name.toLowerCase().includes(evSearch.toLowerCase())).slice(0, 8)
-        : recentEvents.slice(0, 8))
+        ? scheduledEvents.filter(e => e.name.toLowerCase().includes(evSearch.toLowerCase())).slice(0, 8)
+        : scheduledEvents.slice(0, 8))
     : [];
 
   async function handleImageFiles(files) {
