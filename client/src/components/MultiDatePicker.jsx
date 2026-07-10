@@ -7,12 +7,15 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
   const today = new Date().toISOString().slice(0, 10);
   const [open, setOpen]           = useState(false);
   const [panelPos, setPanelPos]   = useState({ top: 0, left: 0, width: 270 });
+  const [isMobile, setIsMobile]   = useState(false);
   const [viewYear, setViewYear]   = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const triggerRef = useRef(null);
 
   const openPanel = useCallback(() => {
-    if (triggerRef.current) {
+    const mobile = window.innerWidth < 640;
+    setIsMobile(mobile);
+    if (!mobile && triggerRef.current) {
       const r = triggerRef.current.getBoundingClientRect();
       const panelW = Math.max(r.width, 270);
       // Probe element để đọc safe-area-inset-left từ env() variable
@@ -80,10 +83,16 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
       {open && (
         <>
           {/* Backdrop */}
-          <div style={{ position:'fixed', inset:0, zIndex:1299 }} onClick={() => setOpen(false)} />
+          <div style={{ position:'fixed', inset:0, zIndex:1299, background: isMobile ? 'rgba(0,0,0,0.5)' : 'transparent' }} onClick={() => setOpen(false)} />
 
-          {/* Calendar panel — fixed positioning to escape modal overflow clipping */}
-          <div style={{
+          {/* Calendar panel — bottom sheet on mobile, dropdown on desktop */}
+          <div style={isMobile ? {
+            position:'fixed', bottom:0, left:0, right:0, zIndex:1300,
+            background:'#0e0e1a', borderTop:'1px solid rgba(167,139,250,0.45)',
+            borderRadius:'18px 18px 0 0', padding:'16px 16px 32px',
+            boxShadow:'0 -8px 40px rgba(0,0,0,0.8)',
+            maxHeight:'80vh', overflowY:'auto',
+          } : {
             position:'fixed', top: panelPos.top, left: panelPos.left, zIndex:1300,
             width: panelPos.width,
             background:'#0e0e1a', border:'1px solid rgba(167,139,250,0.45)',
@@ -91,6 +100,11 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
             boxShadow:'0 20px 60px rgba(0,0,0,0.95)',
             maxWidth:'calc(100vw - 32px)',
           }}>
+            {/* Drag handle — mobile only */}
+            {isMobile && (
+              <div style={{ width:'40px', height:'4px', borderRadius:'2px', background:'rgba(255,255,255,0.2)', margin:'0 auto 14px' }} />
+            )}
+
             {/* Month navigation */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
               <button type="button" onClick={prevMonth}
