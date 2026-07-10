@@ -339,7 +339,6 @@ setUpcoming(found);
   const todayEvs    = allGroups.filter(g => g.zone === 'today');
   const tomorrowEvs = allGroups.filter(g => g.zone === 'tomorrow');
   const upcomingEvs = allGroups.filter(g => g.zone === 'upcoming');
-  const pastEvs     = allGroups.filter(g => g.zone === 'past');
   const totalFuture = todayEvs.length + tomorrowEvs.length + upcomingEvs.length;
 
   if (upcoming.length === 0) return null;

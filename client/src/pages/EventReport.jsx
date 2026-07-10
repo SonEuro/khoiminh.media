@@ -1025,6 +1025,7 @@ export default function EventReport() {
       setForm(makeEmptyForm());
       setEvSearch('');
       setEditingId(null);
+      setDateLocked(false);
       setView('list');
     } catch (err) {
       alert(err.message);
@@ -1202,7 +1203,7 @@ export default function EventReport() {
   return (
     <div className="p-6">
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
-        <button onClick={() => { setView('list'); setEditingId(null); }} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
+        <button onClick={() => { setView('list'); setEditingId(null); setDateLocked(false); }} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
         <div>
           <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>{editingId ? 'Chỉnh Sửa Báo Cáo' : 'Tạo Báo Cáo Sự Kiện'}</h1>
           <p style={{ color:'#7878a0', fontSize:'0.84rem', margin:0 }}>{editingId ? 'Cập nhật thông tin báo cáo' : 'Điền đầy đủ thông tin sau sự kiện'}</p>
@@ -1437,7 +1438,7 @@ export default function EventReport() {
             style={{ flex:1, padding:'13px', fontSize:'1rem' }}>
             {submitting ? 'Đang lưu...' : editingId ? '✅ Cập nhật báo cáo' : '✅ Lưu báo cáo'}
           </button>
-          <button type="button" onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); setEditingId(null); }}
+          <button type="button" onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); setEditingId(null); setDateLocked(false); }}
             className="btn-secondary" style={{ padding:'13px 20px' }}>
             Huỷ
           </button>

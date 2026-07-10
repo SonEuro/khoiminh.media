@@ -91,7 +91,7 @@ router.put('/:id', requireAuth, (req, res) => {
   const isOwner = report.reporter_user_id === req.user.id;
 
   if (!isAdmin && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
-  if (!withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 12:00 hôm sau)' });
+  if (!isAdmin && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 12:00 hôm sau)' });
 
   const {
     km_staff, freelancer_staff,
