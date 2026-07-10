@@ -841,10 +841,9 @@ export default function EventReport() {
   // Nhóm trưởng dùng useEffect riêng bên dưới (load toàn bộ lịch theo ngày)
   useEffect(() => {
     if (editingId) return;
-    if (!form.event_id || !form.report_date) { setNotInSchedule(false); return; }
+    if (!form.event_id || !form.report_date) return;
     if (user?.is_truong_phong) return;
     const myName = user?.full_name || '';
-    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
     const userKmDept = getUserKmDept(user);
     const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userKmDept);
     const deptFilter = userGroup ? new Set(userGroup.members) : null;
@@ -891,21 +890,19 @@ export default function EventReport() {
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
       const freelancerText = [...new Set(freeParts.flatMap(t => t.split(',').map(s => s.trim())).filter(Boolean))].join(', ');
       if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
-      if (!isAdmin) setNotInSchedule(scheds.length > 0 && !names.has(myName));
-    }).catch(() => { setNotInSchedule(false); });
+    }).catch(() => {});
   }, [form.event_id, form.report_date, user?.is_truong_phong, user?.full_name]);
 
   // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
   useEffect(() => {
     if (editingId) return;
-    if (!form.report_date) { setNotInSchedule(false); return; }
+    if (!form.report_date) return;
     const userDept = getUserKmDept(user);
     const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userDept);
-    if (!userGroup) { setIsAloneInDept(false); setNotInSchedule(false); return; }
+    if (!userGroup) { setIsAloneInDept(false); return; }
     const deptMembers = new Set(userGroup.members);
     const myName = user?.full_name || '';
-    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
     api.getWorkSchedules({}).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
       const staffNames   = new Set(); // leads + km_staff (để auto-fill nhóm trưởng)
@@ -955,33 +952,34 @@ export default function EventReport() {
       // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
       // → khớp với obligation system (chỉ tạo vi phạm cho leads)
       setIsAloneInDept(isLeadThisDate && leadNames.size === 1 && leadNames.has(myName));
-      // Chỉ kiểm tra lịch cho nhóm trưởng — nhân viên thường đã được kiểm tra ở useEffect riêng
-      if (user?.is_truong_phong) {
-        if (!isAdmin && form.event_id) {
-          const eventScheds = scheds.filter(s => String(s.event_id) === String(form.event_id));
-          if (eventScheds.length > 0) {
-            let inEventSched = false;
-            outer: for (const s of eventScheds) {
-              for (const key of phaseKeys) {
-                const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-                const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
-                if (!matchDate) continue;
-                const leads = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
-                if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inEventSched = true; break outer; }
-                const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
-                if (km.includes(myName)) { inEventSched = true; break outer; }
-              }
-            }
-            setNotInSchedule(!inEventSched);
-          } else {
-            setNotInSchedule(false);
-          }
-        } else {
-          setNotInSchedule(false);
+    }).catch(() => { setIsAloneInDept(false); });
+  }, [form.report_date, user?.is_truong_phong, user?.full_name]);
+
+  // Kiểm tra người báo cáo có trong lịch làm việc của sự kiện không (áp dụng cho tất cả)
+  useEffect(() => {
+    if (editingId) return;
+    if (!form.event_id || !form.report_date) { setNotInSchedule(false); return; }
+    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+    if (isAdmin) { setNotInSchedule(false); return; }
+    const myName = user?.full_name || '';
+    api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
+      if (scheds.length === 0) { setNotInSchedule(false); return; }
+      const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+      let inSched = false;
+      outer: for (const s of scheds) {
+        for (const key of phaseKeys) {
+          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
+          if (!matchDate) continue;
+          const leads = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
+          if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inSched = true; break outer; }
+          const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
+          if (km.includes(myName)) { inSched = true; break outer; }
         }
       }
-    }).catch(() => { setIsAloneInDept(false); setNotInSchedule(false); });
-  }, [form.report_date, form.event_id, user?.is_truong_phong, user?.full_name]);
+      setNotInSchedule(!inSched);
+    }).catch(() => setNotInSchedule(false));
+  }, [form.event_id, form.report_date, user?.full_name]);
 
   const recentEvents = (() => {
     const vnNow = new Date(Date.now() + 7 * 3600 * 1000);
