@@ -83,17 +83,17 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
       {open && (
         <>
           {/* Backdrop */}
-          <div style={{ position:'fixed', inset:0, zIndex:1299, background: isMobile ? 'rgba(0,0,0,0.5)' : 'transparent' }} onClick={() => setOpen(false)} />
+          <div style={{ position:'fixed', inset:0, zIndex:2099, background: isMobile ? 'rgba(0,0,0,0.5)' : 'transparent' }} onClick={() => setOpen(false)} />
 
           {/* Calendar panel — bottom sheet on mobile, dropdown on desktop */}
           <div style={isMobile ? {
-            position:'fixed', bottom:0, left:0, right:0, zIndex:1300,
+            position:'fixed', bottom:0, left:0, right:0, zIndex:2100,
             background:'#0e0e1a', borderTop:'1px solid rgba(167,139,250,0.45)',
             borderRadius:'18px 18px 0 0', padding:'16px 16px 32px',
             boxShadow:'0 -8px 40px rgba(0,0,0,0.8)',
             maxHeight:'80vh', overflowY:'auto',
           } : {
-            position:'fixed', top: panelPos.top, left: panelPos.left, zIndex:1300,
+            position:'fixed', top: panelPos.top, left: panelPos.left, zIndex:2100,
             width: panelPos.width,
             background:'#0e0e1a', border:'1px solid rgba(167,139,250,0.45)',
             borderRadius:'14px', padding:'14px 12px 10px',
