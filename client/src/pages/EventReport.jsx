@@ -1120,6 +1120,11 @@ export default function EventReport() {
             }
             map[key].reports.push(r);
           });
+          order.sort((a, b) => {
+            const latestA = map[a].reports.map(r => r.report_date).filter(Boolean).sort().at(-1) || '';
+            const latestB = map[b].reports.map(r => r.report_date).filter(Boolean).sort().at(-1) || '';
+            return latestB.localeCompare(latestA);
+          });
           return order.map(k => (
             <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
           ));
