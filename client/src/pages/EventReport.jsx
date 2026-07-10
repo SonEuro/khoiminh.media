@@ -345,9 +345,9 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             {report.event_label || 'Sự kiện không rõ'}
           </p>
         )}
-        {!hideEventName && (report.location || (!hideDateRow && report.report_date)) && (
+        {(report.location || (!hideDateRow && report.report_date)) && (
           <div style={{ fontSize:'0.80rem', color:'#7878a0', marginBottom:'6px', display:'flex', gap:'10px', flexWrap:'wrap' }}>
-            {!hideEventName && report.location && <span>📍 {report.location}</span>}
+            {report.location && <span>📍 {report.location}</span>}
             {!hideDateRow && report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
           </div>
         )}
