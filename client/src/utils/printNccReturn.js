@@ -51,7 +51,7 @@ export function printNccReturn(items, info = {}) {
   .main-table th { border:1px solid #000; padding:5px 4px; font-size:11pt; font-weight:bold; text-align:center; background:#f0f0f0; }
   .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; font-weight:bold; }
 
-  .page-counter-cell::after { content:"1 / ${totalPages}"; }
+  .page-counter-cell::after { content: counter(page) " / ${totalPages}"; }
 
   .footer-td { border:none !important; padding:0 !important; border-top:2px solid #000 !important; }
   .footer-wrap { text-align:center; margin-top:8px; margin-bottom:3px; }

@@ -145,7 +145,7 @@ function buildSlipHTML(tx, preview = false) {
   .mini-hdr td { border:1px solid #999; padding:4px 8px; border-bottom:2px solid #000; }
   .mh-lbl { display:block; font-size:7pt; color:#555; text-transform:uppercase; letter-spacing:0.3px; font-weight:bold; }
   .mh-val { display:block; font-size:10pt; font-weight:bold; color:#000; }
-  .page-counter-cell::after { content: "1 / ${totalPages}"; }
+  .page-counter-cell::after { content: counter(page) " / ${totalPages}"; }
 
   /* ── Footer ── */
   .footer-td { border:none !important; padding:0 !important; border-top:2px solid #000 !important; }
