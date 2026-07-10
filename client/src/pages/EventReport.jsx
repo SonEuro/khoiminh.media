@@ -346,9 +346,9 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           </p>
         )}
         {(report.location || (!hideDateRow && report.report_date)) && (
-          <div style={{ fontSize:'0.80rem', color:'#7878a0', marginBottom:'6px', display:'flex', gap:'10px', flexWrap:'wrap' }}>
-            {report.location && <span>📍 {report.location}</span>}
-            {!hideDateRow && report.report_date && <span>📅 {fmtDate(report.report_date)}</span>}
+          <div style={{ fontSize:'0.80rem', marginBottom:'6px', display:'flex', gap:'10px', flexWrap:'wrap' }}>
+            {report.location && <span style={{ color:'#60a5fa', fontWeight:600 }}>📍 {report.location}</span>}
+            {!hideDateRow && report.report_date && <span style={{ color:'#7878a0' }}>📅 {fmtDate(report.report_date)}</span>}
           </div>
         )}
         {/* Hàng 1: tên + bộ phận + nhãn trễ */}
