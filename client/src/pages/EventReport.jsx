@@ -490,8 +490,8 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 
           <div style={{ display:'flex', gap:'8px', marginTop:'6px', flexWrap:'wrap' }}>
             {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
-            {(currentUser?.id === report.reporter_user_id || ['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role)) &&
-              withinEditDeadline(report.report_date) && (
+            {(['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role) ||
+              (currentUser?.id === report.reporter_user_id && withinEditDeadline(report.report_date))) && (
               <button type="button" onClick={() => onEdit(report)}
                 style={{
                   padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
@@ -1004,6 +1004,7 @@ export default function EventReport() {
     e.preventDefault();
     const errs = {};
     if (!form.event_id)                       errs.event_id       = 'Vui lòng chọn sự kiện';
+    if (!form.report_date)                    errs.report_date    = 'Vui lòng chọn ngày báo cáo';
     if (!form.km_staff?.length)               errs.km_staff       = 'Bắt buộc chọn ít nhất 1 nhân sự Khôi Minh';
     const validTime = v => { const [h, m] = (v || '').split(':'); return h?.length > 0 && m?.length > 0; };
     if (!validTime(form.time_present))        errs.time_present   = 'Bắt buộc nhập';
@@ -1205,7 +1206,7 @@ export default function EventReport() {
   return (
     <div className="p-6">
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
-        <button onClick={() => { setView('list'); setEditingId(null); setDateLocked(false); }} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
+        <button onClick={() => { setView('list'); setForm(makeEmptyForm()); setEvSearch(''); setEditingId(null); setDateLocked(false); }} style={{ background:'none', border:'none', color:'#7878a0', fontSize:'1.3rem', cursor:'pointer' }}>←</button>
         <div>
           <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#e8c97a', margin:0 }}>{editingId ? 'Chỉnh Sửa Báo Cáo' : 'Tạo Báo Cáo Sự Kiện'}</h1>
           <p style={{ color:'#7878a0', fontSize:'0.84rem', margin:0 }}>{editingId ? 'Cập nhật thông tin báo cáo' : 'Điền đầy đủ thông tin sau sự kiện'}</p>

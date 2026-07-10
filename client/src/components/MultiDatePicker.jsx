@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 const MONTH_NAMES = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
 const DAY_NAMES   = ['CN','T2','T3','T4','T5','T6','T7'];
@@ -11,6 +11,14 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
   const [viewYear, setViewYear]   = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const triggerRef = useRef(null);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const handler = (e) => { if (!wrapperRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('touchstart', handler, true);
+    return () => document.removeEventListener('touchstart', handler, true);
+  }, [open, isMobile]);
 
   const openPanel = useCallback(() => {
     const mobile = window.innerWidth < 640;
@@ -141,7 +149,7 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
   );
 
   return (
-    <div style={{ position:'relative' }}>
+    <div ref={wrapperRef} style={{ position:'relative' }}>
       {/* Trigger */}
       <div ref={triggerRef} onClick={() => open ? setOpen(false) : openPanel()} className="input"
         style={{ cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', userSelect:'none', border: error ? '1px solid #f87171' : undefined }}>

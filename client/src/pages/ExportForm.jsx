@@ -331,7 +331,7 @@ export default function ExportForm() {
       </div>
 
       <form onSubmit={submit} className="space-y-6" noValidate
-        onKeyDown={e => { if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); }}>
+        onKeyDown={e => { if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') e.preventDefault(); }}>
         {/* Header info */}
         <div className="card space-y-4">
           <h2 style={{ fontWeight:700, color:'var(--gold)', fontSize:'0.92rem', letterSpacing:'0.04em', textTransform:'uppercase' }}>Thông tin phiếu</h2>

@@ -102,7 +102,7 @@ router.put('/:id', requireAuth, (req, res) => {
 
   const vnNow = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
   const editorName = req.user.full_name || req.user.username || `User#${req.user.id}`;
-  const prevHistory = JSON.parse(report.edit_history || '[]');
+  const prevHistory = (() => { try { return JSON.parse(report.edit_history || '[]') || []; } catch { return []; } })();
   const newHistory = [...prevHistory, { name: editorName, at: vnNow }];
 
   db.prepare(`
