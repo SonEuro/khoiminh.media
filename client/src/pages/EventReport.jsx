@@ -1024,6 +1024,30 @@ export default function EventReport() {
     if (!form.progress?.trim())               errs.progress       = 'Bắt buộc chọn';
     if (!form.completed_work?.trim())         errs.completed_work = 'Bắt buộc chọn';
     if (!form.service_quality?.trim())        errs.service_quality= 'Bắt buộc chọn';
+    // Kiểm tra người báo cáo có trong lịch làm việc của sự kiện không
+    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+    if (!editingId && !isAdmin && form.event_id && form.report_date && !errs.event_id) {
+      try {
+        const scheds = await api.getWorkSchedules({ event_id: form.event_id });
+        if (scheds.length > 0) {
+          const myName = user?.full_name || '';
+          const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+          let inSched = false;
+          outer: for (const s of scheds) {
+            for (const key of phaseKeys) {
+              const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+              const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
+              if (!matchDate) continue;
+              const leads = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
+              if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inSched = true; break outer; }
+              const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
+              if (km.includes(myName)) { inSched = true; break outer; }
+            }
+          }
+          if (!inSched) errs.event_id = 'Bạn không có trong lịch làm việc của sự kiện này vào ngày đã chọn';
+        }
+      } catch (_) {}
+    }
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     setSubmitting(true);
@@ -1251,6 +1275,7 @@ export default function EventReport() {
             {form.event_id && (
               <p style={{ fontSize:'0.84rem', color:'#4ade80', marginTop:'4px' }}>✅ {form.event_label}</p>
             )}
+            {errors.event_id && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.event_id}</p>}
             {showEvDrop && evSuggestions.length > 0 && (
               <div style={{
                 position:'absolute', top:'100%', left:0, right:0, zIndex:200, marginTop:'4px',
