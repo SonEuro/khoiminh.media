@@ -290,6 +290,11 @@ export default function EventReturn() {
                   <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'#7878a0' }}>
                     {row.event_code}
                   </span>
+                  {row.archived_at && (
+                    <span style={{ fontSize:'0.72rem', fontWeight:700, padding:'1px 6px', borderRadius:'9999px', background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.3)' }}>
+                      📦 Lưu trữ
+                    </span>
+                  )}
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'3px', flexWrap:'wrap' }}>
                   {row.start_date && (
@@ -501,7 +506,12 @@ export default function EventReturn() {
                   <tr key={r.equipment_id}>
                     <td style={{ padding:'10px 14px', maxWidth:0, overflow:'hidden' }}>
                       <div style={{ fontWeight:600, color:'#c9a84c', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={r.eq_name}>{r.eq_name}</div>
-                      <div style={{ fontSize:'0.84rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
+                      <div style={{ fontSize:'0.80rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
+                      {r.out_slip_codes && (
+                        <div style={{ fontSize:'0.75rem', color:'#555570', marginTop:'2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          Phiếu: {r.out_slip_codes}
+                        </div>
+                      )}
                     </td>
                     <td style={{ textAlign:'center', padding:'10px 6px', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>{r.qty_out} {r.unit}</td>
                     <td style={{ textAlign:'center', padding:'10px 6px' }}>

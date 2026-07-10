@@ -76,10 +76,11 @@ function nextCode(type, eventId, userName) {
 router.get('/pending-returns', (req, res) => {
   const rows = db.prepare(`
     SELECT
-      ev.id        AS event_id,
-      ev.name      AS event_name,
-      ev.code      AS event_code,
+      ev.id          AS event_id,
+      ev.name        AS event_name,
+      ev.code        AS event_code,
       ev.start_date,
+      ev.archived_at,
       (SELECT GROUP_CONCAT(t2.code)
        FROM transactions t2
        WHERE t2.event_id = ev.id AND t2.type = 'OUT') AS out_codes,
@@ -129,8 +130,8 @@ router.get('/pending-returns', (req, res) => {
                SUM(CASE WHEN t.type='RETURN' THEN ei.quantity ELSE 0 END)
       ) GROUP BY event_id
     ) ncc ON ncc.event_id = ev.id
-    WHERE ev.archived_at IS NULL AND ev.deleted_at IS NULL
-    ORDER BY ev.start_date DESC
+    WHERE ev.deleted_at IS NULL
+    ORDER BY ev.archived_at IS NOT NULL ASC, ev.start_date DESC
   `).all();
   res.json(rows);
 });
@@ -148,7 +149,12 @@ router.get('/outstanding', (req, res) => {
       c.name AS category_name,
       COALESCE(SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END),0) AS qty_out,
       COALESCE(SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END),0) AS qty_returned,
-      MIN(ti.id) AS first_row
+      MIN(ti.id) AS first_row,
+      (SELECT GROUP_CONCAT(DISTINCT t2.code)
+       FROM transactions t2
+       JOIN transaction_items ti2 ON ti2.transaction_id = t2.id
+       WHERE t2.event_id = ? AND t2.type = 'OUT' AND t2.status != 'pending'
+         AND ti2.equipment_id = e.id) AS out_slip_codes
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN equipment    e ON e.id = ti.equipment_id
@@ -157,7 +163,7 @@ router.get('/outstanding', (req, res) => {
     GROUP BY e.id
     HAVING qty_out > qty_returned
     ORDER BY first_row ASC
-  `).all(event_id);
+  `).all(event_id, event_id);
   res.json(rows.map(r => ({ ...r, qty_pending: r.qty_out - r.qty_returned })));
 });
 
