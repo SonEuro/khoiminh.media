@@ -525,10 +525,8 @@ function PendingReportsSection({ obs }) {
               <p style={{ fontWeight: 600, color: ob.overdue ? '#fca5a5' : '#fbbf24', fontSize: '0.83rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {ob.event_display || ob.event_name || 'Sự kiện'}
               </p>
-              {ob.overdue ? (
+              {ob.overdue && (
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.15)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>Quá hạn</span>
-              ) : (
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fb923c', background: 'rgba(251,146,60,0.15)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>Trễ</span>
               )}
             </div>
             <p style={{ fontSize: '0.82rem', color: '#a0a0c0', margin: '1px 0 0', fontWeight: 600 }}>
