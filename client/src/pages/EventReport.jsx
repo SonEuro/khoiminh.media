@@ -1008,8 +1008,6 @@ export default function EventReport() {
     if (!form.km_staff?.length)               errs.km_staff       = 'Bắt buộc chọn ít nhất 1 nhân sự Khôi Minh';
     const validTime = v => { const [h, m] = (v || '').split(':'); return h?.length > 0 && m?.length > 0; };
     if (!validTime(form.time_present))        errs.time_present   = 'Bắt buộc nhập';
-    if (!validTime(form.time_onset))          errs.time_onset     = 'Bắt buộc nhập';
-    if (!validTime(form.time_off))            errs.time_off       = 'Bắt buộc nhập';
     if (!validTime(form.time_end))            errs.time_end       = 'Bắt buộc nhập';
     if (!form.progress?.trim())               errs.progress       = 'Bắt buộc chọn';
     if (!form.completed_work?.trim())         errs.completed_work = 'Bắt buộc chọn';
@@ -1336,13 +1334,13 @@ export default function EventReport() {
           </h3>
           <div className="grid grid-cols-2 gap-4 time-grid-keep-2">
             {[
-              ['Thời gian có mặt', 'time_present'],
-              ['Thời gian Onset', 'time_onset'],
-              ['Thời gian Off máy', 'time_off'],
-              ['Thời gian kết thúc', 'time_end'],
-            ].map(([label, key]) => (
+              ['Thời gian có mặt', 'time_present', true],
+              ['Thời gian Onset', 'time_onset', false],
+              ['Thời gian Off máy', 'time_off', false],
+              ['Thời gian kết thúc', 'time_end', true],
+            ].map(([label, key, required]) => (
               <div key={key}>
-                <label style={labelStyle}>{label} <span style={{ color:'#f87171' }}>*</span></label>
+                <label style={labelStyle}>{label} {required && <span style={{ color:'#f87171' }}>*</span>}</label>
                 <TimeInput value={form[key]} onChange={v => setField(key, v)} hasError={!!errors[key]} />
                 {errors[key] && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
               </div>
