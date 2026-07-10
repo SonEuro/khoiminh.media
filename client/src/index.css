@@ -129,6 +129,20 @@
     font-size: 0.875rem;
   }
   .input::placeholder { color: var(--text-muted); }
+  /* Fix date input trên iOS/mobile: căn trái, font nhất quán */
+  .input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
+    color: var(--text-primary);
+    min-height: 1.2em;
+  }
+  .input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
   .input:focus {
     border-color: var(--gold);
     box-shadow: 0 0 0 3px var(--gold-glow);
