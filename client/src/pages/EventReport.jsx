@@ -818,6 +818,13 @@ export default function EventReport() {
     if (prefill.report_date) setDateLocked(true);
   }, [location.state]);
 
+  // Tự điền location khi event_id được set nhưng location chưa có (vd: prefill từ WorkSchedule)
+  useEffect(() => {
+    if (!form.event_id || form.location) return;
+    const ev = events.find(e => String(e.id) === String(form.event_id));
+    if (ev?.location) setForm(f => ({ ...f, location: ev.location }));
+  }, [form.event_id, events]);
+
   function setField(key, value) {
     setForm(f => ({ ...f, [key]: value }));
     setErrors(e => { if (!e[key]) return e; const n = { ...e }; delete n[key]; return n; });
