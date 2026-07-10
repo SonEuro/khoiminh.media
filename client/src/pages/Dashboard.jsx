@@ -298,10 +298,10 @@ function UpcomingScheduleSection({ userName, userId }) {
           for (const date of dates) {
             if (!date || date < pastStr || date > cutoffStr) continue;
             if (!isScheduler) {
-              const dateLeads = leadsMap ? (leadsMap[date] != null ? leadsMap[date].map(l => l.name) : leadsFlat) : leadsFlat;
-              const dateStaff = staffMap ? (staffMap[date] != null ? staffMap[date] : staffFlat) : staffFlat;
+              const dateLeads = leadsMap ? (leadsMap[date] ?? []).map(l => l.name) : leadsFlat;
+              const dateStaff = staffMap ? (staffMap[date] ?? []) : staffFlat;
               const dateFree  = freeMap
-                ? (freeMap[date] != null ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat)
+                ? (freeMap[date] != null ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : [])
                 : freeFlat;
               if (!dateLeads.includes(userName) && !dateStaff.includes(userName) && !dateFree.includes(userName)) continue;
             }
