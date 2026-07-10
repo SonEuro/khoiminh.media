@@ -108,6 +108,7 @@ try { db.prepare("ALTER TABLE users ADD COLUMN is_phan_lich_all INTEGER DEFAULT 
 try { db.prepare("ALTER TABLE users ADD COLUMN is_tra_ncc INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_at TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_by_id INTEGER DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE event_reports ADD COLUMN edit_history TEXT DEFAULT '[]'").run(); } catch (_) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS work_schedules (

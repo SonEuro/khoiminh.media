@@ -476,6 +476,18 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             </div>
           )}
 
+          {/* Lịch sử chỉnh sửa */}
+          {report.edit_history?.length > 0 && (
+            <div style={{ marginTop:'10px', paddingTop:'8px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
+              {report.edit_history.map((h, i) => (
+                <div key={i} style={{ fontSize:'0.75rem', color:'#6060a0', display:'flex', alignItems:'center', gap:'6px', marginTop: i > 0 ? '3px' : 0 }}>
+                  <span style={{ color:'#a78bfa', fontWeight:600 }}>✏️</span>
+                  <span>Sửa bởi <strong style={{ color:'#9090c0' }}>{h.name}</strong> lúc {h.at}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div style={{ display:'flex', gap:'8px', marginTop:'6px', flexWrap:'wrap' }}>
             {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
             {(currentUser?.id === report.reporter_user_id || ['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role)) &&

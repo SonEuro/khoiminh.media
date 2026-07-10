@@ -27,9 +27,10 @@ router.get('/', (req, res) => {
   const rows = db.prepare(sql).all(...params);
   res.json(rows.map(r => ({
     ...r,
-    km_staff: JSON.parse(r.km_staff || '[]'),
-    images:   JSON.parse(r.images   || '[]'),
-    timeline: JSON.parse(r.timeline || '[]'),
+    km_staff:     JSON.parse(r.km_staff     || '[]'),
+    images:       JSON.parse(r.images       || '[]'),
+    timeline:     JSON.parse(r.timeline     || '[]'),
+    edit_history: JSON.parse(r.edit_history || '[]'),
   })));
 });
 
@@ -41,7 +42,7 @@ router.get('/:id', (req, res) => {
     WHERE er.id = ?
   `).get(req.params.id);
   if (!r) return res.status(404).json({ error: 'Không tìm thấy' });
-  res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]'), timeline: JSON.parse(r.timeline || '[]') });
+  res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]'), timeline: JSON.parse(r.timeline || '[]'), edit_history: JSON.parse(r.edit_history || '[]') });
 });
 
 router.post('/', requireAuth, (req, res) => {
@@ -99,12 +100,17 @@ router.put('/:id', requireAuth, (req, res) => {
     images, job_content, timeline,
   } = req.body;
 
+  const vnNow = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
+  const editorName = req.user.full_name || req.user.username || `User#${req.user.id}`;
+  const prevHistory = JSON.parse(report.edit_history || '[]');
+  const newHistory = [...prevHistory, { name: editorName, at: vnNow }];
+
   db.prepare(`
     UPDATE event_reports SET
       km_staff=?, freelancer_staff=?,
       time_present=?, time_onset=?, time_off=?, time_end=?,
       incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
-      images=?, job_content=?, timeline=?
+      images=?, job_content=?, timeline=?, edit_history=?
     WHERE id=?
   `).run(
     JSON.stringify(km_staff || []), freelancer_staff || '',
@@ -113,6 +119,7 @@ router.put('/:id', requireAuth, (req, res) => {
     JSON.stringify(images || []),
     job_content || '',
     JSON.stringify((timeline || []).filter(t => t.time)),
+    JSON.stringify(newHistory),
     req.params.id,
   );
   res.json({ ok: true });
