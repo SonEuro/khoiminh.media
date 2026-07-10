@@ -51,7 +51,12 @@ jobs:
             set -e
             cd /var/www/kho-khoiminh
 
+            echo "━━━ npm install ━━━"
+            cd /var/www/kho-khoiminh/server
+            npm install --omit=dev
+
             echo "━━━ Reload PM2 ━━━"
+            cd /var/www/kho-khoiminh
             fuser -k 3001/tcp 2>/dev/null || true
             pm2 delete kho-khoiminh 2>/dev/null || true
             pm2 start /var/www/kho-khoiminh/ecosystem.config.cjs
