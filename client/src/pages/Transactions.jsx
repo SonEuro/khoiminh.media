@@ -1175,6 +1175,9 @@ export default function Transactions() {
   const [traNccTx,            setTraNccTx]            = useState(null);
   const [trashedTxs,          setTrashedTxs]          = useState([]);
   const [trashLoaded,         setTrashLoaded]         = useState(false);
+  const [txSearch,        setTxSearch]        = useState('');
+  const [txSearchResults, setTxSearchResults] = useState(null);
+  const [txSearching,     setTxSearching]     = useState(false);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1186,9 +1189,9 @@ export default function Transactions() {
     Promise.all([
       api.getEvents({ limit: 200 }),
       api.getEvents({ include_archived: 'true', limit: 500 }),
-      api.getTransactions({ type: 'OUT', status: 'pending',   limit: 200, hide_archived: 'true' }),
-      api.getTransactions({ type: 'OUT', status: 'completed', limit: 200, hide_archived: 'true' }),
-      api.getTransactions({ type: 'RETURN',                   limit: 200, hide_archived: 'true' }),
+      api.getTransactions({ type: 'OUT', status: 'pending',   limit: 10, hide_archived: 'true' }),
+      api.getTransactions({ type: 'OUT', status: 'completed', limit: 10, hide_archived: 'true' }),
+      api.getTransactions({ type: 'RETURN',                   limit: 10, hide_archived: 'true' }),
       api.getEventReports(),
       api.getViolations(),
     ]).then(([ev, allEv, pending, out, ret, rep, vio]) => {
@@ -1206,6 +1209,18 @@ export default function Transactions() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  useEffect(() => {
+    if (!txSearch.trim()) { setTxSearchResults(null); return; }
+    const timer = setTimeout(() => {
+      setTxSearching(true);
+      api.getTransactions({ type: 'OUT', status: 'completed', search: txSearch.trim(), limit: 50, hide_archived: 'true' })
+        .then(setTxSearchResults)
+        .catch(() => setTxSearchResults([]))
+        .finally(() => setTxSearching(false));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [txSearch]);
 
   async function handleDeleteTx(tx) {
     if (tx.type === 'OUT' && tx.status === 'completed') {
@@ -1290,8 +1305,20 @@ export default function Transactions() {
             <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={handleDeleteTx} canDeleteRow={tx => isSuperAdmin || tx.created_by_id === user?.id} confirming={confirming} />
           </Section>
 
-          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
-            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
+          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={txSearchResults ? txSearchResults.length : outTxs.length}>
+            <div style={{ marginBottom: '8px' }}>
+              <input
+                className="input"
+                placeholder="Tìm mã phiếu, tên sự kiện, người phụ trách..."
+                value={txSearch}
+                onChange={e => setTxSearch(e.target.value)}
+                style={{ width: '100%', fontSize: '0.84rem', boxSizing: 'border-box' }}
+              />
+            </div>
+            {txSearching
+              ? <p style={{ color:'#7878a0', fontSize:'0.84rem', padding:'12px 0', textAlign:'center' }}>Đang tìm...</p>
+              : <TxRows txs={txSearchResults ?? outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
+            }
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
