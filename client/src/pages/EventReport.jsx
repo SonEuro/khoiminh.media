@@ -869,11 +869,11 @@ export default function EventReport() {
               if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
             });
           }
-          // Freelancer: dùng matchDate hoặc '_all' (khi lịch chưa nhập ngày)
+          // Freelancer: dùng matchDate, nếu không có thì fallback về '_all'
           const freeKey = matchDate || '_all';
           const freeMap = s[`${key}_freelancers_map`];
           if (freeMap) {
-            const dateEntry = freeMap[freeKey];
+            const dateEntry = freeMap[freeKey] ?? freeMap['_all'];
             if (dateEntry && typeof dateEntry === 'object') {
               const txt = validDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
               if (txt) freeParts.push(txt);
