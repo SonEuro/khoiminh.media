@@ -78,7 +78,7 @@ router.post('/', requireAuth, (req, res) => {
 function withinEditDeadline(reportDate) {
   if (!reportDate) return false;
   const [y, m, d] = reportDate.split('-').map(Number);
-  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 5, 0, 0)); // d+1 12:00 VN = d+1 05:00 UTC
+  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 16, 59, 0)); // d+1 23:59 VN = d+1 16:59 UTC
   return Date.now() <= deadlineUTC.getTime();
 }
 
@@ -91,7 +91,7 @@ router.put('/:id', requireAuth, (req, res) => {
   const isOwner = report.reporter_user_id === req.user.id;
 
   if (!isAdmin && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
-  if (!isAdmin && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 12:00 hôm sau)' });
+  if (!isAdmin && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 23:59 hôm sau)' });
 
   const {
     km_staff, freelancer_staff,
