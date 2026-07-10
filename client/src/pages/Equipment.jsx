@@ -494,7 +494,7 @@ export default function Equipment() {
                                     borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                                   }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                      <span style={{ fontFamily: 'monospace', fontSize: '0.80rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
+                                      <span style={{ fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '0.80rem', color: '#7878a0', flexShrink: 0, minWidth: '70px' }}>{eq.code}</span>
                                       <span style={{ flex: 1, fontSize: '0.82rem', color: '#e0e0ee', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</span>
                                       <span style={{ fontSize: '0.85rem', fontWeight: 800, color: activeStatCfg.color, flexShrink: 0 }}>
                                         {activeStatCfg.qtyFn(eq)} <span style={{ fontSize: '0.80rem', fontWeight: 400, color: '#7878a0' }}>{eq.unit}</span>
@@ -592,7 +592,7 @@ export default function Equipment() {
                     <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: '0.83rem', color: '#e0e0ee', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
-                      <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0', fontFamily: 'monospace' }}>{eq.code}</p>
+                      <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <span style={{ fontSize: '0.82rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', minWidth: '28px', textAlign: 'right' }}>{eq.qty_available}</span>

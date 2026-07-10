@@ -427,7 +427,7 @@ export default function Users() {
                         })}
                         style={{ width: '15px', height: '15px', accentColor: '#f87171', flexShrink: 0 }}
                       />
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', color: 'var(--text-muted)', flexShrink: 0, minWidth: '80px' }}>
+                      <span style={{ fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '0.84rem', color: 'var(--text-muted)', flexShrink: 0, minWidth: '80px' }}>
                         {ev.code}
                       </span>
                       <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -524,7 +524,7 @@ export default function Users() {
               <input className="input bold-input" value={form.username}
                 onChange={e => set('username', e.target.value)}
                 placeholder="username"
-                style={{ fontFamily: 'monospace' }}
+                style={{ fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}
                 autoCapitalize="none" autoCorrect="off" spellCheck={false} />
             </div>
 
@@ -694,10 +694,10 @@ export default function Users() {
             </p>
             <div style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid var(--gold-dim)', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Thông tin đăng nhập</p>
-              <p style={{ color: 'var(--gold)', fontFamily: 'monospace', fontSize: '1rem', marginBottom: '4px' }}>
+              <p style={{ color: 'var(--gold)', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '1rem', marginBottom: '4px' }}>
                 👤 {resetInfo.username}
               </p>
-              <p style={{ color: '#4ade80', fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 700 }}>
+              <p style={{ color: '#4ade80', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '1.2rem', fontWeight: 700 }}>
                 🔒 {resetInfo.password}
               </p>
             </div>

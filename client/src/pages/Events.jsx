@@ -343,7 +343,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
+                <span style={{ fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '0.78rem', color: '#7878a0', flexShrink: 0 }}>{ev.code}</span>
                 <span style={{ color: '#c9a84c', fontWeight: 600, fontSize: '0.92rem' }}>{ev.name}</span>
                 {ev.start_date && <span style={{ fontSize: '0.84rem', color: '#7878a0', marginLeft: 'auto' }}>{fmtD(ev.start_date)}</span>}
               </button>
@@ -630,7 +630,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
               <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px', flexWrap:'wrap' }}>
-                    <span style={{ fontFamily:'monospace', fontSize:'0.84rem', color:'var(--text-muted)' }}>{ev.code}</span>
+                    <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.84rem', color:'var(--text-muted)' }}>{ev.code}</span>
                     <span style={{
                       fontSize:'0.78rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px',
                       background: ev.days_left <= 5 ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)',

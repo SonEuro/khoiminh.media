@@ -205,7 +205,7 @@ export default function EventReturn() {
           <div className="text-5xl">✅</div>
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Nhập kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-            Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{done.code}</strong> —{' '}
+            Phiếu <strong style={{ color:'var(--gold)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{done.code}</strong> —{' '}
             <strong style={{ color:'var(--text-primary)' }}>{new Set(done.items?.map(i => i.equipment_id) || []).size + (done.external_items?.length || 0)}</strong> loại thiết bị
             {done.external_items?.length > 0 ? ` (${done.external_items.length} NCC)` : ''}.
           </p>
@@ -287,7 +287,7 @@ export default function EventReturn() {
                   <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem' }}>
                     {row.event_name}
                   </span>
-                  <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0' }}>
+                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'#7878a0' }}>
                     {row.event_code}
                   </span>
                 </div>
@@ -296,7 +296,7 @@ export default function EventReturn() {
                     <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
                   )}
                   {row.out_codes && (
-                    <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:'monospace' }}>
+                    <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>
                       {row.out_codes.split(',').map(c => c.trim()).slice(0, 3).join(', ')}
                       {row.out_codes.split(',').length > 3 ? ' ...' : ''}
                     </span>
@@ -373,7 +373,7 @@ export default function EventReturn() {
                   onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}
                 >
-                  <span style={{ fontFamily:'monospace', fontSize:'0.78rem', color:'#7878a0' }}>{ev.code}</span>
+                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.78rem', color:'#7878a0' }}>{ev.code}</span>
                   <span style={{ color:'#c9a84c', fontWeight:600 }}>{ev.name}</span>
                   {ev.start_date && <span style={{ fontSize:'0.78rem', color:'#7878a0', marginLeft:'auto' }}>{fmtD(ev.start_date)}</span>}
                 </button>
@@ -627,7 +627,7 @@ export default function EventReturn() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.92rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:'monospace' }}>{r.eq_code}</span>
+                        <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{r.eq_code}</span>
                         <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>
                         <span style={{ fontSize:'0.82rem', color:'#555570' }}>{r.category_code}</span>
                         <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>

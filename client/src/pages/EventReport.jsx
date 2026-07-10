@@ -1263,7 +1263,7 @@ export default function EventReport() {
                     onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
+                    <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'#7878a0', flexShrink:0 }}>{ev.code}</span>
                     <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'2px' }}>
                       <span style={{ color:'#c9a84c', fontWeight:600, fontSize:'0.85rem' }}>{ev.name}</span>
                       {ev.location && <span style={{ fontSize:'0.82rem', color:'#60a5fa' }}>📍 {ev.location}</span>}

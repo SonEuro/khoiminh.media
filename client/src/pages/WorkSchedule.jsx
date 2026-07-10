@@ -1709,7 +1709,7 @@ export default function WorkSchedule() {
                           <span style={{ color: actionColor, fontWeight: 700, flexShrink: 0 }}>{actionLabel}</span>
                           <span style={{ color: '#c0c0d8' }}>{h.edited_by_name}</span>
                         </div>
-                        <span style={{ color: '#555570', fontFamily: 'monospace', fontSize: '0.75rem' }}>{dtStr}</span>
+                        <span style={{ color: '#555570', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize: '0.75rem' }}>{dtStr}</span>
                       </div>
                     );
                   })}

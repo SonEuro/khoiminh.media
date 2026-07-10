@@ -113,7 +113,7 @@ export default function Reports() {
               <tbody>
                 {items.map(r => (
                   <tr key={r.code}>
-                    <td style={{ textAlign:'center', padding:'9px 12px', fontFamily:'monospace', fontSize:'0.82rem', color:'var(--text-muted)' }}>{r.code}</td>
+                    <td style={{ textAlign:'center', padding:'9px 12px', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'var(--text-muted)' }}>{r.code}</td>
                     <td style={{ textAlign:'left',   padding:'9px 12px', fontWeight:600, color:'var(--text-primary)' }}>{r.name}</td>
                     <td style={{ textAlign:'center', padding:'9px 12px', fontSize:'0.84rem', color:'var(--text-muted)' }}>{r.unit}</td>
                     <td style={{ textAlign:'center', padding:'9px 12px', fontWeight:700, color:'var(--text-primary)' }}>{r.qty_total}</td>

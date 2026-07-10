@@ -237,7 +237,7 @@ export default function ExportForm() {
               <div className="text-5xl">🕐</div>
               <h2 style={{ color:'#fbbf24', fontSize:'1.2rem', fontWeight:700 }}>Phiếu xuất kho tạm đã tạo!</h2>
               <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-                Phiếu <strong style={{ color:'#fbbf24', fontFamily:'monospace' }}>{doneSlip.code}</strong> đang chờ xác nhận.
+                Phiếu <strong style={{ color:'#fbbf24', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{doneSlip.code}</strong> đang chờ xác nhận.
                 {doneSlip._filmingDate && <> Ngày ghi hình: <strong style={{ color:'#fbbf24' }}>{doneSlip._filmingDate.slice(8,10)}-{doneSlip._filmingDate.slice(5,7)}-{doneSlip._filmingDate.slice(2,4)}</strong>.</>}
               </p>
               <p style={{ color:'rgba(251,191,36,0.65)', fontSize:'0.84rem', background:'rgba(251,191,36,0.07)', border:'1px solid rgba(251,191,36,0.2)', borderRadius:'8px', padding:'8px 12px' }}>
@@ -249,7 +249,7 @@ export default function ExportForm() {
               <div className="text-5xl">✅</div>
               <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Xuất kho thành công!</h2>
               <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
-                Phiếu <strong style={{ color:'var(--gold)', fontFamily:'monospace' }}>{doneSlip.code}</strong> đã được tạo
+                Phiếu <strong style={{ color:'var(--gold)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{doneSlip.code}</strong> đã được tạo
                 với <strong style={{ color:'var(--text-primary)' }}>{(doneSlip.items?.length || 0) + (doneSlip.external_items?.length || 0)}</strong> loại thiết bị{doneSlip.external_items?.length > 0 ? ` (${doneSlip.external_items.length} thuê NCC)` : ''}.
               </p>
             </>
@@ -355,7 +355,7 @@ export default function ExportForm() {
                       {selEv ? (
                         <span style={{ display:'inline-flex', alignItems:'baseline', gap:'5px', overflow:'hidden' }}>
                           <span style={{ color:'#e8c97a', fontWeight:700, fontSize:'0.92rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{selEv.name}</span>
-                          <span style={{ color:'rgba(201,168,76,0.38)', fontSize:'0.84rem', fontFamily:'monospace', flexShrink:0 }}>· {selEv.code}</span>
+                          <span style={{ color:'rgba(201,168,76,0.38)', fontSize:'0.84rem', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", flexShrink:0 }}>· {selEv.code}</span>
                         </span>
                       ) : (
                         <span style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>-- Chọn sự kiện --</span>
@@ -397,7 +397,7 @@ export default function ExportForm() {
                               onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.08)'}
                               onMouseLeave={e => e.currentTarget.style.background = String(ev.id) === String(form.event_id) ? 'rgba(201,168,76,0.12)' : 'transparent'}>
                               <span style={{ color:'#e8c97a', fontWeight:600, fontSize:'0.875rem' }}>{ev.name}</span>
-                              <span style={{ color:'rgba(201,168,76,0.4)', fontSize:'0.80rem', fontFamily:'monospace', flexShrink:0 }}>{ev.code}</span>
+                              <span style={{ color:'rgba(201,168,76,0.4)', fontSize:'0.80rem', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", flexShrink:0 }}>{ev.code}</span>
                             </button>
                           ))}
                           {events.length === 0 && (
@@ -746,7 +746,7 @@ export default function ExportForm() {
                                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                                   <span style={{ fontSize:'0.82rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80' }}>Còn {free} {e.unit}</span>
                                   {pendingQty > 0 && <span style={{ fontSize:'0.84rem', color:'#fbbf24' }}>· {pendingQty} tạm xuất</span>}
-                                  <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:'monospace', marginLeft:'auto' }}>{e.code}</span>
+                                  <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", marginLeft:'auto' }}>{e.code}</span>
                                 </div>
                               </button>
                             );
@@ -781,7 +781,7 @@ export default function ExportForm() {
                       {eq && !isOpen && (
                         <div style={{ marginTop:'5px' }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                            <span style={{ fontSize:'0.82rem', color:'var(--text-muted)', fontFamily:'monospace' }}>{eq.code}</span>
+                            <span style={{ fontSize:'0.82rem', color:'var(--text-muted)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</span>
                             <span style={{ fontSize:'0.84rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit} khả dụng</span>
                           </div>
                           {pendingWarnings.length > 0 && (
@@ -867,7 +867,7 @@ export default function ExportForm() {
                     <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px', background:'rgba(201,168,76,0.03)', borderRadius:'0 0 8px 8px' }}>
                       {eq && (
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'10px', marginBottom:'8px', fontSize:'0.78rem' }}>
-                          <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:'monospace' }}>{eq.code}</span></span>
+                          <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>Khả dụng: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
                           {(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0) > 0 && <span style={{ color:'var(--text-muted)' }}>Tạm xuất: <span style={{ color:'#fbbf24', fontWeight:700 }}>{(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0)}</span></span>}

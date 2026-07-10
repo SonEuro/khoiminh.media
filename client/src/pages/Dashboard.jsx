@@ -107,7 +107,7 @@ function ConfirmSection({ items, onConfirmed }) {
             borderTop: i > 0 ? '1px solid rgba(251,191,36,0.08)' : 'none',
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: '#fbbf24', fontSize: '0.83rem', margin: 0, fontFamily: 'monospace' }}>{tx.code}</p>
+              <p style={{ fontWeight: 600, color: '#fbbf24', fontSize: '0.83rem', margin: 0, fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{tx.code}</p>
               <p style={{ fontSize: '0.82rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
               <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '1px 0 0' }}>{tx.item_count} loại thiết bị</p>
             </div>
@@ -152,7 +152,7 @@ function OverdueSection({ items }) {
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: '#f87171', fontSize: '0.83rem', margin: 0, fontFamily: 'monospace' }}>{tx.code}</p>
+              <p style={{ fontWeight: 600, color: '#f87171', fontSize: '0.83rem', margin: 0, fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{tx.code}</p>
               <p style={{ fontSize: '0.82rem', color: '#e0e0ee', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.event_name}</p>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -459,7 +459,7 @@ function DashEventCard({ ev, onClose }) {
         {/* Header */}
         <div style={{ padding:'12px 14px 10px', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'7px' }}>
-            <span style={{ fontFamily:'monospace', fontSize:'0.82rem', color:'#7878a0' }}>{ev.code}</span>
+            <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'#7878a0' }}>{ev.code}</span>
             <Pill color={s.color} bg={s.bg} border={s.border}>{s.label}</Pill>
             {isToday && <Pill color='#f87171' bg='rgba(248,113,113,0.15)' border='rgba(248,113,113,0.45)'>HÔM NAY</Pill>}
           </div>
