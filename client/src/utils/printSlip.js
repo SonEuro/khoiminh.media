@@ -1,61 +1,114 @@
 function buildSlipHTML(tx, preview = false) {
-  const typeLabel  = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
-  const slipLabel  = tx.type === 'OUT' ? 'Số phiếu xuất' : tx.type === 'RETURN' ? 'Số phiếu nhập' : 'Số phiếu';
-  const isReturn   = tx.type === 'RETURN';
-  const condMap    = { good: '', damaged: 'HỎNG', maintenance: 'CẦN SỬA', lost: 'MẤT' };
+  const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
+  const slipLabel = tx.type === 'OUT' ? 'Số phiếu xuất' : tx.type === 'RETURN' ? 'Số phiếu nhập' : 'Số phiếu';
+  const isReturn  = tx.type === 'RETURN';
+  const condMap   = { good: '', damaged: 'HỎNG', maintenance: 'CẦN SỬA', lost: 'MẤT' };
 
-  const khoItems  = tx.items || [];
-  const extItems  = tx.external_items || [];
+  const khoItems = tx.items || [];
+  const extItems = tx.external_items || [];
 
-  const itemRows = khoItems.map((item, i) => {
+  // Xây tất cả row HTML (bao gồm separator ext)
+  const allRows = [];
+  khoItems.forEach((item, i) => {
     const condNote = isReturn ? (condMap[item.condition] || '') : '';
     const noteParts = [condNote, item.notes || ''].filter(Boolean);
-    return `
-    <tr>
+    allRows.push(`<tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
       <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></div></td>
       <td style="text-align:center">${item.eq_code || ''}</td>
       <td style="text-align:left;padding-left:6px">${noteParts.join(' · ')}</td>
-    </tr>`;
-  }).join('');
-
-  const extRows = extItems.length > 0 ? `
-    <tr>
-      <td colspan="5" style="text-align:left;padding:4px 6px;font-weight:bold;font-style:italic;background:#f9f9f9;border-top:2px solid #000">
-        Thiết bị thuê từ nhà cung cấp:
-      </td>
-    </tr>
-    ${extItems.map((item, i) => {
+    </tr>`);
+  });
+  if (extItems.length > 0) {
+    allRows.push(`<tr><td colspan="5" style="text-align:left;padding:4px 6px;font-weight:bold;font-style:italic;background:#f9f9f9;border-top:2px solid #000">Thiết bị thuê từ nhà cung cấp:</td></tr>`);
+    extItems.forEach((item, i) => {
       const parts = [];
       if (item.rental_days && item.rental_days > 0) parts.push(`Thuê ${item.rental_days} ngày`);
       if (item.notes) parts.push(item.notes);
-      const ghiChu = parts.join('<br>');
-      return `
-      <tr>
+      allRows.push(`<tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
         <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></div></td>
         <td style="text-align:center">${item.supplier || ''}</td>
-        <td style="text-align:left;padding-left:6px">${ghiChu}</td>
-      </tr>`;
-    }).join('')}
-  ` : '';
+        <td style="text-align:left;padding-left:6px">${parts.join('<br>')}</td>
+      </tr>`);
+    });
+  }
 
-  const totalCount = khoItems.length + extItems.length;
-  const blankCount = totalCount > 20 ? 0 : Math.max(18 - totalCount, 4);
-  const blankRows  = Array(blankCount).fill(
-    '<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>'
-  ).join('');
-  // Ước tính tổng số tờ để hiển thị "1 / N"
-  const totalPages = totalCount <= 20 ? 1 : 1 + Math.ceil((totalCount - 20) / 25);
+  // Chia trang: tờ 1 chứa tối đa 20 dòng (vì có header đầy đủ), tờ 2+ chứa tối đa 25
+  const PAGE1 = 20;
+  const PAGEN = 25;
+  const pages = [];
+  if (allRows.length === 0) {
+    pages.push([]);
+  } else {
+    const remaining = [...allRows];
+    pages.push(remaining.splice(0, PAGE1));
+    while (remaining.length > 0) pages.push(remaining.splice(0, PAGEN));
+  }
+  const totalPages = pages.length;
 
   const txDate = tx.transaction_date ? new Date(tx.transaction_date.replace(' ', 'T')) : new Date();
-  const day    = txDate.getDate();
-  const month  = txDate.getMonth() + 1;
-  const year   = txDate.getFullYear();
-  const hour   = String(txDate.getHours()).padStart(2, '0');
-  const min    = String(txDate.getMinutes()).padStart(2, '0');
+  const day   = txDate.getDate();
+  const month = txDate.getMonth() + 1;
+  const year  = txDate.getFullYear();
+  const hour  = String(txDate.getHours()).padStart(2, '0');
+  const min   = String(txDate.getMinutes()).padStart(2, '0');
+
+  const colHeaders = `<tr>
+    <th style="width:7%">STT</th>
+    <th style="width:42%">TÊN THIẾT BỊ</th>
+    <th style="width:12%">SỐ LƯỢNG</th>
+    <th style="width:16%">NCC</th>
+    <th style="width:23%">GHI CHÚ</th>
+  </tr>`;
+
+  const miniHdr = (pageNum) => `<tr class="mini-hdr">
+    <td colspan="2">
+      <span class="mh-lbl">Tên sự kiện</span>
+      <span class="mh-val">${tx.event_name || ''}</span>
+    </td>
+    <td colspan="2">
+      <span class="mh-lbl">${slipLabel}</span>
+      <span class="mh-val">${tx.code}</span>
+    </td>
+    <td>
+      <span class="mh-lbl">Số thứ tự tờ</span>
+      <span class="mh-val">${pageNum} / ${totalPages}</span>
+    </td>
+  </tr>`;
+
+  const footerRow = `<tr>
+    <td colspan="5" class="footer-td">
+      <div class="footer-wrap">
+        <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
+        <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
+      </div>
+      <div class="sig-row">
+        <div class="sig-cell">Quản lý kho</div>
+        <div class="sig-cell">Quản lý phòng ban</div>
+        <div class="sig-cell">Tổ bảo vệ</div>
+      </div>
+    </td>
+  </tr>`;
+
+  const totalCount = khoItems.length + extItems.length;
+  const blankCount = totalCount > PAGE1 ? 0 : Math.max(18 - totalCount, 4);
+  const blankRows  = Array(blankCount).fill('<tr><td style="height:22px">&nbsp;</td><td></td><td></td><td></td><td></td></tr>').join('');
+
+  // Sinh HTML cho từng tờ
+  const pageTables = pages.map((rows, i) => {
+    const pageNum = i + 1;
+    const isFirst = i === 0;
+    const isLast  = i === pages.length - 1;
+    const tbody   = rows.join('') + (isFirst ? blankRows : '') + (isLast ? footerRow : '');
+    return `${isFirst ? '' : '<div style="page-break-before:always">'}
+<table class="main-table">
+  <thead>${miniHdr(pageNum)}${colHeaders}</thead>
+  <tbody>${tbody}</tbody>
+</table>${isFirst ? '' : '</div>'}`;
+  }).join('\n');
 
   const previewBar = preview ? `
   <div class="preview-bar">
@@ -65,13 +118,7 @@ function buildSlipHTML(tx, preview = false) {
   </div>` : '';
 
   const previewStyle = preview ? `
-  .preview-bar {
-    position:fixed; top:0; left:0; right:0;
-    background:#1a1a2e; color:#e8c97a;
-    padding:10px 20px; display:flex; align-items:center; gap:12px;
-    font-family:sans-serif; font-size:13px; z-index:999;
-    border-bottom:2px solid #c9a84c;
-  }
+  .preview-bar { position:fixed; top:0; left:0; right:0; background:#1a1a2e; color:#e8c97a; padding:10px 20px; display:flex; align-items:center; gap:12px; font-family:sans-serif; font-size:13px; z-index:999; border-bottom:2px solid #c9a84c; }
   .preview-bar button { padding:6px 16px; border-radius:6px; border:none; cursor:pointer; font-size:13px; font-weight:700; }
   .btn-print { background:linear-gradient(135deg,#b8922e,#e8c97a); color:#000; }
   .btn-close { background:rgba(255,255,255,0.1); color:#e8e8f0; border:1px solid rgba(255,255,255,0.2)!important; }
@@ -93,61 +140,24 @@ function buildSlipHTML(tx, preview = false) {
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; font-size:12pt; color:#000; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
-  /* ── Header ── */
-  .slip-header {
-    display: flex;
-    align-items: center;
-    border: 2px solid #000;
-    padding: 6px 12px;
-    gap: 14px;
-  }
-.slip-title-block {
-    flex: 1;
-    text-align: center;
-  }
-  .slip-company {
-    font-size: 16pt;
-    font-weight: bold;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #c00 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    margin-bottom: 2px;
-  }
-  .slip-title {
-    font-size: 15pt;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .badge {
-    display: inline-block;
-    border: 1.5px solid #000;
-    padding: 1px 8px;
-    font-size: 10pt;
-    margin-left: 8px;
-    font-weight: bold;
-    vertical-align: middle;
-  }
+  .slip-header { display:flex; align-items:center; border:2px solid #000; padding:6px 12px; gap:14px; }
+  .slip-title-block { flex:1; text-align:center; }
+  .slip-company { font-size:16pt; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color:#c00 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; margin-bottom:2px; }
+  .slip-title { font-size:15pt; font-weight:bold; letter-spacing:0.5px; text-transform:uppercase; }
+  .badge { display:inline-block; border:1.5px solid #000; padding:1px 8px; font-size:10pt; margin-left:8px; font-weight:bold; vertical-align:middle; }
 
-  /* ── Info grid ── */
   .info-grid { width:100%; border-collapse:collapse; border:2px solid #000; border-top:none; }
   .info-grid td { border:1px solid #000; padding:5px 8px; font-size:9pt; font-weight:bold; }
   .info-grid .val { font-size:15pt; font-weight:bold; }
 
-  /* ── Main table ── */
   .main-table { width:100%; border-collapse:collapse; margin-top:-1px; }
   .main-table th { border:1px solid #000; padding:5px 4px; font-size:11pt; font-weight:bold; text-align:center; background:#f0f0f0; }
   .main-table td { border:1px solid #000; padding:3px 4px; font-size:11pt; font-weight:bold; }
 
-  /* ── Mini repeat header (lặp đầu trang 2+) ── */
   .mini-hdr td { border:1px solid #999; padding:4px 8px; border-bottom:2px solid #000; }
   .mh-lbl { display:block; font-size:7pt; color:#555; text-transform:uppercase; letter-spacing:0.3px; font-weight:bold; }
   .mh-val { display:block; font-size:10pt; font-weight:bold; color:#000; }
-  .page-counter-cell::after { content: counter(page) " / ${totalPages}"; }
 
-  /* ── Footer ── */
   .footer-td { border:none !important; padding:0 !important; border-top:2px solid #000 !important; }
   .footer-wrap { text-align:center; margin-top:8px; margin-bottom:3px; }
   .footer-date { font-size:16pt; font-weight:bold; display:block; margin-bottom:2px; }
@@ -163,7 +173,6 @@ function buildSlipHTML(tx, preview = false) {
 ${previewBar}
 <div class="content">
 
-<!-- HEADER -->
 <div class="slip-header">
   <div class="slip-title-block">
     <div class="slip-company">Khôi Minh Media</div>
@@ -171,11 +180,8 @@ ${previewBar}
   </div>
 </div>
 
-<!-- INFO -->
 <table class="info-grid">
-  <tr>
-    <td colspan="2">TÊN CHƯƠNG TRÌNH : &nbsp;<span class="val">${tx.event_name || ''}</span></td>
-  </tr>
+  <tr><td colspan="2">TÊN CHƯƠNG TRÌNH : &nbsp;<span class="val">${tx.event_name || ''}</span></td></tr>
   <tr>
     <td style="width:55%">NGƯỜI NHẬN : &nbsp;<span class="val">${tx.event_client || ''}</span></td>
     <td>ĐỊA ĐIỂM : &nbsp;<span class="val">${tx.event_location || ''}</span></td>
@@ -184,55 +190,10 @@ ${previewBar}
     <td>NGÀY GHI HÌNH : &nbsp;<span class="val">${tx.filming_date ? tx.filming_date.slice(8,10)+'-'+tx.filming_date.slice(5,7)+'-'+tx.filming_date.slice(2,4) : ''}</span></td>
     <td>NGƯỜI PHỤ TRÁCH : &nbsp;<span class="val">${tx.responsible_person || ''}</span></td>
   </tr>
-  <tr>
-    <td colspan="2">SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td>
-  </tr>
+  <tr><td colspan="2">SỐ PHIẾU : &nbsp;<span class="val">${tx.code}</span></td></tr>
 </table>
 
-<!-- ITEMS -->
-<table class="main-table">
-  <thead>
-    <tr class="mini-hdr">
-      <td colspan="2">
-        <span class="mh-lbl">Tên sự kiện</span>
-        <span class="mh-val">${tx.event_name || ''}</span>
-      </td>
-      <td colspan="2">
-        <span class="mh-lbl">${slipLabel}</span>
-        <span class="mh-val">${tx.code}</span>
-      </td>
-      <td>
-        <span class="mh-lbl">Số thứ tự tờ</span>
-        <span class="mh-val page-counter-cell"></span>
-      </td>
-    </tr>
-    <tr>
-      <th style="width:7%">STT</th>
-      <th style="width:42%">TÊN THIẾT BỊ</th>
-      <th style="width:12%">SỐ LƯỢNG</th>
-      <th style="width:16%">NCC</th>
-      <th style="width:23%">GHI CHÚ</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${itemRows}
-    ${extRows}
-    ${blankRows}
-    <tr style="break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid">
-      <td colspan="5" class="footer-td">
-        <div class="footer-wrap">
-          <span class="footer-date">${hour}:${min} &nbsp; ngày &nbsp;${day}&nbsp; tháng &nbsp;${month}&nbsp; năm &nbsp;${year}</span>
-          <span class="footer-note">ký và ghi đầy đủ họ và tên</span>
-        </div>
-        <div class="sig-row">
-          <div class="sig-cell">Quản lý kho</div>
-          <div class="sig-cell">Quản lý phòng ban</div>
-          <div class="sig-cell">Tổ bảo vệ</div>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+${pageTables}
 
 </div>
 ${printScript}
