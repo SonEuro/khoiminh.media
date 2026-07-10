@@ -67,6 +67,7 @@ export default function EventReturn() {
 
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
+  const [eventArchived, setEventArchived] = useState(false);
 
   const extKey = (r) => `${r.supplier}|${r.name}`;
 
@@ -149,6 +150,7 @@ export default function EventReturn() {
     setEventId(ev.event_id);
     setEventName(ev.event_name);
     setEventSearch(ev.event_name);
+    setEventArchived(!!ev.archived_at);
     setShowEvSuggest(false);
   };
 
@@ -156,7 +158,7 @@ export default function EventReturn() {
 
   const hasKhoItems = visibleItems.some(r => checked.has(r.equipment_id));
   const hasExtItems = outstandingExt.some(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0);
-  const canSubmit = eventId && person && (hasKhoItems || hasExtItems);
+  const canSubmit = eventId && person && (hasKhoItems || hasExtItems) && !eventArchived;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -213,7 +215,7 @@ export default function EventReturn() {
             <button onClick={() => printSlip(done)} className="btn-primary">🖨️ In phiếu</button>
             <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
           </div>
-          <button onClick={() => { setDone(null); setEventId(''); setEventSearch(''); setEventName(''); setOutstanding([]); }}
+          <button onClick={() => { setDone(null); setEventId(''); setEventSearch(''); setEventName(''); setEventArchived(false); setOutstanding([]); }}
             style={{ color:'var(--text-muted)', fontSize:'0.84rem', background:'none', border:'none', cursor:'pointer' }}>
             + Nhập kho sự kiện khác
           </button>
@@ -340,7 +342,7 @@ export default function EventReturn() {
         {eventId && (
           <button
             type="button"
-            onClick={() => { setEventId(''); setEventName(''); setEventSearch(''); setOutstanding([]); }}
+            onClick={() => { setEventId(''); setEventName(''); setEventSearch(''); setEventArchived(false); setOutstanding([]); }}
             style={{
               display:'inline-flex', alignItems:'center', gap:'6px',
               fontSize:'0.84rem', color:'var(--text-muted)',
@@ -359,13 +361,18 @@ export default function EventReturn() {
             placeholder="Tìm sự kiện..."
             value={eventSearch}
             autoComplete="off"
-            onChange={e => { setEventSearch(e.target.value); setEventId(''); setEventName(''); setShowEvSuggest(true); }}
+            onChange={e => { setEventSearch(e.target.value); setEventId(''); setEventName(''); setEventArchived(false); setShowEvSuggest(true); }}
             onFocus={() => setShowEvSuggest(true)}
             onBlur={() => setTimeout(() => setShowEvSuggest(false), 150)}
           />
           {eventId && (
             <p style={{ fontSize:'0.82rem', color:'#4ade80', marginTop:'4px' }}>
               ✅ {eventName}
+            </p>
+          )}
+          {eventArchived && (
+            <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>
+              ⚠ Sự kiện đã lưu trữ — không thể xuất phiếu trả nhà cung cấp
             </p>
           )}
           {showEvSuggest && eventSuggestions.length > 0 && (
@@ -376,7 +383,7 @@ export default function EventReturn() {
             }}>
               {eventSuggestions.map(ev => (
                 <button key={ev.id} type="button"
-                  onMouseDown={() => { setEventId(ev.id); setEventName(ev.name); setEventSearch(ev.name); setShowEvSuggest(false); }}
+                  onMouseDown={() => { setEventId(ev.id); setEventName(ev.name); setEventSearch(ev.name); setEventArchived(ev.status === 'archived'); setShowEvSuggest(false); }}
                   style={{
                     width:'100%', textAlign:'left', padding:'9px 12px',
                     background:'transparent', border:'none', cursor:'pointer',
