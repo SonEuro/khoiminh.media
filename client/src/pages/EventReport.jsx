@@ -777,7 +777,7 @@ export default function EventReport() {
 
   const fileInputRef = useRef(null);
 
-  // Build danh sách event_id mà user có lịch làm việc (dùng để lọc dropdown sự kiện)
+  // Build danh sách event_id mà user có lịch làm việc VÀ còn trong deadline báo cáo
   useEffect(() => {
     const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
     if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
@@ -787,6 +787,7 @@ export default function EventReport() {
       const ids = new Set();
       for (const s of scheds) {
         if (!s.event_id) continue;
+        // Kiểm tra user có trong lịch không
         let found = false;
         for (const key of phaseKeys) {
           const leads = s[`${key}_leads`] || [];
@@ -798,7 +799,14 @@ export default function EventReport() {
           const kmMap = s[`${key}_km_staff_map`] || {};
           if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
         }
-        if (found) ids.add(String(s.event_id));
+        if (!found) continue;
+        // Kiểm tra còn trong deadline: ít nhất 1 phase date chưa quá hạn (date + 1 ngày 12:00 VN)
+        let hasOpenDeadline = false;
+        for (const key of phaseKeys) {
+          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          if (dates.some(d => withinEditDeadline(d))) { hasOpenDeadline = true; break; }
+        }
+        if (hasOpenDeadline) ids.add(String(s.event_id));
       }
       setAllowedEventIds(ids);
     }).catch(() => setAllowedEventIds(null));
@@ -984,9 +992,11 @@ export default function EventReport() {
   }, [form.report_date, user?.is_truong_phong, user?.full_name]);
 
   // Kiểm tra người báo cáo có trong lịch làm việc của sự kiện không (áp dụng cho tất cả)
+  // Chỉ block khi còn trong deadline — quá hạn vẫn cho nộp (ghi nhận nộp trễ)
   useEffect(() => {
     if (editingId) return;
     if (!form.event_id || !form.report_date) { setNotInSchedule(false); return; }
+    if (!withinEditDeadline(form.report_date)) { setNotInSchedule(false); return; }
     const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
     if (isAdmin) { setNotInSchedule(false); return; }
     const myName = user?.full_name || '';
