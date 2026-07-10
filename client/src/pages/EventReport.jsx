@@ -856,6 +856,7 @@ export default function EventReport() {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
           const matchDate = dates.find(d => dateMatchesSched(d, form.report_date));
+          console.log(`[AutoFill] PRE key=${key} dates=${JSON.stringify(dates)} matchDate=${matchDate}`);
           // Có dates nhưng không khớp ngày → bỏ qua phase này
           if (dates.length > 0 && !matchDate) continue;
           // KM staff chỉ auto-fill khi có ngày khớp cụ thể
