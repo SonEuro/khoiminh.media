@@ -3,6 +3,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -16,6 +17,7 @@ const { uploadBackupToDrive, scheduleAutoBackup, restoreFromDriveIfNeeded } = re
 const { checkAndCreateViolations } = require('./services/obligations');
 
 const app = express();
+app.use(compression());
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
@@ -80,9 +82,16 @@ app.get('/sw.js', (req, res) => {
   res.send(`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>self.registration.unregister()));});`);
 });
 app.use(express.static(publicDir, {
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  }
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    } else if (/\.[0-9a-f]{8,}\.(js|css)$/i.test(filePath)) {
+      // Vite hashed assets — safe to cache forever
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  },
 }));
 
 // Trang xóa cache SW — truy cập /clear để reset
