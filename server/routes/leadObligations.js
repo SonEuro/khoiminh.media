@@ -49,7 +49,7 @@ router.get('/', (req, res) => {
   res.json(rows.map(r => {
     const submitted = !!r.report_id;
     const lockTime  = addDay(r.deadline);
-    const overdue   = !submitted && !!r.deadline && r.deadline <= now;
+    const overdue   = !submitted && !!r.deadline && r.deadline.slice(0, 16) <= now;
     const locked    = !submitted && !!lockTime && lockTime <= now;
     return { ...r, lock_time: lockTime, submitted, overdue, locked };
   }));

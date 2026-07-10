@@ -298,9 +298,11 @@ function UpcomingScheduleSection({ userName, userId }) {
           for (const date of dates) {
             if (!date || date < pastStr || date > cutoffStr) continue;
             if (!isScheduler) {
-              const dateLeads = leadsMap ? (leadsMap[date] || []).map(l => l.name) : leadsFlat;
-              const dateStaff = staffMap ? (staffMap[date] || []) : staffFlat;
-              const dateFree  = freeMap  ? Object.values(freeMap[date] || {}).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
+              const dateLeads = leadsMap ? (leadsMap[date] != null ? leadsMap[date].map(l => l.name) : leadsFlat) : leadsFlat;
+              const dateStaff = staffMap ? (staffMap[date] != null ? staffMap[date] : staffFlat) : staffFlat;
+              const dateFree  = freeMap
+                ? (freeMap[date] != null ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat)
+                : freeFlat;
               if (!dateLeads.includes(userName) && !dateStaff.includes(userName) && !dateFree.includes(userName)) continue;
             }
             const key = `${s.id}-${p}-${date}`;
@@ -341,7 +343,7 @@ setUpcoming(found);
   const upcomingEvs = allGroups.filter(g => g.zone === 'upcoming');
   const totalFuture = todayEvs.length + tomorrowEvs.length + upcomingEvs.length;
 
-  if (upcoming.length === 0) return null;
+  if (totalFuture === 0) return null;
 
   function ZoneDivider({ color, border, label, count }) {
     return (
@@ -403,15 +405,15 @@ setUpcoming(found);
       <div style={{ background:'#13131d' }}>
         {todayEvs.length > 0 && <>
           <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayEvs.length} />
-          {todayEvs.map(g => <EventCard key={g.schedId} group={g} />)}
+          {todayEvs.map(g => <EventCard key={`${g.schedId}::today`} group={g} />)}
         </>}
         {tomorrowEvs.length > 0 && <>
           <ZoneDivider color="#4ade80" border="rgba(74,222,128,0.35)" label="NGÀY MAI" count={tomorrowEvs.length} />
-          {tomorrowEvs.map(g => <EventCard key={g.schedId} group={g} />)}
+          {tomorrowEvs.map(g => <EventCard key={`${g.schedId}::tomorrow`} group={g} />)}
         </>}
         {upcomingEvs.length > 0 && <>
           <ZoneDivider color="#60a5fa" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={upcomingEvs.length} />
-          {upcomingEvs.map(g => <EventCard key={g.schedId} group={g} />)}
+          {upcomingEvs.map(g => <EventCard key={`${g.schedId}::upcoming`} group={g} />)}
         </>}
       </div>
     </div>

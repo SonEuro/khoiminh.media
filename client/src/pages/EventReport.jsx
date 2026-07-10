@@ -832,6 +832,7 @@ export default function EventReport() {
   // Gợi ý nhân sự đã lên lịch làm việc cho ngày báo cáo đã chọn (vẫn cho sửa thủ công)
   // Nhóm trưởng dùng useEffect riêng bên dưới (load toàn bộ lịch theo ngày)
   useEffect(() => {
+    if (editingId) return;
     if (!form.event_id || !form.report_date) return;
     if (user?.is_truong_phong) return;
     const myName = user?.full_name || '';
@@ -882,6 +883,7 @@ export default function EventReport() {
   // Auto-load nhân sự theo dept khi nhóm trưởng chọn ngày báo cáo
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
   useEffect(() => {
+    if (editingId) return;
     if (!form.report_date) return;
     const userDept = getUserKmDept(user);
     const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userDept);
