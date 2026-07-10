@@ -414,10 +414,6 @@ setUpcoming(found);
           <ZoneDivider color="#60a5fa" border="rgba(96,165,250,0.3)" label="NGÀY SẮP TỚI" count={upcomingEvs.length} />
           {upcomingEvs.map(g => <EventCard key={g.schedId} group={g} />)}
         </>}
-        {pastEvs.length > 0 && <>
-          <ZoneDivider color="#7878a0" border="rgba(120,120,160,0.25)" label="ĐÃ HOÀN THÀNH" count={pastEvs.length} />
-          {pastEvs.map(g => <EventCard key={g.schedId} group={g} isPast />)}
-        </>}
       </div>
     </div>
   );
@@ -695,22 +691,6 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
         }
       </AdminSec>}
 
-      {/* 5. Đã hoàn thành */}
-      <AdminSec title="ĐÃ HOÀN THÀNH" color={GOLD} rgb="201,168,76" count={completed.length} linkTo="/events">
-        {completed.length === 0
-          ? <AEmpty text="Không có sự kiện đã hoàn thành" />
-          : completed.map((ev, i) => (
-            <ARow key={ev.id} i={i} rgb="201,168,76" onClick={() => openCard(ev)}>
-              <div style={{ width:6, height:6, borderRadius:'50%', background:GOLD, flexShrink:0 }} />
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={T.name}>{ev.name}</p>
-                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
-              </div>
-              {ev.end_date && <span style={{ fontSize:'0.80rem', color:GOLD, fontWeight:700, flexShrink:0 }}>{fmtD(ev.end_date)}</span>}
-            </ARow>
-          ))
-        }
-      </AdminSec>
 
       {/* Xuất kho + quá hạn trả (vẫn cần cho admin) */}
       {(dash?.need_confirm?.length > 0 || dash?.overdue?.length > 0 || dash?.conflicts?.length > 0) && (
