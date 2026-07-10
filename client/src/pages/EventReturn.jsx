@@ -281,44 +281,36 @@ export default function EventReturn() {
               onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.06)'}
               onMouseLeave={e => e.currentTarget.style.background='transparent'}
             >
-              {/* Left: event info */}
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
-                  <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem' }}>
+                {/* Hàng 1: tên + badge số lượng */}
+                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
+                  <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem', lineHeight:1.3, flex:1, minWidth:0 }}>
                     {row.event_name}
                   </span>
-                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.82rem', color:'#7878a0' }}>
+                  <span style={{
+                    flexShrink:0, fontSize:'0.78rem', fontWeight:700,
+                    background:'rgba(248,113,113,0.15)', color:'#f87171',
+                    padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap', marginTop:'1px',
+                  }}>
+                    {row.item_types > 0 && <>{row.item_types} KHO · {row.total_pending}</>}
+                    {row.item_types > 0 && row.ncc_types > 0 && ' · '}
+                    {row.ncc_types > 0 && <>{row.ncc_types} NCC</>}
+                  </span>
+                </div>
+                {/* Hàng 2: code + lưu trữ + ngày */}
+                <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px', flexWrap:'wrap' }}>
+                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.76rem', color:'#7878a0' }}>
                     {row.event_code}
                   </span>
                   {row.archived_at && (
-                    <span style={{ fontSize:'0.72rem', fontWeight:700, padding:'1px 6px', borderRadius:'9999px', background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.3)' }}>
+                    <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'9999px', background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.3)' }}>
                       📦 Lưu trữ
                     </span>
                   )}
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'3px', flexWrap:'wrap' }}>
                   {row.start_date && (
-                    <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
-                  )}
-                  {row.out_codes && (
-                    <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>
-                      {row.out_codes.split(',').map(c => c.trim()).slice(0, 3).join(', ')}
-                      {row.out_codes.split(',').length > 3 ? ' ...' : ''}
-                    </span>
+                    <span style={{ fontSize:'0.76rem', color:'#7878a0' }}>· 📅 {fmtD(row.start_date)}</span>
                   )}
                 </div>
-              </div>
-
-              {/* Right: badge */}
-              <div style={{
-                flexShrink:0, textAlign:'right',
-                fontSize:'0.82rem', fontWeight:700,
-                background:'rgba(248,113,113,0.12)', color:'#f87171',
-                padding:'4px 12px', borderRadius:'9999px', whiteSpace:'nowrap',
-              }}>
-                {row.item_types > 0 && <>{row.item_types} KHO · {row.total_pending} cái</>}
-                {row.item_types > 0 && row.ncc_types > 0 && <> · </>}
-                {row.ncc_types > 0 && <>{row.ncc_types} NCC</>}
               </div>
             </button>
           ))}
