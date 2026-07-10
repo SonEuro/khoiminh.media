@@ -855,20 +855,25 @@ export default function EventReport() {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
           const matchDate = dates.find(d => dateMatchesSched(d, form.report_date));
-          if (!matchDate) continue;
-          const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
-          leadsForDate.forEach(l => {
-            const n = typeof l === 'string' ? l : l?.name;
-            if (n && (!deptFilter || deptFilter.has(n) || n === myName)) names.add(n);
-          });
-          const kmForDate = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
-          kmForDate.forEach(n => {
-            if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
-          });
-          // Freelancer: lọc theo dept + ngày, thu vào mảng để dedup sau
+          // Có dates nhưng không khớp ngày → bỏ qua phase này
+          if (dates.length > 0 && !matchDate) continue;
+          // KM staff chỉ auto-fill khi có ngày khớp cụ thể
+          if (matchDate) {
+            const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
+            leadsForDate.forEach(l => {
+              const n = typeof l === 'string' ? l : l?.name;
+              if (n && (!deptFilter || deptFilter.has(n) || n === myName)) names.add(n);
+            });
+            const kmForDate = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
+            kmForDate.forEach(n => {
+              if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
+            });
+          }
+          // Freelancer: dùng matchDate hoặc '_all' (khi lịch chưa nhập ngày)
+          const freeKey = matchDate || '_all';
           const freeMap = s[`${key}_freelancers_map`];
           if (freeMap) {
-            const dateEntry = freeMap[matchDate];
+            const dateEntry = freeMap[freeKey];
             if (dateEntry && typeof dateEntry === 'object') {
               const txt = validDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
               if (txt) freeParts.push(txt);
@@ -925,7 +930,7 @@ export default function EventReport() {
           if (user?.is_truong_phong) {
             const freeMap = s[`${key}_freelancers_map`];
             if (freeMap) {
-              const dateEntry = freeMap[matchDate];
+              const dateEntry = freeMap[matchDate] ?? freeMap['_all'];
               if (dateEntry && typeof dateEntry === 'object') {
                 freeTextParts.push(dateEntry[userDept] || '');
               } else if (typeof dateEntry === 'string') {
