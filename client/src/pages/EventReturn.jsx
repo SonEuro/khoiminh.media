@@ -282,35 +282,38 @@ export default function EventReturn() {
               onMouseLeave={e => e.currentTarget.style.background='transparent'}
             >
               <div style={{ flex:1, minWidth:0 }}>
-                {/* Hàng 1: tên + badge số lượng */}
-                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
-                  <span style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem', lineHeight:1.3, flex:1, minWidth:0 }}>
-                    {row.event_name}
+                {/* Hàng 1: tên sự kiện */}
+                <div style={{ color:'#c9a84c', fontWeight:700, fontSize:'0.875rem', lineHeight:1.3 }}>
+                  {row.event_name}
+                </div>
+                {/* Hàng 2: code (trái) + badge KHO/NCC (phải) */}
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', marginTop:'5px' }}>
+                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.76rem', color:'#7878a0' }}>
+                    {row.event_code}
                   </span>
                   <span style={{
                     flexShrink:0, fontSize:'0.78rem', fontWeight:700,
                     background:'rgba(248,113,113,0.15)', color:'#f87171',
-                    padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap', marginTop:'1px',
+                    padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap',
                   }}>
                     {row.item_types > 0 && <>{row.item_types} KHO · {row.total_pending}</>}
                     {row.item_types > 0 && row.ncc_types > 0 && ' · '}
                     {row.ncc_types > 0 && <>{row.ncc_types} NCC</>}
                   </span>
                 </div>
-                {/* Hàng 2: code + lưu trữ + ngày */}
-                <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px', flexWrap:'wrap' }}>
-                  <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.76rem', color:'#7878a0' }}>
-                    {row.event_code}
-                  </span>
-                  {row.archived_at && (
-                    <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'9999px', background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.3)' }}>
-                      📦 Lưu trữ
-                    </span>
-                  )}
-                  {row.start_date && (
-                    <span style={{ fontSize:'0.76rem', color:'#7878a0' }}>· 📅 {fmtD(row.start_date)}</span>
-                  )}
-                </div>
+                {/* Hàng 3: lưu trữ + ngày */}
+                {(row.archived_at || row.start_date) && (
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px', flexWrap:'wrap' }}>
+                    {row.archived_at && (
+                      <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'9999px', background:'rgba(167,139,250,0.12)', color:'#a78bfa', border:'1px solid rgba(167,139,250,0.3)' }}>
+                        📦 Lưu trữ
+                      </span>
+                    )}
+                    {row.start_date && (
+                      <span style={{ fontSize:'0.76rem', color:'#7878a0' }}>📅 {fmtD(row.start_date)}</span>
+                    )}
+                  </div>
+                )}
               </div>
             </button>
           ))}
