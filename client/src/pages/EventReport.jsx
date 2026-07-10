@@ -851,12 +851,10 @@ export default function EventReport() {
       const names = new Set();
       const freeParts = [];
       const validDept = userKmDept && userKmDept !== '—';
-      console.log('[AutoFill] scheds:', scheds.length, 'userKmDept:', userKmDept, 'validDept:', validDept, 'report_date:', form.report_date);
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
           const matchDate = dates.find(d => dateMatchesSched(d, form.report_date));
-          console.log(`[AutoFill] PRE key=${key} dates=${JSON.stringify(dates)} matchDate=${matchDate}`);
           // Có dates nhưng không khớp ngày → bỏ qua phase này
           if (dates.length > 0 && !matchDate) continue;
           // KM staff chỉ auto-fill khi có ngày khớp cụ thể
@@ -874,20 +872,16 @@ export default function EventReport() {
           // Freelancer: dùng matchDate, nếu không có thì fallback về '_all'
           const freeKey = matchDate || '_all';
           const freeMap = s[`${key}_freelancers_map`];
-          console.log(`[AutoFill] key=${key} matchDate=${matchDate} freeKey=${freeKey} freeMap=`, freeMap);
           if (freeMap) {
             const dateEntry = freeMap[freeKey] ?? freeMap['_all'];
-            console.log('[AutoFill] dateEntry=', dateEntry, 'userKmDept=', userKmDept);
             if (dateEntry && typeof dateEntry === 'object') {
               const txt = validDept ? (dateEntry[userKmDept] || '') : Object.values(dateEntry).filter(Boolean).join(', ');
-              console.log('[AutoFill] txt=', txt);
               if (txt) freeParts.push(txt);
             } else if (typeof dateEntry === 'string' && dateEntry) {
               freeParts.push(dateEntry);
             }
           } else if (validDept) {
             const flat = s[`${key}_freelancers`] || '';
-            console.log('[AutoFill] flat fallback=', flat);
             if (flat) freeParts.push(flat);
           }
         }
@@ -935,14 +929,10 @@ export default function EventReport() {
           // Freelancer theo dept + ngày cho nhóm trưởng
           if (user?.is_truong_phong) {
             const freeMap = s[`${key}_freelancers_map`];
-            console.log(`[AutoFill2] key=${key} matchDate=${matchDate} userDept=${userDept} freeMap=`, JSON.stringify(freeMap));
             if (freeMap) {
               const dateEntry = freeMap[matchDate] ?? freeMap['_all'];
-              console.log(`[AutoFill2] dateEntry=`, JSON.stringify(dateEntry));
               if (dateEntry && typeof dateEntry === 'object') {
-                const txt = dateEntry[userDept] || '';
-                console.log(`[AutoFill2] txt=`, txt);
-                freeTextParts.push(txt);
+                freeTextParts.push(dateEntry[userDept] || '');
               } else if (typeof dateEntry === 'string') {
                 freeTextParts.push(dateEntry);
               }
