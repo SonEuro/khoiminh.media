@@ -314,6 +314,19 @@ export default function EventReturn() {
                     )}
                   </div>
                 )}
+                {/* Hàng 4: mã phiếu xuất — mỗi code 1 chip */}
+                {row.out_codes && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginTop:'5px' }}>
+                    {row.out_codes.split(',').map(c => c.trim()).filter(Boolean).map(c => (
+                      <span key={c} style={{
+                        fontSize:'0.72rem', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace",
+                        color:'#555570', background:'rgba(255,255,255,0.04)',
+                        border:'1px solid rgba(255,255,255,0.08)',
+                        borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap',
+                      }}>{c}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             </button>
           ))}
