@@ -85,7 +85,7 @@ app.use(express.static(publicDir, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('index.html')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    } else if (/\.[0-9a-f]{8,}\.(js|css)$/i.test(filePath)) {
+    } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
       // Vite hashed assets — safe to cache forever
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     } else {
