@@ -293,11 +293,11 @@ function getReportLateness(reportDate, createdAt, obligationDeadline) {
   return null;
 }
 
-// Kiểm tra còn trong deadline chỉnh sửa: report_date + 1 ngày 12:00 VN
+// Kiểm tra còn trong deadline chỉnh sửa: report_date + 1 ngày 23:59 VN
 function withinEditDeadline(reportDate) {
   if (!reportDate) return false;
   const [y, m, d] = reportDate.split('-').map(Number);
-  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 5, 0, 0)); // 12:00 VN = 05:00 UTC
+  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 16, 59, 0)); // 23:59 VN = 16:59 UTC
   return Date.now() <= deadlineUTC.getTime();
 }
 
@@ -1283,8 +1283,8 @@ export default function EventReport() {
     const nd = String(next.getUTCDate()).padStart(2, '0');
     const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
     const ny = next.getUTCFullYear();
-    reportDeadline = `${ny}-${nm}-${nd} 12:00`;
-    deadlineDisplay = `${nd}/${nm} 12:00`;
+    reportDeadline = `${ny}-${nm}-${nd} 23:59`;
+    deadlineDisplay = `${nd}/${nm} 23:59`;
   }
   const isOverdue = (!!user?.is_truong_phong || isAloneInDept) && !!reportDeadline && vnNow > reportDeadline;
 
