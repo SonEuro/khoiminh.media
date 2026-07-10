@@ -665,7 +665,7 @@ function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport }) {
         </div>
         {/* Row 2: địa điểm */}
         {group.location && (
-          <p style={{ fontSize:'0.81rem', color:'#7878a0', margin:'5px 0 0' }}>📍 {group.location}</p>
+          <p style={{ fontSize:'0.81rem', color:'#60a5fa', fontWeight:600, margin:'5px 0 0' }}>📍 {group.location}</p>
         )}
         {/* Row 3: ngày */}
         {allDates.length > 0 && (
