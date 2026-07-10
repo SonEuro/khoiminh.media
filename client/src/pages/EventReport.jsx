@@ -955,28 +955,30 @@ export default function EventReport() {
       // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
       // → khớp với obligation system (chỉ tạo vi phạm cho leads)
       setIsAloneInDept(isLeadThisDate && leadNames.size === 1 && leadNames.has(myName));
-      // Kiểm tra nhóm trưởng có trong lịch của event được chọn không
-      if (!isAdmin && form.event_id) {
-        const eventScheds = scheds.filter(s => String(s.event_id) === String(form.event_id));
-        if (eventScheds.length > 0) {
-          let inEventSched = false;
-          outer: for (const s of eventScheds) {
-            for (const key of phaseKeys) {
-              const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-              const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
-              if (!matchDate) continue;
-              const leads = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
-              if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inEventSched = true; break outer; }
-              const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
-              if (km.includes(myName)) { inEventSched = true; break outer; }
+      // Chỉ kiểm tra lịch cho nhóm trưởng — nhân viên thường đã được kiểm tra ở useEffect riêng
+      if (user?.is_truong_phong) {
+        if (!isAdmin && form.event_id) {
+          const eventScheds = scheds.filter(s => String(s.event_id) === String(form.event_id));
+          if (eventScheds.length > 0) {
+            let inEventSched = false;
+            outer: for (const s of eventScheds) {
+              for (const key of phaseKeys) {
+                const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+                const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
+                if (!matchDate) continue;
+                const leads = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
+                if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inEventSched = true; break outer; }
+                const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
+                if (km.includes(myName)) { inEventSched = true; break outer; }
+              }
             }
+            setNotInSchedule(!inEventSched);
+          } else {
+            setNotInSchedule(false);
           }
-          setNotInSchedule(!inEventSched);
         } else {
           setNotInSchedule(false);
         }
-      } else {
-        setNotInSchedule(false);
       }
     }).catch(() => { setIsAloneInDept(false); setNotInSchedule(false); });
   }, [form.report_date, form.event_id, user?.is_truong_phong, user?.full_name]);
