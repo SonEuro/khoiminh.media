@@ -934,10 +934,14 @@ export default function EventReport() {
           // Freelancer theo dept + ngày cho nhóm trưởng
           if (user?.is_truong_phong) {
             const freeMap = s[`${key}_freelancers_map`];
+            console.log(`[AutoFill2] key=${key} matchDate=${matchDate} userDept=${userDept} freeMap=`, JSON.stringify(freeMap));
             if (freeMap) {
               const dateEntry = freeMap[matchDate] ?? freeMap['_all'];
+              console.log(`[AutoFill2] dateEntry=`, JSON.stringify(dateEntry));
               if (dateEntry && typeof dateEntry === 'object') {
-                freeTextParts.push(dateEntry[userDept] || '');
+                const txt = dateEntry[userDept] || '';
+                console.log(`[AutoFill2] txt=`, txt);
+                freeTextParts.push(txt);
               } else if (typeof dateEntry === 'string') {
                 freeTextParts.push(dateEntry);
               }
