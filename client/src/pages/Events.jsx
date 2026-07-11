@@ -30,6 +30,7 @@ const DEPT_COLORS = {
 function getDeptColor(dept) {
   return DEPT_COLORS[dept] || { color: '#7878a0', bg: 'rgba(120,120,160,0.06)', border: 'rgba(120,120,160,0.18)' };
 }
+const ALL_EVENT_DEPTS = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Cơ Sở Vật Chất'];
 
 function groupByDept(names, groups) {
   const map = {};
@@ -892,9 +893,10 @@ export default function Events() {
                 </div>
               </div>
               <h3 className="font-semibold text-lg mb-1">{ev.name}</h3>
-              {(() => { const depts = parseDepts(ev); return depts.length > 0 && (
+              {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
-                  {depts.map(dept => { const dc = getDeptColor(dept); return (
+                  {isAll ? <span style={{ fontSize:'0.75rem', fontWeight:700, padding:'2px 9px', borderRadius:'20px', color:'#fcd34d', background:'rgba(252,211,77,0.08)', border:'1px solid rgba(252,211,77,0.25)' }}>Tất cả bộ phận</span>
+                  : depts.map(dept => { const dc = getDeptColor(dept); return (
                     <span key={dept} style={{ fontSize:'0.75rem', fontWeight:700, padding:'2px 9px', borderRadius:'20px', color:dc.color, background:dc.bg, border:`1px solid ${dc.border}` }}>{dept}</span>
                   );})}
                 </div>
@@ -1029,9 +1031,10 @@ export default function Events() {
                         )}
                       </div>
                       {/* Dept badges */}
-                      {(() => { const depts = parseDepts(ev); return depts.length > 0 && (
+                      {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
-                          {depts.map(dept => { const dc = getDeptColor(dept); return (
+                          {isAll ? <span style={{ fontSize:'0.74rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px', color:'#fcd34d', background:'rgba(252,211,77,0.08)', border:'1px solid rgba(252,211,77,0.25)' }}>Tất cả bộ phận</span>
+                          : depts.map(dept => { const dc = getDeptColor(dept); return (
                             <span key={dept} style={{ fontSize:'0.74rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px', color:dc.color, background:dc.bg, border:`1px solid ${dc.border}` }}>{dept}</span>
                           );})}
                         </div>

@@ -66,6 +66,7 @@ const DEPT_COLORS = {
 function getDeptColor(dept) {
   return DEPT_COLORS[dept] || { color: '#7878a0', bg: 'rgba(120,120,160,0.06)', border: 'rgba(120,120,160,0.18)' };
 }
+const ALL_EVENT_DEPTS = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Cơ Sở Vật Chất'];
 const KM_DEPT_DISPLAY = { 'ATAS-LED': 'ATAS-LED', 'Kinh Doanh': 'Bộ Phận Sản Xuất' };
 function getDeptDisplay(dept) { return KM_DEPT_DISPLAY[dept] || dept; }
 
@@ -1068,7 +1069,7 @@ function MySchedulesSection({ schedules, user, onSelect, events = [] }) {
       >
         {/* Hàng 1: Tên */}
         <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
-        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px',marginBottom:'2px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
+        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px',marginBottom:'2px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
         {/* Hàng 2: Địa điểm */}
         {s.location && <p style={{ margin: '4px 0 0', fontSize: '0.80rem', color: '#7878a0' }}>📍 {s.location}</p>}
         {/* Hàng 3: Ngày */}
@@ -1428,7 +1429,7 @@ export default function WorkSchedule() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                  {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'4px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
+                  {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'4px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
                   <p style={{ margin: 0, fontSize: '0.84rem', color: '#7878a0' }}>
                     {[s.client && `🏢 ${s.client}`, s.location && `📍 ${s.location}`].filter(Boolean).join(' · ')}
                   </p>
@@ -1528,7 +1529,7 @@ export default function WorkSchedule() {
                       {/* Hàng 1: tên */}
                       <div style={{ marginBottom:'7px' }}>
                         <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8' }}>{s.event_name}</span>
-                        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
+                        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
                       </div>
                       {/* Hàng 2: chip + nút cùng hàng */}
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', flexWrap:'wrap' }}>
