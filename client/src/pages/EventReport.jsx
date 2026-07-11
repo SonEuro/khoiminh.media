@@ -307,14 +307,29 @@ function withinEditDeadline(reportDate) {
 // ── Report detail card ────────────────────────────────────────────────────────
 function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
   const [expanded, setExpanded] = useState(false);
+  const [fullData, setFullData] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmedAt, setConfirmedAt] = useState(report.confirmed_at || null);
   const { user: currentUser } = useAuth();
 
+  const detail = fullData || report;
+
   const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
   const lateness = getReportLateness(report.report_date, report.created_at, report.obligation_deadline);
   const canViewAllDepts = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all;
+
+  async function handleExpand() {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !fullData && !loadingDetail) {
+      setLoadingDetail(true);
+      try { setFullData(await api.getEventReport(report.id)); }
+      catch { /* dùng slim data làm fallback */ }
+      finally { setLoadingDetail(false); }
+    }
+  }
 
   async function handleConfirm(e) {
     e.stopPropagation();
@@ -337,7 +352,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
     }}>
       {/* Header */}
       <div
-        onClick={() => setExpanded(v => !v)}
+        onClick={handleExpand}
         style={{
           padding:'12px 16px', cursor:'pointer',
           borderBottom: expanded ? '1px solid rgba(201,168,76,0.15)' : 'none',
@@ -398,8 +413,8 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             </div>
           )}
           <div style={{ flex:1 }} />
-          {report.images?.length > 0 && (
-            <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>🖼 {report.images.length}</span>
+          {(report.image_count ?? report.images?.length) > 0 && (
+            <span style={{ fontSize:'0.78rem', color:'#7878a0' }}>🖼 {report.image_count ?? report.images?.length}</span>
           )}
           <span style={{ color: GOLD, fontSize:'0.82rem' }}>{expanded ? '▲' : '▼'}</span>
         </div>
@@ -407,6 +422,9 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 
       {expanded && (
         <div style={{ padding:'16px 18px' }}>
+          {loadingDetail && (
+            <div style={{ textAlign:'center', color:'#7878a0', fontSize:'0.82rem', padding:'8px 0 4px' }}>⏳ Đang tải...</div>
+          )}
           {/* Timeline row */}
           {(report.time_present || report.time_onset || report.time_off || report.time_end) && (
             <div className="time-grid-4" style={{
@@ -465,11 +483,11 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           ))}
 
           {/* Images */}
-          {report.images?.length > 0 && (
+          {detail.images?.length > 0 && (
             <div style={{ marginBottom:'12px' }}>
-              <p style={{ ...labelStyle, marginBottom:'8px' }}>Hình ảnh đính kèm ({report.images.length})</p>
+              <p style={{ ...labelStyle, marginBottom:'8px' }}>Hình ảnh đính kèm ({detail.images.length})</p>
               <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
-                {report.images.map((src, i) => (
+                {detail.images.map((src, i) => (
                   <img key={i} src={imgThumb(src)} alt="" loading="lazy"
                     onClick={() => setImgIdx(i)}
                     style={{ width:'80px', height:'80px', objectFit:'cover', borderRadius:'6px',
@@ -480,9 +498,9 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           )}
 
           {/* Lịch sử chỉnh sửa */}
-          {report.edit_history?.length > 0 && (
+          {detail.edit_history?.length > 0 && (
             <div style={{ marginTop:'10px', paddingTop:'8px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
-              {report.edit_history.map((h, i) => (
+              {detail.edit_history.map((h, i) => (
                 <div key={i} style={{ fontSize:'0.75rem', color:'#6060a0', display:'flex', alignItems:'center', gap:'6px', marginTop: i > 0 ? '3px' : 0 }}>
                   <span style={{ color:'#a78bfa', fontWeight:600 }}>✏️</span>
                   <span>Sửa bởi <strong style={{ color:'#9090c0' }}>{h.name}</strong> lúc {h.at}</span>
@@ -495,7 +513,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
             {(['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role) ||
               (currentUser?.id === report.reporter_user_id && withinEditDeadline(report.report_date))) && (
-              <button type="button" onClick={() => onEdit(report)}
+              <button type="button" onClick={() => onEdit(detail)}
                 style={{
                   padding:'6px 14px', borderRadius:'6px', fontSize:'0.82rem',
                   background:'rgba(96,165,250,0.12)', border:'1px solid rgba(96,165,250,0.3)',
@@ -527,18 +545,18 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             background:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center',
           }}
         >
-          <img src={imgUrl(report.images[imgIdx])} alt=""
+          <img src={imgUrl(detail.images?.[imgIdx])} alt=""
             style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)' }} />
           <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
-          {report.images.length > 1 && (
+          {detail.images?.length > 1 && (
             <>
-              <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx - 1 + report.images.length) % report.images.length); }}
+              <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx - 1 + detail.images.length) % detail.images.length); }}
                 style={{ position:'absolute', left:'max(env(safe-area-inset-left, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>‹</button>
-              <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx + 1) % report.images.length); }}
+              <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx + 1) % detail.images.length); }}
                 style={{ position:'absolute', right:'max(env(safe-area-inset-right, 0px), 12px)', background:'rgba(0,0,0,0.6)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%', width:'52px', height:'52px', color:'white', fontSize:'1.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>›</button>
               <div style={{ position:'absolute', bottom:'20px', left:'50%', transform:'translateX(-50%)', color:'rgba(255,255,255,0.7)', fontSize:'0.84rem', fontWeight:600, background:'rgba(0,0,0,0.5)', padding:'3px 10px', borderRadius:'999px' }}>
-                {imgIdx + 1} / {report.images.length}
+                {imgIdx + 1} / {detail.images.length}
               </div>
             </>
           )}
@@ -581,7 +599,7 @@ function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDel
 // ── Date zone: nhóm tất cả báo cáo cùng ngày ────────────────────────────────
 function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
-  const totalImages = reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
+  const totalImages = reports.reduce((sum, r) => sum + (r.image_count ?? r.images?.length ?? 0), 0);
 
   const dateLabel = (() => {
     if (date === '__') return { day: '??', month: '??', year: '??' };
@@ -644,7 +662,7 @@ function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport 
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
 function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport }) {
   const [open, setOpen] = useState(true);
-  const totalImages = group.reports.reduce((sum, r) => sum + (r.images?.length || 0), 0);
+  const totalImages = group.reports.reduce((sum, r) => sum + (r.image_count ?? r.images?.length ?? 0), 0);
   const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
 
   return (

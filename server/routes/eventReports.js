@@ -10,14 +10,21 @@ function canManage(req, res, next) {
 
 router.get('/', (req, res) => {
   const { event_id } = req.query;
+  // Trả slim — bỏ images/timeline/edit_history nặng, chỉ giữ image_count
   let sql = `
-    SELECT er.*, u.role AS reporter_role,
-      (SELECT deadline FROM lead_report_obligations
-       WHERE lead_name = er.reporter_name
-         AND assigned_date = er.report_date
-         AND (event_id = er.event_id OR (event_id IS NULL AND er.event_id IS NULL))
-       ORDER BY deadline ASC LIMIT 1
-      ) AS obligation_deadline
+    SELECT er.id, er.event_id, er.event_label, er.location, er.report_date,
+           er.reporter_name, er.reporter_user_id, er.created_at, er.confirmed_at, er.confirmed_by_id,
+           er.job_content, er.freelancer_staff, er.incomplete, er.incidents, er.progress,
+           er.completed_work, er.service_quality, er.time_present, er.time_onset, er.time_off, er.time_end,
+           er.km_staff,
+           json_array_length(er.images) AS image_count,
+           u.role AS reporter_role,
+           (SELECT deadline FROM lead_report_obligations
+            WHERE lead_name = er.reporter_name
+              AND assigned_date = er.report_date
+              AND (event_id = er.event_id OR (event_id IS NULL AND er.event_id IS NULL))
+            ORDER BY deadline ASC LIMIT 1
+           ) AS obligation_deadline
     FROM event_reports er
     LEFT JOIN users u ON u.id = er.reporter_user_id
   `;
@@ -27,10 +34,7 @@ router.get('/', (req, res) => {
   const rows = db.prepare(sql).all(...params);
   res.json(rows.map(r => ({
     ...r,
-    km_staff:     JSON.parse(r.km_staff     || '[]'),
-    images:       JSON.parse(r.images       || '[]'),
-    timeline:     JSON.parse(r.timeline     || '[]'),
-    edit_history: JSON.parse(r.edit_history || '[]'),
+    km_staff: JSON.parse(r.km_staff || '[]'),
   })));
 });
 

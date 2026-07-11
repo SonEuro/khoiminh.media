@@ -125,6 +125,7 @@ export const api = {
     const q = new URLSearchParams(params).toString();
     return request(`/event-reports${q ? '?' + q : ''}`);
   },
+  getEventReport: (id) => request(`/event-reports/${id}`),
   createEventReport: (data) => request('/event-reports', { method: 'POST', body: data }),
   deleteEventReport: (id) => request(`/event-reports/${id}`, { method: 'DELETE' }),
   updateEventReport: (id, data) => request(`/event-reports/${id}`, { method: 'PUT', body: data }),
