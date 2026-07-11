@@ -996,7 +996,7 @@ function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwi
 }
 
 // ── Section: Lịch của tôi (đang diễn ra + sắp tới) ─────────────────────────────
-function MySchedulesSection({ schedules, user, onSelect }) {
+function MySchedulesSection({ schedules, user, onSelect, events = [] }) {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
   const userName = user?.full_name || '';
@@ -1392,6 +1392,7 @@ export default function WorkSchedule() {
       <MySchedulesSection
         schedules={schedules}
         user={user}
+        events={events}
         onSelect={(s) => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}
       />
 
