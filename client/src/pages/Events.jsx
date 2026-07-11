@@ -942,8 +942,15 @@ export default function Events() {
               {upcomingZone.map(ev => renderCard(ev, 'upcoming'))}
             </>}
             {pastZone.length > 0 && <>
-              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA / HỦY" count={pastZone.length} />
-              <div style={{ maxHeight:'585px', overflowY:'auto' }}>
+              {/* Section header rõ cho ĐÃ QUA / HỦY */}
+              <div style={{ margin:'10px 0 6px', display:'flex', alignItems:'center', gap:'10px' }}>
+                <div style={{ height:'1px', flex:1, background:'linear-gradient(90deg,rgba(120,120,160,0.35),transparent)' }} />
+                <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'0.1em', color:'#7878a0', whiteSpace:'nowrap' }}>
+                  ĐÃ QUA / HỦY ({pastZone.length})
+                </span>
+                <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
+              </div>
+              <div style={{ maxHeight:'585px', overflowY:'auto', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px' }}>
                 {pastZone.map(ev => {
                   const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
                   const isCancelled = ev.status === 'cancelled';
@@ -957,60 +964,64 @@ export default function Events() {
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                   const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
+                  const pastBtn = {
+                    display:'inline-flex', alignItems:'center', gap:'4px',
+                    fontSize:'0.77rem', fontWeight:600, cursor:'pointer',
+                    padding:'3px 10px', borderRadius:'6px',
+                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',
+                    color:'#9090a8',
+                  };
+                  const pastBtnDanger = { ...pastBtn, color:'#f87171', border:'1px solid rgba(248,113,113,0.25)', background:'rgba(248,113,113,0.06)' };
                   return (
                     <div key={ev.id} id={`ev-card-${ev.id}`} style={{
-                      background: `rgba(${accentRgb},0.04)`,
-                      border: `1px solid rgba(${accentRgb},0.22)`,
+                      background: `rgba(${accentRgb},0.03)`,
+                      border: `1px solid rgba(${accentRgb},0.15)`,
                       borderLeft: `3px solid ${accent}`,
-                      borderRadius: '10px',
-                      padding: '10px 14px',
-                      marginBottom: '8px',
+                      borderRadius: '8px',
+                      padding: '9px 12px',
+                      marginBottom: '6px',
                     }}>
                       {/* Hàng 1: status + tên + code + phiếu */}
-                      <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'8px', flexWrap:'wrap' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'7px', flexWrap:'wrap' }}>
                         <span className={s.cls} style={{ flexShrink:0 }}>{s.label}</span>
-                        {ev.archived_at && <span style={{ fontSize:'0.72rem', color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>📦 Lưu trữ</span>}
-                        <span style={{ fontWeight:700, fontSize:'0.95rem', color: isCancelled ? '#f87171bb' : '#c8c8e0', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</span>
-                        <span style={{ fontSize:'0.74rem', color:'#555570', flexShrink:0 }}>{ev.code}</span>
+                        {ev.archived_at && <span style={{ fontSize:'0.72rem', color:'#a78bfa', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>📦 Lưu trữ</span>}
+                        <span style={{ fontWeight:700, fontSize:'0.93rem', color: isCancelled ? 'rgba(248,113,113,0.6)' : '#a0a0b8', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</span>
+                        <span style={{ fontSize:'0.72rem', color:'#44445a', flexShrink:0 }}>{ev.code}</span>
                         {ev.tx_count > 0 && (
-                          <span style={{ fontSize:'0.74rem', color:GOLD, background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'9999px', padding:'1px 7px', flexShrink:0 }}>{ev.tx_count} phiếu</span>
+                          <span style={{ fontSize:'0.73rem', color:'#888860', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'9999px', padding:'1px 7px', flexShrink:0 }}>{ev.tx_count} phiếu</span>
                         )}
                       </div>
                       {/* Hàng 2: ô thông tin */}
                       {(ev.client || ev.location || startDates.length > 0 || filmDates.length > 0) && (
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'8px' }}>
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>
                           {ev.client && (
-                            <span style={{ fontSize:'0.78rem', color:'#a0a0b8', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'2px 8px' }}>👤 {ev.client}</span>
+                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {ev.client}</span>
                           )}
                           {ev.location && (
-                            <span style={{ fontSize:'0.78rem', color:'#60a5fa', background:'rgba(96,165,250,0.07)', border:'1px solid rgba(96,165,250,0.2)', borderRadius:'6px', padding:'2px 8px' }}>📍 {ev.location}</span>
+                            <span style={{ fontSize:'0.76rem', color:'#5080a0', background:'rgba(96,165,250,0.05)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'5px', padding:'2px 7px' }}>📍 {ev.location}</span>
                           )}
                           {startDates.length > 0 && (
-                            <span style={{ fontSize:'0.78rem', color:'#a0a0b8', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'2px 8px' }}>
+                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>
                               📅 {startDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
                               {endDates.length>0 && endDates[0]!==startDates[0] && <> → {endDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</>}
                             </span>
                           )}
                           {filmDates.length > 0 && (
-                            <span style={{ fontSize:'0.78rem', color:'#fb923c', background:'rgba(251,146,60,0.08)', border:'1px solid rgba(251,146,60,0.28)', borderRadius:'6px', padding:'2px 8px', fontWeight:700 }}>
+                            <span style={{ fontSize:'0.76rem', color:'#b06030', background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:'5px', padding:'2px 7px' }}>
                               🎬 {filmDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
                             </span>
                           )}
                         </div>
                       )}
-                      {/* Hàng 3: nút hành động */}
-                      <div className="ev-card-row">
-                        <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('detail'); }}>
-                          <span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span>
-                        </button>
-                        <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('staff'); }}>
-                          <span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span>
-                        </button>
-                        {showEdit    && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
-                        {showCancel  && <button className="btn-danger btn-sm ev-card-btn" onClick={() => handleCancel(ev)}><span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span></button>}
-                        {showArchive && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
-                        {showUnarch  && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleUnarchive(ev)}>Bỏ lưu trữ</button>}
-                        {showDelete  && <button className="btn-danger btn-sm ev-card-btn" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                      {/* Hàng 3: nút hành động — muted style, không đỏ */}
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>
+                        <button style={pastBtn} onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
+                        <button style={pastBtn} onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
+                        {showEdit    && <button style={pastBtn} onClick={() => { setSelected(ev); setModal('form'); }}>✏️ Sửa</button>}
+                        {showCancel  && <button style={pastBtnDanger} onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
+                        {showArchive && <button style={pastBtn} onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>}
+                        {showUnarch  && <button style={pastBtn} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>}
+                        {showDelete  && <button style={pastBtnDanger} onClick={() => handleDelete(ev)}>🗑 Xóa</button>}
                       </div>
                     </div>
                   );
