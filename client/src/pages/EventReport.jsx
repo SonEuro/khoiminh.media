@@ -310,9 +310,12 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
   const [fullData, setFullData] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
+  const [imgScale, setImgScale] = useState(1);
   const [confirming, setConfirming] = useState(false);
   const [confirmedAt, setConfirmedAt] = useState(report.confirmed_at || null);
   const { user: currentUser } = useAuth();
+  const lightboxImgRef = useRef(null);
+  const imgScaleRef = useRef(1);
 
   const detail = fullData || report;
 
@@ -331,14 +334,46 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
     }
   }
 
+  // Reset zoom khi chuyển ảnh
   useEffect(() => {
-    const vp = document.querySelector('meta[name="viewport"]');
-    if (!vp) return;
-    if (imgIdx !== null) {
-      vp.content = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
-    } else {
-      vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
+    imgScaleRef.current = 1;
+    setImgScale(1);
+  }, [imgIdx]);
+
+  // Pinch-to-zoom bằng CSS transform — không zoom viewport
+  useEffect(() => {
+    const el = lightboxImgRef.current;
+    if (!el || imgIdx === null) return;
+    let startDist = null, startScale = 1;
+    function onStart(e) {
+      if (e.touches.length === 2) {
+        startDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        startScale = imgScaleRef.current;
+      }
     }
+    function onMove(e) {
+      if (e.touches.length !== 2 || !startDist) return;
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
+      const s = Math.min(5, Math.max(1, startScale * (dist / startDist)));
+      imgScaleRef.current = s;
+      setImgScale(s);
+    }
+    function onEnd() { startDist = null; }
+    el.addEventListener('touchstart', onStart,  { passive: true });
+    el.addEventListener('touchmove',  onMove,   { passive: false });
+    el.addEventListener('touchend',   onEnd,    { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove',  onMove);
+      el.removeEventListener('touchend',   onEnd);
+    };
   }, [imgIdx]);
 
   async function handleConfirm(e) {
@@ -555,9 +590,16 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             background:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center',
           }}
         >
-          <img src={imgUrl(detail.images?.[imgIdx])} alt=""
+          <img ref={lightboxImgRef} src={imgUrl(detail.images?.[imgIdx])} alt=""
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)', touchAction:'pinch-zoom' }} />
+            style={{
+              maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px',
+              boxShadow:'0 0 40px rgba(0,0,0,0.8)',
+              transform: `scale(${imgScale})`,
+              transformOrigin: 'center',
+              transition: imgScale === 1 ? 'transform 0.2s' : 'none',
+              touchAction: 'none',
+            }} />
           <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
           {detail.images?.length > 1 && (
