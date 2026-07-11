@@ -1500,8 +1500,74 @@ export default function WorkSchedule() {
             </>}
 
             {zones.past.length > 0 && <>
-              <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY LÀM VIỆC ĐÃ HOÀN THÀNH" count={zones.past.length} />
-              {zones.past.map(s => renderCard(s, 'past'))}
+              <div style={{ margin:'10px 0 6px', display:'flex', alignItems:'center', gap:'10px' }}>
+                <div style={{ height:'1px', flex:1, background:'linear-gradient(90deg,rgba(120,120,160,0.35),transparent)' }} />
+                <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'0.1em', color:'#7878a0', whiteSpace:'nowrap' }}>
+                  NGÀY LÀM VIỆC ĐÃ HOÀN THÀNH ({zones.past.length})
+                </span>
+                <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
+              </div>
+              <div style={{ borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px', display:'flex', flexDirection:'column', gap:'6px' }}>
+                {zones.past.map(s => {
+                  const pastBtn = {
+                    display:'inline-flex', alignItems:'center', gap:'6px',
+                    fontSize:'0.82rem', fontWeight:700, cursor:'pointer',
+                    padding:'9px 14px', borderRadius:'8px',
+                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',
+                    color:'#9090a8', opacity:0.9,
+                  };
+                  const pastBtnDanger = { ...pastBtn, color:'#f87171', border:'1px solid rgba(248,113,113,0.25)', background:'rgba(248,113,113,0.06)' };
+                  const allDates = PHASES
+                    .map(p => ({ key: p.key, dates: s[`${p.key}_dates`] || [] }))
+                    .filter(({ dates }) => dates.length > 0)
+                    .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare(([...b].sort()[0] || '')));
+                  return (
+                    <div key={s.id} style={{
+                      background:'rgba(120,120,160,0.03)',
+                      border:'1px solid rgba(120,120,160,0.15)',
+                      borderLeft:'3px solid #7878a0',
+                      borderRadius:'8px',
+                      padding:'9px 12px',
+                    }}>
+                      {/* Hàng 1: tên + status badge */}
+                      <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'7px', flexWrap:'wrap' }}>
+                        <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.event_name}</span>
+                        <span style={{
+                          padding:'2px 9px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, flexShrink:0,
+                          background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
+                          color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
+                          border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
+                        }}>
+                          {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
+                        </span>
+                      </div>
+                      {/* Hàng 2: chip thông tin */}
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>
+                        {s.scheduler_name && (
+                          <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {s.scheduler_name}</span>
+                        )}
+                        {s.client && (
+                          <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>🏢 {s.client}</span>
+                        )}
+                        {s.location && (
+                          <span style={{ fontSize:'0.76rem', color:'#5080a0', background:'rgba(96,165,250,0.05)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'5px', padding:'2px 7px' }}>📍 {s.location}</span>
+                        )}
+                        {allDates.map(({ key, dates }) => (
+                          <span key={key} style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>
+                            {renderDates(key, dates)}
+                          </span>
+                        ))}
+                      </div>
+                      {/* Hàng 3: nút muted */}
+                      <div className="ws-card-actions">
+                        <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
+                        {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
+                        {canDelete(s) && <button style={pastBtnDanger} onClick={() => handleDelete(s)}>🗑</button>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </>}
           </div>
         );
