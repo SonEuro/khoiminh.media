@@ -286,13 +286,15 @@ export default function ViolationReport() {
           </div>
         )}
 
-        <div style={{ maxHeight: '292px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {violations.map(v => (
-            <ViolationCard key={v.id} v={v} isSuperAdmin={isSuperAdmin}
+        <div style={{ maxHeight: '292px', overflowY: 'auto' }}>
+          {violations.map((v, i) => (
+            <div key={v.id} style={{ marginBottom: i < violations.length - 1 ? '12px' : 0 }}>
+            <ViolationCard v={v} isSuperAdmin={isSuperAdmin}
               onDelete={() => {
                 if (!confirm('Xóa báo cáo này?')) return;
                 api.deleteViolation(v.id).then(load).catch(e => alert(e.message));
               }} />
+            </div>
           ))}
         </div>
       </div>
