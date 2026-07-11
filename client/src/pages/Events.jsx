@@ -359,7 +359,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       <div>
         <label className="label">Bộ phận thực hiện</label>
         <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'6px' }}>
-          {Object.keys(DEPT_COLORS).map(dept => {
+          {['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Cơ Sở Vật Chất'].map(dept => {
             const dc = getDeptColor(dept);
             const selected = (form.departments || []).includes(dept);
             return (
