@@ -875,7 +875,7 @@ function TraNccModal({ txId, onClose }) {
 }
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
-function Section({ Icon, title, color, border, count, children }) {
+function Section({ Icon, title, color, border, count, children, maxHeight = '292px' }) {
   const [open, setOpen] = useState(true);
   const rgb = hexToRgb(color);
   return (
@@ -924,7 +924,7 @@ function Section({ Icon, title, color, border, count, children }) {
         }
       </button>
       {open && (
-        <div style={{ padding: '14px 16px', maxHeight: '292px', overflowY: 'auto',
+        <div style={{ padding: '14px 16px', maxHeight, overflowY: 'auto',
           scrollbarWidth: 'thin', scrollbarColor: `${color}33 transparent` }}>
           {children}
         </div>
@@ -1290,11 +1290,11 @@ export default function Transactions() {
             <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={handleDeleteTx} canDeleteRow={tx => isSuperAdmin || tx.created_by_id === user?.id} confirming={confirming} />
           </Section>
 
-          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
+          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
             <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
           </Section>
 
-          <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
+          <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
             <TxRows txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
           </Section>
 
