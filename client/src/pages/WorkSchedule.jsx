@@ -1541,7 +1541,7 @@ export default function WorkSchedule() {
                           color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
                           border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
                         }}>
-                          {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
+                          {s.status === 'confirmed' ? '✓ Xác nhận' : '📝 Nháp'}
                         </span>
                         {s.scheduler_name && (
                           <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {s.scheduler_name}</span>
