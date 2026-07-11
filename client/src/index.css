@@ -294,7 +294,7 @@
 
 /* ── WorkSchedule card action buttons ───────────────── */
 .ws-card-actions  { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.ws-card-btn-main { flex: 0 0 auto; }
+.ws-card-btn-main { flex: 0 0 auto; padding: 9px 14px !important; }
 .ws-card-confirm  { flex: 0 0 auto; }
 
 @media (max-width: 767px) {
