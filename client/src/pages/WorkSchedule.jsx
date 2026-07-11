@@ -1068,7 +1068,7 @@ function MySchedulesSection({ schedules, user, onSelect }) {
       >
         {/* Hàng 1: Tên */}
         <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
-        <DeptBadges s={s} style={{ marginTop:'4px', marginBottom:'2px' }} />
+        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px',marginBottom:'2px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
         {/* Hàng 2: Địa điểm */}
         {s.location && <p style={{ margin: '4px 0 0', fontSize: '0.80rem', color: '#7878a0' }}>📍 {s.location}</p>}
         {/* Hàng 3: Ngày */}
@@ -1139,21 +1139,6 @@ export default function WorkSchedule() {
   const [events, setEvents] = useState([]);
   const [modal, setModal] = useState(null);
 
-  function getEventDepts(s) {
-    const ev = events.find(e => e.id === s.event_id);
-    try { return JSON.parse(ev?.departments || '[]') || []; } catch { return []; }
-  }
-  function DeptBadges({ s, style }) {
-    const depts = getEventDepts(s);
-    if (!depts.length) return null;
-    return (
-      <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', ...style }}>
-        {depts.map(dept => { const dc = getDeptColor(dept); return (
-          <span key={dept} style={{ fontSize:'0.74rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px', color:dc.color, background:dc.bg, border:`1px solid ${dc.border}` }}>{dept}</span>
-        );})}
-      </div>
-    );
-  }
   const [selected, setSelected] = useState(null);
   const [scheduleHistory, setScheduleHistory] = useState([]);
   const [obligations, setObligations] = useState([]);
@@ -1442,7 +1427,7 @@ export default function WorkSchedule() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                  <DeptBadges s={s} style={{ marginBottom:'4px' }} />
+                  {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'4px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
                   <p style={{ margin: 0, fontSize: '0.84rem', color: '#7878a0' }}>
                     👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
                   </p>
@@ -1550,7 +1535,7 @@ export default function WorkSchedule() {
                       {/* Hàng 1: tên */}
                       <div style={{ marginBottom:'7px' }}>
                         <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8' }}>{s.event_name}</span>
-                        <DeptBadges s={s} style={{ marginTop:'4px' }} />
+                        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
                       </div>
                       {/* Hàng 2: chip + nút cùng hàng */}
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', flexWrap:'wrap' }}>
