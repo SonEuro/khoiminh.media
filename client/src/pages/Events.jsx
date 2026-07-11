@@ -943,7 +943,9 @@ export default function Events() {
             </>}
             {pastZone.length > 0 && <>
               <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA / HỦY" count={pastZone.length} />
-              {pastZone.map(ev => renderCard(ev, 'past'))}
+              <div style={{ maxHeight:'585px', overflowY:'auto' }}>
+                {pastZone.map(ev => renderCard(ev, 'past'))}
+              </div>
             </>}
           </div>
         );
