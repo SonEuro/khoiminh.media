@@ -1258,7 +1258,7 @@ export default function EventReport() {
                   {confirmedReports.length} báo cáo
                 </span>
               </div>
-              <div style={{ background:'#13131d', maxHeight:'232px', overflowY:'auto', padding:'8px 12px' }}>
+              <div style={{ background:'#13131d', maxHeight:'292px', overflowY:'auto', padding:'8px 12px' }}>
                 {order.map(k => (
                   <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
                 ))}
@@ -1278,7 +1278,7 @@ export default function EventReport() {
                   {lockedObs.length} mục
                 </span>
               </div>
-              <div style={{ background:'#13131d', maxHeight:'232px', overflowY:'auto' }}>
+              <div style={{ background:'#13131d', maxHeight:'292px', overflowY:'auto' }}>
                 {lockedObs.map((ob, i) => {
                   const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
                   const deptC = obDept ? getDeptColor(obDept) : null;

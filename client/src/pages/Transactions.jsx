@@ -924,7 +924,7 @@ function Section({ Icon, title, color, border, count, children }) {
         }
       </button>
       {open && (
-        <div style={{ padding: '14px 16px', maxHeight: '232px', overflowY: 'auto',
+        <div style={{ padding: '14px 16px', maxHeight: '292px', overflowY: 'auto',
           scrollbarWidth: 'thin', scrollbarColor: `${color}33 transparent` }}>
           {children}
         </div>

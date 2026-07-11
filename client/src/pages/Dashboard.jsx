@@ -574,7 +574,7 @@ function AdminSec({ title, color, rgb, count, linkTo, defaultOpen = true, childr
         )}
         <span style={{ fontSize: '0.80rem', color: `rgba(${rgb},0.6)`, flexShrink: 0, marginLeft: '2px', transition: 'transform 0.18s', display: 'inline-block', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
       </div>
-      {open && <div style={{ background: '#13131d', maxHeight: '232px', overflowY: 'auto' }}>{children}</div>}
+      {open && <div style={{ background: '#13131d', maxHeight: '292px', overflowY: 'auto' }}>{children}</div>}
     </div>
   );
 }
