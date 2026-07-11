@@ -1507,7 +1507,7 @@ export default function WorkSchedule() {
                 </span>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
               </div>
-              <div style={{ borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px', display:'flex', flexDirection:'column', gap:'6px' }}>
+              <div style={{ borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px', display:'flex', flexDirection:'column', gap:'6px', maxHeight:'585px', overflowY:'auto' }}>
                 {zones.past.map(s => {
                   const pastBtn = {
                     display:'inline-flex', alignItems:'center', gap:'6px',
