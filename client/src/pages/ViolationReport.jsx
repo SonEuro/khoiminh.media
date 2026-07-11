@@ -277,7 +277,7 @@ export default function ViolationReport() {
       {/* ── DANH SÁCH ── */}
       <div>
         <h2 style={{ color: GOLD, fontSize: '0.84rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px' }}>
-          Lịch sử báo cáo ({violations.length})
+          Lịch sử vi phạm ({violations.length})
         </h2>
 
         {violations.length === 0 && (
@@ -286,7 +286,7 @@ export default function ViolationReport() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div style={{ maxHeight: '292px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {violations.map(v => (
             <ViolationCard key={v.id} v={v} isSuperAdmin={isSuperAdmin}
               onDelete={() => {
