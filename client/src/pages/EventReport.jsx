@@ -60,6 +60,10 @@ const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Hoàn thành sớm', 'Chậm t
 const COMPLETED_CHIPS  = ['Hoàn thành tất cả hạng mục', 'Hoàn thành với điều chỉnh nhỏ', 'Hoàn thành một phần', 'Chưa hoàn thành'];
 const QUALITY_CHIPS    = ['Xuất sắc', 'Tốt', 'Đạt yêu cầu', 'Cần cải thiện'];
 
+// Hỗ trợ cả format cũ (string URL) và mới ({url, thumb})
+function imgUrl(src)   { return (src && typeof src === 'object') ? src.url   : src; }
+function imgThumb(src) { return (src && typeof src === 'object') ? src.thumb : src; }
+
 function resizeImage(file, maxPx = 1000) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -466,7 +470,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
               <p style={{ ...labelStyle, marginBottom:'8px' }}>Hình ảnh đính kèm ({report.images.length})</p>
               <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
                 {report.images.map((src, i) => (
-                  <img key={i} src={src} alt=""
+                  <img key={i} src={imgThumb(src)} alt="" loading="lazy"
                     onClick={() => setImgIdx(i)}
                     style={{ width:'80px', height:'80px', objectFit:'cover', borderRadius:'6px',
                       border:`1px solid rgba(201,168,76,0.3)`, cursor:'pointer' }} />
@@ -523,7 +527,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             background:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center',
           }}
         >
-          <img src={report.images[imgIdx]} alt=""
+          <img src={imgUrl(report.images[imgIdx])} alt=""
             style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)' }} />
           <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
@@ -1069,7 +1073,6 @@ export default function EventReport() {
           const { url } = await res.json();
           return url;
         } catch {
-          // fallback: lưu base64 nếu upload server lỗi
           return resizeImage(f);
         }
       }));
@@ -1565,7 +1568,7 @@ export default function EventReport() {
             <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'12px' }}>
               {form.images.map((src, i) => (
                 <div key={i} style={{ position:'relative' }}>
-                  <img src={src} alt="" style={{ width:'72px', height:'72px', objectFit:'cover', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)' }} />
+                  <img src={imgThumb(src)} alt="" style={{ width:'72px', height:'72px', objectFit:'cover', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)' }} />
                   <button type="button" onClick={() => setField('images', form.images.filter((_, j) => j !== i))}
                     style={{
                       position:'absolute', top:'-6px', right:'-6px',
