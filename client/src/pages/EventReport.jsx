@@ -825,7 +825,13 @@ export default function EventReport() {
           setLockedObs(locked);
         } else {
           const myName = user?.full_name || '';
-          setLockedObs(locked.filter(o => o.lead_name === myName || o.user_id === user?.id));
+          if (user?.is_truong_phong) {
+            const dept = getUserKmDept(user);
+            const deptMembers = new Set(KM_STAFF_GROUPS.find(g => g.dept === dept)?.members || []);
+            setLockedObs(locked.filter(o => deptMembers.has(o.lead_name) || o.lead_name === myName || o.user_id === user?.id));
+          } else {
+            setLockedObs(locked.filter(o => o.lead_name === myName || o.user_id === user?.id));
+          }
         }
       })
       .catch(() => {});
