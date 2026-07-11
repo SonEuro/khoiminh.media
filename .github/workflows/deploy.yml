@@ -54,7 +54,7 @@ jobs:
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avz --delete --exclude='.git' --exclude='node_modules' --exclude='server/kho.db' --exclude='server/db.sqlite' --exclude='server/*.bak' --exclude='.env' --exclude='server/node_modules'
+          switches: -avz --delete --exclude='.git' --exclude='node_modules' --exclude='server/kho.db' --exclude='server/db.sqlite' --exclude='server/*.bak' --exclude='.env' --exclude='server/node_modules' --exclude='server/uploads/'
           path: ./
           remote_path: /var/www/kho-khoiminh/
           remote_host: 103.15.51.119
