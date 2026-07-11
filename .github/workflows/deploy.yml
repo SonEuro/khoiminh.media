@@ -31,6 +31,26 @@ jobs:
           rm -rf server/public
           cp -r client/dist server/public
 
+      - name: Backup DB on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 103.15.51.119
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            DB=/var/www/kho-khoiminh/server/db.sqlite
+            BAK_DIR=/var/backups/kho-khoiminh
+            mkdir -p "$BAK_DIR"
+            if [ -f "$DB" ]; then
+              cp "$DB" "$BAK_DIR/db_$(date +%Y%m%d_%H%M%S).sqlite"
+              echo "✅ Backup OK"
+              # Giữ tối đa 10 bản gần nhất
+              ls -t "$BAK_DIR"/db_*.sqlite | tail -n +11 | xargs rm -f 2>/dev/null || true
+              ls -lh "$BAK_DIR"
+            else
+              echo "⚠️ DB chưa tồn tại, bỏ qua backup"
+            fi
+
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
         with:
