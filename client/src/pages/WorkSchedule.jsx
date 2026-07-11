@@ -1512,7 +1512,7 @@ export default function WorkSchedule() {
                   const pastBtn = {
                     display:'inline-flex', alignItems:'center', gap:'6px',
                     fontSize:'0.82rem', fontWeight:700, cursor:'pointer',
-                    padding:'9px 14px', borderRadius:'8px',
+                    padding:'11px 18px', borderRadius:'8px',
                     background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',
                     color:'#9090a8', opacity:0.9,
                   };
