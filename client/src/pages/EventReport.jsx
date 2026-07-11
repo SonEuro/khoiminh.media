@@ -473,7 +473,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           {/* Timeline row */}
           {(report.time_present || report.time_onset || report.time_off || report.time_end) && (
             <div className="time-grid-4" style={{
-              display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px',
+              display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(80px, 1fr))', gap:'8px',
               background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom:'14px',
             }}>
               {[
@@ -481,7 +481,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                 ['Onset', report.time_onset],
                 ['Off máy', report.time_off],
                 ['Kết thúc', report.time_end],
-              ].map(([l, v]) => v && (
+              ].map(([l, v]) => v && v !== '00:00' && (
                 <div key={l} style={{ textAlign:'center' }}>
                   <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
                   <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
