@@ -1536,14 +1536,6 @@ export default function WorkSchedule() {
                       {/* Hàng 2: chip + nút cùng hàng */}
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', flexWrap:'wrap' }}>
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', flex:1, minWidth:0 }}>
-                          <span style={{
-                            padding:'2px 9px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, flexShrink:0,
-                            background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
-                            color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
-                            border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
-                          }}>
-                            {s.status === 'confirmed' ? '✓ Xác nhận' : '📝 Nháp'}
-                          </span>
                           {s.scheduler_name && (
                             <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {s.scheduler_name}</span>
                           )}
@@ -1559,7 +1551,15 @@ export default function WorkSchedule() {
                             </span>
                           ))}
                         </div>
-                        <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
+                          <span style={{
+                            padding:'2px 9px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, flexShrink:0,
+                            background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
+                            color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
+                            border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
+                          }}>
+                            {s.status === 'confirmed' ? '✓ Xác nhận' : '📝 Nháp'}
+                          </span>
                           <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
                           {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
                           {canDelete(s) && <button style={pastBtnDanger} onClick={() => handleDelete(s)}>🗑</button>}
