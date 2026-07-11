@@ -94,6 +94,7 @@ router.put('/:id', requireAuth, (req, res) => {
   if (!isAdmin && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 21:00 hôm sau)' });
 
   const {
+    location,
     km_staff, freelancer_staff,
     time_present, time_onset, time_off, time_end,
     incomplete, incidents, progress, completed_work, service_quality,
@@ -107,12 +108,14 @@ router.put('/:id', requireAuth, (req, res) => {
 
   db.prepare(`
     UPDATE event_reports SET
+      location=?,
       km_staff=?, freelancer_staff=?,
       time_present=?, time_onset=?, time_off=?, time_end=?,
       incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
       images=?, job_content=?, timeline=?, edit_history=?
     WHERE id=?
   `).run(
+    location || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
     time_present || '', time_onset || '', time_off || '', time_end || '',
     incomplete || '', incidents || '', progress || '', completed_work || '', service_quality || '',
