@@ -1284,7 +1284,8 @@ export default function WorkSchedule() {
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {[...overdue, ...pending].map(ob => {
                 const isOver = ob.overdue;
-                const left = isOver ? graceLeft(ob.lock_time) : null;
+                const isLocked = ob.locked;
+                const left = isOver && !isLocked ? graceLeft(ob.lock_time) : null;
                 return (
                   <div key={ob.id} style={{
                     display:'flex', alignItems:'center', gap:'8px',
@@ -1299,16 +1300,19 @@ export default function WorkSchedule() {
                       </div>
                       <div style={{ fontSize:'0.84rem', color:'#a0a0b8' }}>
                         {phaseLabel[ob.phase]} · {fmtD(ob.assigned_date)}
-                        {isOver && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn{left ? ` · ${left}` : ''}</span>}
+                        {isLocked && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>🚫 Đã vi phạm</span>}
+                        {isOver && !isLocked && <span style={{ color:'#f87171', marginLeft:'5px', fontWeight:700 }}>⚠ Quá hạn{left ? ` · ${left}` : ''}</span>}
                         {!isOver && <span style={{ color:'#fbbf24', marginLeft:'5px' }}>Hạn: trưa {fmtD(ob.deadline.slice(0,10))}</span>}
                       </div>
                     </div>
-                    <button
-                      onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
-                      style={{ flexShrink:0, background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 10px', fontSize:'0.84rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
-                    >
-                      Nộp →
-                    </button>
+                    {!isLocked && (
+                      <button
+                        onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
+                        style={{ flexShrink:0, background: isOver ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.15)', border:`1px solid ${isOver ? 'rgba(248,113,113,0.5)' : 'rgba(251,191,36,0.4)'}`, borderRadius:'6px', padding:'4px 10px', fontSize:'0.84rem', fontWeight:700, color: isOver ? '#f87171' : '#fbbf24', cursor:'pointer', whiteSpace:'nowrap' }}
+                      >
+                        Nộp →
+                      </button>
+                    )}
                   </div>
                 );
               })}
