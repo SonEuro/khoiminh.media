@@ -1559,7 +1559,7 @@ export default function WorkSchedule() {
                             color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
                             border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
                           }}>
-                            {s.status === 'confirmed' ? '✓ Xác nhận' : '📝 Nháp'}
+                            {s.status === 'confirmed' ? 'Xác nhận' : '📝 Nháp'}
                           </span>
                           <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
                           {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
