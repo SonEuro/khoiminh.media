@@ -1553,7 +1553,8 @@ export default function WorkSchedule() {
                         </div>
                         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
                           <span style={{
-                            padding:'2px 9px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, flexShrink:0,
+                            display:'inline-flex', alignItems:'center', gap:'6px',
+                            padding:'11px 18px', borderRadius:'8px', fontSize:'0.82rem', fontWeight:700, flexShrink:0,
                             background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
                             color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
                             border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
