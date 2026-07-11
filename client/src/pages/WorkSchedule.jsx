@@ -1529,9 +1529,12 @@ export default function WorkSchedule() {
                       borderRadius:'8px',
                       padding:'9px 12px',
                     }}>
-                      {/* Hàng 1: tên + status badge */}
-                      <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'7px', flexWrap:'wrap' }}>
-                        <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.event_name}</span>
+                      {/* Hàng 1: tên */}
+                      <div style={{ marginBottom:'7px' }}>
+                        <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8' }}>{s.event_name}</span>
+                      </div>
+                      {/* Hàng 2: chip thông tin + status */}
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>
                         <span style={{
                           padding:'2px 9px', borderRadius:'9999px', fontSize:'0.78rem', fontWeight:700, flexShrink:0,
                           background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
@@ -1540,9 +1543,6 @@ export default function WorkSchedule() {
                         }}>
                           {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
                         </span>
-                      </div>
-                      {/* Hàng 2: chip thông tin */}
-                      <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>
                         {s.scheduler_name && (
                           <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {s.scheduler_name}</span>
                         )}
