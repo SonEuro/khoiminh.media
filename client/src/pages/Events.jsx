@@ -944,7 +944,77 @@ export default function Events() {
             {pastZone.length > 0 && <>
               <ZoneHeader color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="ĐÃ QUA / HỦY" count={pastZone.length} />
               <div style={{ maxHeight:'585px', overflowY:'auto' }}>
-                {pastZone.map(ev => renderCard(ev, 'past'))}
+                {pastZone.map(ev => {
+                  const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
+                  const isCancelled = ev.status === 'cancelled';
+                  const accent    = isCancelled ? '#f87171' : '#7878a0';
+                  const accentRgb = isCancelled ? '248,113,113' : '120,120,160';
+                  const startDates = parseDatesField(ev, 'start_dates', 'start_date');
+                  const endDates   = parseDatesField(ev, 'end_dates',   'end_date');
+                  const filmDates  = parseDatesField(ev, 'filming_dates', 'filming_date');
+                  const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
+                  const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                  const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
+                  const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
+                  const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
+                  return (
+                    <div key={ev.id} id={`ev-card-${ev.id}`} style={{
+                      background: `rgba(${accentRgb},0.04)`,
+                      border: `1px solid rgba(${accentRgb},0.22)`,
+                      borderLeft: `3px solid ${accent}`,
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      marginBottom: '8px',
+                    }}>
+                      {/* Hàng 1: status + tên + code + phiếu */}
+                      <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'8px', flexWrap:'wrap' }}>
+                        <span className={s.cls} style={{ flexShrink:0 }}>{s.label}</span>
+                        {ev.archived_at && <span style={{ fontSize:'0.72rem', color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>📦 Lưu trữ</span>}
+                        <span style={{ fontWeight:700, fontSize:'0.95rem', color: isCancelled ? '#f87171bb' : '#c8c8e0', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</span>
+                        <span style={{ fontSize:'0.74rem', color:'#555570', flexShrink:0 }}>{ev.code}</span>
+                        {ev.tx_count > 0 && (
+                          <span style={{ fontSize:'0.74rem', color:GOLD, background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'9999px', padding:'1px 7px', flexShrink:0 }}>{ev.tx_count} phiếu</span>
+                        )}
+                      </div>
+                      {/* Hàng 2: ô thông tin */}
+                      {(ev.client || ev.location || startDates.length > 0 || filmDates.length > 0) && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'8px' }}>
+                          {ev.client && (
+                            <span style={{ fontSize:'0.78rem', color:'#a0a0b8', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'2px 8px' }}>👤 {ev.client}</span>
+                          )}
+                          {ev.location && (
+                            <span style={{ fontSize:'0.78rem', color:'#60a5fa', background:'rgba(96,165,250,0.07)', border:'1px solid rgba(96,165,250,0.2)', borderRadius:'6px', padding:'2px 8px' }}>📍 {ev.location}</span>
+                          )}
+                          {startDates.length > 0 && (
+                            <span style={{ fontSize:'0.78rem', color:'#a0a0b8', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', padding:'2px 8px' }}>
+                              📅 {startDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
+                              {endDates.length>0 && endDates[0]!==startDates[0] && <> → {endDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</>}
+                            </span>
+                          )}
+                          {filmDates.length > 0 && (
+                            <span style={{ fontSize:'0.78rem', color:'#fb923c', background:'rgba(251,146,60,0.08)', border:'1px solid rgba(251,146,60,0.28)', borderRadius:'6px', padding:'2px 8px', fontWeight:700 }}>
+                              🎬 {filmDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {/* Hàng 3: nút hành động */}
+                      <div className="ev-card-row">
+                        <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('detail'); }}>
+                          <span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span>
+                        </button>
+                        <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('staff'); }}>
+                          <span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span>
+                        </button>
+                        {showEdit    && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                        {showCancel  && <button className="btn-danger btn-sm ev-card-btn" onClick={() => handleCancel(ev)}><span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span></button>}
+                        {showArchive && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
+                        {showUnarch  && <button className="btn-secondary btn-sm ev-card-btn" onClick={() => handleUnarchive(ev)}>Bỏ lưu trữ</button>}
+                        {showDelete  && <button className="btn-danger btn-sm ev-card-btn" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </>}
           </div>
