@@ -773,6 +773,8 @@ export default function EventReport() {
   const [notInSchedule, setNotInSchedule] = useState(false);
   const [allowedEventIds, setAllowedEventIds] = useState(null); // null = show all (admin), Set = filtered
   const [dateLocked, setDateLocked] = useState(false);
+  const [confirmedSearch, setConfirmedSearch] = useState('');
+  const [violationSearch, setViolationSearch] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -1135,11 +1137,19 @@ export default function EventReport() {
 
   // ── List view ───────────────────────────────────────────────────────────────
   if (view === 'list') {
+    // Tách báo cáo: sự kiện < 48h (mới) và >= 48h (đã xác nhận)
+    const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+    const [ty, tm, td] = todayVN.split('-').map(Number);
+    const threshDate = new Date(Date.UTC(ty, tm - 1, td - 2));
+    const confirmedThresh = `${threshDate.getUTCFullYear()}-${String(threshDate.getUTCMonth()+1).padStart(2,'0')}-${String(threshDate.getUTCDate()).padStart(2,'0')}`;
+    const recentReports   = reports.filter(r => !r.report_date || r.report_date > confirmedThresh);
+    const confirmedReports = reports.filter(r => r.report_date && r.report_date <= confirmedThresh);
+
     // Dept-grouped view
     const deptGroups = (() => {
       const order = [];
       const map = {};
-      reports.forEach(r => {
+      recentReports.forEach(r => {
         const dept = KM_STAFF_GROUPS.find(g => g.members.includes(r.reporter_name))?.dept || 'Khác';
         if (!map[dept]) { map[dept] = []; order.push(dept); }
         map[dept].push(r);
@@ -1178,7 +1188,7 @@ export default function EventReport() {
 
         {loading && <div className="card text-center py-10" style={{ color:'#7878a0' }}>Đang tải...</div>}
 
-        {!loading && reports.length === 0 && lockedObs.length === 0 && (
+        {!loading && recentReports.length === 0 && lockedObs.length === 0 && confirmedReports.length === 0 && (
           <div className="card text-center py-14">
             <p style={{ fontSize:'2.5rem', marginBottom:'8px' }}>📋</p>
             <p style={{ color:'#7878a0', fontWeight:600 }}>Chưa có báo cáo nào</p>
@@ -1190,7 +1200,7 @@ export default function EventReport() {
         {!loading && listMode === 'event' && (() => {
           const order = [];
           const map = {};
-          reports.forEach(r => {
+          recentReports.forEach(r => {
             const key = r.event_id ? String(r.event_id) : `_${r.id}`;
             if (!map[key]) {
               map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] };
@@ -1212,7 +1222,7 @@ export default function EventReport() {
         {!loading && listMode === 'date' && (() => {
           const map = {};
           const order = [];
-          reports.forEach(r => {
+          recentReports.forEach(r => {
             const d = r.report_date || '__';
             if (!map[d]) { map[d] = []; order.push(d); }
             map[d].push(r);
@@ -1233,20 +1243,81 @@ export default function EventReport() {
               ))
         )}
 
+        {/* Đã Xác Nhận – sự kiện đã qua 48h */}
+        {!loading && confirmedReports.length > 0 && (() => {
+          const q = confirmedSearch.toLowerCase().trim();
+          const filtered = q
+            ? confirmedReports.filter(r =>
+                (r.event_label || '').toLowerCase().includes(q) ||
+                (r.location    || '').toLowerCase().includes(q) ||
+                (r.report_date || '').includes(q) ||
+                (r.reporter_name || '').toLowerCase().includes(q)
+              )
+            : confirmedReports;
+          const sorted  = [...filtered].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
+          const toShow  = q ? sorted : sorted.slice(0, 5);
+          const order = [], map = {};
+          toShow.forEach(r => {
+            const key = r.event_id ? String(r.event_id) : `_${r.id}`;
+            if (!map[key]) { map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] }; order.push(key); }
+            map[key].reports.push(r);
+          });
+          return (
+            <div style={{ marginTop:'8px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'12px', flexWrap:'wrap' }}>
+                <span style={{ fontSize:'0.9rem' }}>✅</span>
+                <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#4ade80', letterSpacing:'0.05em' }}>ĐÃ XÁC NHẬN</span>
+                <span style={{ background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#4ade80' }}>
+                  {confirmedReports.length} báo cáo
+                </span>
+                <input
+                  value={confirmedSearch} onChange={e => setConfirmedSearch(e.target.value)}
+                  placeholder="🔍 Tìm báo cáo cũ..."
+                  className="input"
+                  style={{ flex:'1 1 160px', height:'30px', fontSize:'0.83rem', padding:'0 10px', minWidth:'120px' }}
+                />
+              </div>
+              {order.map(k => (
+                <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+              ))}
+              {!q && sorted.length > 5 && (
+                <div style={{ textAlign:'center', fontSize:'0.82rem', color:'#7878a0', padding:'8px 0 4px' }}>
+                  ... và {sorted.length - 5} báo cáo cũ hơn — tìm kiếm để xem thêm
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Vi phạm báo cáo – obligations đã bị khóa, hiển thị cuối trang */}
         {!loading && lockedObs.length > 0 && (() => {
           const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
+          const vq = violationSearch.toLowerCase().trim();
+          const filteredObs = vq
+            ? lockedObs.filter(ob =>
+                (ob.lead_name || '').toLowerCase().includes(vq) ||
+                (ob.event_display || ob.event_name || '').toLowerCase().includes(vq) ||
+                (ob.assigned_date || '').includes(vq)
+              )
+            : lockedObs;
+          const obsToShow = vq ? filteredObs : filteredObs.slice(0, 5);
           return (
             <div style={{ marginTop:'8px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:'12px', padding:'14px 16px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', flexWrap:'wrap' }}>
                 <span>🚫</span>
                 <span style={{ fontSize:'0.82rem', fontWeight:800, color:'#f87171', letterSpacing:'0.05em' }}>VI PHẠM BÁO CÁO</span>
                 <span style={{ background:'rgba(248,113,113,0.2)', border:'1px solid rgba(248,113,113,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#f87171' }}>
                   {lockedObs.length} mục
                 </span>
+                <input
+                  value={violationSearch} onChange={e => setViolationSearch(e.target.value)}
+                  placeholder="🔍 Tìm vi phạm..."
+                  className="input"
+                  style={{ flex:'1 1 140px', height:'28px', fontSize:'0.83rem', padding:'0 10px', minWidth:'110px' }}
+                />
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-                {lockedObs.map(ob => {
+                {obsToShow.map(ob => {
                   const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
                   const deptC = obDept ? getDeptColor(obDept) : null;
                   return (
@@ -1269,6 +1340,11 @@ export default function EventReport() {
                   );
                 })}
               </div>
+              {!vq && lockedObs.length > 5 && (
+                <div style={{ textAlign:'center', fontSize:'0.82rem', color:'#f87171', opacity:0.7, padding:'8px 0 2px' }}>
+                  ... và {lockedObs.length - 5} vi phạm cũ hơn — tìm kiếm để xem thêm
+                </div>
+              )}
             </div>
           );
         })()}
