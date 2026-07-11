@@ -253,6 +253,9 @@ function parseDatesField(ev, multiKey, singleKey) {
   if (ev[multiKey]) { try { const p = JSON.parse(ev[multiKey]); if (Array.isArray(p)) return p; } catch {} }
   return ev[singleKey] ? [ev[singleKey]] : [];
 }
+function parseDepts(ev) {
+  try { return JSON.parse(ev?.departments || '[]') || []; } catch { return []; }
+}
 
 
 function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
@@ -264,6 +267,7 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
       end_dates:   parseDatesField(initial, 'end_dates',   'end_date'),
       show_dates:  parseDatesField(initial, 'show_dates',  'show_date'),
       filming_dates: parseFilmingDates(initial),
+      departments: parseDepts(initial),
     };
   });
   const [showSuggest, setShowSuggest] = useState(false);
@@ -350,6 +354,32 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
             ))}
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="label">Bộ phận thực hiện</label>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'6px' }}>
+          {Object.keys(DEPT_COLORS).map(dept => {
+            const dc = getDeptColor(dept);
+            const selected = (form.departments || []).includes(dept);
+            return (
+              <button key={dept} type="button"
+                onClick={() => {
+                  const curr = form.departments || [];
+                  set('departments', selected ? curr.filter(d => d !== dept) : [...curr, dept]);
+                }}
+                style={{
+                  padding:'4px 12px', borderRadius:'20px', fontSize:'0.82rem', fontWeight:700,
+                  cursor:'pointer', transition:'all 0.15s',
+                  border: `1px solid ${selected ? dc.border : 'rgba(255,255,255,0.1)'}`,
+                  background: selected ? dc.bg : 'transparent',
+                  color: selected ? dc.color : '#7878a0',
+                }}>
+                {dept}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {!initial && creatorName && (
@@ -862,6 +892,13 @@ export default function Events() {
                 </div>
               </div>
               <h3 className="font-semibold text-lg mb-1">{ev.name}</h3>
+              {(() => { const depts = parseDepts(ev); return depts.length > 0 && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
+                  {depts.map(dept => { const dc = getDeptColor(dept); return (
+                    <span key={dept} style={{ fontSize:'0.75rem', fontWeight:700, padding:'2px 9px', borderRadius:'20px', color:dc.color, background:dc.bg, border:`1px solid ${dc.border}` }}>{dept}</span>
+                  );})}
+                </div>
+              );})()}
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
                 {ev.client   && <span>👤 {ev.client}</span>}
                 {ev.location && <span>📍 {ev.location}</span>}
@@ -991,6 +1028,14 @@ export default function Events() {
                           <span style={{ fontSize:'0.73rem', color:'#888860', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'9999px', padding:'1px 7px', flexShrink:0 }}>{ev.tx_count} phiếu</span>
                         )}
                       </div>
+                      {/* Dept badges */}
+                      {(() => { const depts = parseDepts(ev); return depts.length > 0 && (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
+                          {depts.map(dept => { const dc = getDeptColor(dept); return (
+                            <span key={dept} style={{ fontSize:'0.74rem', fontWeight:700, padding:'2px 8px', borderRadius:'20px', color:dc.color, background:dc.bg, border:`1px solid ${dc.border}` }}>{dept}</span>
+                          );})}
+                        </div>
+                      );})()}
                       {/* Hàng 2: ô thông tin */}
                       {(ev.client || ev.location || startDates.length > 0 || filmDates.length > 0) && (
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>

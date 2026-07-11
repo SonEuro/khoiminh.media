@@ -266,13 +266,14 @@ function parseMultiField(val, single) {
 }
 
 router.post('/', canWrite, (req, res) => {
-  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, notes } = req.body;
+  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, notes, departments } = req.body;
   if (!name) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
 
   const startArr = parseMultiField(start_dates);
   const endArr   = parseMultiField(end_dates);
   const filmArr  = parseMultiField(filming_dates);
   const showArr  = parseMultiField(show_dates);
+  const deptsJson = departments?.length ? JSON.stringify(departments) : null;
 
   const startDate = startArr[0] || null;
   const endDate   = endArr[endArr.length - 1] || null;
@@ -294,15 +295,15 @@ router.post('/', canWrite, (req, res) => {
   const today = db.prepare("SELECT date('now','localtime') AS d").get().d;
   const initialStatus = (startDate && startDate <= today) ? 'active' : 'planned';
   const r = db.prepare(`
-    INSERT INTO events (code, name, client, location, start_date, start_dates, end_date, end_dates, filming_date, filming_dates, show_date, show_dates, notes, status, created_by, created_by_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO events (code, name, client, location, start_date, start_dates, end_date, end_dates, filming_date, filming_dates, show_date, show_dates, notes, status, created_by, created_by_id, departments)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     code, finalName, client, location,
     startDate, startArr.length ? JSON.stringify(startArr) : null,
     endDate,   endArr.length   ? JSON.stringify(endArr)   : null,
     filmDate,  filmArr.length  ? JSON.stringify(filmArr)  : null,
     showDate,  showArr.length  ? JSON.stringify(showArr)  : null,
-    notes, initialStatus, req.user?.full_name || '', req.user?.id || null
+    notes, initialStatus, req.user?.full_name || '', req.user?.id || null, deptsJson
   );
   res.json({ id: r.lastInsertRowid, code, name: finalName });
   notifyAll(`🗓 Sự kiện mới: ${finalName}\n📍 ${location || '—'}\n📅 ${startDate || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
@@ -318,7 +319,8 @@ router.put('/:id', (req, res, next) => {
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
   if (ev.status === 'completed' && !['SUPER_ADMIN','DIRECTOR'].includes(req.user.role) && !req.user.is_truong_phong)
     return res.status(403).json({ error: 'Chỉ SUPER_ADMIN/DIRECTOR/Trưởng phòng được chỉnh sửa sự kiện đã hoàn thành' });
-  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, status, notes } = req.body;
+  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, status, notes, departments } = req.body;
+  const deptsJson2 = departments?.length ? JSON.stringify(departments) : null;
   const startArr2 = parseMultiField(start_dates);
   const endArr2   = parseMultiField(end_dates);
   const filmArr2  = parseMultiField(filming_dates);
@@ -331,14 +333,14 @@ router.put('/:id', (req, res, next) => {
     UPDATE events SET name=?, client=?, location=?,
       start_date=?, start_dates=?, end_date=?, end_dates=?,
       filming_date=?, filming_dates=?, show_date=?, show_dates=?,
-      status=?, notes=? WHERE id=?
+      status=?, notes=?, departments=? WHERE id=?
   `).run(
     name, client, location,
     startDate2, startArr2.length ? JSON.stringify(startArr2) : null,
     endDate2,   endArr2.length   ? JSON.stringify(endArr2)   : null,
     filmDate2,  filmArr2.length  ? JSON.stringify(filmArr2)  : null,
     showDate2,  showArr2.length  ? JSON.stringify(showArr2)  : null,
-    status, notes, req.params.id
+    status, notes, deptsJson2, req.params.id
   );
   // Đồng bộ tên sự kiện sang các bảng liên quan
   try { db.prepare('UPDATE work_schedules SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
