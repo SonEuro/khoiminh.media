@@ -886,6 +886,7 @@ export default function EventReport() {
       const names = new Set();
       const freeParts = [];
       const validDept = userKmDept && userKmDept !== '—';
+      let schedLocation = '';
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
@@ -894,6 +895,7 @@ export default function EventReport() {
           if (dates.length > 0 && !matchDate) continue;
           // KM staff chỉ auto-fill khi có ngày khớp cụ thể
           if (matchDate) {
+            if (!schedLocation && s.location) schedLocation = s.location;
             const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
             leadsForDate.forEach(l => {
               const n = typeof l === 'string' ? l : l?.name;
@@ -924,6 +926,7 @@ export default function EventReport() {
       if (names.size > 0) setForm(f => ({ ...f, km_staff: [...new Set([...f.km_staff, ...names])] }));
       const freelancerText = [...new Set(freeParts.flatMap(t => t.split(',').map(s => s.trim())).filter(Boolean))].join(', ');
       if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
+      if (schedLocation) setForm(f => ({ ...f, location: schedLocation }));
     }).catch(() => {});
   }, [form.event_id, form.report_date, user?.is_truong_phong, user?.full_name]);
 
@@ -942,11 +945,13 @@ export default function EventReport() {
       const leadNames    = new Set(); // chỉ leads (để kiểm tra isAloneInDept)
       const freeTextParts = [];       // freelancer text theo dept
       let isLeadThisDate = false;
+      let schedLocation = '';
       for (const s of scheds) {
         for (const key of phaseKeys) {
           const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
           const matchDate = dates.find(d => d === form.report_date) || dates.find(d => dateMatchesSched(d, form.report_date));
           if (!matchDate) continue;
+          if (!schedLocation && s.location && String(s.event_id) === String(form.event_id)) schedLocation = s.location;
           const leadsForDate = s[`${key}_leads_map`]?.[matchDate] || s[`${key}_leads`] || [];
           leadsForDate.forEach(l => {
             const n = typeof l === 'string' ? l : l?.name;
@@ -981,12 +986,13 @@ export default function EventReport() {
       if (user?.is_truong_phong) {
         const freelancerText = [...new Set(freeTextParts.flatMap(t => t.split(',').map(s => s.trim())).filter(Boolean))].join(', ');
         if (freelancerText) setForm(f => ({ ...f, freelancer_staff: f.freelancer_staff?.trim() ? f.freelancer_staff : freelancerText }));
+        if (schedLocation) setForm(f => ({ ...f, location: schedLocation }));
       }
       // isAloneInDept: user phải là lead ngày đó VÀ là lead duy nhất trong dept
       // → khớp với obligation system (chỉ tạo vi phạm cho leads)
       setIsAloneInDept(isLeadThisDate && leadNames.size === 1 && leadNames.has(myName));
     }).catch(() => { setIsAloneInDept(false); });
-  }, [form.report_date, user?.is_truong_phong, user?.full_name]);
+  }, [form.report_date, form.event_id, user?.is_truong_phong, user?.full_name]);
 
   // Kiểm tra người báo cáo có trong lịch làm việc của sự kiện không (áp dụng cho tất cả)
   // Chỉ block khi còn trong deadline — quá hạn vẫn cho nộp (ghi nhận nộp trễ)
