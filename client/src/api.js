@@ -10,6 +10,7 @@ async function request(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, {
+    cache: 'no-store',
     headers,
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
