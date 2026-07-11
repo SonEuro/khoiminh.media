@@ -965,11 +965,11 @@ export default function Events() {
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                   const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                   const pastBtn = {
-                    display:'inline-flex', alignItems:'center', gap:'4px',
-                    fontSize:'0.77rem', fontWeight:600, cursor:'pointer',
-                    padding:'3px 10px', borderRadius:'6px',
+                    display:'inline-flex', alignItems:'center', gap:'6px',
+                    fontSize:'0.82rem', fontWeight:700, cursor:'pointer',
+                    padding:'9px 14px', borderRadius:'8px',
                     background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',
-                    color:'#9090a8',
+                    color:'#9090a8', opacity:0.9,
                   };
                   const pastBtnDanger = { ...pastBtn, color:'#f87171', border:'1px solid rgba(248,113,113,0.25)', background:'rgba(248,113,113,0.06)' };
                   return (
@@ -1014,7 +1014,7 @@ export default function Events() {
                         </div>
                       )}
                       {/* Hàng 3: nút hành động — muted style, không đỏ */}
-                      <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>
+                      <div className="ev-card-row">
                         <button style={pastBtn} onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
                         <button style={pastBtn} onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
                         {showEdit    && <button style={pastBtn} onClick={() => { setSelected(ev); setModal('form'); }}>✏️ Sửa</button>}
