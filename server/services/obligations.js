@@ -3,13 +3,12 @@ const db = require('../database');
 const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 const PHASE_LABEL = { setup: 'Setup', teardown: 'Tháo dỡ', rehearsal: 'Rehearsal', filming: 'Ghi hình' };
 
-// VN time helpers (Vietnam = UTC+7, no DST)
 function getVNNow() {
   const vnTime = new Date(Date.now() + 7 * 3600 * 1000);
   return vnTime.toISOString().slice(0, 16).replace('T', ' ');
 }
 
-// deadline = day after assigned_date at 12:00 VN
+// Hạn nộp đúng hẹn: ngày làm việc + 1 ngày 12:00 VN
 function computeDeadline(date) {
   const [y, m, d] = date.split('-').map(Number);
   const next = new Date(Date.UTC(y, m - 1, d + 1));
@@ -17,6 +16,16 @@ function computeDeadline(date) {
   const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
   const nd = String(next.getUTCDate()).padStart(2, '0');
   return `${ny}-${nm}-${nd} 12:00`;
+}
+
+// Hạn cuối cùng: ngày làm việc + 1 ngày 23:59 VN — quá mới tạo "Không nộp báo cáo"
+function computeHardDeadline(date) {
+  const [y, m, d] = date.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  const ny = next.getUTCFullYear();
+  const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
+  const nd = String(next.getUTCDate()).padStart(2, '0');
+  return `${ny}-${nm}-${nd} 23:59`;
 }
 
 function parseDates(raw) {
@@ -32,8 +41,19 @@ function parseLeads(raw, date) {
   if (!raw) return [];
   try {
     const v = JSON.parse(raw);
-    if (Array.isArray(v)) return v; // flat list: same leads for all dates
-    if (v && typeof v === 'object') return v[date] || []; // map: per-date leads
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') return v[date] || [];
+  } catch {}
+  return [];
+}
+
+// Trả về mảng tên (string) km_staff — hỗ trợ flat array hoặc per-date map
+function parseKmStaff(raw, date) {
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v)) return v.filter(Boolean);
+    if (v && typeof v === 'object') return (v[date] || []).filter(Boolean);
   } catch {}
   return [];
 }
@@ -42,7 +62,7 @@ function syncObligations(scheduleId) {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(scheduleId);
   if (!sched) return;
 
-  const currentKeys = new Set(); // "lead_name|phase|date"
+  const currentKeys = new Set();
 
   for (const phase of PHASES) {
     const rawDates = sched[`${phase}_dates`] || sched[`${phase}_date`];
@@ -52,8 +72,16 @@ function syncObligations(scheduleId) {
     const rawLeads = sched[`${phase}_leads`];
 
     for (const date of dates) {
-      const leads = parseLeads(rawLeads, date);
-      for (const lead of leads) {
+      const leads = parseLeads(rawLeads, date).filter(l => l?.name);
+
+      // Nếu không có leads → km_staff đầu tiên chịu trách nhiệm báo cáo
+      let obligated = leads;
+      if (obligated.length === 0) {
+        const kmNames = parseKmStaff(sched[`${phase}_km_staff`], date);
+        if (kmNames.length > 0) obligated = [{ name: kmNames[0] }];
+      }
+
+      for (const lead of obligated) {
         if (!lead?.name) continue;
         currentKeys.add(`${lead.name}|${phase}|${date}`);
         const deadline = computeDeadline(date);
@@ -63,7 +91,6 @@ function syncObligations(scheduleId) {
             (schedule_id, event_id, event_name, lead_name, user_id, phase, assigned_date, deadline)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `).run(scheduleId, sched.event_id || null, sched.event_name || '', lead.name, user?.id || null, phase, date, deadline);
-        // Luôn cập nhật event_id, event_name, user_id (kể cả khi đổi sự kiện)
         db.prepare(`
           UPDATE lead_report_obligations
           SET event_id = ?, event_name = ?, user_id = COALESCE(?, user_id)
@@ -90,9 +117,8 @@ function syncObligations(scheduleId) {
 
 function checkAndCreateViolations() {
   const now = getVNNow();
-  // Lấy tất cả obligations đã qua deadline, chưa bị dismissed thủ công
-  // Bỏ filter violation_created=0 để reprocess các obligation có thể bị set sai trước đây
-  // Tạo vi phạm ngay khi qua deadline; lock (không cho nộp) sau deadline+24h
+
+  // Lấy obligations đã qua hạn đúng hẹn (12:00), chưa bị dismissed
   const overdue = db.prepare(`
     SELECT o.*, e.name AS ev_display
     FROM lead_report_obligations o
@@ -102,13 +128,15 @@ function checkAndCreateViolations() {
 
   for (const ob of overdue) {
     try {
-      // Tìm báo cáo đã nộp (nếu có) — lấy cả created_at để biết nộp đúng hay trễ hạn
-      // Cho phép report_date = assigned_date HOẶC ngày hôm sau
+      const hardDeadline = computeHardDeadline(ob.assigned_date);
+      const hardPassed = now >= hardDeadline;
+
       const nextDay = (() => {
         const [y, m, d] = ob.assigned_date.split('-').map(Number);
         const dt = new Date(Date.UTC(y, m - 1, d + 1));
         return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
       })();
+
       const reportRow = ob.user_id
         ? db.prepare(`
             SELECT created_at FROM event_reports
@@ -129,48 +157,56 @@ function checkAndCreateViolations() {
       const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
       const submittedAt = reportRow?.created_at?.slice(0, 16);
 
-      // Kiểm tra event_id còn tồn tại không (FK = ON → dùng null nếu event đã xóa)
       const safeEventId = ob.event_id
         ? (db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id) ? ob.event_id : null)
         : null;
 
-      // Tìm vi phạm hiện tại (nếu có) cho obligation này
       const existingViol = db.prepare(`
         SELECT id, violation_type FROM violations
         WHERE violator = ? AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
           AND description LIKE ? LIMIT 1
       `).get(ob.lead_name, `%ngày ${ob.assigned_date}%`);
 
-      const doInsertAndFlag = db.transaction(() => {
-        if (!reportRow) {
-          // Chưa nộp → tạo "Không nộp" nếu chưa có vi phạm nào
+      if (!reportRow) {
+        // Chưa nộp — chỉ xử lý khi đã qua 23:59 (hard deadline)
+        if (!hardPassed) continue;
+
+        db.transaction(() => {
           if (!existingViol) {
             db.prepare(`
               INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
               VALUES (?, ?, 'Hệ thống', ?, 'Không nộp báo cáo', ?)
             `).run(
               safeEventId, label, ob.lead_name,
-              `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn chót: ${ob.deadline}.`,
+              `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn cuối: ${hardDeadline}.`,
             );
           }
-        } else if (submittedAt > ob.deadline) {
-          // Nộp trễ → tạo hoặc nâng cấp vi phạm lên "Nộp trễ"
-          const newDesc = `Nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}) sau hạn chót ${ob.deadline} (nộp lúc ${reportRow.created_at}).`;
+          db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
+        })();
+
+      } else if (submittedAt > ob.deadline) {
+        // Nộp sau 12:00 → "Nộp báo cáo trễ"
+        const newDesc = `Nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}) sau hạn đúng hẹn ${ob.deadline} (nộp lúc ${reportRow.created_at}).`;
+        db.transaction(() => {
           if (!existingViol) {
             db.prepare(`
               INSERT INTO violations (event_id, event_label, reporter_name, violator, violation_type, description)
               VALUES (?, ?, 'Hệ thống', ?, 'Nộp báo cáo trễ', ?)
             `).run(safeEventId, label, ob.lead_name, newDesc);
           } else if (existingViol.violation_type === 'Không nộp báo cáo') {
-            // Nâng cấp: đã tạo "Không nộp" trước đó, nhưng họ đã nộp trễ trong grace period
+            // Nâng cấp: nộp trong khoảng 12:00–23:59 sau hard deadline
             db.prepare(`
               UPDATE violations SET violation_type = 'Nộp báo cáo trễ', description = ? WHERE id = ?
             `).run(newDesc, existingViol.id);
           }
-        }
+          db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
+        })();
+
+      } else {
+        // Nộp đúng hẹn — đánh dấu đã xử lý, không tạo vi phạm
         db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
-      });
-      doInsertAndFlag();
+      }
+
     } catch (e) {
       console.error(`[obligations] skip ob id=${ob.id} (${ob.lead_name}): ${e.message}`);
     }

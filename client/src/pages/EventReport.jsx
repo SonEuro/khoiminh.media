@@ -280,24 +280,23 @@ const fmtDate = (d) => {
   return d;
 };
 
-// Tính deadline và lock_time từ report_date (deadline = report_date+1 ngày 12:00, lock = deadline+24h)
+// lateness: đúng hẹn nếu nộp trước 12:00 hôm sau, trễ nếu 12:00–23:59, quá hạn nếu sau 23:59
 function getReportLateness(reportDate, createdAt, obligationDeadline) {
-  // Chỉ tính lateness khi có obligation thực sự (lead_report_obligations)
   if (!obligationDeadline || !createdAt) return null;
   const sub = createdAt.slice(0, 16);
   const [y, m, d] = reportDate.split('-').map(Number);
-  const lockDay = new Date(Date.UTC(y, m - 1, d + 2));
-  const lock = `${lockDay.getUTCFullYear()}-${String(lockDay.getUTCMonth() + 1).padStart(2, '0')}-${String(lockDay.getUTCDate()).padStart(2, '0')} 12:00`;
-  if (sub > lock) return 'qua_han';
+  const nextDay = new Date(Date.UTC(y, m - 1, d + 1));
+  const hardDeadline = `${nextDay.getUTCFullYear()}-${String(nextDay.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDay.getUTCDate()).padStart(2, '0')} 23:59`;
+  if (sub > hardDeadline) return 'qua_han';
   if (sub > obligationDeadline) return 'nop_tre';
   return null;
 }
 
-// Kiểm tra còn trong deadline chỉnh sửa: report_date + 1 ngày 23:59 VN
+// Cho phép chỉnh sửa đến report_date + 1 ngày 21:00 VN
 function withinEditDeadline(reportDate) {
   if (!reportDate) return false;
   const [y, m, d] = reportDate.split('-').map(Number);
-  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 16, 59, 0)); // 23:59 VN = 16:59 UTC
+  const deadlineUTC = new Date(Date.UTC(y, m - 1, d + 1, 14, 0, 0)); // 21:00 VN = 14:00 UTC
   return Date.now() <= deadlineUTC.getTime();
 }
 
@@ -1282,7 +1281,7 @@ export default function EventReport() {
     const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
     const ny = next.getUTCFullYear();
     reportDeadline = `${ny}-${nm}-${nd} 23:59`;
-    deadlineDisplay = `${nd}/${nm} 23:59`;
+    deadlineDisplay = `${nd}/${nm} 21:00`;
   }
   const isOverdue = (!!user?.is_truong_phong || isAloneInDept) && !!reportDeadline && vnNow > reportDeadline;
 
