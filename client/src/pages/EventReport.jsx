@@ -331,6 +331,16 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
     }
   }
 
+  useEffect(() => {
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (!vp) return;
+    if (imgIdx !== null) {
+      vp.content = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
+    } else {
+      vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
+    }
+  }, [imgIdx]);
+
   async function handleConfirm(e) {
     e.stopPropagation();
     setConfirming(true);
@@ -546,7 +556,8 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           }}
         >
           <img src={imgUrl(detail.images?.[imgIdx])} alt=""
-            style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)' }} />
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px', boxShadow:'0 0 40px rgba(0,0,0,0.8)', touchAction:'pinch-zoom' }} />
           <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
           {detail.images?.length > 1 && (
