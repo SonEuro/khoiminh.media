@@ -1520,7 +1520,7 @@ export default function WorkSchedule() {
                   const allDates = PHASES
                     .map(p => ({ key: p.key, dates: s[`${p.key}_dates`] || [] }))
                     .filter(({ dates }) => dates.length > 0)
-                    .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare(([...b].sort()[0] || '')));
+                    .sort(({ dates: a }, { dates: b }) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''));
                   return (
                     <div key={s.id} style={{
                       background:'rgba(120,120,160,0.03)',
