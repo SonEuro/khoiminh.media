@@ -1430,17 +1430,9 @@ export default function WorkSchedule() {
                   <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
                   {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); return depts.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'4px'}}>{depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
                   <p style={{ margin: 0, fontSize: '0.84rem', color: '#7878a0' }}>
-                    👤 {s.scheduler_name} {s.client ? `· 🏢 ${s.client}` : ''} {s.location ? `· 📍 ${s.location}` : ''}
+                    {[s.client && `🏢 ${s.client}`, s.location && `📍 ${s.location}`].filter(Boolean).join(' · ')}
                   </p>
                 </div>
-                <span style={{
-                  padding: '3px 10px', borderRadius: '9999px', fontSize: '0.84rem', fontWeight: 700, flexShrink: 0,
-                  background: s.status === 'confirmed' ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)',
-                  color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24',
-                  border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.3)' : 'rgba(251,191,36,0.3)'}`,
-                }}>
-                  {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
-                </span>
               </div>
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.82rem', color: '#a0a0b8' }}>
                 {[['filming', s.filming_dates], ['setup', s.setup_dates], ['rehearsal', s.rehearsal_dates], ['teardown', s.teardown_dates]]
@@ -1541,9 +1533,6 @@ export default function WorkSchedule() {
                       {/* Hàng 2: chip + nút cùng hàng */}
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', flexWrap:'wrap' }}>
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', flex:1, minWidth:0 }}>
-                          {s.scheduler_name && (
-                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {s.scheduler_name}</span>
-                          )}
                           {s.client && (
                             <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>🏢 {s.client}</span>
                           )}
@@ -1557,15 +1546,6 @@ export default function WorkSchedule() {
                           ))}
                         </div>
                         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-                          <span style={{
-                            display:'inline-flex', alignItems:'center', gap:'6px',
-                            padding:'11px 18px', borderRadius:'8px', fontSize:'0.82rem', fontWeight:700, flexShrink:0,
-                            background: s.status === 'confirmed' ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
-                            color: s.status === 'confirmed' ? 'rgba(74,222,128,0.7)' : 'rgba(251,191,36,0.7)',
-                            border: `1px solid ${s.status === 'confirmed' ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
-                          }}>
-                            {s.status === 'confirmed' ? 'Xác nhận' : '📝 Nháp'}
-                          </span>
                           <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
                           {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
                           {canDelete(s) && <button style={pastBtnDanger} onClick={() => handleDelete(s)}>🗑</button>}
