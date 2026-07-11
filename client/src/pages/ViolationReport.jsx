@@ -337,13 +337,15 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
             👤 {v.violator}
           </p>
 
-          {isSuperAdmin && v.reporter_name && (
-            <p style={{ fontSize: '0.82rem', color: GOLD, marginBottom: '2px' }}>
-              Báo cáo bởi: {v.reporter_name}
-            </p>
-          )}
-
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{fmtD(v.created_at)}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+            {isSuperAdmin && v.reporter_name && (
+              <span style={{ fontSize: '0.78rem', color: GOLD }}>Báo cáo bởi: {v.reporter_name}</span>
+            )}
+            {isSuperAdmin && v.reporter_name && (
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>·</span>
+            )}
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{fmtD(v.created_at)}</span>
+          </div>
         </div>
 
         {/* Actions */}
