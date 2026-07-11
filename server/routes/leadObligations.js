@@ -37,21 +37,27 @@ router.get('/', (req, res) => {
 
   const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
 
-  // Tính lock_time = deadline + 24h (JS, tránh SQLite datetime parse HH:MM không có giây)
-  function addDay(dl) {
-    if (!dl) return null;
-    const [date, time] = dl.split(' ');
-    const [y, m, d] = date.split('-').map(Number);
+  // lock_time = assigned_date + 1 ngày 23:59 VN (khi bị "khóa" vi phạm)
+  // ws_lock_time = assigned_date + 2 ngày 12:00 VN (WorkSchedule ẩn sau thêm 12 tiếng)
+  function computeLockTimes(assignedDate) {
+    const [y, m, d] = assignedDate.split('-').map(Number);
     const next = new Date(Date.UTC(y, m - 1, d + 1));
-    return `${next.getUTCFullYear()}-${String(next.getUTCMonth()+1).padStart(2,'0')}-${String(next.getUTCDate()).padStart(2,'0')} ${time || '12:00'}`;
+    const ny = next.getUTCFullYear(), nm = String(next.getUTCMonth()+1).padStart(2,'0'), nd = String(next.getUTCDate()).padStart(2,'0');
+    const next2 = new Date(Date.UTC(y, m - 1, d + 2));
+    const ny2 = next2.getUTCFullYear(), nm2 = String(next2.getUTCMonth()+1).padStart(2,'0'), nd2 = String(next2.getUTCDate()).padStart(2,'0');
+    return {
+      lock_time:    `${ny}-${nm}-${nd} 23:59`,
+      ws_lock_time: `${ny2}-${nm2}-${nd2} 12:00`,
+    };
   }
 
   res.json(rows.map(r => {
     const submitted = !!r.report_id;
-    const lockTime  = addDay(r.deadline);
+    const { lock_time, ws_lock_time } = computeLockTimes(r.assigned_date);
     const overdue   = !submitted && !!r.deadline && r.deadline.slice(0, 16) <= now;
-    const locked    = !submitted && !!lockTime && lockTime <= now;
-    return { ...r, lock_time: lockTime, submitted, overdue, locked };
+    const locked    = !submitted && lock_time <= now;
+    const ws_locked = !submitted && ws_lock_time <= now;
+    return { ...r, lock_time, ws_lock_time, submitted, overdue, locked, ws_locked };
   }));
 });
 

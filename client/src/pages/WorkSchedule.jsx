@@ -1256,8 +1256,8 @@ export default function WorkSchedule() {
           ? obligations.filter(o => o.lead_name === user.full_name || o.user_id === user.id)
           : obligations;
         const pastObs  = myObs.filter(o => o.assigned_date < todayStr);
-        const pending  = pastObs.filter(o => !o.submitted && !o.overdue && !o.locked);
-        const overdue  = pastObs.filter(o => o.overdue && !o.locked);
+        const pending  = pastObs.filter(o => !o.submitted && !o.overdue && !o.ws_locked);
+        const overdue  = pastObs.filter(o => o.overdue && !o.ws_locked);
         if (!pending.length && !overdue.length) return null;
         const phaseIcon = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
@@ -1320,8 +1320,8 @@ export default function WorkSchedule() {
       {/* ── Tổng quan báo cáo — chỉ is_phan_lich_all (giám sát toàn bộ leads) */}
       {obligations.length > 0 && !!user?.is_phan_lich_all && (() => {
         const pastObs = obligations.filter(o => o.assigned_date < todayStr);
-        const overdue = pastObs.filter(o => o.overdue && !o.locked);
-        const pending = pastObs.filter(o => !o.submitted && !o.overdue && !o.locked);
+        const overdue = pastObs.filter(o => o.overdue && !o.ws_locked);
+        const pending = pastObs.filter(o => !o.submitted && !o.overdue && !o.ws_locked);
         if (!overdue.length && !pending.length) return null;
         const phaseIcon  = { setup:'🏗', teardown:'📦', rehearsal:'🎤', filming:'🎬' };
         const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
