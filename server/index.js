@@ -36,6 +36,8 @@ app.use('/api/work-schedules', requireAuth, require('./routes/workSchedule'));
 app.use('/api/lead-obligations', requireAuth, require('./routes/leadObligations'));
 app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
+app.use('/api/upload-image', requireAuth, require('./routes/upload'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (req, res) => {
   let userCount = 0, eventCount = 0;
