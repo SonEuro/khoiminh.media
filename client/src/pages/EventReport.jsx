@@ -1264,7 +1264,7 @@ export default function EventReport() {
                   {confirmedReports.length} báo cáo
                 </span>
               </div>
-              <div style={{ background:'#13131d', maxHeight:'292px', overflowY:'auto', padding:'8px 12px' }}>
+              <div style={{ background:'#13131d', maxHeight:'585px', overflowY:'auto', padding:'8px 12px' }}>
                 {order.map(k => (
                   <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
                 ))}
