@@ -1559,7 +1559,7 @@ export default function WorkSchedule() {
                         ))}
                       </div>
                       {/* Hàng 3: nút muted */}
-                      <div className="ws-card-actions">
+                      <div style={{ borderTop:'1px solid rgba(120,120,160,0.15)', marginTop:'8px', paddingTop:'8px', display:'flex', gap:'8px', flexWrap:'wrap' }}>
                         <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
                         {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
                         {canDelete(s) && <button style={pastBtnDanger} onClick={() => handleDelete(s)}>🗑</button>}
