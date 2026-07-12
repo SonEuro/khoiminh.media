@@ -1057,39 +1057,37 @@ function MySchedulesSection({ schedules, user, onSelect, events = [] }) {
   if (!ongoing.length && !upcoming.length) return null;
 
   function MiniCard({ s }) {
-    const near = nearestDate(s);
     return (
-      <div onClick={() => onSelect(s)}
-        style={{
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '10px', padding: '12px 14px', cursor: 'pointer',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(167,139,250,0.08)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+      <div onClick={() => onSelect(s)} className="ev-card-flat"
+        style={{ border:'1px solid rgba(201,168,76,0.15)', borderLeft:'3px solid #c9a84c', borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.12)'}
+        onMouseLeave={e => e.currentTarget.style.filter = ''}
       >
-        {/* Hàng 1: Tên */}
-        <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem' }}>{s.event_name}</p>
-        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px',marginBottom:'2px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
-        {/* Hàng 2: Địa điểm */}
-        {s.location && <p style={{ margin: '4px 0 0', fontSize: '0.80rem', color: '#7878a0' }}>📍 {s.location}</p>}
-        {/* Hàng 3: Ngày */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '5px', fontSize: '0.80rem', alignItems: 'center' }}>
-          {[['🏗', s.setup_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true], ['📦', s.teardown_dates, false]]
-            .filter(([, d]) => d?.length > 0)
-            .map(([icon, dates, isFilming]) => (
-              <span key={icon} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: isFilming ? '#fb923c' : '#a0a0b8', fontWeight: isFilming ? 700 : undefined }}>
-                <span>{icon}</span>
-                {[...dates].sort().map((d, i) => (
-                  <span key={d} style={{
-                    color: d === today ? '#f87171' : d === tomorrow ? '#4ade80' : isFilming ? '#fb923c' : '#a0a0b8',
-                    fontWeight: (d === today || d === tomorrow) ? 800 : undefined,
-                  }}>
-                    {i > 0 && <span style={{ color: '#555570' }}> · </span>}{fmtD(d)}
-                  </span>
-                ))}
-              </span>
-            ))
-          }
+        {/* Hàng 1: tên — band nổi */}
+        <p style={{ margin:0, fontWeight:700, color:GOLD, fontSize:'0.88rem', padding:'10px 14px 9px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>{s.event_name}</p>
+        {/* Hàng 2: dept — band nhạt */}
+        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(
+          <div style={{padding:'5px 14px',fontSize:'0.82rem',background:'rgba(255,255,255,0.025)',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+            {isAll?<span style={{color:'#fcd34d',opacity:0.8}}>Tất cả bộ phận</span>:depts.map((dept,i)=>{const dc=getDeptColor(dept);return(<span key={dept}>{i>0&&<span style={{color:'rgba(255,255,255,0.14)',margin:'0 5px'}}>·</span>}<span style={{color:dc.color}}>{dept}</span></span>);})}
+          </div>
+        );})()}
+        {/* Hàng 3: location + dates */}
+        <div style={{ padding:'8px 14px 10px', display:'flex', flexDirection:'column', gap:'5px' }}>
+          {s.location && <p style={{ margin:0, fontSize:'0.80rem', color:'#7878a0' }}>📍 {s.location}</p>}
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', fontSize:'0.80rem', alignItems:'center' }}>
+            {[['🏗', s.setup_dates, false], ['🎤', s.rehearsal_dates, false], ['🎬', s.filming_dates, true], ['📦', s.teardown_dates, false]]
+              .filter(([, d]) => d?.length > 0)
+              .map(([icon, dates, isFilming]) => (
+                <span key={icon} style={{ display:'inline-flex', alignItems:'center', gap:'3px', color: isFilming ? '#fb923c' : '#a0a0b8', fontWeight: isFilming ? 700 : undefined }}>
+                  <span>{icon}</span>
+                  {[...dates].sort().map((d, i) => (
+                    <span key={d} style={{ color: d === today ? '#f87171' : d === tomorrow ? '#4ade80' : isFilming ? '#fb923c' : '#a0a0b8', fontWeight: (d === today || d === tomorrow) ? 800 : undefined }}>
+                      {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
+                    </span>
+                  ))}
+                </span>
+              ))}
+          </div>
         </div>
       </div>
     );
