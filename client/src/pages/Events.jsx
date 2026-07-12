@@ -881,7 +881,6 @@ export default function Events() {
           return (
             <div key={ev.id} id={`ev-card-${ev.id}`} className="card ev-card-flat" style={{
               ...cardStyle,
-              borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
             }}>
               {/* Hàng 1: status badges + phiếu */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', padding:'12px 16px 6px' }}>
