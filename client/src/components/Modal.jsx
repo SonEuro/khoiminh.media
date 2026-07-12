@@ -38,11 +38,11 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
             padding-top: max(env(safe-area-inset-top, 0px), 20px) !important;
             padding-left: 14px !important;
             padding-right: 14px !important;
-            padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
           }
           .modal-positioner {
             border-radius: 1rem !important;
-            max-height: calc(100dvh - max(env(safe-area-inset-top, 0px), 20px) - max(env(safe-area-inset-bottom, 0px), 14px)) !important;
+            margin-bottom: max(env(safe-area-inset-bottom, 0px), 10px) !important;
+            max-height: calc(100dvh - max(env(safe-area-inset-top, 0px), 20px) - max(env(safe-area-inset-bottom, 0px), 10px)) !important;
           }
         }
         /* Landscape mobile (phone): centered sheet với safe area
