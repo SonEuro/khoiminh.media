@@ -880,11 +880,9 @@ export default function Events() {
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
             <div key={ev.id} id={`ev-card-${ev.id}`} className="card" style={cardStyle}>
-              {/* Hàng 1: code · status badges · phiếu */}
-              <div className="flex items-center justify-between gap-2 mb-2" style={{ flexWrap:'wrap' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                  <span className="font-mono text-xs text-gray-400">{ev.code}</span>
-                  <span style={{ color:'rgba(255,255,255,0.12)', fontSize:'0.75rem' }}>·</span>
+              {/* Hàng 1: status badges · phiếu */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', marginBottom:'8px' }}>
+                <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
                   <span className={s.cls}>{s.label}</span>
                   {isToday    && <span className="badge-maintenance" style={{ color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)' }}>HÔM NAY</span>}
                   {isTomorrow && <span className="badge-maintenance" style={{ color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)' }}>NGÀY MAI</span>}
@@ -892,18 +890,25 @@ export default function Events() {
                 </div>
                 <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
               </div>
-              {/* Hàng 2: tên + dept badges inline */}
-              <div style={{ marginBottom:'8px' }}>
-                <h3 className="font-semibold text-lg" style={{ marginBottom:'4px' }}>{ev.name}</h3>
-                {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:'4px' }}>
-                    {isAll ? <span style={{ fontSize:'0.72rem', fontWeight:600, padding:'1px 8px', borderRadius:'20px', color:'#fcd34d', background:'rgba(252,211,77,0.07)', border:'1px solid rgba(252,211,77,0.2)' }}>Tất cả bộ phận</span>
-                    : depts.map(dept => { const dc = getDeptColor(dept); return (
-                      <span key={dept} style={{ fontSize:'0.72rem', fontWeight:600, padding:'1px 8px', borderRadius:'20px', color:dc.color, background:'transparent', border:`1px solid ${dc.border}` }}>{dept}</span>
-                    );})}
-                  </div>
-                );})()}
+              {/* Hàng 2: tên sự kiện + code mờ */}
+              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', marginBottom:'5px' }}>
+                <h3 className="font-semibold text-lg" style={{ margin:0, lineHeight:'1.3' }}>{ev.name}</h3>
+                <span className="font-mono text-xs text-gray-400" style={{ flexShrink:0 }}>{ev.code}</span>
               </div>
+              {/* Hàng 3: dept — inline text, màu theo bộ phận, không nổi bật */}
+              {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
+                <div style={{ marginBottom:'8px', fontSize:'0.9rem', lineHeight:'1.4' }}>
+                  {isAll
+                    ? <span style={{ color:'#fcd34d', fontWeight:400, opacity:0.85 }}>Tất cả bộ phận</span>
+                    : depts.map((dept, i) => { const dc = getDeptColor(dept); return (
+                        <span key={dept}>
+                          {i > 0 && <span style={{ color:'rgba(255,255,255,0.18)', margin:'0 5px' }}>·</span>}
+                          <span style={{ color:dc.color, fontWeight:400, opacity:0.9 }}>{dept}</span>
+                        </span>
+                      );})
+                  }
+                </div>
+              );})()}
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
                 {ev.client   && <span>👤 {ev.client}</span>}
                 {ev.location && <span>📍 {ev.location}</span>}
