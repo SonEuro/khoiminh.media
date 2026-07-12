@@ -31,7 +31,7 @@ export default function EventDetailModal({ eventId, onClose }) {
   );
 
   return (
-    <Modal title={`${ev.code} · ${ev.name}`} onClose={onClose} size="lg">
+    <Modal title={`${ev.name} · ${ev.code}`} onClose={onClose} size="lg">
       <div className="space-y-4">
         <div style={{ display:'flex', flexDirection:'column', gap:'6px', fontSize:'0.88rem' }}>
           <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}><span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Khách hàng:</span><strong>{ev.client || '—'}</strong></div>
