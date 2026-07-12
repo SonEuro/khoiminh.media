@@ -145,7 +145,7 @@ function StaffScheduleModal({ event, onClose }) {
   }
 
   return (
-    <Modal title={`Nhân sự làm việc — ${event.name}`} onClose={onClose} size="lg">
+    <Modal title={`Nhân sự — ${event.name}`} onClose={onClose} size="lg">
       {schedules === null && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Đang tải...</p>}
       {schedules?.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Chưa có lịch làm việc cho sự kiện này</p>}
       {schedules?.map(s => {
