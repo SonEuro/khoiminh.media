@@ -110,6 +110,7 @@ try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_at TEXT DEFAULT
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN confirmed_by_id INTEGER DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE event_reports ADD COLUMN edit_history TEXT DEFAULT '[]'").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE events ADD COLUMN departments TEXT DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE transaction_items ADD COLUMN combo TEXT DEFAULT NULL").run(); } catch (_) {}
 
 // Backfill location từ events table cho các báo cáo cũ chưa có địa điểm
 try {

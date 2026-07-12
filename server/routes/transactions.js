@@ -289,14 +289,14 @@ router.post('/out', canTransact, (req, res) => {
     `).run(code, txStatus, event_id || null, responsible_person, expected_return_date, notes, req.user.id);
 
     const txId = txR.lastInsertRowid;
-    const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
+    const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`);
 
     for (const item of (items || [])) {
       const qty = parseInt(item.quantity) || 0;
       if (qty <= 0) throw new Error(`Số lượng thiết bị phải lớn hơn 0`);
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      insertItem.run(txId, item.equipment_id, qty, item.notes || null);
+      insertItem.run(txId, item.equipment_id, qty, item.notes || null, item.combo || null);
       if (!isPending) {
         if (eq.qty_available < qty)
           throw new Error(`${eq.name}: chỉ còn ${eq.qty_available} ${eq.unit}`);
@@ -536,11 +536,11 @@ router.put('/:id/items', canTransact, (req, res) => {
     db.prepare('DELETE FROM external_items WHERE transaction_id = ?').run(tx.id);
 
     // Thêm items mới (pending: chỉ ghi nhận, không reserve)
-    const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes) VALUES (?, ?, ?, ?)`);
+    const insertItem = db.prepare(`INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`);
     for (const item of (items || [])) {
       const eq = db.prepare('SELECT * FROM equipment WHERE id = ?').get(item.equipment_id);
       if (!eq) throw new Error(`Thiết bị ID ${item.equipment_id} không tồn tại`);
-      insertItem.run(tx.id, item.equipment_id, item.quantity, item.notes || null);
+      insertItem.run(tx.id, item.equipment_id, item.quantity, item.notes || null, item.combo || null);
     }
 
     // Thêm external items mới
