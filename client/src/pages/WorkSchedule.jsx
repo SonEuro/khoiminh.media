@@ -1059,7 +1059,7 @@ function MySchedulesSection({ schedules, user, onSelect, events = [] }) {
   function MiniCard({ s }) {
     return (
       <div onClick={() => onSelect(s)} className="ev-card-flat"
-        style={{ border:'1px solid rgba(201,168,76,0.15)', borderLeft:'3px solid #c9a84c', borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
+        style={{ border:'1px solid rgba(201,168,76,0.15)', borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.12)'}
         onMouseLeave={e => e.currentTarget.style.filter = ''}
       >
