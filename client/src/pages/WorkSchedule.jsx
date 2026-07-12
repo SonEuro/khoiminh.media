@@ -1450,7 +1450,7 @@ export default function WorkSchedule() {
                   .map(([key, dates]) => renderDates(key, dates))}
               </div>
               {/* Hàng 5: buttons */}
-              <div style={{ padding:'0 16px 14px', display:'flex', gap:'6px', flexWrap:'wrap' }}>
+              <div className="ev-card-row" style={{ padding:'0 16px 14px' }}>
                 <button className="ev-action" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
                 {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
                 {canDelete(s) && <button className="ev-action ev-action-danger" onClick={() => handleDelete(s)}><span className="ev-ico">🗑</span></button>}
