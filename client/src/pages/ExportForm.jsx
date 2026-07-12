@@ -28,7 +28,7 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
-const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
+const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', combo: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
 const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS-LED','Sân Khấu','Cơ Sở Vật Chất'];
@@ -880,6 +880,17 @@ export default function ExportForm() {
                         value={item.notes || ''}
                         onChange={e => setItem(idx, 'notes', e.target.value)}
                       />
+                      <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'8px' }}>
+                        <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'4px 10px', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', flexShrink:0, userSelect:'none' }}>COMBO</span>
+                        <input
+                          type="number" min="1"
+                          style={{ width:'72px', height:'32px', padding:'0 8px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.9rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                          placeholder="—"
+                          value={item.combo || ''}
+                          onChange={e => setItem(idx, 'combo', e.target.value)}
+                        />
+                        {item.combo && <span style={{ fontSize:'0.78rem', color:'rgba(167,139,250,0.6)' }}>Nhãn combo #{item.combo}</span>}
+                      </div>
                     </div>
                   )}
                 </div>
