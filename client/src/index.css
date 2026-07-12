@@ -106,6 +106,10 @@
   .btn-sm { padding: 11px 18px !important; font-size: 0.82rem !important; border-radius: 8px !important; }
 
   /* ── Card ────────────────────────────────────────── */
+  .ev-card-flat {
+    padding: 0 !important;
+    overflow: hidden;
+  }
   .card {
     background: var(--bg-card);
     border: 1px solid var(--gold-dim);

@@ -879,37 +879,40 @@ export default function Events() {
           function dateColor(d) { return d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : undefined; }
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
           return (
-            <div key={ev.id} id={`ev-card-${ev.id}`} className="card" style={cardStyle}>
-              {/* Hàng 1: status badges · phiếu */}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', marginBottom:'8px' }}>
+            <div key={ev.id} id={`ev-card-${ev.id}`} className="card ev-card-flat" style={{
+              ...cardStyle,
+              borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
+            }}>
+              {/* Hàng 1: status badges + phiếu */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', padding:'12px 16px 6px' }}>
                 <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
                   <span className={s.cls}>{s.label}</span>
                   {isToday    && <span className="badge-maintenance" style={{ color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)' }}>HÔM NAY</span>}
                   {isTomorrow && <span className="badge-maintenance" style={{ color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)' }}>NGÀY MAI</span>}
                   {ev.archived_at && <span className="badge-maintenance" style={{ color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)' }}>📦 Lưu trữ</span>}
                 </div>
-                <span className="text-sm text-gray-400 flex-shrink-0">{ev.tx_count} phiếu</span>
+                <span style={{ fontSize:'0.8rem', color:'#55556a' }}>{ev.tx_count} phiếu</span>
               </div>
               {/* Hàng 2: tên sự kiện + code mờ */}
-              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', marginBottom:'5px' }}>
-                <h3 className="font-semibold text-lg" style={{ margin:0, lineHeight:'1.3' }}>{ev.name}</h3>
-                <span className="font-mono text-xs text-gray-400" style={{ flexShrink:0 }}>{ev.code}</span>
+              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'4px 16px 10px' }}>
+                <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#e8e4d4', lineHeight:'1.35' }}>{ev.name}</h3>
+                <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#3a3a52', flexShrink:0 }}>{ev.code}</span>
               </div>
-              {/* Hàng 3: dept — inline text, màu theo bộ phận, không nổi bật */}
+              {/* Hàng 3: dept band — full width, subtle bg, text màu theo bộ phận */}
               {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
-                <div style={{ marginBottom:'8px', fontSize:'0.9rem', lineHeight:'1.4' }}>
+                <div style={{ padding:'6px 16px', background:'rgba(255,255,255,0.03)', borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)', fontSize:'0.87rem', lineHeight:'1.5' }}>
                   {isAll
-                    ? <span style={{ color:'#fcd34d', fontWeight:400, opacity:0.85 }}>Tất cả bộ phận</span>
+                    ? <span style={{ color:'#fcd34d', opacity:0.8 }}>Tất cả bộ phận</span>
                     : depts.map((dept, i) => { const dc = getDeptColor(dept); return (
                         <span key={dept}>
-                          {i > 0 && <span style={{ color:'rgba(255,255,255,0.18)', margin:'0 5px' }}>·</span>}
-                          <span style={{ color:dc.color, fontWeight:400, opacity:0.9 }}>{dept}</span>
+                          {i > 0 && <span style={{ color:'rgba(255,255,255,0.14)', margin:'0 6px' }}>·</span>}
+                          <span style={{ color:dc.color }}>{dept}</span>
                         </span>
-                      );})
-                  }
+                      );})}
                 </div>
               );})()}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-3">
+              {/* Hàng 4: thông tin */}
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'10px', padding:'10px 16px', fontSize:'0.83rem', color:'#6b6b80' }}>
                 {ev.client   && <span>👤 {ev.client}</span>}
                 {ev.location && <span>📍 {ev.location}</span>}
                 {startDates.length > 0 && (
@@ -918,18 +921,17 @@ export default function Events() {
                   </span>
                 )}
                 {filmDates.length > 0 && (
-                  <span style={{ color:'#fb923c', fontWeight:700, fontSize:'0.85rem' }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
+                  <span style={{ color:'#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
                 )}
               </div>
+              {/* Hàng 5: buttons */}
               {(() => {
-                const showEdit     = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
-                const showCancel   = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
-                const showArchive  = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
-                const showUnarch   = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
-                const showDelete   = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
-                const hasSecondary = showCancel || showArchive || showDelete;
+                const showEdit    = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
+                const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
+                const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                 return (
-                  <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                  <div style={{ padding:'0 16px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
                     <div className="ev-card-row">
                       <button className="btn-secondary btn-sm ev-card-btn" onClick={() => { setSelected(ev); setModal('detail'); }}>
                         <span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span>
