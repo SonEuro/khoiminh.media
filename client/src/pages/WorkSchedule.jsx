@@ -1419,33 +1419,44 @@ export default function WorkSchedule() {
           const isTomorrow = zone === 'tomorrow';
           const isPast     = zone === 'past';
           return (
-            <div key={s.id} style={{
+            <div key={s.id} className="ev-card-flat" style={{
               background: isToday ? 'rgba(248,113,113,0.04)' : isTomorrow ? 'rgba(74,222,128,0.03)' : 'var(--bg-card)',
-              border: isToday ? '1px solid rgba(248,113,113,0.45)' : isTomorrow ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px', padding: '16px',
-              boxShadow: isToday ? '0 0 18px rgba(248,113,113,0.1)' : isTomorrow ? '0 0 14px rgba(74,222,128,0.07)' : 'none',
+              border: isToday ? '1px solid rgba(248,113,113,0.35)' : isTomorrow ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(201,168,76,0.15)',
+              borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
+              borderRadius: '12px', overflow: 'hidden',
+              boxShadow: isToday ? '0 0 18px rgba(248,113,113,0.08)' : isTomorrow ? '0 0 14px rgba(74,222,128,0.06)' : 'none',
               opacity: isPast ? 0.5 : 1,
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <h3 style={{ margin: '0 0 4px', fontWeight: 700, color: GOLD, fontSize: '1rem' }}>{s.event_name}</h3>
-                  {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'4px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
-                  <p style={{ margin: 0, fontSize: '0.84rem', color: '#7878a0' }}>
-                    {[s.client && `🏢 ${s.client}`, s.location && `📍 ${s.location}`].filter(Boolean).join(' · ')}
-                  </p>
-                </div>
+              {/* Hàng 1: tên sự kiện — band nổi bật */}
+              <div style={{ padding:'12px 16px 10px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                <h3 style={{ margin:0, fontWeight:700, color: GOLD, fontSize:'1rem', lineHeight:'1.3' }}>{s.event_name}</h3>
               </div>
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '10px', fontSize: '0.82rem', color: '#a0a0b8' }}>
+              {/* Hàng 2: dept — band nhạt */}
+              {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(
+                <div style={{padding:'6px 16px',fontSize:'0.87rem',background:'rgba(255,255,255,0.025)',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                  {isAll?<span style={{color:'#fcd34d',opacity:0.8}}>Tất cả bộ phận</span>:depts.map((dept,i)=>{const dc=getDeptColor(dept);return(<span key={dept}>{i>0&&<span style={{color:'rgba(255,255,255,0.14)',margin:'0 6px'}}>·</span>}<span style={{color:dc.color}}>{dept}</span></span>);})}
+                </div>
+              );})()}
+              {/* Hàng 3: client + location */}
+              {(s.client || s.location) && (
+                <div style={{ padding:'8px 16px 4px', fontSize:'0.83rem', color:'#6b6b80', display:'flex', flexWrap:'wrap', gap:'12px' }}>
+                  {s.client   && <span>🏢 {s.client}</span>}
+                  {s.location && <span>📍 {s.location}</span>}
+                </div>
+              )}
+              {/* Hàng 4: dates */}
+              <div style={{ display:'flex', gap:'12px', flexWrap:'wrap', padding:`${s.client||s.location?'4px':'8px'} 16px 8px`, fontSize:'0.82rem', color:'#a0a0b8' }}>
                 {[['filming', s.filming_dates], ['setup', s.setup_dates], ['rehearsal', s.rehearsal_dates], ['teardown', s.teardown_dates]]
                   .filter(([, d]) => d?.length)
                   .sort(([, a], [, b]) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''))
                   .map(([key, dates]) => renderDates(key, dates))}
               </div>
-              <div className="ws-card-actions">
-                <button className="btn-secondary btn-sm ws-card-btn-main" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
-                {canEdit(s) && <button className="btn-secondary btn-sm ws-card-btn-main" onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
-                {canDelete(s) && <button className="btn-danger btn-sm" onClick={() => handleDelete(s)}>🗑</button>}
-                {s.status === 'draft' && canPhanLich && <button className="btn-primary btn-sm ws-card-confirm" onClick={() => handleConfirm(s)}>✓ Xác nhận lên lịch</button>}
+              {/* Hàng 5: buttons */}
+              <div style={{ padding:'0 16px 14px', display:'flex', gap:'6px', flexWrap:'wrap' }}>
+                <button className="ev-action" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
+                {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                {canDelete(s) && <button className="ev-action ev-action-danger" onClick={() => handleDelete(s)}><span className="ev-ico">🗑</span></button>}
+                {s.status === 'draft' && canPhanLich && <button className="ev-action ev-action-edit" onClick={() => handleConfirm(s)}><span className="ev-ico">✓</span><span className="ev-lbl">Xác nhận lên lịch</span></button>}
               </div>
             </div>
           );

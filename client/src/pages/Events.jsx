@@ -1020,64 +1020,63 @@ export default function Events() {
                   };
                   const pastBtnDanger = { ...pastBtn, color:'#f87171', border:'1px solid rgba(248,113,113,0.25)', background:'rgba(248,113,113,0.06)' };
                   return (
-                    <div key={ev.id} id={`ev-card-${ev.id}`} style={{
-                      background: `rgba(${accentRgb},0.03)`,
-                      border: `1px solid rgba(${accentRgb},0.15)`,
+                    <div key={ev.id} id={`ev-card-${ev.id}`} className="ev-card-flat" style={{
+                      background: `rgba(${accentRgb},0.02)`,
+                      border: `1px solid rgba(${accentRgb},0.12)`,
                       borderLeft: `3px solid ${accent}`,
                       borderRadius: '8px',
-                      padding: '9px 12px',
                       marginBottom: '6px',
+                      overflow: 'hidden',
                     }}>
-                      {/* Hàng 1: status + tên + code + phiếu */}
-                      <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'7px', flexWrap:'wrap' }}>
-                        <span className={s.cls} style={{ flexShrink:0 }}>{s.label}</span>
-                        {ev.archived_at && <span style={{ fontSize:'0.72rem', color:'#a78bfa', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>📦 Lưu trữ</span>}
-                        <span style={{ fontWeight:700, fontSize:'0.93rem', color: isCancelled ? 'rgba(248,113,113,0.6)' : '#a0a0b8', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</span>
-                        <span style={{ fontSize:'0.72rem', color:'#44445a', flexShrink:0 }}>{ev.code}</span>
-                        {ev.tx_count > 0 && (
-                          <span style={{ fontSize:'0.73rem', color:'#888860', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'9999px', padding:'1px 7px', flexShrink:0 }}>{ev.tx_count} phiếu</span>
-                        )}
+                      {/* Hàng 1: status + phiếu */}
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', padding:'8px 12px 6px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
+                          <span className={s.cls}>{s.label}</span>
+                          {ev.archived_at && <span style={{ fontSize:'0.7rem', color:'#a78bfa', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'4px', padding:'1px 5px' }}>📦 Lưu trữ</span>}
+                        </div>
+                        {ev.tx_count > 0 && <span style={{ fontSize:'0.75rem', color:'#3a3a50' }}>{ev.tx_count} phiếu</span>}
                       </div>
-                      {/* Dept badges */}
+                      {/* Hàng 2: tên + code */}
+                      <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px', padding:'7px 12px 8px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                        <h3 style={{ margin:0, fontWeight:700, fontSize:'0.95rem', color: isCancelled ? 'rgba(248,113,113,0.7)' : '#c9a84c', lineHeight:'1.3', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</h3>
+                        <span style={{ fontFamily:'monospace', fontSize:'0.68rem', color:'#2a2a3a', flexShrink:0 }}>{ev.code}</span>
+                      </div>
+                      {/* Hàng 3: dept */}
                       {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
-                          {isAll ? <span style={{ fontSize:'0.72rem', fontWeight:600, padding:'1px 8px', borderRadius:'20px', color:'#fcd34d', background:'transparent', border:'1px solid rgba(252,211,77,0.2)' }}>Tất cả bộ phận</span>
-                          : depts.map(dept => { const dc = getDeptColor(dept); return (
-                            <span key={dept} style={{ fontSize:'0.72rem', fontWeight:600, padding:'1px 8px', borderRadius:'20px', color:dc.color, background:'transparent', border:`1px solid ${dc.border}` }}>{dept}</span>
-                          );})}
+                        <div style={{ padding:'5px 12px', fontSize:'0.82rem', background:'rgba(255,255,255,0.025)', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                          {isAll ? <span style={{ color:'#fcd34d', opacity:0.8 }}>Tất cả bộ phận</span>
+                          : depts.map((dept, i) => { const dc = getDeptColor(dept); return (
+                              <span key={dept}>
+                                {i > 0 && <span style={{ color:'rgba(255,255,255,0.14)', margin:'0 5px' }}>·</span>}
+                                <span style={{ color:dc.color }}>{dept}</span>
+                              </span>
+                            );})}
                         </div>
                       );})()}
-                      {/* Hàng 2: ô thông tin */}
+                      {/* Hàng 4: thông tin */}
                       {(ev.client || ev.location || startDates.length > 0 || filmDates.length > 0) && (
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginBottom:'7px' }}>
-                          {ev.client && (
-                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>👤 {ev.client}</span>
-                          )}
-                          {ev.location && (
-                            <span style={{ fontSize:'0.76rem', color:'#5080a0', background:'rgba(96,165,250,0.05)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'5px', padding:'2px 7px' }}>📍 {ev.location}</span>
-                          )}
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', padding:'7px 12px', fontSize:'0.8rem', color:'#6b6b80' }}>
+                          {ev.client   && <span>👤 {ev.client}</span>}
+                          {ev.location && <span>📍 {ev.location}</span>}
                           {startDates.length > 0 && (
-                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>
-                              📅 {startDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
+                            <span>📅 {startDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
                               {endDates.length>0 && endDates[0]!==startDates[0] && <> → {endDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</>}
                             </span>
                           )}
-                          {filmDates.length > 0 && (
-                            <span style={{ fontSize:'0.76rem', color:'#b06030', background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:'5px', padding:'2px 7px' }}>
-                              🎬 {filmDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}
-                            </span>
-                          )}
+                          {filmDates.length > 0 && <span style={{ color:'#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</span>}
                         </div>
                       )}
-                      {/* Hàng 3: nút hành động — muted style, không đỏ */}
-                      <div className="ev-card-row">
-                        <button style={pastBtn} onClick={() => { setSelected(ev); setModal('detail'); }}>📋 Thiết bị</button>
-                        <button style={pastBtn} onClick={() => { setSelected(ev); setModal('staff'); }}>👥 Nhân sự</button>
-                        {showEdit    && <button style={pastBtn} onClick={() => { setSelected(ev); setModal('form'); }}>✏️ Sửa</button>}
-                        {showCancel  && <button style={pastBtnDanger} onClick={() => handleCancel(ev)}>🚫 Hủy</button>}
-                        {showArchive && <button style={pastBtn} onClick={() => handleArchive(ev)}>💾 Lưu trữ</button>}
-                        {showUnarch  && <button style={pastBtn} onClick={() => handleUnarchive(ev)}>↩ Bỏ lưu trữ</button>}
-                        {showDelete  && <button style={pastBtnDanger} onClick={() => handleDelete(ev)}>🗑 Xóa</button>}
+                      {/* Hàng 5: buttons */}
+                      <div style={{ padding:'0 12px 10px' }}>
+                        <div className="ev-card-row">
+                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span></button>
+                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span></button>
+                          {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                          {showCancel  && <button className="ev-action ev-action-danger" onClick={() => handleCancel(ev)}><span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span></button>}
+                          {showArchive && <button className="ev-action ev-action-edit"   onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
+                          {showUnarch  && <button className="ev-action"                  onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu trữ</span></button>}
+                          {showDelete  && <button className="ev-action ev-action-danger" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                        </div>
                       </div>
                     </div>
                   );
