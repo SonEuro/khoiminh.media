@@ -881,13 +881,12 @@ export default function Events() {
           return (
             <div key={ev.id} id={`ev-card-${ev.id}`} className="card ev-card-flat" style={{
               ...cardStyle,
+              borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
             }}>
               {/* Hàng 1: status badges + phiếu */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', padding:'12px 16px 6px' }}>
                 <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
                   <span className={s.cls}>{s.label}</span>
-                  {isToday    && <span className="badge-maintenance" style={{ color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)' }}>HÔM NAY</span>}
-                  {isTomorrow && <span className="badge-maintenance" style={{ color:'#4ade80', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.35)' }}>NGÀY MAI</span>}
                   {ev.archived_at && <span className="badge-maintenance" style={{ color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)' }}>📦 Lưu trữ</span>}
                 </div>
                 <span style={{ fontSize:'0.8rem', color:'#55556a' }}>{ev.tx_count} phiếu</span>
