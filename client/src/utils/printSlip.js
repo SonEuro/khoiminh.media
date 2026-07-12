@@ -12,7 +12,7 @@ function buildSlipHTML(tx, preview = false) {
   khoItems.forEach((item, i) => {
     const condNote = isReturn ? (condMap[item.condition] || '') : '';
     const noteParts = [condNote, item.notes || ''].filter(Boolean);
-    const comboTag = item.combo ? `<span style="display:inline-block;margin-left:6px;font-size:7.5pt;font-weight:800;padding:1px 5px;border:1px solid #7c3aed;border-radius:3px;color:#7c3aed;vertical-align:middle;letter-spacing:0.04em">C${item.combo}</span>` : '';
+    const comboTag = item.combo ? `<span style="display:inline-block;margin-left:6px;font-size:7.5pt;font-weight:800;padding:1px 6px;border:1px solid #7c3aed;border-radius:3px;color:#7c3aed;vertical-align:middle;letter-spacing:0.04em">COMBO - ${item.combo}</span>` : '';
     allRows.push(`<tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}${comboTag}</td>
