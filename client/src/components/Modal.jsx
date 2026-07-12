@@ -35,14 +35,14 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
         /* Portrait mobile: bottom sheet với margin ngang */
         @media (max-width: 767px) and (orientation: portrait) {
           .modal-overlay {
+            padding-top: max(env(safe-area-inset-top, 0px), 20px) !important;
             padding-left: 14px !important;
             padding-right: 14px !important;
-            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
           }
           .modal-positioner {
             border-radius: 1rem !important;
-            max-height: 92dvh !important;
-            margin-bottom: 14px;
+            max-height: calc(100dvh - max(env(safe-area-inset-top, 0px), 20px) - max(env(safe-area-inset-bottom, 0px), 14px)) !important;
           }
         }
         /* Landscape mobile (phone): centered sheet với safe area
