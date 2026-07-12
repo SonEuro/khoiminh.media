@@ -275,13 +275,24 @@
 /* ── Events page – top controls + card buttons ── */
 .ev-top-controls          { display: flex; gap: 8px; flex-wrap: nowrap; margin-bottom: 16px; }
 .ev-top-controls > button { flex: 0 0 auto; }
-.ev-card-row              { display: flex; gap: 8px; }
+.ev-card-row              { display: flex; gap: 6px; }
 
-/* Card action button: desktop = icon + text ngang, mobile = icon trên text dưới */
-.ev-card-btn { display: inline-flex; align-items: center; flex-direction: row; gap: 6px; padding: 9px 14px !important; opacity: 0.9; transition: opacity 0.15s; }
-.ev-card-btn:hover { opacity: 1; }
-.ev-card-btn .ev-ico { font-size: 1rem; line-height: 1; }
-.ev-card-btn .ev-lbl { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1; }
+/* Event card flat ghost buttons */
+.ev-action {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.09);
+  background: transparent; cursor: pointer;
+  color: #6b6b85; font-size: 0.8rem; font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ev-action:hover          { background: rgba(255,255,255,0.05); color: #9898b8; border-color: rgba(255,255,255,0.16); }
+.ev-action-edit           { border-color: rgba(201,168,76,0.22); color: #7a6828; }
+.ev-action-edit:hover     { background: rgba(201,168,76,0.07); color: #c9a84c; border-color: rgba(201,168,76,0.4); }
+.ev-action-danger         { border-color: rgba(248,113,113,0.18); color: #7a4444; }
+.ev-action-danger:hover   { background: rgba(248,113,113,0.07); color: #f87171; border-color: rgba(248,113,113,0.35); }
+.ev-action .ev-ico { font-size: 0.95rem; line-height: 1; }
+.ev-action .ev-lbl { font-size: 0.8rem; font-weight: 600; line-height: 1; }
 
 @media (max-width: 767px) {
   .ev-top-controls { flex-wrap: wrap; }
@@ -292,8 +303,9 @@
   .ev-btn-filter   { order: 3; flex: 1 1 calc(33.33% - 6px) !important; }
   .ev-btn-trash    { order: 4; flex: 1 1 calc(33.33% - 6px) !important; }
   /* Card buttons: mobile = icon trên, text dưới */
-  .ev-card-btn     { flex-direction: column !important; gap: 3px !important; padding: 9px 10px !important; }
-  .ev-card-row > button { flex: 1 !important; min-width: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+  .ev-card-btn  { flex-direction: column !important; gap: 3px !important; padding: 9px 10px !important; }
+  .ev-action    { flex-direction: column !important; gap: 3px !important; padding: 8px 6px !important; }
+  .ev-card-row > button { flex: 1 !important; min-width: 0 !important; padding-left: 6px !important; padding-right: 6px !important; }
 }
 
 /* ── WorkSchedule card action buttons ───────────────── */
