@@ -894,7 +894,7 @@ export default function Events() {
               </div>
               {/* Hàng 2: tên sự kiện + code mờ — dải nền nổi bật */}
               <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'8px 16px 10px', background:'rgba(255,255,255,0.05)', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-                <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#e8e4d4', lineHeight:'1.35' }}>{ev.name}</h3>
+                <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#c9a84c', lineHeight:'1.35' }}>{ev.name}</h3>
                 <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#3a3a52', flexShrink:0 }}>{ev.code}</span>
               </div>
               {/* Hàng 3: dept — dải nền nhạt hơn hàng 2, text màu theo bộ phận */}
