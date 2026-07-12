@@ -898,9 +898,9 @@ export default function Events() {
                 <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#e8e4d4', lineHeight:'1.35' }}>{ev.name}</h3>
                 <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#3a3a52', flexShrink:0 }}>{ev.code}</span>
               </div>
-              {/* Hàng 3: dept — nền thường, text màu theo bộ phận */}
+              {/* Hàng 3: dept — dải nền nhạt hơn hàng 2, text màu theo bộ phận */}
               {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
-                <div style={{ padding:'6px 16px', fontSize:'0.87rem', lineHeight:'1.5' }}>
+                <div style={{ padding:'6px 16px', fontSize:'0.87rem', lineHeight:'1.5', background:'rgba(255,255,255,0.025)', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
                   {isAll
                     ? <span style={{ color:'#fcd34d', opacity:0.8 }}>Tất cả bộ phận</span>
                     : depts.map((dept, i) => { const dc = getDeptColor(dept); return (
