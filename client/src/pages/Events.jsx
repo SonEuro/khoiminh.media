@@ -884,7 +884,7 @@ export default function Events() {
               borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
             }}>
               {/* Hàng 1: status badges + phiếu */}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', padding:'12px 16px 6px' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px', flexWrap:'wrap', padding:'10px 16px 8px', background:'rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', alignItems:'center' }}>
                   <span className={s.cls}>{s.label}</span>
                   {ev.archived_at && <span className="badge-maintenance" style={{ color:'#a78bfa', background:'rgba(167,139,250,0.12)', border:'1px solid rgba(167,139,250,0.3)' }}>📦 Lưu trữ</span>}
@@ -892,7 +892,7 @@ export default function Events() {
                 <span style={{ fontSize:'0.8rem', color:'#55556a' }}>{ev.tx_count} phiếu</span>
               </div>
               {/* Hàng 2: tên sự kiện + code mờ — dải nền nổi bật */}
-              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'8px 16px 10px', background:'rgba(255,255,255,0.05)', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'8px 16px 10px', background:'rgba(255,255,255,0.09)', borderTop:'1px solid rgba(255,255,255,0.1)', borderBottom:'1px solid rgba(255,255,255,0.1)' }}>
                 <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#c9a84c', lineHeight:'1.35' }}>{ev.name}</h3>
                 <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#3a3a52', flexShrink:0 }}>{ev.code}</span>
               </div>
