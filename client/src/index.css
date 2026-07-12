@@ -281,16 +281,15 @@
 .ev-action {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 12px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.09);
+  border: 1px solid rgba(201,168,76,0.28);
   background: transparent; cursor: pointer;
-  color: #6b6b85; font-size: 0.8rem; font-weight: 600;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  color: rgba(255,255,255,0.82); font-size: 0.8rem; font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
-.ev-action:hover          { background: rgba(255,255,255,0.05); color: #9898b8; border-color: rgba(255,255,255,0.16); }
-.ev-action-edit           { border-color: rgba(201,168,76,0.22); color: #7a6828; }
-.ev-action-edit:hover     { background: rgba(201,168,76,0.07); color: #c9a84c; border-color: rgba(201,168,76,0.4); }
-.ev-action-danger         { border-color: rgba(248,113,113,0.18); color: #7a4444; }
-.ev-action-danger:hover   { background: rgba(248,113,113,0.07); color: #f87171; border-color: rgba(248,113,113,0.35); }
+.ev-action:hover          { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(201,168,76,0.45); }
+.ev-action-edit:hover     { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.55); box-shadow: 0 0 10px rgba(201,168,76,0.18); color: #fff; }
+.ev-action-danger         { border-color: rgba(248,113,113,0.28); color: rgba(248,113,113,0.65); }
+.ev-action-danger:hover   { background: rgba(248,113,113,0.1); color: #f87171; border-color: rgba(248,113,113,0.5); box-shadow: 0 0 10px rgba(248,113,113,0.15); }
 .ev-action .ev-ico { font-size: 0.95rem; line-height: 1; }
 .ev-action .ev-lbl { font-size: 0.8rem; font-weight: 600; line-height: 1; }
 
