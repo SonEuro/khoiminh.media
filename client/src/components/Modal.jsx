@@ -32,11 +32,17 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
       }}
     >
       <style>{`
-        /* Portrait mobile: bottom sheet */
+        /* Portrait mobile: bottom sheet với margin ngang */
         @media (max-width: 767px) and (orientation: portrait) {
+          .modal-overlay {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+          }
           .modal-positioner {
-            border-radius: 1rem 1rem 0 0 !important;
+            border-radius: 1rem !important;
             max-height: 92dvh !important;
+            margin-bottom: 14px;
           }
         }
         /* Landscape mobile (phone): centered sheet với safe area
