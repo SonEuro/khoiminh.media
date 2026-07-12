@@ -1520,7 +1520,7 @@ export default function WorkSchedule() {
                     .filter(({ dates }) => dates.length > 0)
                     .sort(({ dates: a }, { dates: b }) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''));
                   return (
-                    <div key={s.id} className="ev-card-flat" style={{ background:'rgba(120,120,160,0.03)', border:'1px solid rgba(120,120,160,0.15)', borderLeft:'3px solid #7878a0', borderRadius:'8px', overflow:'hidden' }}>
+                    <div key={s.id} className="ev-card-flat" style={{ background:'rgba(120,120,160,0.03)', border:'1px solid rgba(120,120,160,0.15)', borderLeft:'3px solid #7878a0', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
                       {/* Hàng 1: tên — band */}
                       <p style={{ margin:0, fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8', padding:'8px 12px 8px', background:'rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{s.event_name}</p>
                       {/* Hàng 2: dept */}
