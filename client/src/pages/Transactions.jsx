@@ -1083,19 +1083,22 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
             <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {tx.event_name || 'Nội bộ'}{tx.responsible_person ? ` · ${tx.responsible_person}` : ''} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
             </p>
-            <div style={{ display:'flex', gap:'4px', flexWrap:'wrap' }}>
-              <button className="btn-secondary btn-sm" onClick={() => onSelect(tx.id)}>Chi tiết</button>
+            <div className="ev-card-row">
+              <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
               {onTraNcc && tx.ext_count > 0 && (
-                <button onClick={() => onTraNcc(tx.id)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', border:'1px solid rgba(74,222,128,0.35)', background:'transparent', color:'#4ade80', cursor:'pointer', fontSize:'0.84rem', fontWeight:700, whiteSpace:'nowrap' }}>
-                  🏪 Trả NCC
+                <button className="ev-action" onClick={() => onTraNcc(tx.id)}
+                  style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.1)'; e.currentTarget.style.borderColor='rgba(74,222,128,0.6)'; e.currentTarget.style.boxShadow='0 0 10px rgba(74,222,128,0.15)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(74,222,128,0.35)'; e.currentTarget.style.boxShadow=''; }}>
+                  <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
                 </button>
               )}
-              <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:GOLD, cursor:'pointer', display:'flex', alignItems:'center' }}
-                onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}><Printer size={14} /></button>
+              <button className="ev-action ev-action-edit"
+                onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
+                <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
+              </button>
               {onDelete && (
-                <button style={{ padding:'5px 7px', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center' }}
-                  onClick={() => onDelete(tx)} title="Xóa phiếu">🗑</button>
+                <button className="ev-action ev-action-danger" onClick={() => onDelete(tx)} title="Xóa phiếu"><span className="ev-ico">🗑</span></button>
               )}
             </div>
           </div>
