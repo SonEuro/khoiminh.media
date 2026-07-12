@@ -1515,51 +1515,31 @@ export default function WorkSchedule() {
               </div>
               <div style={{ borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px', display:'flex', flexDirection:'column', gap:'6px', maxHeight:'585px', overflowY:'auto' }}>
                 {zones.past.map(s => {
-                  const pastBtn = {
-                    display:'inline-flex', alignItems:'center', gap:'6px',
-                    fontSize:'0.82rem', fontWeight:700, cursor:'pointer',
-                    padding:'11px 18px', borderRadius:'8px',
-                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)',
-                    color:'#9090a8', opacity:0.9,
-                  };
-                  const pastBtnDanger = { ...pastBtn, color:'#f87171', border:'1px solid rgba(248,113,113,0.25)', background:'rgba(248,113,113,0.06)' };
                   const allDates = PHASES
                     .map(p => ({ key: p.key, dates: s[`${p.key}_dates`] || [] }))
                     .filter(({ dates }) => dates.length > 0)
                     .sort(({ dates: a }, { dates: b }) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''));
                   return (
-                    <div key={s.id} style={{
-                      background:'rgba(120,120,160,0.03)',
-                      border:'1px solid rgba(120,120,160,0.15)',
-                      borderLeft:'3px solid #7878a0',
-                      borderRadius:'8px',
-                      padding:'9px 12px',
-                    }}>
-                      {/* Hàng 1: tên */}
-                      <div style={{ marginBottom:'7px' }}>
-                        <span style={{ fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8' }}>{s.event_name}</span>
-                        {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(<div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'4px'}}>{isAll?<span style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:'#fcd34d',background:'rgba(252,211,77,0.08)',border:'1px solid rgba(252,211,77,0.25)'}}>Tất cả bộ phận</span>:depts.map(dept=>{const dc=getDeptColor(dept);return(<span key={dept} style={{fontSize:'0.74rem',fontWeight:700,padding:'2px 8px',borderRadius:'20px',color:dc.color,background:dc.bg,border:`1px solid ${dc.border}`}}>{dept}</span>);})}</div>);})()}
+                    <div key={s.id} className="ev-card-flat" style={{ background:'rgba(120,120,160,0.03)', border:'1px solid rgba(120,120,160,0.15)', borderLeft:'3px solid #7878a0', borderRadius:'8px', overflow:'hidden' }}>
+                      {/* Hàng 1: tên — band */}
+                      <p style={{ margin:0, fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8', padding:'8px 12px 8px', background:'rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{s.event_name}</p>
+                      {/* Hàng 2: dept */}
+                      {(() => { const ev=events.find(e=>e.id===s.event_id); const depts=(() => { try{return JSON.parse(ev?.departments||'[]')||[];}catch{return [];} })(); if(!depts.length) return null; const isAll=ALL_EVENT_DEPTS.every(d=>depts.includes(d)); return(
+                        <div style={{padding:'5px 12px',fontSize:'0.82rem',background:'rgba(255,255,255,0.02)',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                          {isAll?<span style={{color:'#fcd34d',opacity:0.8}}>Tất cả bộ phận</span>:depts.map((dept,i)=>{const dc=getDeptColor(dept);return(<span key={dept}>{i>0&&<span style={{color:'rgba(255,255,255,0.14)',margin:'0 5px'}}>·</span>}<span style={{color:dc.color}}>{dept}</span></span>);})}
+                        </div>
+                      );})()}
+                      {/* Hàng 3: client + location + dates */}
+                      <div style={{ padding:'7px 12px', display:'flex', flexWrap:'wrap', gap:'8px', fontSize:'0.8rem', color:'#6b6b80' }}>
+                        {s.client   && <span>🏢 {s.client}</span>}
+                        {s.location && <span>📍 {s.location}</span>}
+                        {allDates.map(({ key, dates }) => <span key={key}>{renderDates(key, dates)}</span>)}
                       </div>
-                      {/* Hàng 2: chip + nút cùng hàng */}
-                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', flexWrap:'wrap' }}>
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', flex:1, minWidth:0 }}>
-                          {s.client && (
-                            <span style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>🏢 {s.client}</span>
-                          )}
-                          {s.location && (
-                            <span style={{ fontSize:'0.76rem', color:'#5080a0', background:'rgba(96,165,250,0.05)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'5px', padding:'2px 7px' }}>📍 {s.location}</span>
-                          )}
-                          {allDates.map(({ key, dates }) => (
-                            <span key={key} style={{ fontSize:'0.76rem', color:'#7878a0', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'5px', padding:'2px 7px' }}>
-                              {renderDates(key, dates)}
-                            </span>
-                          ))}
-                        </div>
-                        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-                          <button style={pastBtn} onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}>Chi tiết</button>
-                          {canEdit(s)   && <button style={pastBtn} onClick={() => { setSelected(s); setModal('form'); }}>✏️ Sửa</button>}
-                          {canDelete(s) && <button style={pastBtnDanger} onClick={() => handleDelete(s)}>🗑</button>}
-                        </div>
+                      {/* Hàng 4: buttons */}
+                      <div className="ev-card-row" style={{ padding:'0 12px 10px' }}>
+                        <button className="ev-action" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
+                        {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                        {canDelete(s) && <button className="ev-action ev-action-danger" onClick={() => handleDelete(s)}><span className="ev-ico">🗑</span></button>}
                       </div>
                     </div>
                   );
