@@ -106,7 +106,8 @@
   .btn-sm { padding: 11px 18px !important; font-size: 0.82rem !important; border-radius: 8px !important; }
 
   /* ── Card ────────────────────────────────────────── */
-  .ev-card-flat {
+  .ev-card-flat,
+  .card.ev-card-flat {
     padding: 0 !important;
     overflow: hidden;
   }
@@ -368,6 +369,7 @@
 
   /* Cards */
   .card { padding: 14px !important; border-radius: 10px !important; }
+  .card.ev-card-flat { padding: 0 !important; }
 
   /* Heading */
   h1 { font-size: 1.15rem !important; }
