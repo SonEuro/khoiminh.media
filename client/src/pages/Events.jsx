@@ -893,14 +893,14 @@ export default function Events() {
                 </div>
                 <span style={{ fontSize:'0.8rem', color:'#55556a' }}>{ev.tx_count} phiếu</span>
               </div>
-              {/* Hàng 2: tên sự kiện + code mờ */}
-              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'4px 16px 10px' }}>
+              {/* Hàng 2: tên sự kiện + code mờ — dải nền nổi bật */}
+              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'10px', padding:'8px 16px 10px', background:'rgba(255,255,255,0.05)', borderTop:'1px solid rgba(255,255,255,0.07)', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
                 <h3 style={{ margin:0, fontWeight:700, fontSize:'1.05rem', color:'#e8e4d4', lineHeight:'1.35' }}>{ev.name}</h3>
                 <span style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#3a3a52', flexShrink:0 }}>{ev.code}</span>
               </div>
-              {/* Hàng 3: dept band — full width, subtle bg, text màu theo bộ phận */}
+              {/* Hàng 3: dept — nền thường, text màu theo bộ phận */}
               {(() => { const depts = parseDepts(ev); if (!depts.length) return null; const isAll = ALL_EVENT_DEPTS.every(d => depts.includes(d)); return (
-                <div style={{ padding:'6px 16px', background:'rgba(255,255,255,0.03)', borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)', fontSize:'0.87rem', lineHeight:'1.5' }}>
+                <div style={{ padding:'6px 16px', fontSize:'0.87rem', lineHeight:'1.5' }}>
                   {isAll
                     ? <span style={{ color:'#fcd34d', opacity:0.8 }}>Tất cả bộ phận</span>
                     : depts.map((dept, i) => { const dc = getDeptColor(dept); return (
