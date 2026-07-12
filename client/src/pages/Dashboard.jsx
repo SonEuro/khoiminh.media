@@ -357,42 +357,40 @@ setUpcoming(found);
     );
   }
 
-  function EventCard({ group, isPast }) {
+  function EventCard({ group }) {
     const allDates   = Object.values(group.dates).flat();
     const isToday    = allDates.includes(todayVN);
     const isTomorrow = allDates.includes(tomorrowVN);
-    const bgBase  = isToday ? 'rgba(248,113,113,0.05)' : isTomorrow ? 'rgba(74,222,128,0.04)' : 'transparent';
-    const bgHover = isToday ? 'rgba(248,113,113,0.1)'  : isTomorrow ? 'rgba(74,222,128,0.09)'  : 'rgba(96,165,250,0.05)';
-    const nameColor = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : isPast ? '#7878a0' : '#e8c97a';
+    const accentColor = isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c';
+    const nameColor   = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : '#c9a84c';
     return (
-      <div
+      <div className="ev-card-flat"
         onClick={() => navigate('/work-schedule', { state: { schedId: group.schedId } })}
-        style={{ padding:'10px 14px', cursor:'pointer', borderTop:'1px solid rgba(255,255,255,0.04)', background:bgBase, transition:'background 0.13s', opacity: isPast ? 0.65 : 1 }}
-        onMouseEnter={e => e.currentTarget.style.background = bgHover}
-        onMouseLeave={e => e.currentTarget.style.background = bgBase}
+        style={{ border:`1px solid rgba(255,255,255,0.07)`, borderLeft:`3px solid ${accentColor}`, borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.12)'}
+        onMouseLeave={e => e.currentTarget.style.filter = ''}
       >
-        {/* Hàng 1: Tên sự kiện */}
-        <p style={{ fontWeight:700, color:nameColor, fontSize:'0.87rem', margin:0 }}>{group.eventName}</p>
-        {/* Hàng 2: Địa điểm */}
-        {group.location && (
-          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'4px 0 0' }}>📍 {group.location}</p>
-        )}
-        {/* Hàng 3: Ngày theo phase – 1 dòng scroll ngang */}
-        <div style={{ overflowX:'auto', marginTop:'5px', paddingBottom:'2px' }}>
-          <div style={{ display:'inline-flex', gap:'10px', alignItems:'center', whiteSpace:'nowrap' }}>
-            {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
-              const sorted = [...group.dates[p]].sort();
-              return (
-                <span key={p} style={{ display:'inline-flex', alignItems:'center', gap:'3px', fontSize:'0.80rem' }}>
-                  <span>{PHASE_ICON[p]}</span>
-                  {sorted.map((d, i) => (
-                    <span key={d} style={{ color: d === todayVN ? '#f87171' : d === tomorrowVN ? '#4ade80' : '#a0a0b8', fontWeight: (d === todayVN || d === tomorrowVN) ? 700 : 400 }}>
-                      {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
-                    </span>
-                  ))}
-                </span>
-              );
-            })}
+        {/* Hàng 1: tên — band nổi */}
+        <p style={{ margin:0, fontWeight:700, color:nameColor, fontSize:'0.87rem', padding:'10px 14px 9px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>{group.eventName}</p>
+        {/* Hàng 2: location + dates */}
+        <div style={{ padding:'8px 14px 10px', display:'flex', flexDirection:'column', gap:'5px' }}>
+          {group.location && <p style={{ margin:0, fontSize:'0.80rem', color:'#7878a0' }}>📍 {group.location}</p>}
+          <div style={{ overflowX:'auto', paddingBottom:'2px' }}>
+            <div style={{ display:'inline-flex', gap:'10px', alignItems:'center', whiteSpace:'nowrap', fontSize:'0.80rem' }}>
+              {PHASE_ORDER.filter(p => group.dates[p]?.length).map(p => {
+                const sorted = [...group.dates[p]].sort();
+                return (
+                  <span key={p} style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}>
+                    <span>{PHASE_ICON[p]}</span>
+                    {sorted.map((d, i) => (
+                      <span key={d} style={{ color: d === todayVN ? '#f87171' : d === tomorrowVN ? '#4ade80' : '#a0a0b8', fontWeight: (d === todayVN || d === tomorrowVN) ? 700 : 400 }}>
+                        {i > 0 && <span style={{ color:'#555570' }}> · </span>}{fmtD(d)}
+                      </span>
+                    ))}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -402,7 +400,7 @@ setUpcoming(found);
   return (
     <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.35)', marginBottom:'10px' }}>
       <SectionHeader title="Lịch làm việc của bạn" color="#4ade80" colorRgb="74,222,128" count={totalFuture} />
-      <div style={{ background:'#13131d' }}>
+      <div style={{ background:'#13131d', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'6px' }}>
         {todayEvs.length > 0 && <>
           <ZoneDivider color="#f87171" border="rgba(248,113,113,0.4)" label="HÔM NAY" count={todayEvs.length} />
           {todayEvs.map(g => <EventCard key={`${g.schedId}::today`} group={g} />)}
