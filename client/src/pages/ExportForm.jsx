@@ -874,22 +874,21 @@ export default function ExportForm() {
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
                         </div>
                       )}
-                      <input
-                        style={{ width:'100%', height:'40px', padding:'0 12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.92rem', outline:'none', boxSizing:'border-box' }}
-                        placeholder="Ghi chú cho dòng này..."
-                        value={item.notes || ''}
-                        onChange={e => setItem(idx, 'notes', e.target.value)}
-                      />
-                      <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'8px' }}>
-                        <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'4px 10px', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', flexShrink:0, userSelect:'none' }}>COMBO</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                        <input
+                          style={{ flex:1, height:'40px', padding:'0 12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.92rem', outline:'none', boxSizing:'border-box' }}
+                          placeholder="Ghi chú cho dòng này..."
+                          value={item.notes || ''}
+                          onChange={e => setItem(idx, 'notes', e.target.value)}
+                        />
+                        <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'0 10px', height:'40px', display:'flex', alignItems:'center', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', flexShrink:0, userSelect:'none' }}>COMBO</span>
                         <input
                           type="number" min="1"
-                          style={{ width:'72px', height:'32px', padding:'0 8px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.9rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                          style={{ width:'64px', height:'40px', padding:'0 8px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.9rem', outline:'none', textAlign:'center', boxSizing:'border-box', flexShrink:0 }}
                           placeholder="—"
                           value={item.combo || ''}
                           onChange={e => setItem(idx, 'combo', e.target.value)}
                         />
-                        {item.combo && <span style={{ fontSize:'0.78rem', color:'rgba(167,139,250,0.6)' }}>Nhãn combo #{item.combo}</span>}
                       </div>
                     </div>
                   )}
