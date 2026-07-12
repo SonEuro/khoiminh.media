@@ -866,30 +866,30 @@ export default function ExportForm() {
                   {isOpen && (
                     <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px', background:'rgba(201,168,76,0.03)', borderRadius:'0 0 8px 8px' }}>
                       {eq && (
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'10px', marginBottom:'8px', fontSize:'0.78rem' }}>
+                        <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'10px', marginBottom:'8px', fontSize:'0.78rem' }}>
                           <span style={{ color:'var(--text-muted)' }}>Mã: <span style={{ color:'var(--gold)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>ĐVT: <span style={{ color:'var(--text-primary)' }}>{eq.unit}</span></span>
                           <span style={{ color:'var(--text-muted)' }}>Khả dụng: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
                           {(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0) > 0 && <span style={{ color:'var(--text-muted)' }}>Tạm xuất: <span style={{ color:'#fbbf24', fontWeight:700 }}>{(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0)}</span></span>}
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
+                          <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'6px' }}>
+                            <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', userSelect:'none' }}>COMBO</span>
+                            <input
+                              type="number" min="1"
+                              style={{ width:'56px', height:'26px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'5px', color:'#a78bfa', fontSize:'0.82rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                              placeholder="—"
+                              value={item.combo || ''}
+                              onChange={e => setItem(idx, 'combo', e.target.value)}
+                            />
+                          </span>
                         </div>
                       )}
-                      <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                        <input
-                          style={{ flex:1, height:'40px', padding:'0 12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.92rem', outline:'none', boxSizing:'border-box' }}
-                          placeholder="Ghi chú cho dòng này..."
-                          value={item.notes || ''}
-                          onChange={e => setItem(idx, 'notes', e.target.value)}
-                        />
-                        <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'0 10px', height:'40px', display:'flex', alignItems:'center', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', flexShrink:0, userSelect:'none' }}>COMBO</span>
-                        <input
-                          type="number" min="1"
-                          style={{ width:'64px', height:'40px', padding:'0 8px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.9rem', outline:'none', textAlign:'center', boxSizing:'border-box', flexShrink:0 }}
-                          placeholder="—"
-                          value={item.combo || ''}
-                          onChange={e => setItem(idx, 'combo', e.target.value)}
-                        />
-                      </div>
+                      <input
+                        style={{ width:'100%', height:'40px', padding:'0 12px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.92rem', outline:'none', boxSizing:'border-box' }}
+                        placeholder="Ghi chú cho dòng này..."
+                        value={item.notes || ''}
+                        onChange={e => setItem(idx, 'notes', e.target.value)}
+                      />
                     </div>
                   )}
                 </div>
