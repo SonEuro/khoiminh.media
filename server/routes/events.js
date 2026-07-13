@@ -22,14 +22,14 @@ function checkTruongPhongDept(req, eventCreatedById) {
 }
 
 function nextCode() {
-  const last = db.prepare("SELECT code FROM events WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 1").get();
-  if (!last) return 'EVENT-001';
-  const num = parseInt(last.code.split('-')[1]);
-  if (isNaN(num)) {
-    const count = db.prepare('SELECT COUNT(*) AS c FROM events').get().c;
-    return `EVENT-${String(count + 1).padStart(3, '0')}`;
+  // Tìm max trong TẤT CẢ events (kể cả đã xóa) để tránh conflict UNIQUE
+  const rows = db.prepare("SELECT code FROM events").all();
+  let max = 0;
+  for (const { code } of rows) {
+    const n = parseInt((code || '').split('-')[1]);
+    if (!isNaN(n) && n > max) max = n;
   }
-  return `EVENT-${String(num + 1).padStart(3, '0')}`;
+  return `EVENT-${String(max + 1).padStart(3, '0')}`;
 }
 
 // Auto-cleanup: xóa hẳn sự kiện trong trash quá 30 ngày
