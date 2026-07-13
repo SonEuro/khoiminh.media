@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
+import { DEPARTMENTS } from '../constants/staff';
+
+const FREELANCER_DEPTS = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Quay Phim', 'Sản Xuất'];
 
 const ROLES = [
   { value: 'DIRECTOR',   label: '🌟 Tổng Giám Đốc' },
@@ -643,13 +646,17 @@ export default function Users() {
             {staffDraft.map((g, i) => (
               <div key={i} style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <input
+                  <select
                     className="input"
-                    placeholder="Bộ phận..."
                     value={g.dept}
                     onChange={e => setStaffDraft(d => d.map((x, j) => j === i ? { ...x, dept: e.target.value } : x))}
                     style={{ flex: 1, fontWeight: 700, fontSize: '0.88rem' }}
-                  />
+                  >
+                    <option value="">— Chọn bộ phận —</option>
+                    {(staffModal === 'km' ? DEPARTMENTS : FREELANCER_DEPTS).map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                   <button
                     onClick={() => setStaffDraft(d => d.filter((_, j) => j !== i))}
                     style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.84rem', flexShrink: 0 }}
