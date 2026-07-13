@@ -138,7 +138,7 @@ export default function EventDetailModal({ eventId, onClose }) {
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
                           <td className="py-1.5" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
                             <span>{it.eq_name}</span>
-                            {it.combo && <span style={{ flexShrink:0, fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.45)', borderRadius:'3px', color:'#ffffff', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
+                            {it.combo && <span style={{ flexShrink:0, fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
                           </td>
                           <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
                           <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
