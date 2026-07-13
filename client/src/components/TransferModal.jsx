@@ -78,6 +78,27 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
     <Modal title={`Chuyển thiết bị — ${tx.code}`} onClose={onClose} size="md">
       <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
 
+        {/* Sự kiện đích — đầu tiên */}
+        <div>
+          <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
+            Thiết bị đến sự kiện
+          </p>
+          <select
+            value={targetEventId}
+            onChange={e => setTargetEventId(e.target.value)}
+            style={{
+              width:'100%', height:'42px', padding:'0 10px',
+              background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)',
+              borderRadius:'8px', color: targetEventId ? '#e0e0ee' : '#7878a0',
+              fontSize:'0.90rem', outline:'none',
+            }}>
+            <option value="">— Chọn sự kiện —</option>
+            {availableEvents.map(ev => (
+              <option key={ev.id} value={ev.id}>{ev.name}{ev.code ? ` · ${ev.code}` : ''}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Danh sách thiết bị */}
         <div>
           <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
@@ -120,27 +141,6 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Sự kiện đích */}
-        <div>
-          <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
-            Thiết bị đến sự kiện
-          </p>
-          <select
-            value={targetEventId}
-            onChange={e => setTargetEventId(e.target.value)}
-            style={{
-              width:'100%', height:'42px', padding:'0 10px',
-              background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)',
-              borderRadius:'8px', color: targetEventId ? '#e0e0ee' : '#7878a0',
-              fontSize:'0.90rem', outline:'none',
-            }}>
-            <option value="">— Chọn sự kiện —</option>
-            {availableEvents.map(ev => (
-              <option key={ev.id} value={ev.id}>{ev.name}{ev.code ? ` · ${ev.code}` : ''}</option>
-            ))}
-          </select>
         </div>
 
         {/* Submit */}
