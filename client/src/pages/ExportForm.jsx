@@ -28,7 +28,7 @@ const ROLE_DEPT = {
 // Roles that cannot change the dept selector
 const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
-const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', combo: '', ext_supplier: '', ext_name: '', rental_days: 1 }));
+const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', combo: null, ext_supplier: '', ext_name: '', rental_days: 1 }));
 
 const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
 const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS-LED','Sân Khấu','Cơ Sở Vật Chất'];
@@ -872,16 +872,27 @@ export default function ExportForm() {
                           <span style={{ color:'var(--text-muted)' }}>Khả dụng: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
                           {(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0) > 0 && <span style={{ color:'var(--text-muted)' }}>Tạm xuất: <span style={{ color:'#fbbf24', fontWeight:700 }}>{(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0)}</span></span>}
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
-                          <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'6px' }}>
-                            <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa', background:'rgba(167,139,250,0.07)', userSelect:'none' }}>COMBO</span>
-                            <input
-                              type="number" min="1"
-                              style={{ width:'56px', height:'26px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.25)', borderRadius:'5px', color:'#a78bfa', fontSize:'0.82rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
-                              placeholder="—"
-                              value={item.combo || ''}
-                              onChange={e => setItem(idx, 'combo', e.target.value)}
-                            />
-                          </span>
+                          {item.quantity > 0 && (
+                            <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'6px' }}>
+                              <button type="button"
+                                onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                                style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', cursor:'pointer',
+                                  border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                                  color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                                  background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                                }}>COMBO</button>
+                              {item.combo !== null && (
+                                <input
+                                  autoFocus
+                                  type="number" min="1"
+                                  style={{ width:'56px', height:'26px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.35)', borderRadius:'5px', color:'#a78bfa', fontSize:'0.82rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                                  placeholder="—"
+                                  value={item.combo}
+                                  onChange={e => setItem(idx, 'combo', e.target.value)}
+                                />
+                              )}
+                            </span>
+                          )}
                         </div>
                       )}
                       <input
