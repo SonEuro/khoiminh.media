@@ -804,18 +804,6 @@ export default function ExportForm() {
                           )}
                         </div>
                       )}
-                      {/* COMBO toggle — hiện khi đã chọn thiết bị + số lượng */}
-                      {eq && item.quantity > 0 && (
-                        <div style={{ marginTop:'5px' }}>
-                          <button type="button"
-                            onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
-                            style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', cursor:'pointer',
-                              border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                              color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                              background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                            }}>FREE</button>
-                        </div>
-                      )}
                     </div>
 
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
@@ -871,8 +859,16 @@ export default function ExportForm() {
                         onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
                         THUÊ
                       </button>
-                      {/* Combo number input — hàng 3, cột phải (dưới THUÊ) */}
-                      {item.combo !== null && <span />}
+                      {/* Hàng 3: [FREE][_#_] — hiện khi đã chọn thiết bị + số lượng */}
+                      {eq && item.quantity > 0 && (
+                        <button type="button"
+                          onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                            border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                            color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                            background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                          }}>FREE</button>
+                      )}
                       {item.combo !== null && (
                         <input
                           autoFocus
