@@ -238,7 +238,8 @@ router.get('/:id', (req, res) => {
   const items = db.prepare(`
     SELECT ti.equipment_id, e.code as eq_code, e.name as eq_name, e.unit,
            SUM(CASE WHEN t.type = 'OUT' THEN ti.quantity ELSE 0 END) as qty_out,
-           SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) as qty_returned
+           SUM(CASE WHEN t.type = 'RETURN' THEN ti.quantity ELSE 0 END) as qty_returned,
+           MAX(ti.combo) as combo
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
     JOIN equipment e ON e.id = ti.equipment_id

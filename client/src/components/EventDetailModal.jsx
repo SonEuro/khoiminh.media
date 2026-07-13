@@ -136,7 +136,10 @@ export default function EventDetailModal({ eventId, onClose }) {
                       rows.push(
                         <tr key={it.equipment_id} className="border-b last:border-0">
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
-                          <td className="py-1.5">{it.eq_name}</td>
+                          <td className="py-1.5">
+                            {it.eq_name}
+                            {it.combo && <span style={{ display:'inline-block', marginLeft:'6px', fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid #7c3aed', borderRadius:'3px', color:'#a78bfa', verticalAlign:'middle', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
+                          </td>
                           <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
                           <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
                           <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
