@@ -1100,9 +1100,9 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
               </button>
               {onTransfer && tx.type === 'OUT' && (
                 <button className="ev-action"
-                  style={{ borderColor:'rgba(167,139,250,0.35)', color:'rgba(167,139,250,0.7)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,0.1)'; e.currentTarget.style.borderColor='rgba(167,139,250,0.6)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(167,139,250,0.35)'; }}
+                  style={{ borderColor:'rgba(248,113,113,0.35)', color:'rgba(248,113,113,0.7)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(248,113,113,0.1)'; e.currentTarget.style.borderColor='rgba(248,113,113,0.6)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(248,113,113,0.35)'; }}
                   onClick={async () => {
                     try { const full = await api.getTransactionById(tx.id); onTransfer(full); }
                     catch { alert('Không thể tải phiếu'); }
