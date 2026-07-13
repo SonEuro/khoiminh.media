@@ -786,11 +786,24 @@ router.post('/transfer', canTransact, (req, res) => {
     const insItem = db.prepare(
       `INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`
     );
+
+    // Phiếu đích: các thiết bị được chuyển tới
+    const transferMap = {};
     for (const item of items) {
-      const qty = parseInt(item.quantity) || 1;
-      if (qty <= 0) continue;
-      insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
-      insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+      const qty = parseInt(item.quantity) || 0;
+      if (qty > 0) {
+        insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+        transferMap[item.equipment_id] = qty;
+      }
+    }
+
+    // Phiếu nguồn "update sau chuyển": số lượng còn lại (gốc trừ đã chuyển)
+    const originalItems = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(source_tx_id);
+    for (const orig of originalItems) {
+      const transferred = transferMap[orig.equipment_id] || 0;
+      const remaining   = orig.quantity - transferred;
+      if (remaining > 0)
+        insItem.run(sourceTxR.lastInsertRowid, orig.equipment_id, remaining, orig.notes, orig.combo);
     }
 
     return {
