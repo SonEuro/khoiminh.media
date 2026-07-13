@@ -813,7 +813,7 @@ export default function ExportForm() {
                               border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
                               color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
                               background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                            }}>COMBO</button>
+                            }}>FREE</button>
                         </div>
                       )}
                     </div>
