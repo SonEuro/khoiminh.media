@@ -451,3 +451,20 @@ export const NCC_CATALOG = {
     { name: "Cầu Thang - Layer", unit: "Mâm", qty: 12 }
   ]
 };
+
+export const NCC_LIST = Object.keys(NCC_CATALOG);
+
+export const NCC_DEPT = {
+  'NIPI':    ['TECH'],
+  'VĂN HUY': ['TECH'],
+  'ZOOM':    ['TECH'],
+  'A HOÀI':  ['TECH'],
+  'A QUANG': ['TECH'],
+  'Vinh BĐ': ['TECH'],
+  'A THÁI':  ['ATAS'],
+  'A HIỆP':  ['ATAS'],
+  'A TÌNH':  ['ATAS'],
+  'ALTA':    ['ATAS'],
+  'DMX':     ['ATAS'],
+  'SK OUT':  ['STAGE'],
+};
