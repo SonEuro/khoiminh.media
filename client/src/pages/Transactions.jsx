@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
+import TransferModal from '../components/TransferModal';
 import { printSlip } from '../utils/printSlip';
 import { printNccReturn } from '../utils/printNccReturn';
 import { NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
@@ -1068,7 +1069,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
   );
 }
 
-function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
+function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
@@ -1097,6 +1098,18 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc }) {
                 onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
                 <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
               </button>
+              {onTransfer && tx.type === 'OUT' && (
+                <button className="ev-action"
+                  style={{ borderColor:'rgba(167,139,250,0.35)', color:'rgba(167,139,250,0.7)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,0.1)'; e.currentTarget.style.borderColor='rgba(167,139,250,0.6)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(167,139,250,0.35)'; }}
+                  onClick={async () => {
+                    try { const full = await api.getTransactionById(tx.id); onTransfer(full); }
+                    catch { alert('Không thể tải phiếu'); }
+                  }}>
+                  <span className="ev-ico">🔄</span><span className="ev-lbl">Chuyển</span>
+                </button>
+              )}
               {onDelete && (
                 <button className="ev-action ev-action-danger" onClick={() => onDelete(tx)} title="Xóa phiếu"><span className="ev-ico">🗑</span></button>
               )}
@@ -1176,6 +1189,7 @@ export default function Transactions() {
   const [deletingCompletedTx, setDeletingCompletedTx] = useState(null);
   const [confirming,          setConfirming]          = useState(null);
   const [traNccTx,            setTraNccTx]            = useState(null);
+  const [transferTx,          setTransferTx]          = useState(null);
   const [trashedTxs,          setTrashedTxs]          = useState([]);
   const [trashLoaded,         setTrashLoaded]         = useState(false);
 
@@ -1294,7 +1308,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
-            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
+            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canEdit ? setTransferTx : null} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
@@ -1397,6 +1411,14 @@ export default function Transactions() {
       )}
       {traNccTx && (
         <TraNccModal txId={traNccTx} onClose={() => setTraNccTx(null)} />
+      )}
+      {transferTx && (
+        <TransferModal
+          tx={transferTx}
+          events={events}
+          onClose={() => setTransferTx(null)}
+          onDone={load}
+        />
       )}
     </div>
   );

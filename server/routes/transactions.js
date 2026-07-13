@@ -733,4 +733,78 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
   }
 });
 
+// POST /transactions/transfer — chuyển thiết bị sang sự kiện khác
+router.post('/transfer', canTransact, (req, res) => {
+  const { source_tx_id, target_event_id, items } = req.body;
+  if (!source_tx_id || !target_event_id || !Array.isArray(items) || items.length === 0)
+    return res.status(400).json({ error: 'Thiếu thông tin' });
+
+  const sourceTx = db.prepare('SELECT * FROM transactions WHERE id = ? AND deleted_at IS NULL').get(source_tx_id);
+  if (!sourceTx) return res.status(404).json({ error: 'Không tìm thấy phiếu nguồn' });
+
+  const targetEvent = db.prepare('SELECT * FROM events WHERE id = ?').get(target_event_id);
+  if (!targetEvent) return res.status(404).json({ error: 'Không tìm thấy sự kiện đích' });
+
+  const existingOut = db.prepare(
+    `SELECT * FROM transactions WHERE event_id = ? AND type = 'OUT' AND deleted_at IS NULL ORDER BY id DESC LIMIT 1`
+  ).get(target_event_id);
+
+  const now = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium' })
+    .format(new Date()).replace('T', ' ');
+
+  const doTransfer = db.transaction(() => {
+    // Mã phiếu đích
+    let targetCode, targetStatus;
+    if (!existingOut) {
+      targetCode   = nextCode('OUT', target_event_id, req.user.full_name);
+      targetStatus = 'pending';
+    } else {
+      targetCode = `${existingOut.code} - cập nhật`;
+      let n = 1;
+      while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(targetCode))
+        targetCode = `${existingOut.code} - cập nhật ${++n}`;
+      targetStatus = 'completed';
+    }
+
+    // Mã phiếu nguồn
+    let sourceCode = `${sourceTx.code} - update sau chuyển`;
+    let sn = 1;
+    while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(sourceCode))
+      sourceCode = `${sourceTx.code} - update sau chuyển ${++sn}`;
+
+    const ins = db.prepare(`
+      INSERT INTO transactions (code, type, status, event_id, responsible_person, notes, transaction_date, created_by_id)
+      VALUES (?, 'OUT', ?, ?, ?, ?, ?, ?)
+    `);
+
+    const targetTxR = ins.run(targetCode, targetStatus, target_event_id,
+      req.user.full_name, `Chuyển từ ${sourceTx.code}`, now, req.user.id);
+
+    const sourceTxR = ins.run(sourceCode, 'completed', sourceTx.event_id,
+      req.user.full_name, `Thiết bị chuyển sang ${targetEvent.name}`, now, req.user.id);
+
+    const insItem = db.prepare(
+      `INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`
+    );
+    for (const item of items) {
+      const qty = parseInt(item.quantity) || 1;
+      if (qty <= 0) continue;
+      insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+      insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+    }
+
+    return {
+      case: existingOut ? 2 : 1,
+      target_tx_code: targetCode,
+      source_tx_code: sourceCode,
+    };
+  });
+
+  try {
+    res.json(doTransfer());
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 module.exports = router;

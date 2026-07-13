@@ -114,6 +114,7 @@ export const api = {
   deleteEvents: (ids) => request('/admin/delete-events', { method: 'POST', body: { ids } }),
   debugObligations: () => request('/admin/debug-obligations'),
   resetDismissedObligations: () => request('/admin/reset-dismissed-obligations', { method: 'POST' }),
+  transferEquipment: (data) => request('/transactions/transfer', { method: 'POST', body: data }),
   deleteTransaction: (id, reason) => request(`/transactions/${id}`, { method: 'DELETE', body: reason ? { reason } : undefined }),
   getTransactionTrash: () => request('/transactions/trash'),
   permanentDeleteTransaction: (id) => request(`/transactions/trash/${id}`, { method: 'DELETE' }),
