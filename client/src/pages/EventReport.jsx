@@ -311,11 +311,15 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
   const [imgScale, setImgScale] = useState(1);
+  const [imgTranslate, setImgTranslate] = useState({ x: 0, y: 0 });
   const [confirming, setConfirming] = useState(false);
   const [confirmedAt, setConfirmedAt] = useState(report.confirmed_at || null);
   const { user: currentUser } = useAuth();
   const lightboxImgRef = useRef(null);
-  const imgScaleRef = useRef(1);
+  const lightboxRef    = useRef(null);
+  const imgScaleRef    = useRef(1);
+  const imgTranslateRef = useRef({ x: 0, y: 0 });
+  const wasDraggingRef  = useRef(false);
 
   const detail = fullData || report;
 
@@ -334,45 +338,118 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
     }
   }
 
-  // Reset zoom khi chuyển ảnh
+  // Reset zoom + pan khi chuyển ảnh
   useEffect(() => {
     imgScaleRef.current = 1;
+    imgTranslateRef.current = { x: 0, y: 0 };
     setImgScale(1);
+    setImgTranslate({ x: 0, y: 0 });
   }, [imgIdx]);
 
-  // Pinch-to-zoom bằng CSS transform — không zoom viewport
+  // Pinch-to-zoom + single-finger pan (touch) + wheel zoom + mouse drag (desktop)
   useEffect(() => {
-    const el = lightboxImgRef.current;
-    if (!el || imgIdx === null) return;
+    const el  = lightboxImgRef.current;
+    const box = lightboxRef.current;
+    if (!el || !box || imgIdx === null) return;
+
+    // ── TOUCH ──────────────────────────────────────────────────────────
     let startDist = null, startScale = 1;
-    function onStart(e) {
+    let panStart = null, panTx = 0, panTy = 0;
+
+    function onTouchStart(e) {
       if (e.touches.length === 2) {
         startDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY,
         );
         startScale = imgScaleRef.current;
+        panStart = null;
+      } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
+        panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        panTx = imgTranslateRef.current.x;
+        panTy = imgTranslateRef.current.y;
       }
     }
-    function onMove(e) {
-      if (e.touches.length !== 2 || !startDist) return;
-      e.preventDefault();
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      );
-      const s = Math.min(5, Math.max(1, startScale * (dist / startDist)));
-      imgScaleRef.current = s;
-      setImgScale(s);
+    function onTouchMove(e) {
+      if (e.touches.length === 2 && startDist) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        const s = Math.min(8, Math.max(1, startScale * (dist / startDist)));
+        imgScaleRef.current = s;
+        setImgScale(s);
+      } else if (e.touches.length === 1 && panStart) {
+        e.preventDefault();
+        const tx = panTx + e.touches[0].clientX - panStart.x;
+        const ty = panTy + e.touches[0].clientY - panStart.y;
+        imgTranslateRef.current = { x: tx, y: ty };
+        setImgTranslate({ x: tx, y: ty });
+      }
     }
-    function onEnd() { startDist = null; }
-    el.addEventListener('touchstart', onStart,  { passive: true });
-    el.addEventListener('touchmove',  onMove,   { passive: false });
-    el.addEventListener('touchend',   onEnd,    { passive: true });
+    function onTouchEnd() { startDist = null; panStart = null; }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true });
+
+    // ── MOUSE WHEEL zoom ───────────────────────────────────────────────
+    function onWheel(e) {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - (rect.left + rect.width / 2);
+      const cy = e.clientY - (rect.top  + rect.height / 2);
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      const newScale = Math.min(8, Math.max(1, imgScaleRef.current * factor));
+      const ratio = newScale / imgScaleRef.current;
+      const tx = imgTranslateRef.current.x + cx * (1 - ratio);
+      const ty = imgTranslateRef.current.y + cy * (1 - ratio);
+      imgScaleRef.current = newScale;
+      imgTranslateRef.current = { x: tx, y: ty };
+      setImgScale(newScale);
+      setImgTranslate({ x: tx, y: ty });
+      if (newScale === 1) { imgTranslateRef.current = { x: 0, y: 0 }; setImgTranslate({ x: 0, y: 0 }); }
+    }
+    box.addEventListener('wheel', onWheel, { passive: false });
+
+    // ── MOUSE DRAG pan ─────────────────────────────────────────────────
+    let dragging = false, mStartX = 0, mStartY = 0, mTx = 0, mTy = 0;
+
+    function onMouseDown(e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragging = true;
+      wasDraggingRef.current = false;
+      mStartX = e.clientX; mStartY = e.clientY;
+      mTx = imgTranslateRef.current.x; mTy = imgTranslateRef.current.y;
+      el.style.cursor = 'grabbing';
+    }
+    function onMouseMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - mStartX, dy = e.clientY - mStartY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) wasDraggingRef.current = true;
+      const tx = mTx + dx, ty = mTy + dy;
+      imgTranslateRef.current = { x: tx, y: ty };
+      setImgTranslate({ x: tx, y: ty });
+    }
+    function onMouseUp() {
+      dragging = false;
+      el.style.cursor = imgScaleRef.current > 1 ? 'grab' : 'default';
+    }
+
+    el.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup',   onMouseUp);
+
     return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove',  onMove);
-      el.removeEventListener('touchend',   onEnd);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+      box.removeEventListener('wheel', onWheel);
+      el.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup',   onMouseUp);
     };
   }, [imgIdx]);
 
@@ -584,10 +661,12 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
       {/* Lightbox */}
       {imgIdx !== null && (
         <div
-          onClick={() => setImgIdx(null)}
+          ref={lightboxRef}
+          onClick={() => { if (!wasDraggingRef.current) setImgIdx(null); wasDraggingRef.current = false; }}
           style={{
             position:'fixed', inset:0, zIndex:999,
             background:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center',
+            overflow:'hidden',
           }}
         >
           <img ref={lightboxImgRef} src={imgUrl(detail.images?.[imgIdx])} alt=""
@@ -595,10 +674,12 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             style={{
               maxWidth:'90vw', maxHeight:'90dvh', borderRadius:'8px',
               boxShadow:'0 0 40px rgba(0,0,0,0.8)',
-              transform: `scale(${imgScale})`,
+              transform: `translate(${imgTranslate.x}px, ${imgTranslate.y}px) scale(${imgScale})`,
               transformOrigin: 'center',
-              transition: imgScale === 1 ? 'transform 0.2s' : 'none',
+              transition: imgScale === 1 && imgTranslate.x === 0 && imgTranslate.y === 0 ? 'transform 0.2s' : 'none',
               touchAction: 'none',
+              cursor: imgScale > 1 ? 'grab' : 'default',
+              userSelect: 'none',
             }} />
           <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
             onClick={() => setImgIdx(null)}>✕</div>
