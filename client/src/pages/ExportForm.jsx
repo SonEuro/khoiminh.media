@@ -804,6 +804,18 @@ export default function ExportForm() {
                           )}
                         </div>
                       )}
+                      {/* COMBO toggle — hiện khi đã chọn thiết bị + số lượng */}
+                      {eq && item.quantity > 0 && (
+                        <div style={{ marginTop:'5px' }}>
+                          <button type="button"
+                            onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                            style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', cursor:'pointer',
+                              border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                              color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                              background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                            }}>COMBO</button>
+                        </div>
+                      )}
                     </div>
 
                     {/* 2×2 grid bên phải: [Qty][X] / [✏️][THUÊ] */}
@@ -859,6 +871,18 @@ export default function ExportForm() {
                         onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; ev.currentTarget.style.color='rgba(96,165,250,0.6)'; }}>
                         THUÊ
                       </button>
+                      {/* Combo number input — hàng 3, cột phải (dưới THUÊ) */}
+                      {item.combo !== null && <span />}
+                      {item.combo !== null && (
+                        <input
+                          autoFocus
+                          type="number" min="1"
+                          style={{ height:'36px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box', width:'100%' }}
+                          placeholder="—"
+                          value={item.combo}
+                          onChange={e => setItem(idx, 'combo', e.target.value)}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -872,27 +896,6 @@ export default function ExportForm() {
                           <span style={{ color:'var(--text-muted)' }}>Khả dụng: <span style={{ color:'#4ade80', fontWeight:700 }}>{eq.qty_available}</span></span>
                           {(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0) > 0 && <span style={{ color:'var(--text-muted)' }}>Tạm xuất: <span style={{ color:'#fbbf24', fontWeight:700 }}>{(reservedMap[eq.id]||[]).reduce((s,r)=>s+r.qty,0)}</span></span>}
                           <span style={{ color:'var(--text-muted)' }}>Đang dùng: <span style={{ color:'#60a5fa' }}>{eq.qty_in_use}</span></span>
-                          {item.quantity > 0 && (
-                            <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:'6px' }}>
-                              <button type="button"
-                                onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
-                                style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', padding:'2px 8px', borderRadius:'5px', cursor:'pointer',
-                                  border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                                  color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                                  background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                                }}>COMBO</button>
-                              {item.combo !== null && (
-                                <input
-                                  autoFocus
-                                  type="number" min="1"
-                                  style={{ width:'56px', height:'26px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.35)', borderRadius:'5px', color:'#a78bfa', fontSize:'0.82rem', outline:'none', textAlign:'center', boxSizing:'border-box' }}
-                                  placeholder="—"
-                                  value={item.combo}
-                                  onChange={e => setItem(idx, 'combo', e.target.value)}
-                                />
-                              )}
-                            </span>
-                          )}
                         </div>
                       )}
                       <input
