@@ -373,6 +373,7 @@ export default function Layout() {
           <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto' }}>
             <Outlet />
           </div>
+          <div style={{ height:'env(safe-area-inset-bottom, 0px)', background:'var(--bg-card)', flexShrink:0 }} />
         </main>
       </div>
 
