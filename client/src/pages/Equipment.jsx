@@ -400,6 +400,80 @@ export default function Equipment() {
         </div>
       )}
 
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+
+        {/* Bộ phận select */}
+        <div style={{ position: 'relative', flex: '1 1 140px' }}>
+          <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSearch(''); }}
+            style={{ width: '100%', paddingLeft: '36px', height: '40px', boxSizing: 'border-box', color: deptFilter ? '#c9a84c' : undefined, fontWeight: deptFilter ? 700 : 400 }}>
+            {DEPT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+          </select>
+          {(() => {
+            const d = DEPT_OPTIONS.find(o => o.value === deptFilter) || DEPT_OPTIONS[0];
+            return <d.Icon size={14} strokeWidth={1.75} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#c9a84c', pointerEvents: 'none' }} />;
+          })()}
+        </div>
+
+        {/* Search with autocomplete */}
+        <div style={{ position: 'relative', flex: '2 1 180px' }}>
+          <input className="input" placeholder="Tìm theo tên, mã..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setShowSearchDrop(true); }}
+            onFocus={() => setShowSearchDrop(true)}
+            onBlur={() => setTimeout(() => setShowSearchDrop(false), 160)}
+            style={{ width: '100%', height: '40px', boxSizing: 'border-box' }}
+          />
+          {searchSuggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
+              background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
+              borderRadius: '10px', overflow: 'hidden',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.6)',
+            }}>
+              {searchSuggestions.map((eq, i) => {
+                const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
+                const catC = CAT_COLORS[eq.category_code] || { color: '#c9a84c' };
+                return (
+                  <div key={eq.id}
+                    onMouseDown={() => { setSearch(eq.name); setShowSearchDrop(false); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '9px 14px', cursor: 'pointer',
+                      borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.07)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.83rem', color: '#e0e0ee', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
+                      <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', minWidth: '28px', textAlign: 'right' }}>{eq.qty_available}</span>
+                      <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('qr'); setShowSearchDrop(false); }}
+                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:'#c9a84c', cursor:'pointer', fontSize:'0.78rem', fontWeight:700 }}>QR</button>
+                      <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('history'); setShowSearchDrop(false); }}
+                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>📋</button>
+                      {can('editEquipment') && (
+                        <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('edit'); setShowSearchDrop(false); }}
+                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>✏️</button>
+                      )}
+                      {can('deleteEquipment') && (
+                        <button onMouseDown={e => { e.stopPropagation(); handleDelete(eq); setShowSearchDrop(false); }}
+                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.78rem' }}>🗑</button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+      </div>
+
       {/* ── Báo cáo tồn kho thời gian thực ── */}
       {catSummary.length > 0 && (
         <div style={{ marginBottom: '22px' }}>
@@ -543,80 +617,6 @@ export default function Equipment() {
           </div>
         </div>
       )}
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-
-        {/* Bộ phận select */}
-        <div style={{ position: 'relative', flex: '1 1 140px' }}>
-          <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSearch(''); }}
-            style={{ width: '100%', paddingLeft: '36px', color: deptFilter ? '#c9a84c' : undefined, fontWeight: deptFilter ? 700 : 400 }}>
-            {DEPT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-          </select>
-          {(() => {
-            const d = DEPT_OPTIONS.find(o => o.value === deptFilter) || DEPT_OPTIONS[0];
-            return <d.Icon size={14} strokeWidth={1.75} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#c9a84c', pointerEvents: 'none' }} />;
-          })()}
-        </div>
-
-        {/* Search with autocomplete */}
-        <div style={{ position: 'relative', flex: '2 1 180px' }}>
-          <input className="input" placeholder="Tìm theo tên, mã..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setShowSearchDrop(true); }}
-            onFocus={() => setShowSearchDrop(true)}
-            onBlur={() => setTimeout(() => setShowSearchDrop(false), 160)}
-            style={{ width: '100%' }}
-          />
-          {searchSuggestions.length > 0 && (
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
-              background: '#13131d', border: '1px solid rgba(201,168,76,0.3)',
-              borderRadius: '10px', overflow: 'hidden',
-              boxShadow: '0 8px 28px rgba(0,0,0,0.6)',
-            }}>
-              {searchSuggestions.map((eq, i) => {
-                const CatIcon = CAT_ICONS[eq.category_code] || HelpCircle;
-                const catC = CAT_COLORS[eq.category_code] || { color: '#c9a84c' };
-                return (
-                  <div key={eq.id}
-                    onMouseDown={() => { setSearch(eq.name); setShowSearchDrop(false); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '9px 14px', cursor: 'pointer',
-                      borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.07)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <CatIcon size={13} strokeWidth={1.75} style={{ color: catC.color, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '0.83rem', color: '#e0e0ee', fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
-                      <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0', fontFamily: "'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: eq.qty_available > 0 ? '#4ade80' : '#f87171', minWidth: '28px', textAlign: 'right' }}>{eq.qty_available}</span>
-                      <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('qr'); setShowSearchDrop(false); }}
-                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(201,168,76,0.3)', background:'transparent', color:'#c9a84c', cursor:'pointer', fontSize:'0.78rem', fontWeight:700 }}>QR</button>
-                      <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('history'); setShowSearchDrop(false); }}
-                        style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>📋</button>
-                      {can('editEquipment') && (
-                        <button onMouseDown={e => { e.stopPropagation(); setSelected(eq); setModal('edit'); setShowSearchDrop(false); }}
-                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#a0a0b8', cursor:'pointer', fontSize:'0.78rem' }}>✏️</button>
-                      )}
-                      {can('deleteEquipment') && (
-                        <button onMouseDown={e => { e.stopPropagation(); handleDelete(eq); setShowSearchDrop(false); }}
-                          style={{ padding:'3px 7px', borderRadius:'5px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.78rem' }}>🗑</button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-      </div>
 
       {(modal === 'add' || modal === 'edit') && (
         <Modal title={modal === 'add' ? 'Thêm thiết bị mới' : 'Chỉnh sửa thiết bị'} onClose={() => setModal(null)} size="lg">
