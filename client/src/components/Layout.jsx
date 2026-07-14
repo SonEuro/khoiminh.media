@@ -133,14 +133,6 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
         )}
       </div>
 
-      {/* Safe-area bottom — flex child thay vì padding để có thể tô màu riêng */}
-      {bottomInset !== '0px' && (
-        <div style={{
-          height: bottomInset,
-          flexShrink: 0,
-          background: `linear-gradient(180deg, ${BG_SIDEBAR} 0%, rgba(201,168,76,0.06) 100%)`,
-        }} />
-      )}
     </div>
   );
 }
@@ -376,26 +368,12 @@ export default function Layout() {
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
-          paddingBottom:'env(safe-area-inset-bottom, 0px)',
         }}>
           <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease' }}>
             <Outlet />
           </div>
         </main>
       </div>
-
-      {/* Mobile: unified bottom safe-area strip — phủ toàn bộ đáy màn hình */}
-      <div
-        className="lg:hidden"
-        style={{
-          position: 'fixed',
-          bottom: 0, left: 0, right: 0,
-          height: 'env(safe-area-inset-bottom, 0px)',
-          background: BG_SIDEBAR,
-          zIndex: 1002,
-          pointerEvents: 'none',
-        }}
-      />
 
       <style>{`
         @keyframes slideIn {
