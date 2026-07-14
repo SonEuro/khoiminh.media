@@ -365,7 +365,7 @@ export default function Layout() {
         <main style={{
           flex:1, overflowY:'auto',
           display:'flex', flexDirection:'column',
-          background:'var(--bg-main)',
+          background:'linear-gradient(to bottom, var(--bg-main) 70%, var(--bg-card) 100%)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
