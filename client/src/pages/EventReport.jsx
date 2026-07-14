@@ -56,9 +56,9 @@ function dateMatchesSched(schedDate, reportDate) {
   return nextStr === reportDate;
 }
 
-const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Hoàn thành sớm', 'Chậm tiến độ', 'Trễ tiến độ'];
-const COMPLETED_CHIPS  = ['Hoàn thành tất cả hạng mục', 'Hoàn thành với điều chỉnh nhỏ', 'Hoàn thành một phần', 'Chưa hoàn thành'];
-const QUALITY_CHIPS    = ['Xuất sắc', 'Tốt', 'Đạt yêu cầu', 'Cần cải thiện'];
+const PROGRESS_CHIPS   = ['Đúng tiến độ', 'Trễ tiến độ'];
+const COMPLETED_CHIPS  = ['Hoàn thành', 'Chưa hoàn thành'];
+const QUALITY_CHIPS    = ['Xuất sắc', 'Cần cải thiện'];
 
 // Hỗ trợ cả format cũ (string URL) và mới ({url, thumb})
 function imgUrl(src)   { return (src && typeof src === 'object') ? src.url   : src; }
