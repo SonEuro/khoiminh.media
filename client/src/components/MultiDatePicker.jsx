@@ -13,12 +13,17 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
   const triggerRef = useRef(null);
   const wrapperRef = useRef(null);
 
+  // Đóng khi click/touch ngoài — dùng document listener thay backdrop fixed để không chặn wheel
   useEffect(() => {
-    if (!open || !isMobile) return;
+    if (!open) return;
     const handler = (e) => { if (!wrapperRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown',  handler, true);
     document.addEventListener('touchstart', handler, true);
-    return () => document.removeEventListener('touchstart', handler, true);
-  }, [open, isMobile]);
+    return () => {
+      document.removeEventListener('mousedown',  handler, true);
+      document.removeEventListener('touchstart', handler, true);
+    };
+  }, [open]);
 
   const openPanel = useCallback(() => {
     const mobile = window.innerWidth < 640;
@@ -172,8 +177,6 @@ export default function MultiDatePicker({ value = [], onChange, error = false, p
 
       {open && !isMobile && (
         <>
-          {/* Desktop: dropdown với backdrop */}
-          <div style={{ position:'fixed', inset:0, zIndex:1299 }} onClick={() => setOpen(false)} />
           <div style={{
             position:'fixed', top: panelPos.top, left: panelPos.left, zIndex:1300,
             width: panelPos.width,
