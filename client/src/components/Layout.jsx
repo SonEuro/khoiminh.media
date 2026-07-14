@@ -24,7 +24,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', background: BG_SIDEBAR,
-      paddingLeft: leftInset, paddingTop: topInset, paddingBottom: bottomInset }}>
+      paddingLeft: leftInset, paddingTop: topInset }}>
 
       {/* Logo */}
       <div style={{ padding:'16px 20px', borderBottom:`1px solid ${GOLD_DIM}` }}>
@@ -132,6 +132,15 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
           </div>
         )}
       </div>
+
+      {/* Safe-area bottom — flex child thay vì padding để có thể tô màu riêng */}
+      {bottomInset !== '0px' && (
+        <div style={{
+          height: bottomInset,
+          flexShrink: 0,
+          background: `linear-gradient(180deg, ${BG_SIDEBAR} 0%, rgba(201,168,76,0.06) 100%)`,
+        }} />
+      )}
     </div>
   );
 }
