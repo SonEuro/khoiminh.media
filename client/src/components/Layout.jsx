@@ -39,7 +39,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
       </div>
 
       {/* Nav links */}
-      <nav style={{ flex:1, padding:'8px 0', overflowY:'auto' }}>
+      <nav style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-evenly', overflowY:'auto' }}>
         {nav.map(item => (
           <NavLink
             key={item.to}
@@ -391,7 +391,7 @@ export default function Layout() {
           position: 'fixed',
           bottom: 0, left: 0, right: 0,
           height: 'env(safe-area-inset-bottom, 0px)',
-          background: `linear-gradient(180deg, ${BG_SIDEBAR} 50%, rgba(201,168,76,0.10) 100%)`,
+          background: `linear-gradient(180deg, ${BG_SIDEBAR} 30%, rgba(201,168,76,0.18) 100%)`,
           zIndex: 1002,
           pointerEvents: 'none',
         }}
