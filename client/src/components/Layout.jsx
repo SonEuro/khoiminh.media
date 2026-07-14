@@ -240,7 +240,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
+    <div style={{ position:'fixed', top:0, left:0, right:0, bottom:'env(safe-area-inset-bottom, 0px)', display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
@@ -365,7 +365,7 @@ export default function Layout() {
         <main style={{
           flex:1, overflowY:'auto',
           display:'flex', flexDirection:'column',
-          background:'linear-gradient(to bottom, var(--bg-main) 70%, var(--bg-card) 100%)',
+          background:'var(--bg-main)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
@@ -373,7 +373,6 @@ export default function Layout() {
           <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto' }}>
             <Outlet />
           </div>
-          <div style={{ height:'env(safe-area-inset-bottom, 0px)', background:'var(--bg-card)', flexShrink:0 }} />
         </main>
       </div>
 
