@@ -391,7 +391,7 @@ export default function Layout() {
           position: 'fixed',
           bottom: 0, left: 0, right: 0,
           height: 'env(safe-area-inset-bottom, 0px)',
-          background: `linear-gradient(180deg, ${BG_SIDEBAR} 30%, rgba(201,168,76,0.18) 100%)`,
+          background: `linear-gradient(180deg, ${BG_SIDEBAR} 0%, rgba(201,168,76,0.38) 100%)`,
           zIndex: 1002,
           pointerEvents: 'none',
         }}
