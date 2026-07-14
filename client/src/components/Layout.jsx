@@ -240,7 +240,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
+    <div style={{ position:'fixed', top:0, left:0, right:0, bottom:'env(safe-area-inset-bottom, 0px)', display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
