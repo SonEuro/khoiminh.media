@@ -39,7 +39,7 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
       </div>
 
       {/* Nav links */}
-      <nav style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-evenly', overflowY:'auto' }}>
+      <nav style={{ flex:1, padding:'8px 0', overflowY:'auto' }}>
         {nav.map(item => (
           <NavLink
             key={item.to}
@@ -240,7 +240,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background: BG_SIDEBAR }}>
+    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
@@ -364,7 +364,7 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
-          background: BG_SIDEBAR,
+          background:'var(--bg-main)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
