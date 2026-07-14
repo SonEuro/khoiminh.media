@@ -364,12 +364,13 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
+          display:'flex', flexDirection:'column',
           background:'var(--bg-main)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
         }}>
-          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease' }}>
+          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto' }}>
             <Outlet />
           </div>
         </main>
