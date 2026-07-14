@@ -364,7 +364,7 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
-          background:'var(--bg-card)',
+          background:'var(--bg-main)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
