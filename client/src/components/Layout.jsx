@@ -364,11 +364,12 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
+          display:'flex', flexDirection:'column',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
           paddingBottom:'env(safe-area-inset-bottom, 0px)',
         }}>
-          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease' }}>
+          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto' }}>
             <Outlet />
           </div>
         </main>
@@ -380,7 +381,7 @@ export default function Layout() {
           to   { transform: translateX(0); }
         }
         @keyframes pageFadeIn {
-          from { opacity: 0; transform: translateY(6px); }
+          from { opacity: 0.6; transform: translateY(4px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         /* Tablet / medium phone */
