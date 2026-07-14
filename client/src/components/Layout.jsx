@@ -384,6 +384,19 @@ export default function Layout() {
         </main>
       </div>
 
+      {/* Mobile: unified bottom safe-area strip — phủ toàn bộ đáy màn hình */}
+      <div
+        className="lg:hidden"
+        style={{
+          position: 'fixed',
+          bottom: 0, left: 0, right: 0,
+          height: 'env(safe-area-inset-bottom, 0px)',
+          background: `linear-gradient(180deg, ${BG_SIDEBAR} 50%, rgba(201,168,76,0.10) 100%)`,
+          zIndex: 1002,
+          pointerEvents: 'none',
+        }}
+      />
+
       <style>{`
         @keyframes slideIn {
           from { transform: translateX(-100%); }
