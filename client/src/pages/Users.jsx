@@ -244,14 +244,16 @@ export default function Users() {
                     </div>
                   )}
                   {isSuperAdmin && (
-                    <div style={{ display:'flex', gap:'8px' }}>
-                      <button className="btn-secondary btn-sm" style={{ flex:1 }} onClick={() => openEdit(u)}>✏️ Sửa</button>
-                      <button onClick={() => handleReset(u)}
-                        style={{ padding:'8px 14px', borderRadius:'8px', fontSize:'0.84rem', fontWeight:600, border:'1px solid rgba(251,191,36,0.4)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', cursor:'pointer' }}
-                        title="Reset mật khẩu">
-                        🔑
+                    <div style={{ display:'flex', gap:'6px', justifyContent:'flex-end' }}>
+                      <button onClick={() => openEdit(u)}
+                        style={{ display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'7px', fontSize:'0.82rem', fontWeight:600, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', color:'#c0c0d8', cursor:'pointer' }}>
+                        ✏️ Sửa
                       </button>
-                      <button className="btn-danger btn-sm" style={{ padding:'8px 14px' }} onClick={() => handleDelete(u)}>🗑</button>
+                      <button onClick={() => handleReset(u)}
+                        style={{ padding:'5px 10px', borderRadius:'7px', fontSize:'0.84rem', border:'1px solid rgba(251,191,36,0.35)', background:'rgba(251,191,36,0.08)', color:'#fbbf24', cursor:'pointer' }}
+                        title="Reset mật khẩu">🔑</button>
+                      <button onClick={() => handleDelete(u)}
+                        style={{ padding:'5px 10px', borderRadius:'7px', fontSize:'0.84rem', border:'1px solid rgba(248,113,113,0.35)', background:'rgba(248,113,113,0.08)', color:'#f87171', cursor:'pointer' }}>🗑</button>
                     </div>
                   )}
                 </div>
