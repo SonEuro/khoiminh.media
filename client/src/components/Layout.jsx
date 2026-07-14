@@ -248,7 +248,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
+    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background: BG_SIDEBAR }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
@@ -372,7 +372,7 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
-          background:'var(--bg-main)',
+          background: BG_SIDEBAR,
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
