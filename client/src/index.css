@@ -19,11 +19,11 @@
   html {
     color-scheme: dark;
     font-size: 17px;
-    background-color: var(--bg-main);
+    background-color: var(--bg-card);
   }
 
   body {
-    background-color: var(--bg-main);
+    background-color: var(--bg-card);
     color: var(--text-primary);
     font-family: ui-sans-serif, system-ui, sans-serif;
     overscroll-behavior: none;
