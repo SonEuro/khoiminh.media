@@ -11,7 +11,7 @@ import {
 const GOLD         = '#c9a84c';
 const GOLD_DIM     = 'rgba(201,168,76,0.3)';
 const GOLD_GLOW    = 'rgba(201,168,76,0.08)';
-const BG_SIDEBAR   = '#08080e';
+const BG_SIDEBAR   = '#13131d';
 const BG_CARD      = '#13131d';
 const TEXT_MUTED   = '#c8c8e0';
 const TEXT_PRIMARY = '#eeeef5';
@@ -239,7 +239,7 @@ export default function Layout() {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-card)' }}>
+    <div style={{ position:'fixed', inset:0, display:'flex', overflow:'hidden', background:'var(--bg-main)' }}>
 
       {/* ── Desktop sidebar (lg+) ─────────────────── */}
       <aside
@@ -363,7 +363,7 @@ export default function Layout() {
         {/* Page content */}
         <main style={{
           flex:1, overflowY:'auto',
-          background:'var(--bg-card)',
+          background:'var(--bg-main)',
           overscrollBehavior:'none',
           paddingLeft:'env(safe-area-inset-left, 0px)',
           paddingRight:'env(safe-area-inset-right, 0px)',
