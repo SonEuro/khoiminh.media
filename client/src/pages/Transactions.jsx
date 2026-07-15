@@ -640,53 +640,58 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
             {extItems.map((it, idx) => {
               const extNoteOpen = !!expandedNotes[`ext-${idx}`];
               const H = '36px';
-              const ctrl = { height:H, borderRadius:'8px', boxSizing:'border-box', outline:'none', flexShrink:0 };
+              const W = '46px';
+              const cell = { height:H, width:W, borderRadius:'8px', boxSizing:'border-box', outline:'none', flexShrink:0 };
               return (
                 <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', display:'flex', flexDirection:'column', gap:'5px' }}>
-                  {/* Hàng 1: [NCC datalist] [SL] [Ngày] [FREE] [combo#] */}
-                  <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
-                    <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
-                      list={`ncc-dl-${idx}`}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
-                    <datalist id={`ncc-dl-${idx}`}>
-                      {it.supplier.length > 0 && (it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
-                    </datalist>
-                    <input type="number" min="1" placeholder="SL" value={it.quantity}
-                      onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
-                      style={{ ...ctrl, width:'52px', padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
-                    <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
-                      onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
-                      style={{ ...ctrl, width:'52px', padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
-                    <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? '' : null)}
-                      style={{ ...ctrl, padding:'0 8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
-                        border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                        color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                        background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                      }}>FREE</button>
-                    {it.combo !== null && (
-                      <input type="number" min="1" placeholder="—" value={it.combo}
-                        onChange={e => updateExtItem(idx, 'combo', e.target.value)}
-                        style={{ ...ctrl, width:'52px', padding:'0 4px', textAlign:'center', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800 }} />
-                    )}
-                  </div>
-                  {/* Hàng 2: [Tên thiết bị] [✏️] [X] */}
-                  <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
-                    <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
-                      list={`ncc-items-dl-${idx}`}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.name ? '#93c5fd' : undefined, fontWeight: it.name ? 600 : 400 }} />
-                    <datalist id={`ncc-items-dl-${idx}`}>
-                      {it.name.length > 0 && (NCC_CATALOG[it.supplier] || []).map((item, i) => (
-                        <option key={i} value={item.name} />
-                      ))}
-                    </datalist>
-                    <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
-                      style={{ ...ctrl, width:'42px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
-                        border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                        background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                        color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
-                      }}>✏️</button>
-                    <button onClick={() => removeExtItem(idx)}
-                      style={{ ...ctrl, width:'42px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
+                  <div style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
+                    {/* Trái: NCC + Tên */}
+                    <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'5px' }}>
+                      <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
+                        list={`ncc-dl-${idx}`}
+                        style={{ ...inputStyle, width:'100%', fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
+                      <datalist id={`ncc-dl-${idx}`}>
+                        {it.supplier.length > 0 && (it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
+                      </datalist>
+                      <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
+                        list={`ncc-items-dl-${idx}`}
+                        style={{ ...inputStyle, width:'100%', fontSize:'0.84rem', height:H, padding:'0 8px', color: it.name ? '#93c5fd' : undefined, fontWeight: it.name ? 600 : 400 }} />
+                      <datalist id={`ncc-items-dl-${idx}`}>
+                        {it.name.length > 0 && (NCC_CATALOG[it.supplier] || []).map((item, i) => (
+                          <option key={i} value={item.name} />
+                        ))}
+                      </datalist>
+                    </div>
+                    {/* Phải: grid 3×2, tất cả ô 46px */}
+                    <div style={{ display:'grid', gridTemplateColumns:`${W} ${W} ${W}`, gap:'5px', flexShrink:0 }}>
+                      {/* Hàng 1: SL | Ngày | FREE */}
+                      <input type="number" min="1" placeholder="SL" value={it.quantity}
+                        onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
+                        style={{ ...cell, padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
+                      <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
+                        onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
+                        style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
+                      <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? '' : null)}
+                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {/* Hàng 2: combo# (hoặc placeholder) | ✏️ | ✕ */}
+                      {it.combo !== null
+                        ? <input type="number" min="1" placeholder="—" value={it.combo}
+                            onChange={e => updateExtItem(idx, 'combo', e.target.value)}
+                            style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800 }} />
+                        : <div style={{ height:H, width:W }} />}
+                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
+                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                          border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                          color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
+                        }}>✏️</button>
+                      <button onClick={() => removeExtItem(idx)}
+                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
+                    </div>
                   </div>
                   {/* Expand: ghi chú + ĐVT */}
                   {extNoteOpen && (
@@ -759,37 +764,33 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         </>
                       )}
                     </div>
-                    {/* Phải: flex col — [Qty][X] / [✏️][FREE][combo#] */}
-                    <div style={{ display:'flex', flexDirection:'column', gap:'5px', flexShrink:0 }}>
-                      <div style={{ display:'flex', gap:'5px' }}>
-                        <input type="number" min="1" value={it.quantity}
-                          onChange={e => updateQty(idx, e.target.value)}
-                          onBlur={e => updateQty(idx, e.target.value, true)}
-                          style={{ width:'52px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
+                    {/* Phải: grid 2×2 (hoặc 3×2 khi combo active) — tất cả ô 46px */}
+                    <div style={{ display:'grid', gridTemplateColumns:'46px 46px', gap:'5px', flexShrink:0 }}>
+                      <input type="number" min="1" value={it.quantity}
+                        onChange={e => updateQty(idx, e.target.value)}
+                        onBlur={e => updateQty(idx, e.target.value, true)}
+                        style={{ width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
+                      />
+                      <button type="button" onClick={() => removeItem(idx)}
+                        style={{ width:'46px', height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
+                        style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                          border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                          color: notesOpen ? '#e8c97a' : '#4a4a6a',
+                        }}>✏️</button>
+                      <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
+                        style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.06em',
+                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {it.combo !== null && (
+                        <input type="number" min="1" placeholder="—" value={it.combo}
+                          onChange={e => updateCombo(idx, e.target.value)}
+                          style={{ width:'46px', height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
                         />
-                        <button type="button" onClick={() => removeItem(idx)}
-                          style={{ width:'42px', height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
-                      </div>
-                      <div style={{ display:'flex', gap:'5px' }}>
-                        <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
-                          style={{ width:'42px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
-                            border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                            background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                            color: notesOpen ? '#e8c97a' : '#4a4a6a',
-                          }}>✏️</button>
-                        <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
-                          style={{ height:'36px', padding:'0 8px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
-                            border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                            color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                            background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                          }}>FREE</button>
-                        {it.combo !== null && (
-                          <input type="number" min="1" placeholder="—" value={it.combo}
-                            onChange={e => updateCombo(idx, e.target.value)}
-                            style={{ width:'52px', height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
-                          />
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                   {notesOpen && (
