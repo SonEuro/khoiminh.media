@@ -557,6 +557,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         unit: it.unit || 'Cái',
         rental_days: it.rental_days || 1,
         notes: it.notes || '',
+        combo: it.combo || null,
       })));
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
   }, [txId]);
@@ -579,7 +580,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const updateCombo     = (idx, val) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val || null } : it));
 
-  const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '' }]);
+  const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '', combo: null }]);
   const removeExtItem = (i) => setExtItems(p => p.filter((_, j) => j !== i));
   const updateExtItem = (i, k, v) => setExtItems(p => p.map((it, j) => j === i ? { ...it, [k]: v } : it));
 
@@ -633,36 +634,43 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
             {extItems.map((it, idx) => {
               const extNoteOpen = !!expandedNotes[`ext-${idx}`];
               const H = '36px';
-              const ctrlBase = { height:H, borderRadius:'8px', boxSizing:'border-box', outline:'none' };
+              const ctrl = { height:H, borderRadius:'8px', boxSizing:'border-box', outline:'none', flexShrink:0 };
               return (
                 <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', display:'flex', flexDirection:'column', gap:'5px' }}>
-                  {/* Hàng 1: Nhà cung cấp + [SL][✏️][X] */}
-                  <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
+                  {/* Hàng 1: [NCC] [SL] [Ngày] [FREE] [combo#] */}
+                  <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
                     <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H }} />
+                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px' }} />
                     <input type="number" min="1" placeholder="SL" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
-                      style={{ ...ctrlBase, width:'52px', padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }}
-                    />
+                      style={{ ...ctrl, width:'52px', padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
+                    <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
+                      onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
+                      style={{ ...ctrl, width:'52px', padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
+                    <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? '' : null)}
+                      style={{ ...ctrl, padding:'0 8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                        border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                        color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                        background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                      }}>FREE</button>
+                    {it.combo !== null && (
+                      <input type="number" min="1" placeholder="—" value={it.combo}
+                        onChange={e => updateExtItem(idx, 'combo', e.target.value)}
+                        style={{ ...ctrl, width:'52px', padding:'0 4px', textAlign:'center', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800 }} />
+                    )}
+                  </div>
+                  {/* Hàng 2: [Tên thiết bị] [✏️] [X] */}
+                  <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
+                    <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
+                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px' }} />
                     <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
-                      style={{ ...ctrlBase, width:'42px', flexShrink:0, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                      style={{ ...ctrl, width:'42px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
                         border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
                         background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
                         color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
                       }}>✏️</button>
                     <button onClick={() => removeExtItem(idx)}
-                      style={{ ...ctrlBase, width:'42px', flexShrink:0, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
-                  </div>
-                  {/* Hàng 2: Tên thiết bị + [Ngày] */}
-                  <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
-                    <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H }} />
-                    <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
-                      onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
-                      style={{ ...ctrlBase, width:'52px', padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }}
-                    />
-                    <div style={{ width:'42px', flexShrink:0 }} />
-                    <div style={{ width:'42px', flexShrink:0 }} />
+                      style={{ ...ctrl, width:'42px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
                   </div>
                   {/* Expand: ghi chú + ĐVT */}
                   {extNoteOpen && (
