@@ -31,7 +31,7 @@ export function printNccReturn(items, info = {}) {
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Phiếu Trả NCC · ${info.code || ''}</title>
+<title>Phiếu NCC · ${info.code || ''}</title>
 <style>
   @page { size: A4 portrait; margin: 10mm 15mm; }
   * { margin:0; padding:0; box-sizing:border-box; }

@@ -327,7 +327,7 @@ export default function ExportForm() {
         {!!user?.is_tra_ncc && (
           <button type="button" onClick={() => { setNccReturnItems([]); setShowTraNcc(true); }}
             style={{ padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.4)', background:'rgba(74,222,128,0.07)', color:'#4ade80', fontWeight:700, fontSize:'0.85rem', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:'6px' }}>
-            🏪 Trả NCC
+            🏪 NCC
           </button>
         )}
       </div>
@@ -1036,7 +1036,7 @@ export default function ExportForm() {
         });
 
         return (
-          <Modal title="🏪 Trả NCC" onClose={() => setShowTraNcc(false)} size="lg"
+          <Modal title="🏪 NCC" onClose={() => setShowTraNcc(false)} size="lg"
             extra={
               <div style={{ display:'inline-flex', gap:'6px' }}>
                 <button onClick={addRow} className="btn-secondary btn-sm">+ Thêm dòng</button>

@@ -891,7 +891,7 @@ function TraNccModal({ txId, onClose }) {
   });
 
   return (
-    <Modal title="🏪 Trả NCC" onClose={onClose} size="lg"
+    <Modal title="🏪 NCC" onClose={onClose} size="lg"
       extra={
         <div style={{ display:'inline-flex', gap:'6px' }}>
           <button onClick={addRow} className="btn-secondary btn-sm">+ Thêm dòng</button>
@@ -1187,7 +1187,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
                   style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }}
                   onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.1)'; e.currentTarget.style.borderColor='rgba(74,222,128,0.6)'; e.currentTarget.style.boxShadow='0 0 10px rgba(74,222,128,0.15)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(74,222,128,0.35)'; e.currentTarget.style.boxShadow=''; }}>
-                  <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
+                  <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                 </button>
               )}
               <button className="ev-action ev-action-edit"

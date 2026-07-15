@@ -240,7 +240,7 @@ export default function Users() {
                       {!!u.is_truong_phong  && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
                       {!!u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
                       {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
-                      {!!u.is_tra_ncc     && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>Trả NCC</span>}
+                      {!!u.is_tra_ncc     && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>NCC</span>}
                     </div>
                   )}
                   {isSuperAdmin && (
@@ -609,7 +609,7 @@ export default function Users() {
                 onChange={e => set('is_tra_ncc', e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: '#4ade80' }} />
               <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
-                🏪 Trả NCC <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
+                🏪 NCC <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
               </span>
             </label>
 
