@@ -570,7 +570,7 @@ export default function ExportForm() {
                           onBlur={e => setItem(idx, 'rental_days', Math.max(1, parseInt(e.target.value) || 1))}
                           style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
-                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
+                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>day</span>
                       </div>
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{ flexShrink:0, width:W, height:H, borderRadius:'8px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.7)', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}
@@ -944,7 +944,7 @@ export default function ExportForm() {
                           onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: Math.max(1, parseInt(e.target.value) || 1) } : r))}
                           style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
-                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
+                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>day</span>
                       </div>
                       <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
                         style={{ flexShrink:0, width:'46px', height:'36px', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', color:'rgba(248,113,113,0.7)', cursor:'pointer', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
