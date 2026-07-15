@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import TransferModal from '../components/TransferModal';
 import { printSlip } from '../utils/printSlip';
 import { printNccReturn } from '../utils/printNccReturn';
-import { NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
+import { NCC_CATALOG, NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
 import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
@@ -677,7 +677,13 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                   {/* Hàng 2: [Tên thiết bị] [✏️] [X] */}
                   <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
                     <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px' }} />
+                      list={`ncc-items-dl-${idx}`}
+                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.name ? '#93c5fd' : undefined, fontWeight: it.name ? 600 : 400 }} />
+                    <datalist id={`ncc-items-dl-${idx}`}>
+                      {(NCC_CATALOG[it.supplier] || []).map((item, i) => (
+                        <option key={i} value={item.name} />
+                      ))}
+                    </datalist>
                     <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
                       style={{ ...ctrl, width:'42px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
                         border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
