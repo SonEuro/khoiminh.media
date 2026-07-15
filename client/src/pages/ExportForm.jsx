@@ -618,7 +618,7 @@ export default function ExportForm() {
                         ✏️
                       </button>
                       <button type="button"
-                        onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                        onClick={() => setItem(idx, 'combo', item.combo === null ? item.quantity : null)}
                         style={{ flexShrink:0, width:W, height:H, borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
                       {item.combo !== null && (
                         <input type="number" min="1" placeholder="—"
@@ -845,7 +845,7 @@ export default function ExportForm() {
                       {/* Hàng 3: [FREE][_#_] — hiện khi đã chọn thiết bị + số lượng */}
                       {eq && item.quantity > 0 && (
                         <button type="button"
-                          onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                          onClick={() => setItem(idx, 'combo', item.combo === null ? item.quantity : null)}
                           style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
                             border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
                             color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
@@ -965,7 +965,7 @@ export default function ExportForm() {
                         ✏️
                       </button>
                       <button type="button"
-                        onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: r.combo === null ? '' : null } : r))}
+                        onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: r.combo === null ? r.quantity : null } : r))}
                         style={{ flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: row.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: row.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: row.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
                       {row.combo !== null && (
                         <input type="number" min="1" placeholder="—"
