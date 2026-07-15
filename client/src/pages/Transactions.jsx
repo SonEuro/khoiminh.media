@@ -626,10 +626,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
 
         {/* NCC section */}
         <div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
-            <p style={{ fontSize:'0.82rem', fontWeight:700, color:'#60a5fa', margin:0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
-            <button onClick={addExtItem} style={{ fontSize:'0.82rem', padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.4)', background:'rgba(96,165,250,0.12)', color:'#60a5fa', cursor:'pointer' }}>+ Thêm</button>
-          </div>
+          <p style={{ fontSize:'0.82rem', fontWeight:700, color:'#60a5fa', margin:'0 0 6px' }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
           <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
             {extItems.map((it, idx) => {
               const extNoteOpen = !!expandedNotes[`ext-${idx}`];
@@ -684,16 +681,16 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                 </div>
               );
             })}
+            <button onClick={addExtItem}
+              style={{ width:'100%', padding:'8px', borderRadius:'8px', border:'1px dashed rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.84rem', fontWeight:600, cursor:'pointer' }}>
+              + Thêm nhà cung cấp
+            </button>
           </div>
         </div>
 
         {/* Thiết bị kho — row-based như ExportForm */}
         <div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
-            <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, margin:0 }}>Thêm thiết bị kho ({khoItems.filter(i => i.equipment_id).length})</p>
-            <button type="button" onClick={addNewRow}
-              style={{ fontSize:'0.82rem', padding:'3px 10px', borderRadius:'6px', border:`1px solid ${GOLD}40`, background:`${GOLD}12`, color:GOLD, cursor:'pointer' }}>+ Thêm</button>
-          </div>
+          <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, margin:'0 0 6px' }}>Thiết bị kho ({khoItems.filter(i => i.equipment_id).length})</p>
           <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
             {khoItems.map((it, idx) => {
               const eq = equipment.find(e => e.id === it.equipment_id);
@@ -788,6 +785,10 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                 </div>
               );
             })}
+            <button type="button" onClick={addNewRow}
+              style={{ width:'100%', padding:'8px', borderRadius:'8px', border:`1px dashed ${GOLD}50`, background:'transparent', color:`${GOLD}99`, fontSize:'0.84rem', fontWeight:600, cursor:'pointer' }}>
+              + Thêm thiết bị kho
+            </button>
           </div>
         </div>
 
