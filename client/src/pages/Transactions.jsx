@@ -547,6 +547,8 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         eq_code: it.eq_code,
         unit: it.unit,
         quantity: it.quantity,
+        notes: it.notes || '',
+        combo: it.combo || null,
       })));
       setExtItems((txData.external_items || []).map(it => ({
         supplier: it.supplier || '',
@@ -572,12 +574,16 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
 
   const addEquipment = (eq) => {
     if (khoItems.some(i => i.equipment_id === eq.id)) return;
-    setKhoItems(prev => [...prev, { equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, quantity: 1 }]);
+    setKhoItems(prev => [...prev, { equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, quantity: 1, notes: '', combo: null }]);
     setSearch('');
   };
-  const removeItem  = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
-  const updateQty   = (idx, qty, clamp = false) =>
+  const removeItem   = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
+  const updateQty    = (idx, qty, clamp = false) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty } : it));
+  const updateNotes  = (idx, val) =>
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, notes: val } : it));
+  const updateCombo  = (idx, val) =>
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val || null } : it));
 
   const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '' }]);
   const removeExtItem = (i) => setExtItems(p => p.filter((_, j) => j !== i));
@@ -590,7 +596,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
     setSaving(true); setError('');
     try {
       await api.editCompletedItems(txId, {
-        items: validItems.map(i => ({ equipment_id: i.equipment_id, quantity: Math.max(1, parseInt(i.quantity) || 1) })),
+        items: validItems.map(i => ({ equipment_id: i.equipment_id, quantity: Math.max(1, parseInt(i.quantity) || 1), notes: i.notes || null, combo: i.combo || null })),
         external_items: extItems.filter(i => i.name?.trim()),
         reason: reason.trim(),
       });
@@ -696,24 +702,43 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         {khoItems.length > 0 && (
           <div>
             <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị ({khoItems.length})</p>
-            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {khoItems.map((it, idx) => {
                 const eq = equipment.find(e => e.id === it.equipment_id);
-                const qty = parseInt(it.quantity) || 0;
                 return (
-                  <div key={idx} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
-                      <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                  <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
+                    {/* Row 1: name + qty + X */}
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
+                        <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                      </div>
+                      <input type="number" min="1" value={it.quantity}
+                        onChange={e => updateQty(idx, e.target.value)}
+                        onBlur={e => updateQty(idx, e.target.value, true)}
+                        style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.92rem', fontWeight:700 }}
+                      />
+                      <span style={{ flexShrink:0, fontSize:'0.84rem', color:'#7878a0', minWidth:'32px' }}>{it.unit}</span>
+                      <button onClick={() => removeItem(idx)}
+                        style={{ width:'28px', height:'28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>✕</button>
                     </div>
-                    <input type="number" min="1" value={it.quantity}
-                      onChange={e => updateQty(idx, e.target.value)}
-                      onBlur={e => updateQty(idx, e.target.value, true)}
-                      style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.92rem', fontWeight:700 }}
-                    />
-                    <span style={{ width:'58px', flexShrink:0, fontSize:'0.84rem', color:'#7878a0', textAlign:'left' }}>{it.unit}</span>
-                    <button onClick={() => removeItem(idx)}
-                      style={{ width:'30px', height:'30px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>✕</button>
+                    {/* Row 2: notes + combo */}
+                    <div style={{ display:'flex', gap:'6px', marginTop:'6px', alignItems:'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Ghi chú..."
+                        value={it.notes || ''}
+                        onChange={e => updateNotes(idx, e.target.value)}
+                        style={{ flex:1, padding:'4px 8px', borderRadius:'6px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#a0a0c0', fontSize:'0.80rem' }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="FREE combo..."
+                        value={it.combo || ''}
+                        onChange={e => updateCombo(idx, e.target.value)}
+                        style={{ width:'110px', flexShrink:0, padding:'4px 8px', borderRadius:'6px', border:`1px solid ${it.combo ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)'}`, background: it.combo ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', color: it.combo ? 'rgba(255,255,255,0.7)' : '#7878a0', fontSize:'0.78rem', fontWeight: it.combo ? 700 : 400 }}
+                      />
+                    </div>
                   </div>
                 );
               })}
