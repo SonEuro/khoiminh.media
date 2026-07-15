@@ -667,8 +667,9 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                             background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
                           }}>FREE</button>
                         {it.combo !== null && (
-                          <input type="number" min="1" placeholder="—" value={it.combo}
+                          <input type="number" min="1" max={it.quantity} placeholder="—" value={it.combo}
                             onChange={e => updateExtItem(idx, 'combo', e.target.value)}
+                            onBlur={e => updateExtItem(idx, 'combo', String(Math.min(Math.max(1, parseInt(e.target.value) || 1), it.quantity)))}
                             style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800 }} />
                         )}
                       </div>
@@ -772,8 +773,9 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                             background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
                           }}>FREE</button>
                         {it.combo !== null && (
-                          <input type="number" min="1" placeholder="—" value={it.combo}
+                          <input type="number" min="1" max={it.quantity} placeholder="—" value={it.combo}
                             onChange={e => updateCombo(idx, e.target.value)}
+                            onBlur={e => updateCombo(idx, String(Math.min(Math.max(1, parseInt(e.target.value) || 1), it.quantity)))}
                             style={{ width:'46px', height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
                           />
                         )}

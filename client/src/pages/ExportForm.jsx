@@ -621,9 +621,10 @@ export default function ExportForm() {
                         onClick={() => setItem(idx, 'combo', item.combo === null ? item.quantity : null)}
                         style={{ flexShrink:0, width:W, height:H, borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
                       {item.combo !== null && (
-                        <input type="number" min="1" placeholder="—"
+                        <input type="number" min="1" max={item.quantity} placeholder="—"
                           value={item.combo}
                           onChange={e => setItem(idx, 'combo', e.target.value)}
+                          onBlur={e => setItem(idx, 'combo', String(Math.min(Math.max(1, parseInt(e.target.value) || 1), item.quantity)))}
                           style={{ flexShrink:0, width:W, height:H, padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                         />
                       )}
@@ -855,11 +856,12 @@ export default function ExportForm() {
                       {item.combo !== null && (
                         <input
                           autoFocus
-                          type="number" min="1"
+                          type="number" min="1" max={item.quantity}
                           style={{ height:'36px', padding:'0 6px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box', width:'100%' }}
                           placeholder="—"
                           value={item.combo}
                           onChange={e => setItem(idx, 'combo', e.target.value)}
+                          onBlur={e => setItem(idx, 'combo', String(Math.min(Math.max(1, parseInt(e.target.value) || 1), item.quantity)))}
                         />
                       )}
                     </div>
@@ -968,9 +970,10 @@ export default function ExportForm() {
                         onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: r.combo === null ? r.quantity : null } : r))}
                         style={{ flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: row.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: row.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: row.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
                       {row.combo !== null && (
-                        <input type="number" min="1" placeholder="—"
+                        <input type="number" min="1" max={row.quantity} placeholder="—"
                           value={row.combo}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: e.target.value } : r))}
+                          onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: String(Math.min(Math.max(1, parseInt(e.target.value) || 1), r.quantity)) } : r))}
                           style={{ flexShrink:0, width:'56px', height:'36px', padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                         />
                       )}
