@@ -563,7 +563,7 @@ export default function ExportForm() {
                         onBlur={e => setItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                         style={{ flexShrink:0, width:W, height:H, padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
-                      <div style={{ flexShrink:0, width:'56px', height:H, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
+                      <div style={{ flexShrink:0, width:'56px', minWidth:'56px', maxWidth:'56px', height:H, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
                           value={item.rental_days ?? 1}
                           onChange={e => setItem(idx, 'rental_days', e.target.value)}
@@ -937,7 +937,7 @@ export default function ExportForm() {
                         onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: Math.max(1, parseInt(e.target.value) || 1) } : r))}
                         style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
-                      <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
+                      <div style={{ flexShrink:0, width:'56px', minWidth:'56px', maxWidth:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
                           value={row.rental_days ?? 1}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: e.target.value } : r))}
