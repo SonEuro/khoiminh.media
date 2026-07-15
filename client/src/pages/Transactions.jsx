@@ -756,33 +756,39 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         </>
                       )}
                     </div>
-                    {/* Phải: grid 2×2 (hoặc 3×2 khi combo active) — tất cả ô 46px */}
-                    <div style={{ display:'grid', gridTemplateColumns:'46px 46px', gap:'5px', flexShrink:0 }}>
-                      <input type="number" min="1" value={it.quantity}
-                        onChange={e => updateQty(idx, e.target.value)}
-                        onBlur={e => updateQty(idx, e.target.value, true)}
-                        style={{ width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
-                      />
-                      <button type="button" onClick={() => removeItem(idx)}
-                        style={{ width:'46px', height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
-                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
-                        style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
-                          border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                          background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                          color: notesOpen ? '#e8c97a' : '#4a4a6a',
-                        }}>✏️</button>
-                      <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
-                        style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.06em',
-                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                        }}>FREE</button>
-                      {it.combo !== null && (
-                        <input type="number" min="1" placeholder="—" value={it.combo}
-                          onChange={e => updateCombo(idx, e.target.value)}
-                          style={{ width:'46px', height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                    {/* Phải: 2 flex rows, tất cả ô 46px */}
+                    <div style={{ display:'flex', flexDirection:'column', gap:'5px', flexShrink:0 }}>
+                      {/* Hàng 1: SL | FREE | combo# khi active */}
+                      <div style={{ display:'flex', gap:'5px' }}>
+                        <input type="number" min="1" value={it.quantity}
+                          onChange={e => updateQty(idx, e.target.value)}
+                          onBlur={e => updateQty(idx, e.target.value, true)}
+                          style={{ width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                         />
-                      )}
+                        <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
+                          style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.06em',
+                            border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                            color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                            background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                          }}>FREE</button>
+                        {it.combo !== null && (
+                          <input type="number" min="1" placeholder="—" value={it.combo}
+                            onChange={e => updateCombo(idx, e.target.value)}
+                            style={{ width:'46px', height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                          />
+                        )}
+                      </div>
+                      {/* Hàng 2: ✏️ | ✕ (căn phải) */}
+                      <div style={{ display:'flex', gap:'5px', justifyContent:'flex-end' }}>
+                        <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
+                          style={{ width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                            border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                            background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                            color: notesOpen ? '#e8c97a' : '#4a4a6a',
+                          }}>✏️</button>
+                        <button type="button" onClick={() => removeItem(idx)}
+                          style={{ width:'46px', height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                      </div>
                     </div>
                   </div>
                   {notesOpen && (
