@@ -520,6 +520,7 @@ function DeleteReasonModal({ tx, onClose, onDeleted }) {
 
 // ── Edit completed OUT modal ──────────────────────────────────────────────────
 function EditCompletedModal({ txId, onClose, onSaved }) {
+  const { user: currentUser } = useAuth();
   const [tx, setTx]               = useState(null);
   const [equipment, setEquipment] = useState([]);
   const [khoItems, setKhoItems]   = useState([]);
@@ -529,6 +530,14 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const [error, setError]         = useState('');
   const [expandedNotes, setExpandedNotes] = useState({});
   const mounted = useRef(true);
+
+  const userDept = ROLE_TO_DEPT[currentUser?.role] || '';
+  const deptOfSupplier = (supplier) => {
+    if (!supplier) return userDept;
+    const deptKey = NCC_DEPT[supplier]?.[0];
+    if (!deptKey) return userDept;
+    return Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept;
+  };
 
   useEffect(() => {
     mounted.current = true;
@@ -558,12 +567,11 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         rental_days: it.rental_days || 1,
         notes: it.notes || '',
         combo: it.combo || null,
-        dept: '',
+        dept: deptOfSupplier(it.supplier),
       })));
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
-  }, [txId]);
+  }, [txId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const { user: currentUser } = useAuth();
   const ROLE_CAT2 = { TECHNICAL: ['TECH'], ATAS: ['LED','MATRIX','LIGHT','AUDIO'], STAGE: ['STAGE'], CSVC: ['CSVC'] };
   const allowedCats2 = ROLE_CAT2[currentUser?.role] || null;
 
