@@ -12,7 +12,7 @@ function buildSlipHTML(tx, preview = false) {
   khoItems.forEach((item, i) => {
     const condNote = isReturn ? (condMap[item.condition] || '') : '';
     const noteParts = [condNote, item.notes || ''].filter(Boolean);
-    const comboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${item.combo}</span>` : '';
+    const comboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${parseInt(item.combo) || item.combo}</span>` : '';
     const noteText = noteParts.join(' · ');
     const noteCell = [comboTag, noteText].filter(Boolean).join(' ');
     allRows.push(`<tr>
@@ -29,7 +29,7 @@ function buildSlipHTML(tx, preview = false) {
       const parts = [];
       if (item.rental_days && item.rental_days > 0) parts.push(`Thuê ${item.rental_days} ngày`);
       if (item.notes) parts.push(item.notes);
-      const extComboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${item.combo}</span>` : '';
+      const extComboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${parseInt(item.combo) || item.combo}</span>` : '';
       const extNoteText = parts.join(' · ');
       const extNoteCell = [extComboTag, extNoteText].filter(Boolean).join(' ');
       allRows.push(`<tr>

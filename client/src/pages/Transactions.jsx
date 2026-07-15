@@ -556,7 +556,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         unit: it.unit,
         quantity: it.quantity,
         notes: it.notes || '',
-        combo: it.combo || null,
+        combo: it.combo != null ? parseInt(it.combo) || null : null,
         _search: '',
       })));
       setExtItems((txData.external_items || []).map(it => ({
@@ -566,7 +566,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         unit: it.unit || 'Cái',
         rental_days: it.rental_days || 1,
         notes: it.notes || '',
-        combo: it.combo || null,
+        combo: it.combo != null ? parseInt(it.combo) || null : null,
         dept: deptOfSupplier(it.supplier),
       })));
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
