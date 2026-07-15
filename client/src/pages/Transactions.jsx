@@ -650,35 +650,39 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         ))}
                       </datalist>
                     </div>
-                    {/* Phải: grid 3×2, tất cả ô 46px */}
-                    <div style={{ display:'grid', gridTemplateColumns:`${W} ${W} ${W}`, gap:'5px', flexShrink:0 }}>
-                      {/* Hàng 1: SL | Ngày | FREE */}
-                      <input type="number" min="1" placeholder="SL" value={it.quantity}
-                        onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
-                        style={{ ...cell, padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
-                      <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
-                        onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
-                        style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
-                      <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? '' : null)}
-                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
-                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                        }}>FREE</button>
-                      {/* Hàng 2: combo# (hoặc placeholder) | ✏️ | ✕ */}
-                      {it.combo !== null
-                        ? <input type="number" min="1" placeholder="—" value={it.combo}
+                    {/* Phải: 2 flex rows, tất cả ô 46px */}
+                    <div style={{ display:'flex', flexDirection:'column', gap:'5px', flexShrink:0 }}>
+                      {/* Hàng 1: SL | Ngày | FREE | combo# khi active */}
+                      <div style={{ display:'flex', gap:'5px' }}>
+                        <input type="number" min="1" placeholder="SL" value={it.quantity}
+                          onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
+                          style={{ ...cell, padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
+                        <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
+                          onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
+                          style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
+                        <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? '' : null)}
+                          style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                            border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                            color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                            background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                          }}>FREE</button>
+                        {it.combo !== null && (
+                          <input type="number" min="1" placeholder="—" value={it.combo}
                             onChange={e => updateExtItem(idx, 'combo', e.target.value)}
                             style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800 }} />
-                        : <div style={{ height:H, width:W }} />}
-                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
-                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
-                          border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                          background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                          color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
-                        }}>✏️</button>
-                      <button onClick={() => removeExtItem(idx)}
-                        style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
+                        )}
+                      </div>
+                      {/* Hàng 2: ✏️ | ✕ (căn phải) */}
+                      <div style={{ display:'flex', gap:'5px', justifyContent:'flex-end' }}>
+                        <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
+                          style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                            border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                            background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                            color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
+                          }}>✏️</button>
+                        <button onClick={() => removeExtItem(idx)}
+                          style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem' }}>✕</button>
+                      </div>
                     </div>
                   </div>
                   {/* Expand: ghi chú + ĐVT */}
