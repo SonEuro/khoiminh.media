@@ -2,10 +2,11 @@ import { NavLink, Link, Outlet, useNavigate, useLocation } from 'react-router-do
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../api';
+import { subscribePush } from '../utils/pushSubscribe';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, History, CalendarCog,
-  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu, KeyRound,
+  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu, KeyRound, Bell, BellOff,
 } from 'lucide-react';
 
 const GOLD         = '#c9a84c';
@@ -18,6 +19,14 @@ const TEXT_PRIMARY = '#eeeef5';
 
 function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, safeLeft = false }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notifState, setNotifState] = useState(() =>
+    'Notification' in window ? Notification.permission : 'unsupported'
+  );
+
+  async function handleEnableNotif() {
+    await subscribePush();
+    if ('Notification' in window) setNotifState(Notification.permission);
+  }
   const leftInset   = safeLeft ? 'env(safe-area-inset-left,   0px)' : '0px';
   const topInset    = safeLeft ? 'env(safe-area-inset-top,    0px)' : '0px';
   const bottomInset = safeLeft ? 'env(safe-area-inset-bottom, 0px)' : '0px';
@@ -116,6 +125,32 @@ function SidebarContent({ nav, user, ROLE_LABELS, can, onNavClick, onLogout, saf
             overflow:'hidden',
             boxShadow:'0 -8px 24px rgba(0,0,0,0.5)',
           }}>
+            {notifState !== 'unsupported' && notifState !== 'denied' && (
+              <button
+                onClick={handleEnableNotif}
+                disabled={notifState === 'granted'}
+                style={{
+                  width:'100%', display:'flex', alignItems:'center', gap:'12px',
+                  padding:'12px 20px', background:'transparent', border:'none',
+                  cursor: notifState === 'granted' ? 'default' : 'pointer',
+                  fontSize:'0.875rem',
+                  color: notifState === 'granted' ? '#4ade80' : TEXT_MUTED,
+                  opacity: notifState === 'granted' ? 0.7 : 1,
+                }}
+              >
+                {notifState === 'granted' ? <Bell size={15} /> : <Bell size={15} />}
+                <span>{notifState === 'granted' ? 'Thông báo đã bật' : 'Bật thông báo'}</span>
+              </button>
+            )}
+            {notifState === 'denied' && (
+              <div style={{
+                display:'flex', alignItems:'center', gap:'12px',
+                padding:'12px 20px', fontSize:'0.875rem', color:'#f87171',
+              }}>
+                <BellOff size={15} />
+                <span>Thông báo bị chặn</span>
+              </div>
+            )}
             <button
               onClick={() => { setShowUserMenu(false); onLogout(); }}
               style={{
