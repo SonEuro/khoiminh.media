@@ -235,30 +235,6 @@ router.get('/:id', (req, res) => {
   const ev = db.prepare('SELECT * FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy' });
 
-  // Per-transaction rows (OUT + RETURN), not aggregated
-  const txRows = db.prepare(`
-    SELECT t.id as tx_id, t.code as tx_code, t.type as tx_type,
-           t.created_at, t.responsible_person, t.notes as tx_notes,
-           ti.equipment_id, e.code as eq_code, e.name as eq_name, e.unit,
-           ti.quantity, ti.combo
-    FROM transactions t
-    JOIN transaction_items ti ON ti.transaction_id = t.id
-    JOIN equipment e ON e.id = ti.equipment_id
-    WHERE t.event_id = ? AND t.status != 'pending'
-    ORDER BY t.created_at ASC, e.code ASC
-  `).all(req.params.id);
-
-  const extTxRows = db.prepare(`
-    SELECT t.id as tx_id, t.code as tx_code, t.type as tx_type,
-           t.created_at, t.responsible_person,
-           ei.supplier, ei.name, ei.quantity, ei.unit, ei.notes, ei.rental_days
-    FROM transactions t
-    JOIN external_items ei ON ei.transaction_id = t.id
-    WHERE t.event_id = ? AND t.status != 'pending'
-    ORDER BY t.created_at ASC
-  `).all(req.params.id);
-
-  // Aggregate for backwards-compat (items / external_items still present)
   const items = db.prepare(`
     SELECT ti.equipment_id, e.code as eq_code, e.name as eq_name, e.unit,
            SUM(CASE WHEN t.type = 'OUT' THEN ti.quantity ELSE 0 END) as qty_out,
@@ -280,7 +256,7 @@ router.get('/:id', (req, res) => {
     GROUP BY ei.supplier, ei.name, ei.unit
   `).all(req.params.id);
 
-  res.json({ ...ev, items, external_items, tx_rows: txRows, ext_tx_rows: extTxRows });
+  res.json({ ...ev, items, external_items });
 });
 
 function parseMultiField(val, single) {
