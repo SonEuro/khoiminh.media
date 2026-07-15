@@ -379,6 +379,14 @@ db.exec(`
     updated_at TEXT DEFAULT (datetime('now','localtime')),
     UNIQUE(type, dept)
   );
+  CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER,
+    endpoint   TEXT NOT NULL UNIQUE,
+    p256dh     TEXT NOT NULL,
+    auth       TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
 `);
 
 // Seed staff_groups từ danh sách mặc định nếu chưa có

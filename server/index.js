@@ -32,6 +32,7 @@ app.use('/api/violations',     requireAuth, require('./routes/violations'));
 app.use('/api/event-reports', requireAuth, require('./routes/eventReports'));
 app.use('/api/admin',        requireAuth, require('./routes/admin'));
 app.use('/api/zalo',         requireAuth, require('./routes/zalo'));
+app.use('/api/push',         requireAuth, require('./routes/push'));
 app.use('/api/work-schedules', requireAuth, require('./routes/workSchedule'));
 app.use('/api/lead-obligations', requireAuth, require('./routes/leadObligations'));
 app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
@@ -112,11 +113,11 @@ app.get('/api/backup', requireAuth, requireRole('SUPER_ADMIN'), async (req, res)
 // Serve React frontend (production)
 const publicDir = path.join(__dirname, 'public');
 
-// sw.js: luôn serve inline để tránh loop — xóa cache cũ + unregister, không làm gì thêm
+// sw.js: serve từ public/ với no-store để browser luôn lấy bản mới nhất
 app.get('/sw.js', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.type('application/javascript');
-  res.send(`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>self.registration.unregister()));});`);
+  res.sendFile(path.join(publicDir, 'sw.js'));
 });
 app.use(express.static(publicDir, {
   setHeaders: (res, filePath) => {
