@@ -30,7 +30,7 @@ const LOCKED_ROLES = ['TECHNICAL', 'ATAS', 'STAGE', 'CSVC'];
 
 const emptyRows = (n = 5) => Array.from({ length: n }, () => ({ mode: 'kho', equipment_id: '', quantity: 1, notes: '', combo: null, ext_supplier: '', ext_name: '', rental_days: 1 }));
 
-const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1 });
+const emptyExtRow = () => ({ supplier: '', name: '', quantity: 1, notes: '', rental_days: 1, combo: null });
 const NCC_DEPTS    = ['Sản Xuất','Kế Toán','Kỹ Thuật','ATAS-LED','Sân Khấu','Cơ Sở Vật Chất'];
 const DEPT_KEY     = { 'Kỹ Thuật':'TECH', 'ATAS-LED':'ATAS', 'Sân Khấu':'STAGE' };
 const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS-LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
@@ -186,7 +186,7 @@ export default function ExportForm() {
         const found = catalog.find(c => c.name === it.ext_name.trim());
         return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(1, parseInt(it.rental_days) || 1), combo: it.combo || null };
       });
-    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1) })) : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1), combo: i.combo || null })) : [];
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
@@ -936,29 +936,48 @@ export default function ExportForm() {
             <div style={{ padding: '14px 16px', background: 'rgba(0,0,0,0.15)', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {extItems.map((row, i) => (
-                  <div key={i} style={{ background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'10px', padding:'10px' }}>
-                    {/* Dòng 1: NCC + Qty + Ngày + X */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px' }}>
-                      <input
-                        placeholder="Nhà cung cấp *"
-                        value={row.supplier}
-                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, supplier: e.target.value } : r))}
-                        style={{
-                          flex:1, height:'36px', padding:'0 10px', boxSizing:'border-box',
-                          background: row.supplier ? 'rgba(96,165,250,0.07)' : 'rgba(255,255,255,0.04)',
-                          border:`1px solid ${row.supplier ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.12)'}`,
-                          borderRadius:'8px', color: row.supplier ? '#93c5fd' : 'var(--text-muted)',
-                          fontWeight: row.supplier ? 700 : 400, fontSize:'0.875rem', outline:'none',
-                        }}
-                      />
-                      {/* Qty */}
+                  <div key={i} style={{ background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'10px', padding:'10px', display:'flex', flexDirection:'column', gap:'6px' }}>
+                    {/* Hàng 1: [NCC + Tên stacked flex:1] + [SL] + [✕] */}
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'6px' }}>
+                      <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'5px' }}>
+                        <input
+                          placeholder="Nhà cung cấp *"
+                          value={row.supplier}
+                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, supplier: e.target.value } : r))}
+                          style={{
+                            width:'100%', height:'36px', padding:'0 10px', boxSizing:'border-box',
+                            background: row.supplier ? 'rgba(96,165,250,0.07)' : 'rgba(255,255,255,0.04)',
+                            border:`1px solid ${row.supplier ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.12)'}`,
+                            borderRadius:'8px', color: row.supplier ? '#93c5fd' : 'var(--text-muted)',
+                            fontWeight: row.supplier ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                          }}
+                        />
+                        <input
+                          placeholder="Tên thiết bị *"
+                          value={row.name}
+                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))}
+                          style={{
+                            width:'100%', height:'36px', padding:'0 10px', boxSizing:'border-box',
+                            background: row.name ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
+                            border:`1px solid ${row.name ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.15)'}`,
+                            borderRadius:'8px', color: row.name ? '#93c5fd' : 'var(--text-muted)',
+                            fontWeight: row.name ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                          }}
+                        />
+                      </div>
                       <input type="number" min="1"
                         value={row.quantity ?? 1}
                         onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: e.target.value } : r))}
                         onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: Math.max(1, parseInt(e.target.value) || 1) } : r))}
-                        style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'8px', color:'#60a5fa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                        style={{ flexShrink:0, width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
-                      {/* Ngày */}
+                      <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
+                        style={{ flexShrink:0, width:'46px', height:'36px', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', color:'rgba(248,113,113,0.7)', cursor:'pointer', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        ✕
+                      </button>
+                    </div>
+                    {/* Hàng 2: [Ngày] + [Ghi chú] + [FREE] + [combo#] */}
+                    <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
                       <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
                           value={row.rental_days ?? 1}
@@ -968,37 +987,30 @@ export default function ExportForm() {
                         />
                         <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
                       </div>
-                      {/* X */}
-                      <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
-                        style={{ flexShrink:0, width:'56px', height:'36px', background:'rgba(229,62,62,0.1)', border:'1px solid rgba(229,62,62,0.3)', borderRadius:'8px', color:'#fc8181', cursor:'pointer', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        ✕
-                      </button>
+                      <input
+                        placeholder="Ghi chú..."
+                        value={row.notes || ''}
+                        onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, notes: e.target.value } : r))}
+                        style={{ flex:1, height:'36px', padding:'0 10px', boxSizing:'border-box', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'#c9b98a', fontSize:'0.875rem', outline:'none' }}
+                      />
+                      <button type="button"
+                        onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: r.combo === null ? '' : null } : r))}
+                        style={{
+                          flexShrink:0, width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer',
+                          fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          border: row.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: row.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: row.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {row.combo !== null && (
+                        <input type="number" min="1" placeholder="—"
+                          value={row.combo}
+                          onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: e.target.value } : r))}
+                          style={{ flexShrink:0, width:'46px', height:'36px', padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                        />
+                      )}
                     </div>
-                    {/* Dòng 2: Tên thiết bị */}
-                    <input
-                      placeholder="Tên thiết bị *"
-                      value={row.name}
-                      onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, name: e.target.value } : r))}
-                      style={{
-                        width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
-                        background: row.name ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
-                        border:`1px solid ${row.name ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.15)'}`,
-                        borderRadius:'8px', color: row.name ? '#93c5fd' : 'var(--text-muted)',
-                        fontWeight: row.name ? 700 : 400, fontSize:'0.92rem', outline:'none',
-                      }}
-                    />
-                    {/* Dòng 3: Ghi chú */}
-                    <input
-                      placeholder="Ghi chú..."
-                      value={row.notes || ''}
-                      onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, notes: e.target.value } : r))}
-                      style={{
-                        width:'100%', height:'34px', padding:'0 10px', boxSizing:'border-box', marginTop:'5px',
-                        background:'rgba(255,255,255,0.03)',
-                        border:'1px solid rgba(255,255,255,0.1)',
-                        borderRadius:'8px', color:'#c9b98a', fontSize:'0.82rem', outline:'none', fontStyle:'italic',
-                      }}
-                    />
                   </div>
                 ))}
               </div>
