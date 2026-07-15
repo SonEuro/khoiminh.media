@@ -12,29 +12,32 @@ function buildSlipHTML(tx, preview = false) {
   khoItems.forEach((item, i) => {
     const condNote = isReturn ? (condMap[item.condition] || '') : '';
     const noteParts = [condNote, item.notes || ''].filter(Boolean);
-    const comboTag = item.combo ? `FREE - ${item.combo}` : '';
-    if (comboTag) noteParts.unshift(comboTag);
+    const comboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${item.combo}</span>` : '';
+    const noteText = noteParts.join(' · ');
+    const noteCell = [comboTag, noteText].filter(Boolean).join(' ');
     allRows.push(`<tr>
       <td style="text-align:center">${i + 1}</td>
       <td style="text-align:left;padding-left:6px">${item.eq_name || ''}</td>
       <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || ''}</span></div></td>
       <td style="text-align:center">${item.eq_code || ''}</td>
-      <td style="text-align:left;padding-left:6px">${noteParts.join(' · ')}</td>
+      <td style="text-align:left;padding-left:6px;vertical-align:middle">${noteCell}</td>
     </tr>`);
   });
   if (extItems.length > 0) {
     allRows.push(`<tr><td colspan="5" style="text-align:left;padding:4px 6px;font-weight:bold;font-style:italic;background:#f9f9f9;border-top:2px solid #000">Thiết bị thuê từ nhà cung cấp:</td></tr>`);
     extItems.forEach((item, i) => {
       const parts = [];
-      if (item.combo) parts.push(`FREE - ${item.combo}`);
       if (item.rental_days && item.rental_days > 0) parts.push(`Thuê ${item.rental_days} ngày`);
       if (item.notes) parts.push(item.notes);
+      const extComboTag = item.combo ? `<span style="font-size:8pt;font-weight:800;padding:1px 5px;border:1.5px solid #7c3aed;border-radius:3px;color:#7c3aed;letter-spacing:0.04em;white-space:nowrap">FREE - ${item.combo}</span>` : '';
+      const extNoteText = parts.join(' · ');
+      const extNoteCell = [extComboTag, extNoteText].filter(Boolean).join(' ');
       allRows.push(`<tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
         <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
         <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></div></td>
         <td style="text-align:center">${item.supplier || ''}</td>
-        <td style="text-align:left;padding-left:6px">${parts.join('<br>')}</td>
+        <td style="text-align:left;padding-left:6px;vertical-align:middle">${extNoteCell}</td>
       </tr>`);
     });
   }
