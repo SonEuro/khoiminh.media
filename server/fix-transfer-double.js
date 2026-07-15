@@ -13,7 +13,8 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'db.sqlite'));
+const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'kho.db');
+const db = new Database(DB_PATH);
 
 const now = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'medium',
