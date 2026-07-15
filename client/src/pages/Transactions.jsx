@@ -649,7 +649,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                       list={`ncc-dl-${idx}`}
                       style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
                     <datalist id={`ncc-dl-${idx}`}>
-                      {(it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
+                      {it.supplier.length > 0 && (it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
                     </datalist>
                     <input type="number" min="1" placeholder="SL" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
@@ -675,7 +675,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                       list={`ncc-items-dl-${idx}`}
                       style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.name ? '#93c5fd' : undefined, fontWeight: it.name ? 600 : 400 }} />
                     <datalist id={`ncc-items-dl-${idx}`}>
-                      {(NCC_CATALOG[it.supplier] || []).map((item, i) => (
+                      {it.name.length > 0 && (NCC_CATALOG[it.supplier] || []).map((item, i) => (
                         <option key={i} value={item.name} />
                       ))}
                     </datalist>
@@ -935,7 +935,7 @@ function TraNccModal({ txId, onClose }) {
                     <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
                       list={dlId} placeholder="Chọn hoặc nhập NCC..."
                       style={{ ...ipt, color:'#60a5fa' }} />
-                    <datalist id={dlId}>{rowNccs.map(n => <option key={n} value={n} />)}</datalist>
+                    <datalist id={dlId}>{row.supplier.length > 0 && rowNccs.map(n => <option key={n} value={n} />)}</datalist>
                   </div>
                   {/* Dòng 3: Tên thiết bị */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
