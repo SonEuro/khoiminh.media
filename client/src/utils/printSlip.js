@@ -29,7 +29,7 @@ function buildSlipHTML(tx, preview = false) {
       if (item.notes) parts.push(item.notes);
       allRows.push(`<tr>
         <td style="text-align:center">${khoItems.length + i + 1}</td>
-        <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
+        <td style="text-align:center;padding:2px 4px">${item.name || ''}</td>
         <td style="text-align:center;vertical-align:middle"><div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px"><span style="font-size:14pt;font-weight:bold">${item.quantity}</span><span style="font-size:9pt;font-weight:normal">${item.unit || 'Cái'}</span></div></td>
         <td style="text-align:center">${item.supplier || ''}</td>
         <td style="text-align:left;padding-left:6px">${parts.join('<br>')}</td>
