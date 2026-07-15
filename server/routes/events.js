@@ -41,7 +41,7 @@ function cleanupTrash() {
     if (old.length === 0) return;
     const doClean = db.transaction(() => {
       for (const { id } of old) {
-        const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(id);
+        const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? AND deleted_at IS NULL ORDER BY created_at DESC').all(id);
         for (const tx of txs) {
           const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
           for (const item of items) {
@@ -390,8 +390,8 @@ router.delete('/:id/permanent', adminOnly, (req, res) => {
   const ev = db.prepare('SELECT id FROM events WHERE id = ? AND deleted_at IS NOT NULL').get(id);
   if (!ev) return res.status(404).json({ error: 'Sự kiện không có trong thùng rác' });
   const doPermanent = db.transaction(() => {
-    // Hoàn trả tồn kho từ các phiếu còn liên kết (RETURN trước, OUT sau)
-    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? ORDER BY created_at DESC').all(id);
+    // Hoàn trả tồn kho — chỉ phiếu chưa bị xóa riêng (tránh double-restore)
+    const txs = db.prepare('SELECT * FROM transactions WHERE event_id = ? AND deleted_at IS NULL ORDER BY created_at DESC').all(id);
     for (const tx of txs) {
       const items = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(tx.id);
       for (const item of items) {
