@@ -184,7 +184,7 @@ export default function ExportForm() {
       .map(it => {
         const catalog = NCC_CATALOG[it.ext_supplier] || [];
         const found = catalog.find(c => c.name === it.ext_name.trim());
-        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(1, parseInt(it.rental_days) || 1) };
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(1, parseInt(it.rental_days) || 1), combo: it.combo || null };
       });
     const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1) })) : [];
     const validExt = [...rowExt, ...sectionExt];
@@ -513,6 +513,8 @@ export default function ExportForm() {
                   : [];
                 const isExpanded = expandedRows.has(idx);
 
+                const H = '36px';
+                const W = '46px';
                 return (
                   <div key={idx} style={{
                     backgroundColor:'#080e1c',
@@ -520,92 +522,89 @@ export default function ExportForm() {
                     borderLeft:'3px solid #60a5fa',
                     borderRadius:'10px',
                     padding:'10px',
+                    display:'flex', flexDirection:'column', gap:'6px',
                   }}>
 
-                    {/* ── Dòng 1: Badge + Nhà CC + Qty + Ngày + ✏️ + X ── */}
-                    <div className="ext-btn-row" style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'8px' }}>
-                      <span style={{ display:'none' }}>N{nccSeq}</span>
-
-                      {/* Supplier search */}
-                      <div style={{ flex:1, position:'relative', minWidth:0 }}>
-                        <input
-                          style={{
-                            width:'100%', height:'38px', padding:'0 10px', boxSizing:'border-box',
-                            background:'rgba(96,165,250,0.07)',
-                            border:`1px solid ${item.ext_supplier ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.25)'}`,
-                            borderRadius:'8px',
-                            color: item.ext_supplier ? '#93c5fd' : 'var(--text-muted)',
-                            fontSize:'0.875rem', fontWeight: item.ext_supplier ? 700 : 400, outline:'none',
-                          }}
-                          placeholder="Nhà cung cấp..."
-                          value={item.ext_supplier}
-                          onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
-                          onFocus={() => setNccSupplierFocusIdx(idx)}
-                          onBlur={() => setTimeout(() => setNccSupplierFocusIdx(v => v === idx ? -1 : v), 150)}
-                        />
-                        {nccSupplierFocusIdx === idx && supplierSuggestions.length > 0 && (
-                          <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:300, maxHeight:'200px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
-                            {supplierSuggestions.map((s, i) => (
-                              <button key={i} type="button"
-                                style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', color:'#93c5fd', fontSize:'0.92rem', fontWeight:600 }}
-                                onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
-                                onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
-                                onClick={() => { setItem(idx, 'ext_supplier', s); setItem(idx, 'ext_name', ''); setNccSupplierFocusIdx(-1); }}>
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                    {/* Hàng 1: [NCC + Tên stacked flex:1] + [SL] + [✕] */}
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'6px' }}>
+                      {/* Trái: NCC + Tên stacked */}
+                      <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'5px' }}>
+                        <div style={{ position:'relative' }}>
+                          <input
+                            style={{
+                              width:'100%', height:H, padding:'0 10px', boxSizing:'border-box',
+                              background:'rgba(96,165,250,0.07)',
+                              border:`1px solid ${item.ext_supplier ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.25)'}`,
+                              borderRadius:'8px',
+                              color: item.ext_supplier ? '#93c5fd' : 'var(--text-muted)',
+                              fontSize:'0.875rem', fontWeight: item.ext_supplier ? 700 : 400, outline:'none',
+                            }}
+                            placeholder="Nhà cung cấp..."
+                            value={item.ext_supplier}
+                            onChange={e => { setItem(idx, 'ext_supplier', e.target.value); setItem(idx, 'ext_name', ''); }}
+                            onFocus={() => setNccSupplierFocusIdx(idx)}
+                            onBlur={() => setTimeout(() => setNccSupplierFocusIdx(v => v === idx ? -1 : v), 150)}
+                          />
+                          {nccSupplierFocusIdx === idx && supplierSuggestions.length > 0 && (
+                            <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:300, maxHeight:'200px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                              {supplierSuggestions.map((s, i) => (
+                                <button key={i} type="button"
+                                  style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', color:'#93c5fd', fontSize:'0.92rem', fontWeight:600 }}
+                                  onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
+                                  onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                  onClick={() => { setItem(idx, 'ext_supplier', s); setItem(idx, 'ext_name', ''); setNccSupplierFocusIdx(-1); }}>
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ position:'relative' }}>
+                          <input
+                            style={{
+                              width:'100%', height:H, padding:'0 10px', boxSizing:'border-box',
+                              background: filled ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
+                              border:`1px solid ${filled ? 'rgba(96,165,250,0.45)' : 'rgba(96,165,250,0.15)'}`,
+                              borderRadius:'8px',
+                              color: filled ? '#93c5fd' : 'var(--text-muted)',
+                              fontWeight: filled ? 700 : 400, fontSize:'0.875rem', outline:'none',
+                            }}
+                            placeholder={item.ext_supplier ? `Tên thiết bị (${catalog.length} mẫu)...` : 'Tên thiết bị...'}
+                            value={item.ext_name}
+                            onChange={e => { setItem(idx, 'ext_name', e.target.value); setNccFocusIdx(idx); }}
+                            onFocus={() => setNccFocusIdx(idx)}
+                            onBlur={() => setTimeout(() => setNccFocusIdx(v => v === idx ? -1 : v), 150)}
+                          />
+                          {nccFocusIdx === idx && nameSuggestions.length > 0 && (
+                            <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:200, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
+                              {nameSuggestions.map((c, i) => (
+                                <button key={i} type="button"
+                                  style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}
+                                  onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
+                                  onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
+                                  onClick={() => { setItem(idx, 'ext_name', c.name); setNccFocusIdx(-1); }}>
+                                  <span style={{ color:'#93c5fd', fontWeight:600, fontSize:'0.92rem', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
+                                  <span style={{ fontSize:'0.84rem', color:'#4ade80', flexShrink:0 }}>{c.qty > 0 ? c.qty : '–'} {c.unit}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Qty blue compact */}
+                      {/* Phải: SL + ✕ */}
                       <input type="number" min="1"
                         value={item.quantity ?? 1}
                         onChange={e => setItem(idx, 'quantity', e.target.value)}
                         onBlur={e => setItem(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                         style={{
-                          flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box',
-                          background:'rgba(96,165,250,0.09)', border:'1px solid rgba(96,165,250,0.35)',
-                          borderRadius:'8px', color:'#60a5fa', fontSize:'1.05rem', fontWeight:800, outline:'none',
+                          flexShrink:0, width:W, height:H, padding:'0', textAlign:'center', boxSizing:'border-box',
+                          background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)',
+                          borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none',
                         }}
                       />
-
-                      {/* Rental days gold */}
-                      <div className="ext-mini-btn" style={{
-                        flexShrink:0, width:'56px', height:'36px',
-                        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px',
-                        background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
-                        borderRadius:'8px', overflow:'hidden',
-                      }}>
-                        <input type="number" min="1"
-                          value={item.rental_days ?? 1}
-                          onChange={e => setItem(idx, 'rental_days', e.target.value)}
-                          onBlur={e => setItem(idx, 'rental_days', Math.max(1, parseInt(e.target.value) || 1))}
-                          style={{
-                            width:'100%', height:'20px', border:'none', background:'transparent', outline:'none',
-                            textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800,
-                            padding:0, lineHeight:'20px',
-                          }}
-                        />
-                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
-                      </div>
-
-                      {/* Notes toggle */}
-                      <button type="button" onClick={() => toggleExpand(idx)}
-                        style={{
-                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
-                          border: isExpanded ? '1px solid #60a5fa' : '1px solid rgba(96,165,250,0.2)',
-                          background: isExpanded ? 'rgba(96,165,250,0.2)' : 'transparent',
-                          color: isExpanded ? '#60a5fa' : 'rgba(96,165,250,0.35)',
-                          fontSize:'0.85rem', display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>
-                        ✏️
-                      </button>
-
-                      {/* Delete */}
                       <button type="button" onClick={() => removeItem(idx)}
                         style={{
-                          flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer',
+                          flexShrink:0, width:W, height:H, borderRadius:'8px', cursor:'pointer',
                           border:'1px solid rgba(248,113,113,0.3)', background:'transparent',
                           color:'rgba(248,113,113,0.7)', fontSize:'0.92rem',
                           display:'flex', alignItems:'center', justifyContent:'center',
@@ -616,50 +615,46 @@ export default function ExportForm() {
                       </button>
                     </div>
 
-                    {/* ── Dòng 2: Tên thiết bị (full width) ── */}
-                    <div style={{ position:'relative', marginBottom:'8px' }}>
+                    {/* Hàng 2: [Ngày] + [Ghi chú] + [FREE] + [combo#] */}
+                    <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
+                      <div style={{
+                        flexShrink:0, width:'56px', height:H,
+                        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px',
+                        background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)',
+                        borderRadius:'8px', overflow:'hidden',
+                      }}>
+                        <input type="number" min="1"
+                          value={item.rental_days ?? 1}
+                          onChange={e => setItem(idx, 'rental_days', e.target.value)}
+                          onBlur={e => setItem(idx, 'rental_days', Math.max(1, parseInt(e.target.value) || 1))}
+                          style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
+                        />
+                        <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>ngày</span>
+                      </div>
                       <input
-                        style={{
-                          width:'100%', height:'42px', padding:'0 12px', boxSizing:'border-box',
-                          background: filled ? 'rgba(96,165,250,0.09)' : 'rgba(255,255,255,0.04)',
-                          border:`1px solid ${filled ? 'rgba(96,165,250,0.45)' : 'rgba(96,165,250,0.15)'}`,
-                          borderRadius:'8px',
-                          color: filled ? '#93c5fd' : 'var(--text-muted)',
-                          fontWeight: filled ? 700 : 400, fontSize:'0.95rem', outline:'none',
-                        }}
-                        placeholder={item.ext_supplier ? `Tên thiết bị (${catalog.length} mẫu)...` : 'Tên thiết bị...'}
-                        value={item.ext_name}
-                        onChange={e => { setItem(idx, 'ext_name', e.target.value); setNccFocusIdx(idx); }}
-                        onFocus={() => setNccFocusIdx(idx)}
-                        onBlur={() => setTimeout(() => setNccFocusIdx(v => v === idx ? -1 : v), 150)}
+                        style={{ flex:1, height:H, padding:'0 10px', boxSizing:'border-box', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.875rem', outline:'none' }}
+                        placeholder="Ghi chú..."
+                        value={item.notes || ''}
+                        onChange={e => setItem(idx, 'notes', e.target.value)}
                       />
-                      {nccFocusIdx === idx && nameSuggestions.length > 0 && (
-                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, zIndex:200, maxHeight:'220px', overflowY:'auto', background:'#0e0e1a', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'8px', boxShadow:'0 12px 32px rgba(0,0,0,0.9)' }}>
-                          {nameSuggestions.map((c, i) => (
-                            <button key={i} type="button"
-                              style={{ width:'100%', textAlign:'left', padding:'10px 14px', background:'transparent', border:'none', borderBottom:'1px solid rgba(255,255,255,0.05)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}
-                              onMouseEnter={ev => ev.currentTarget.style.background='rgba(96,165,250,0.1)'}
-                              onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
-                              onClick={() => { setItem(idx, 'ext_name', c.name); setNccFocusIdx(-1); }}>
-                              <span style={{ color:'#93c5fd', fontWeight:600, fontSize:'0.92rem', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.name}</span>
-                              <span style={{ fontSize:'0.84rem', color:'#4ade80', flexShrink:0 }}>{c.qty > 0 ? c.qty : '–'} {c.unit}</span>
-                            </button>
-                          ))}
-                        </div>
+                      <button type="button"
+                        onClick={() => setItem(idx, 'combo', item.combo === null ? '' : null)}
+                        style={{
+                          flexShrink:0, width:W, height:H, borderRadius:'8px', cursor:'pointer',
+                          fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          border: item.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: item.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: item.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {item.combo !== null && (
+                        <input type="number" min="1" placeholder="—"
+                          value={item.combo}
+                          onChange={e => setItem(idx, 'combo', e.target.value)}
+                          style={{ flexShrink:0, width:W, height:H, padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                        />
                       )}
                     </div>
-
-                    {/* Notes expanded */}
-                    {isExpanded && (
-                      <div style={{ marginTop:'8px' }}>
-                        <input
-                          style={{ width:'100%', height:'40px', padding:'0 12px', boxSizing:'border-box', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.2)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.92rem', outline:'none' }}
-                          placeholder="Ghi chú cho dòng NCC này..."
-                          value={item.notes || ''}
-                          onChange={e => setItem(idx, 'notes', e.target.value)}
-                        />
-                      </div>
-                    )}
                   </div>
                 );
               }
@@ -680,7 +675,7 @@ export default function ExportForm() {
               const insertExtBelow = () => {
                 setItems(prev => {
                   const next = [...prev];
-                  next.splice(idx + 1, 0, { mode:'ext', equipment_id:'', quantity:1, notes:'', ext_supplier:'', ext_name:'', rental_days:1 });
+                  next.splice(idx + 1, 0, { mode:'ext', equipment_id:'', quantity:1, notes:'', combo:null, ext_supplier:'', ext_name:'', rental_days:1 });
                   return next;
                 });
                 setSearchTerms(prev => {
