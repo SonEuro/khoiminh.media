@@ -39,6 +39,41 @@ app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
 app.use('/api/upload-image', requireAuth, require('./routes/upload'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// TẠM THỜI: callback OAuth Zalo — xóa sau khi lấy xong token
+app.get('/api/zalo-callback', async (req, res) => {
+  const { code, error } = req.query;
+  if (error || !code) {
+    return res.send(`<h2>❌ Lỗi: ${error || 'không có code'}</h2>`);
+  }
+  const APP_ID     = process.env.ZALO_APP_ID || '730631374647754105';
+  const APP_SECRET = process.env.ZALO_APP_SECRET || '';
+  const REDIRECT   = `https://khoiminhmedia.com/api/zalo-callback`;
+  try {
+    const tokenRes = await fetch('https://oauth.zaloapp.com/v4/oa/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'secret_key': APP_SECRET },
+      body: new URLSearchParams({ code, app_id: APP_ID, grant_type: 'authorization_code', redirect_uri: REDIRECT }),
+    });
+    const data = await tokenRes.json();
+    if (data.access_token) {
+      res.send(`<pre style="font-size:15px;padding:20px;background:#111;color:#0f0">
+✅ Thành công! Copy 4 dòng này vào .env trên VPS:
+
+ZALO_APP_ID=${APP_ID}
+ZALO_APP_SECRET=${APP_SECRET}
+ZALO_OA_TOKEN=${data.access_token}
+ZALO_OA_REFRESH_TOKEN=${data.refresh_token}
+
+Sau đó chạy: pm2 restart kho-server
+      </pre>`);
+    } else {
+      res.send(`<pre style="padding:20px">❌ Zalo lỗi:\n${JSON.stringify(data, null, 2)}</pre>`);
+    }
+  } catch (e) {
+    res.status(500).send(`<pre>❌ ${e.message}</pre>`);
+  }
+});
+
 app.get('/api/health', (req, res) => {
   let userCount = 0, eventCount = 0;
   try { userCount  = db.prepare('SELECT COUNT(*) as c FROM users').get().c; } catch(_) {}
