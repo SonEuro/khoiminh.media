@@ -851,10 +851,15 @@ function TraNccModal({ txId, onClose }) {
   useEffect(() => {
     api.getTransactionById(txId).then(data => {
       setTx(data);
-      setItems((data.external_items || []).map(e => ({
-        name: e.name || '', supplier: e.supplier || '',
-        quantity: e.quantity || 1, unit: e.unit || 'Cái', notes: e.notes || '',
-      })));
+      const userDept = ROLE_TO_DEPT[user?.role] || '';
+      setItems((data.external_items || []).map(e => {
+        const supplier = e.supplier || '';
+        const deptKey = supplier ? NCC_DEPT[supplier]?.[0] : null;
+        const dept = deptKey
+          ? Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept
+          : userDept;
+        return { name: e.name || '', supplier, dept, quantity: e.quantity || 1, unit: e.unit || 'Cái', notes: e.notes || '' };
+      }));
     });
   }, [txId]);
 
