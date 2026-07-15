@@ -369,7 +369,7 @@ export default function Layout() {
           paddingRight:'env(safe-area-inset-right, 0px)',
           paddingBottom:'env(safe-area-inset-bottom, 0px)',
         }}>
-          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto' }}>
+          <div key={location.pathname} style={{ animation:'pageFadeIn 0.18s ease', flex:'1 0 auto', background:'var(--bg-card)' }}>
             <Outlet />
           </div>
         </main>
@@ -392,6 +392,8 @@ export default function Layout() {
           h1 { font-size: 1.3rem !important; }
           .p-6 { padding: 1rem !important; }
         }
+        /* Page root fills bg-main so cards keep contrast; empty space shows bg-card */
+        main > div > * { background: var(--bg-main); }
         /* Remove tap highlight on mobile */
         * { -webkit-tap-highlight-color: transparent; }
         /* Smooth scrolling */
