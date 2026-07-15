@@ -528,6 +528,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const [search, setSearch]       = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const [expandedNotes, setExpandedNotes] = useState({});
   const mounted = useRef(true);
   const searchWrapRef = useRef(null);
 
@@ -705,53 +706,58 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {khoItems.map((it, idx) => {
                 const eq = equipment.find(e => e.id === it.equipment_id);
+                const notesOpen = !!expandedNotes[idx];
                 return (
                   <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
-                    {/* Row 1: name + qty + X */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                    {/* Row chính: tên bên trái, grid controls bên phải */}
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:'10px' }}>
                       <div style={{ flex:1, minWidth:0 }}>
                         <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
-                        <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                        <p style={{ fontSize:'0.78rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
                       </div>
-                      <input type="number" min="1" value={it.quantity}
-                        onChange={e => updateQty(idx, e.target.value)}
-                        onBlur={e => updateQty(idx, e.target.value, true)}
-                        style={{ width:'58px', flexShrink:0, padding:'5px 6px', borderRadius:'6px', textAlign:'center', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(201,168,76,0.3)', color:'#e0e0ee', fontSize:'0.92rem', fontWeight:700 }}
-                      />
-                      <span style={{ flexShrink:0, fontSize:'0.84rem', color:'#7878a0', minWidth:'32px' }}>{it.unit}</span>
-                      <button onClick={() => removeItem(idx)}
-                        style={{ width:'28px', height:'28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>✕</button>
-                    </div>
-                    {/* Row 2: ghi chú + THUÊ + FREE */}
-                    <div style={{ display:'flex', gap:'6px', marginTop:'6px', alignItems:'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Ghi chú..."
-                        value={it.notes || ''}
-                        onChange={e => updateNotes(idx, e.target.value)}
-                        style={{ flex:1, padding:'4px 8px', borderRadius:'6px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#a0a0c0', fontSize:'0.80rem' }}
-                      />
-                      <button type="button" onClick={addExtItem}
-                        style={{ flexShrink:0, height:'28px', padding:'0 8px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, cursor:'pointer', letterSpacing:'0.02em' }}>
-                        THUÊ
-                      </button>
-                      <button type="button"
-                        onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
-                        style={{ flexShrink:0, height:'28px', padding:'0 8px', borderRadius:'6px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
-                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                        }}>FREE</button>
-                      {it.combo !== null && (
-                        <input
-                          type="number" min="1"
-                          placeholder="—"
-                          value={it.combo}
-                          onChange={e => updateCombo(idx, e.target.value)}
-                          style={{ width:'58px', flexShrink:0, height:'28px', padding:'0 6px', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'0.92rem', fontWeight:800, textAlign:'center', boxSizing:'border-box' }}
+                      {/* Grid 2×2: [Qty][X] / [✏️][THUÊ] + FREE */}
+                      <div style={{ display:'grid', gridTemplateColumns:'52px 42px', gap:'5px', flexShrink:0 }}>
+                        <input type="number" min="1" value={it.quantity}
+                          onChange={e => updateQty(idx, e.target.value)}
+                          onBlur={e => updateQty(idx, e.target.value, true)}
+                          style={{ height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                         />
-                      )}
+                        <button onClick={() => removeItem(idx)}
+                          style={{ height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                        <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
+                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                            border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                            background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                            color: notesOpen ? '#e8c97a' : '#4a4a6a',
+                          }}>✏️</button>
+                        <button type="button" onClick={addExtItem}
+                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, letterSpacing:'0.02em', display:'flex', alignItems:'center', justifyContent:'center' }}>THUÊ</button>
+                        <button type="button"
+                          onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
+                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center',
+                            border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                            color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                            background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                          }}>FREE</button>
+                        {it.combo !== null && (
+                          <input type="number" min="1" placeholder="—"
+                            value={it.combo}
+                            onChange={e => updateCombo(idx, e.target.value)}
+                            style={{ height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                          />
+                        )}
+                      </div>
                     </div>
+                    {/* Ghi chú expand */}
+                    {notesOpen && (
+                      <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px' }}>
+                        <input type="text" placeholder="Ghi chú..." value={it.notes || ''}
+                          onChange={e => updateNotes(idx, e.target.value)}
+                          autoFocus
+                          style={{ width:'100%', padding:'6px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.25)', background:'rgba(255,255,255,0.05)', color:'#e0e0ee', fontSize:'0.84rem', boxSizing:'border-box' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
