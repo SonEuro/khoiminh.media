@@ -700,7 +700,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         </>
                       )}
                     </div>
-                    {/* Phải: grid [Qty][X] / [✏️][THUÊ] + FREE */}
+                    {/* Phải: grid [Qty][X] / [✏️][FREE] */}
                     <div style={{ display:'grid', gridTemplateColumns:'52px 42px', gap:'5px', flexShrink:0 }}>
                       <input type="number" min="1" value={it.quantity}
                         onChange={e => updateQty(idx, e.target.value)}
@@ -715,8 +715,6 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                           background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
                           color: notesOpen ? '#e8c97a' : '#4a4a6a',
                         }}>✏️</button>
-                      <button type="button" onClick={addExtItem}
-                        style={{ height:'36px', borderRadius:'8px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, letterSpacing:'0.02em', display:'flex', alignItems:'center', justifyContent:'center' }}>THUÊ</button>
                       <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
                         style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center',
                           border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
