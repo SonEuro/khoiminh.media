@@ -619,8 +619,8 @@ router.put('/:id/edit-completed', (req, res, next) => {
 
     // Thay thế transaction_items
     db.prepare('DELETE FROM transaction_items WHERE transaction_id = ?').run(tx.id);
-    const ins = db.prepare('INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes) VALUES (?, ?, ?, ?, ?)');
-    items.forEach(i => ins.run(tx.id, i.equipment_id, parseInt(i.quantity) || 1, i.condition || 'good', i.notes || null));
+    const ins = db.prepare('INSERT INTO transaction_items (transaction_id, equipment_id, quantity, condition, notes, combo) VALUES (?, ?, ?, ?, ?, ?)');
+    items.forEach(i => ins.run(tx.id, i.equipment_id, parseInt(i.quantity) || 1, i.condition || 'good', i.notes || null, i.combo || null));
 
     // Snapshot NCC cũ trước khi xóa
     const oldExtItems = db.prepare('SELECT * FROM external_items WHERE transaction_id = ?').all(tx.id);

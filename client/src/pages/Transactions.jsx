@@ -722,7 +722,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                       <button onClick={() => removeItem(idx)}
                         style={{ width:'28px', height:'28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'6px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'#f87171', cursor:'pointer', fontSize:'0.84rem' }}>✕</button>
                     </div>
-                    {/* Row 2: notes + combo */}
+                    {/* Row 2: ghi chú + THUÊ + FREE */}
                     <div style={{ display:'flex', gap:'6px', marginTop:'6px', alignItems:'center' }}>
                       <input
                         type="text"
@@ -731,13 +731,26 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         onChange={e => updateNotes(idx, e.target.value)}
                         style={{ flex:1, padding:'4px 8px', borderRadius:'6px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#a0a0c0', fontSize:'0.80rem' }}
                       />
-                      <input
-                        type="text"
-                        placeholder="FREE combo..."
-                        value={it.combo || ''}
-                        onChange={e => updateCombo(idx, e.target.value)}
-                        style={{ width:'110px', flexShrink:0, padding:'4px 8px', borderRadius:'6px', border:`1px solid ${it.combo ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)'}`, background: it.combo ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', color: it.combo ? 'rgba(255,255,255,0.7)' : '#7878a0', fontSize:'0.78rem', fontWeight: it.combo ? 700 : 400 }}
-                      />
+                      <button type="button" onClick={addExtItem}
+                        style={{ flexShrink:0, height:'28px', padding:'0 8px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, cursor:'pointer', letterSpacing:'0.02em' }}>
+                        THUÊ
+                      </button>
+                      <button type="button"
+                        onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
+                        style={{ flexShrink:0, height:'28px', padding:'0 8px', borderRadius:'6px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
+                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {it.combo !== null && (
+                        <input
+                          type="number" min="1"
+                          placeholder="—"
+                          value={it.combo}
+                          onChange={e => updateCombo(idx, e.target.value)}
+                          style={{ width:'58px', flexShrink:0, height:'28px', padding:'0 6px', borderRadius:'6px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'0.92rem', fontWeight:800, textAlign:'center', boxSizing:'border-box' }}
+                        />
+                      )}
                     </div>
                   </div>
                 );
