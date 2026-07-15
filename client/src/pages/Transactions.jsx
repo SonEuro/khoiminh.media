@@ -643,13 +643,8 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
               const ctrl = { height:H, borderRadius:'8px', boxSizing:'border-box', outline:'none', flexShrink:0 };
               return (
                 <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', display:'flex', flexDirection:'column', gap:'5px' }}>
-                  {/* Hàng 1: [Bộ phận] [NCC datalist] [SL] [Ngày] [FREE] [combo#] */}
+                  {/* Hàng 1: [NCC datalist] [SL] [Ngày] [FREE] [combo#] */}
                   <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
-                    <select value={it.dept || ''} onChange={e => updateExtItem(idx, 'dept', e.target.value)}
-                      style={{ width:'88px', flexShrink:0, height:H, padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.3)', background:'#16162a', color: it.dept ? '#a78bfa' : '#7878a0', fontSize:'0.74rem', cursor:'pointer', boxSizing:'border-box' }}>
-                      <option value="">— Bộ phận —</option>
-                      {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
                     <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
                       list={`ncc-dl-${idx}`}
                       style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
