@@ -657,8 +657,8 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         <input type="number" min="1" placeholder="SL" value={it.quantity}
                           onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
                           style={{ ...cell, padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
-                        <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
-                          onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
+                        <input type="number" min="0" step="0.5" placeholder="Ngày" value={it.rental_days}
+                          onChange={e => updateExtItem(idx, 'rental_days', parseFloat(e.target.value) || 0)}
                           style={{ ...cell, padding:'0 4px', textAlign:'center', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700 }} />
                         <button type="button" onClick={() => updateExtItem(idx, 'combo', it.combo === null ? it.quantity : null)}
                           style={{ ...cell, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',

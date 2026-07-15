@@ -184,9 +184,9 @@ export default function ExportForm() {
       .map(it => {
         const catalog = NCC_CATALOG[it.ext_supplier] || [];
         const found = catalog.find(c => c.name === it.ext_name.trim());
-        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(1, parseInt(it.rental_days) || 1), combo: it.combo || null };
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(0.5, parseFloat(it.rental_days) || 1), combo: it.combo || null };
       });
-    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(1, parseInt(i.rental_days) || 1), combo: i.combo || null })) : [];
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(0.5, parseFloat(i.rental_days) || 1), combo: i.combo || null })) : [];
     const validExt = [...rowExt, ...sectionExt];
     if (!form.event_id) { setEventError(true); return; }
     setEventError(false);
@@ -564,10 +564,10 @@ export default function ExportForm() {
                         style={{ flexShrink:0, width:W, height:H, padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
                       <div style={{ flexShrink:0, width:'56px', minWidth:'56px', maxWidth:'56px', height:H, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
-                        <input type="number" min="1"
+                        <input type="number" min="0.5" step="0.5"
                           value={item.rental_days ?? 1}
                           onChange={e => setItem(idx, 'rental_days', e.target.value)}
-                          onBlur={e => setItem(idx, 'rental_days', Math.max(1, parseInt(e.target.value) || 1))}
+                          onBlur={e => setItem(idx, 'rental_days', Math.max(0.5, parseFloat(e.target.value) || 1))}
                           style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
                         <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>day</span>
@@ -940,10 +940,10 @@ export default function ExportForm() {
                         style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
                       <div style={{ flexShrink:0, width:'56px', minWidth:'56px', maxWidth:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
-                        <input type="number" min="1"
+                        <input type="number" min="0.5" step="0.5"
                           value={row.rental_days ?? 1}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: e.target.value } : r))}
-                          onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: Math.max(1, parseInt(e.target.value) || 1) } : r))}
+                          onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, rental_days: Math.max(0.5, parseFloat(e.target.value) || 1) } : r))}
                           style={{ width:'100%', height:'20px', border:'none', background:'transparent', outline:'none', textAlign:'center', color:'#fbbf24', fontSize:'1rem', fontWeight:800, padding:0, lineHeight:'20px' }}
                         />
                         <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>day</span>
