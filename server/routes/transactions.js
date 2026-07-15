@@ -766,50 +766,46 @@ router.post('/transfer', canTransact, (req, res) => {
       targetStatus = 'completed';
     }
 
-    // Mã phiếu nguồn
-    let sourceCode = `${sourceTx.code} - update sau chuyển`;
+    // Mã phiếu trả nguồn
+    let sourceRetCode = `${sourceTx.code} - trả sau chuyển`;
     let sn = 1;
-    while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(sourceCode))
-      sourceCode = `${sourceTx.code} - update sau chuyển ${++sn}`;
+    while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(sourceRetCode))
+      sourceRetCode = `${sourceTx.code} - trả sau chuyển ${++sn}`;
 
-    const ins = db.prepare(`
+    const insOut = db.prepare(`
       INSERT INTO transactions (code, type, status, event_id, responsible_person, notes, transaction_date, created_by_id)
       VALUES (?, 'OUT', ?, ?, ?, ?, ?, ?)
     `);
+    const insRet = db.prepare(`
+      INSERT INTO transactions (code, type, status, event_id, responsible_person, notes, transaction_date, created_by_id)
+      VALUES (?, 'RETURN', 'completed', ?, ?, ?, ?, ?)
+    `);
 
-    const targetTxR = ins.run(targetCode, targetStatus, target_event_id,
+    // Phiếu OUT cho sự kiện đích
+    const targetTxR = insOut.run(targetCode, targetStatus, target_event_id,
       req.user.full_name, `Chuyển từ ${sourceTx.code}`, now, req.user.id);
 
-    const sourceTxR = ins.run(sourceCode, 'completed', sourceTx.event_id,
+    // Phiếu RETURN cho sự kiện nguồn (số lượng đã chuyển đi)
+    const sourceTxR = insRet.run(sourceRetCode, sourceTx.event_id,
       req.user.full_name, `Thiết bị chuyển sang ${targetEvent.name}`, now, req.user.id);
 
     const insItem = db.prepare(
       `INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`
     );
 
-    // Phiếu đích: các thiết bị được chuyển tới
-    const transferMap = {};
+    // Items cho phiếu đích + ghi nhận để tạo RETURN nguồn
     for (const item of items) {
       const qty = parseInt(item.quantity) || 0;
       if (qty > 0) {
         insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
-        transferMap[item.equipment_id] = qty;
+        insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
       }
-    }
-
-    // Phiếu nguồn "update sau chuyển": số lượng còn lại (gốc trừ đã chuyển)
-    const originalItems = db.prepare('SELECT * FROM transaction_items WHERE transaction_id = ?').all(source_tx_id);
-    for (const orig of originalItems) {
-      const transferred = transferMap[orig.equipment_id] || 0;
-      const remaining   = orig.quantity - transferred;
-      if (remaining > 0)
-        insItem.run(sourceTxR.lastInsertRowid, orig.equipment_id, remaining, orig.notes, orig.combo);
     }
 
     return {
       case: existingOut ? 2 : 1,
       target_tx_code: targetCode,
-      source_tx_code: sourceCode,
+      source_tx_code: sourceRetCode,
     };
   });
 
