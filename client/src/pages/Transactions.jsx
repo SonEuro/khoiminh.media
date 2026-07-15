@@ -558,6 +558,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         rental_days: it.rental_days || 1,
         notes: it.notes || '',
         combo: it.combo || null,
+        dept: '',
       })));
     }).catch(() => { if (mounted.current) setError('Không thể tải dữ liệu phiếu'); });
   }, [txId]);
@@ -580,7 +581,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const updateCombo     = (idx, val) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val } : it));
 
-  const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '', combo: null }]);
+  const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '', combo: null, dept: ROLE_TO_DEPT[currentUser?.role] || '' }]);
   const removeExtItem = (i) => setExtItems(p => p.filter((_, j) => j !== i));
   const updateExtItem = (i, k, v) => setExtItems(p => p.map((it, j) => j === i ? { ...it, [k]: v } : it));
 
@@ -634,10 +635,19 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
               const ctrl = { height:H, borderRadius:'8px', boxSizing:'border-box', outline:'none', flexShrink:0 };
               return (
                 <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)', display:'flex', flexDirection:'column', gap:'5px' }}>
-                  {/* Hàng 1: [NCC] [SL] [Ngày] [FREE] [combo#] */}
+                  {/* Hàng 1: [Bộ phận] [NCC datalist] [SL] [Ngày] [FREE] [combo#] */}
                   <div style={{ display:'flex', gap:'5px', alignItems:'center' }}>
+                    <select value={it.dept || ''} onChange={e => updateExtItem(idx, 'dept', e.target.value)}
+                      style={{ width:'88px', flexShrink:0, height:H, padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.3)', background:'#16162a', color: it.dept ? '#a78bfa' : '#7878a0', fontSize:'0.74rem', cursor:'pointer', boxSizing:'border-box' }}>
+                      <option value="">— Bộ phận —</option>
+                      {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
                     <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
-                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px' }} />
+                      list={`ncc-dl-${idx}`}
+                      style={{ ...inputStyle, flex:1, fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
+                    <datalist id={`ncc-dl-${idx}`}>
+                      {(it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
+                    </datalist>
                     <input type="number" min="1" placeholder="SL" value={it.quantity}
                       onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
                       style={{ ...ctrl, width:'52px', padding:'0', textAlign:'center', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800 }} />
