@@ -514,7 +514,7 @@ export default function ExportForm() {
                 const isExpanded = expandedRows.has(idx);
 
                 const H = '36px';
-                const W = '46px';
+                const W = '56px';
                 return (
                   <div key={idx} style={{
                     backgroundColor:'#080e1c',
@@ -935,7 +935,7 @@ export default function ExportForm() {
                         value={row.quantity ?? 1}
                         onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: e.target.value } : r))}
                         onBlur={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, quantity: Math.max(1, parseInt(e.target.value) || 1) } : r))}
-                        style={{ flexShrink:0, width:'46px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
+                        style={{ flexShrink:0, width:'56px', height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.35)', borderRadius:'8px', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
                       />
                       <div style={{ flexShrink:0, width:'56px', height:'36px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1px', background:'rgba(251,191,36,0.1)', border:'1px solid rgba(251,191,36,0.45)', borderRadius:'8px', overflow:'hidden' }}>
                         <input type="number" min="1"
@@ -947,7 +947,7 @@ export default function ExportForm() {
                         <span style={{ fontSize:'0.84rem', color:'rgba(251,191,36,0.7)', lineHeight:1 }}>day</span>
                       </div>
                       <button type="button" onClick={() => setExtItems(prev => prev.filter((_, j) => j !== i))}
-                        style={{ flexShrink:0, width:'46px', height:'36px', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', color:'rgba(248,113,113,0.7)', cursor:'pointer', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        style={{ flexShrink:0, width:'56px', height:'36px', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'8px', color:'rgba(248,113,113,0.7)', cursor:'pointer', fontSize:'0.92rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
                         ✕
                       </button>
                     </div>
@@ -961,17 +961,17 @@ export default function ExportForm() {
                       />
                       <button type="button"
                         onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, _open: !r._open } : r))}
-                        style={{ flexShrink:0, width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', border: row._open ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)', background: row._open ? 'rgba(201,168,76,0.18)' : 'transparent', color: row._open ? '#e8c97a' : '#4a4a6a', fontSize:'0.85rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        style={{ flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer', border: row._open ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)', background: row._open ? 'rgba(201,168,76,0.18)' : 'transparent', color: row._open ? '#e8c97a' : '#4a4a6a', fontSize:'0.85rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
                         ✏️
                       </button>
                       <button type="button"
                         onClick={() => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: r.combo === null ? '' : null } : r))}
-                        style={{ flexShrink:0, width:'46px', height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: row.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: row.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: row.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
+                        style={{ flexShrink:0, width:'56px', height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center', border: row.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)', color: row.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)', background: row.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent' }}>FREE</button>
                       {row.combo !== null && (
                         <input type="number" min="1" placeholder="—"
                           value={row.combo}
                           onChange={e => setExtItems(prev => prev.map((r, j) => j === i ? { ...r, combo: e.target.value } : r))}
-                          style={{ flexShrink:0, width:'46px', height:'36px', padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
+                          style={{ flexShrink:0, width:'56px', height:'36px', padding:'0 4px', textAlign:'center', boxSizing:'border-box', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.5)', borderRadius:'8px', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none' }}
                         />
                       )}
                     </div>
