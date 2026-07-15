@@ -623,25 +623,58 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
           />
         </div>
 
-        {/* NCC section — đặt trên để luôn thấy */}
-        <div style={{ padding:'10px 12px', borderRadius:'10px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: extItems.length ? '8px' : 0 }}>
-            <p style={{ fontSize: '0.82rem', fontWeight: 700, color: '#60a5fa', margin: 0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
-            <button onClick={addExtItem} style={{ fontSize: '0.84rem', padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}>+ Thêm</button>
+        {/* NCC section */}
+        <div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, color:'#60a5fa', margin:0 }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
+            <button onClick={addExtItem} style={{ fontSize:'0.82rem', padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(96,165,250,0.4)', background:'rgba(96,165,250,0.12)', color:'#60a5fa', cursor:'pointer' }}>+ Thêm</button>
           </div>
-          {extItems.map((it, idx) => (
-            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '5px', marginBottom: '5px', padding: '8px', borderRadius: '8px', background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.15)' }}>
-              <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
-              <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
-              <button onClick={() => removeExtItem(idx)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', cursor: 'pointer' }}>✕</button>
-              <input placeholder="Ghi chú" value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)} style={{ ...inputStyle, fontSize: '0.84rem' }} />
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <input type="number" min="1" placeholder="SL" value={it.quantity} onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)} style={{ ...inputStyle, width: '60px', fontSize: '0.84rem' }} />
-                <input placeholder="ĐV" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)} style={{ ...inputStyle, width: '60px', fontSize: '0.84rem' }} />
-                <input type="number" min="0" placeholder="Ngày" value={it.rental_days} onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)} style={{ ...inputStyle, width: '65px', fontSize: '0.84rem' }} />
-              </div>
-            </div>
-          ))}
+          <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+            {extItems.map((it, idx) => {
+              const extNoteOpen = !!expandedNotes[`ext-${idx}`];
+              return (
+                <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.15)' }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:'8px' }}>
+                    {/* Trái: NCC + tên */}
+                    <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:'5px' }}>
+                      <input placeholder="Nhà cung cấp" value={it.supplier} onChange={e => updateExtItem(idx, 'supplier', e.target.value)}
+                        style={{ ...inputStyle, fontSize:'0.84rem' }} />
+                      <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
+                        style={{ ...inputStyle, fontSize:'0.84rem' }} />
+                    </div>
+                    {/* Phải: [SL][X] / [✏️][Ngày] */}
+                    <div style={{ display:'grid', gridTemplateColumns:'52px 42px', gap:'5px', flexShrink:0 }}>
+                      <input type="number" min="1" placeholder="SL" value={it.quantity}
+                        onChange={e => updateExtItem(idx, 'quantity', parseInt(e.target.value) || 1)}
+                        style={{ height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
+                      />
+                      <button onClick={() => removeExtItem(idx)}
+                        style={{ height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [`ext-${idx}`]: !p[`ext-${idx}`] }))}
+                        style={{ height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                          border: extNoteOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: extNoteOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                          color: extNoteOpen ? '#e8c97a' : '#4a4a6a',
+                        }}>✏️</button>
+                      <input type="number" min="0" placeholder="Ngày" value={it.rental_days}
+                        onChange={e => updateExtItem(idx, 'rental_days', parseInt(e.target.value) || 0)}
+                        style={{ height:'36px', padding:'0 4px', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(96,165,250,0.3)', background:'rgba(96,165,250,0.06)', color:'#60a5fa', fontSize:'0.92rem', fontWeight:700, outline:'none' }}
+                      />
+                    </div>
+                  </div>
+                  {/* Expand: ghi chú + ĐVT */}
+                  {extNoteOpen && (
+                    <div style={{ marginTop:'8px', borderTop:'1px solid rgba(96,165,250,0.12)', paddingTop:'8px', display:'flex', gap:'6px' }}>
+                      <input placeholder="Ghi chú..." value={it.notes} onChange={e => updateExtItem(idx, 'notes', e.target.value)}
+                        autoFocus style={{ flex:1, padding:'6px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.25)', background:'rgba(255,255,255,0.05)', color:'#e0e0ee', fontSize:'0.84rem', boxSizing:'border-box' }} />
+                      <input placeholder="ĐVT" value={it.unit} onChange={e => updateExtItem(idx, 'unit', e.target.value)}
+                        style={{ width:'70px', flexShrink:0, padding:'6px 8px', borderRadius:'7px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#e0e0ee', fontSize:'0.84rem', boxSizing:'border-box' }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Thiết bị kho — row-based như ExportForm */}
