@@ -525,12 +525,10 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const [khoItems, setKhoItems]   = useState([]);
   const [extItems, setExtItems]   = useState([]);
   const [reason, setReason]       = useState('');
-  const [search, setSearch]       = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
   const [expandedNotes, setExpandedNotes] = useState({});
   const mounted = useRef(true);
-  const searchWrapRef = useRef(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -550,6 +548,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
         quantity: it.quantity,
         notes: it.notes || '',
         combo: it.combo || null,
+        _search: '',
       })));
       setExtItems((txData.external_items || []).map(it => ({
         supplier: it.supplier || '',
@@ -566,24 +565,18 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const ROLE_CAT2 = { TECHNICAL: ['TECH'], ATAS: ['LED','MATRIX','LIGHT','AUDIO'], STAGE: ['STAGE'], CSVC: ['CSVC'] };
   const allowedCats2 = ROLE_CAT2[currentUser?.role] || null;
 
-  const filteredEq = search.length >= 1
-    ? equipment.filter(eq =>
-        (!allowedCats2 || allowedCats2.includes(eq.category_code)) &&
-        (eq.name.toLowerCase().includes(search.toLowerCase()) || eq.code.toLowerCase().includes(search.toLowerCase()))
-      ).slice(0, 8)
-    : [];
-
-  const addEquipment = (eq) => {
-    if (khoItems.some(i => i.equipment_id === eq.id)) return;
-    setKhoItems(prev => [...prev, { equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, quantity: 1, notes: '', combo: null }]);
-    setSearch('');
+  const addNewRow      = () => setKhoItems(prev => [...prev, { equipment_id: null, eq_name: '', eq_code: '', unit: '', quantity: 1, notes: '', combo: null, _search: '' }]);
+  const selectEq       = (idx, eq) => {
+    if (khoItems.some((it, i) => i !== idx && it.equipment_id === eq.id)) return;
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, equipment_id: eq.id, eq_name: eq.name, eq_code: eq.code, unit: eq.unit, _search: '' } : it));
   };
-  const removeItem   = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
-  const updateQty    = (idx, qty, clamp = false) =>
+  const updateRowSearch = (idx, val) => setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, _search: val } : it));
+  const removeItem      = (idx) => setKhoItems(prev => prev.filter((_, i) => i !== idx));
+  const updateQty       = (idx, qty, clamp = false) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, quantity: clamp ? Math.max(1, parseInt(qty) || 1) : qty } : it));
-  const updateNotes  = (idx, val) =>
+  const updateNotes     = (idx, val) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, notes: val } : it));
-  const updateCombo  = (idx, val) =>
+  const updateCombo     = (idx, val) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val || null } : it));
 
   const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '' }]);
@@ -651,119 +644,107 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
           ))}
         </div>
 
-        {/* Tìm thiết bị */}
+        {/* Thiết bị kho — row-based như ExportForm */}
         <div>
-          <p style={{ fontSize:'0.82rem', color:'#7878a0', marginBottom:'6px', fontWeight:600 }}>Thêm thiết bị kho</p>
-          <div ref={searchWrapRef} style={{ position:'relative' }}>
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Tìm tên hoặc mã thiết bị..." style={inputStyle} />
-            {filteredEq.length > 0 && (() => {
-              const rect = searchWrapRef.current?.getBoundingClientRect();
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
+            <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, margin:0 }}>Thêm thiết bị kho ({khoItems.filter(i => i.equipment_id).length})</p>
+            <button type="button" onClick={addNewRow}
+              style={{ fontSize:'0.82rem', padding:'3px 10px', borderRadius:'6px', border:`1px solid ${GOLD}40`, background:`${GOLD}12`, color:GOLD, cursor:'pointer' }}>+ Thêm</button>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+            {khoItems.map((it, idx) => {
+              const eq = equipment.find(e => e.id === it.equipment_id);
+              const notesOpen = !!expandedNotes[idx];
+              const isNew = !it.equipment_id;
+              const rowFiltered = isNew && (it._search || '').length >= 1
+                ? equipment.filter(e =>
+                    (!allowedCats2 || allowedCats2.includes(e.category_code)) &&
+                    !khoItems.some((ki, ki_i) => ki_i !== idx && ki.equipment_id === e.id) &&
+                    (e.name.toLowerCase().includes(it._search.toLowerCase()) || e.code.toLowerCase().includes(it._search.toLowerCase()))
+                  ).slice(0, 8)
+                : [];
               return (
-                <div style={{
-                  position:'fixed',
-                  top: rect ? rect.bottom + 3 : 0,
-                  left: rect ? rect.left : 0,
-                  width: rect ? rect.width : '100%',
-                  zIndex: 9999,
-                  borderRadius:'8px', border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e',
-                  maxHeight:'176px', overflowY:'auto', boxShadow:'0 8px 24px rgba(0,0,0,0.5)',
-                }}>
-                  {filteredEq.map(eq => {
-                    const inList = khoItems.some(i => i.equipment_id === eq.id);
-                    return (
-                      <button key={eq.id} onClick={() => !inList && addEquipment(eq)} disabled={inList}
-                        style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor: inList ? 'default' : 'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center', opacity: inList ? 0.5 : 1 }}
-                        onMouseEnter={e => { if (!inList) e.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}>
-                        <div style={{ minWidth:0, flex:1 }}>
-                          <div>
-                            <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                            <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{eq.code}</span>
-                          </div>
-                          {eq.category_name && (
-                            <div style={{ fontSize:'0.82rem', color:'#a0a0c0', marginTop:'1px' }}>
-                              {eq.category_icon} {eq.category_name}
+                <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:'8px' }}>
+                    {/* Trái: search input hoặc tên thiết bị */}
+                    <div style={{ flex:1, minWidth:0, position:'relative' }}>
+                      {isNew ? (
+                        <>
+                          <input type="text" autoFocus value={it._search || ''}
+                            onChange={e => updateRowSearch(idx, e.target.value)}
+                            placeholder="Tìm tên hoặc mã thiết bị..."
+                            style={{ ...inputStyle, fontSize:'0.84rem' }} />
+                          {rowFiltered.length > 0 && (
+                            <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:999, borderRadius:'8px', border:'1px solid rgba(201,168,76,0.25)', background:'#1a1a2e', maxHeight:'176px', overflowY:'auto', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', marginTop:'3px' }}>
+                              {rowFiltered.map(e => (
+                                <button key={e.id} type="button" onClick={() => selectEq(idx, e)}
+                                  style={{ width:'100%', padding:'8px 12px', textAlign:'left', background:'transparent', border:'none', cursor:'pointer', borderBottom:'1px solid rgba(255,255,255,0.04)', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                                  onMouseEnter={ev => { ev.currentTarget.style.background='rgba(201,168,76,0.1)'; }}
+                                  onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; }}>
+                                  <div style={{ minWidth:0, flex:1 }}>
+                                    <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{e.name}</span>
+                                    <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{e.code}</span>
+                                  </div>
+                                  <span style={{ fontSize:'0.82rem', whiteSpace:'nowrap', marginLeft:'8px', color: e.qty_available > 0 ? '#4ade80' : '#f87171' }}>
+                                    {e.qty_available} {e.unit}
+                                  </span>
+                                </button>
+                              ))}
                             </div>
                           )}
-                        </div>
-                        <span style={{ fontSize:'0.84rem', whiteSpace:'nowrap', marginLeft:'8px', color: inList ? '#7878a0' : eq.qty_available > 0 ? '#4ade80' : '#f87171' }}>
-                          {inList ? '✓ Đã có' : `${eq.qty_available} ${eq.unit}`}
-                        </span>
-                      </button>
-                    );
-                  })}
+                        </>
+                      ) : (
+                        <>
+                          <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
+                          <p style={{ fontSize:'0.78rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                        </>
+                      )}
+                    </div>
+                    {/* Phải: grid [Qty][X] / [✏️][THUÊ] + FREE */}
+                    <div style={{ display:'grid', gridTemplateColumns:'52px 42px', gap:'5px', flexShrink:0 }}>
+                      <input type="number" min="1" value={it.quantity}
+                        onChange={e => updateQty(idx, e.target.value)}
+                        onBlur={e => updateQty(idx, e.target.value, true)}
+                        style={{ height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
+                      />
+                      <button type="button" onClick={() => removeItem(idx)}
+                        style={{ height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                      <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
+                        style={{ height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
+                          border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
+                          background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
+                          color: notesOpen ? '#e8c97a' : '#4a4a6a',
+                        }}>✏️</button>
+                      <button type="button" onClick={addExtItem}
+                        style={{ height:'36px', borderRadius:'8px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, letterSpacing:'0.02em', display:'flex', alignItems:'center', justifyContent:'center' }}>THUÊ</button>
+                      <button type="button" onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
+                        style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center',
+                          border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
+                          color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
+                          background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
+                        }}>FREE</button>
+                      {it.combo !== null && (
+                        <input type="number" min="1" placeholder="—" value={it.combo}
+                          onChange={e => updateCombo(idx, e.target.value)}
+                          style={{ height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  {notesOpen && (
+                    <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px' }}>
+                      <input type="text" placeholder="Ghi chú..." value={it.notes || ''}
+                        onChange={e => updateNotes(idx, e.target.value)}
+                        autoFocus
+                        style={{ width:'100%', padding:'6px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.25)', background:'rgba(255,255,255,0.05)', color:'#e0e0ee', fontSize:'0.84rem', boxSizing:'border-box' }}
+                      />
+                    </div>
+                  )}
                 </div>
               );
-            })()}
+            })}
           </div>
         </div>
-
-        {/* Danh sách thiết bị */}
-        {khoItems.length > 0 && (
-          <div>
-            <p style={{ fontSize:'0.82rem', fontWeight:700, color:GOLD, marginBottom:'6px' }}>Thiết bị ({khoItems.length})</p>
-            <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              {khoItems.map((it, idx) => {
-                const eq = equipment.find(e => e.id === it.equipment_id);
-                const notesOpen = !!expandedNotes[idx];
-                return (
-                  <div key={idx} style={{ padding:'8px 10px', borderRadius:'8px', background:'rgba(201,168,76,0.05)', border:'1px solid rgba(201,168,76,0.15)' }}>
-                    {/* Row chính: tên bên trái, grid controls bên phải */}
-                    <div style={{ display:'flex', alignItems:'flex-start', gap:'10px' }}>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
-                        <p style={{ fontSize:'0.78rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
-                      </div>
-                      {/* Grid 2×2: [Qty][X] / [✏️][THUÊ] + FREE */}
-                      <div style={{ display:'grid', gridTemplateColumns:'52px 42px', gap:'5px', flexShrink:0 }}>
-                        <input type="number" min="1" value={it.quantity}
-                          onChange={e => updateQty(idx, e.target.value)}
-                          onBlur={e => updateQty(idx, e.target.value, true)}
-                          style={{ height:'36px', padding:'0', textAlign:'center', boxSizing:'border-box', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)', background:'rgba(74,222,128,0.08)', color:'#4ade80', fontSize:'1.05rem', fontWeight:800, outline:'none' }}
-                        />
-                        <button onClick={() => removeItem(idx)}
-                          style={{ height:'36px', borderRadius:'8px', border:'1px solid rgba(248,113,113,0.3)', background:'transparent', color:'rgba(248,113,113,0.65)', fontSize:'1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
-                        <button type="button" onClick={() => setExpandedNotes(p => ({ ...p, [idx]: !p[idx] }))}
-                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.95rem',
-                            border: notesOpen ? '1px solid #c9a84c' : '1px solid rgba(201,168,76,0.2)',
-                            background: notesOpen ? 'rgba(201,168,76,0.18)' : 'transparent',
-                            color: notesOpen ? '#e8c97a' : '#4a4a6a',
-                          }}>✏️</button>
-                        <button type="button" onClick={addExtItem}
-                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.74rem', fontWeight:800, letterSpacing:'0.02em', display:'flex', alignItems:'center', justifyContent:'center' }}>THUÊ</button>
-                        <button type="button"
-                          onClick={() => updateCombo(idx, it.combo === null ? '' : null)}
-                          style={{ height:'36px', borderRadius:'8px', cursor:'pointer', fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em', display:'flex', alignItems:'center', justifyContent:'center',
-                            border: it.combo !== null ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(167,139,250,0.3)',
-                            color: it.combo !== null ? '#a78bfa' : 'rgba(167,139,250,0.45)',
-                            background: it.combo !== null ? 'rgba(167,139,250,0.12)' : 'transparent',
-                          }}>FREE</button>
-                        {it.combo !== null && (
-                          <input type="number" min="1" placeholder="—"
-                            value={it.combo}
-                            onChange={e => updateCombo(idx, e.target.value)}
-                            style={{ height:'36px', padding:'0 4px', borderRadius:'8px', border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.06)', color:'#a78bfa', fontSize:'1rem', fontWeight:800, outline:'none', textAlign:'center', boxSizing:'border-box' }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    {/* Ghi chú expand */}
-                    {notesOpen && (
-                      <div style={{ marginTop:'8px', borderTop:'1px solid rgba(201,168,76,0.12)', paddingTop:'8px' }}>
-                        <input type="text" placeholder="Ghi chú..." value={it.notes || ''}
-                          onChange={e => updateNotes(idx, e.target.value)}
-                          autoFocus
-                          style={{ width:'100%', padding:'6px 10px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.25)', background:'rgba(255,255,255,0.05)', color:'#e0e0ee', fontSize:'0.84rem', boxSizing:'border-box' }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
 
