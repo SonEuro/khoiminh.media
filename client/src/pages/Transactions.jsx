@@ -621,18 +621,6 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
     <Modal title={`Chỉnh sửa: ${tx.code}`} onClose={onClose} size="lg">
       <div className="space-y-4">
 
-        {/* Lý do — bắt buộc */}
-        <div style={{ padding:'12px 14px', borderRadius:'10px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.3)' }}>
-          <p style={{ fontSize:'0.82rem', color:'#fbbf24', fontWeight:700, margin:'0 0 6px' }}>⚠ Lý do chỉnh sửa *</p>
-          <textarea
-            value={reason}
-            onChange={e => setReason(e.target.value)}
-            placeholder="Nhập lý do (bắt buộc)..."
-            rows={2}
-            style={{ ...inputStyle, borderColor:'rgba(251,191,36,0.4)', resize:'none' }}
-          />
-        </div>
-
         {/* NCC section */}
         <div>
           <p style={{ fontSize:'0.82rem', fontWeight:700, color:'#60a5fa', margin:'0 0 6px' }}>🏪 Nhà cung cấp / NCC ({extItems.length})</p>
@@ -810,6 +798,18 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
               + Thêm thiết bị kho
             </button>
           </div>
+        </div>
+
+        {/* Lý do — bắt buộc */}
+        <div style={{ padding:'12px 14px', borderRadius:'10px', background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.3)' }}>
+          <p style={{ fontSize:'0.82rem', color:'#fbbf24', fontWeight:700, margin:'0 0 6px' }}>⚠ Lý do chỉnh sửa *</p>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Nhập lý do (bắt buộc)..."
+            rows={2}
+            style={{ ...inputStyle, borderColor:'rgba(251,191,36,0.4)', resize:'none' }}
+          />
         </div>
 
         {error && <p style={{ color:'#f87171', fontSize:'0.82rem', textAlign:'center', margin:0 }}>{error}</p>}
