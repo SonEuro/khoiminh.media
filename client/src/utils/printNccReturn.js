@@ -9,7 +9,7 @@ export function printNccReturn(items, info = {}) {
   const itemRows = items.map((item, i) => `
     <tr>
       <td style="text-align:center">${i + 1}</td>
-      <td style="text-align:center;padding:2px 4px">${item.name || ''}</td>
+      <td style="text-align:left;padding-left:6px">${item.name || ''}</td>
       <td style="text-align:center;font-weight:700">${item.supplier || ''}</td>
       <td style="text-align:center">
         <div style="display:inline-flex;align-items:baseline;justify-content:center;gap:3px">
