@@ -578,7 +578,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const updateNotes     = (idx, val) =>
     setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, notes: val } : it));
   const updateCombo     = (idx, val) =>
-    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val || null } : it));
+    setKhoItems(prev => prev.map((it, i) => i === idx ? { ...it, combo: val } : it));
 
   const addExtItem    = () => setExtItems(p => [...p, { supplier: '', name: '', quantity: 1, unit: 'Cái', rental_days: 1, notes: '', combo: null }]);
   const removeExtItem = (i) => setExtItems(p => p.filter((_, j) => j !== i));
