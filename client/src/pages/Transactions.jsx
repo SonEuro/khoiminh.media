@@ -692,7 +692,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
               );
             })}
             <button onClick={addExtItem}
-              style={{ width:'100%', padding:'8px', borderRadius:'8px', border:'1px dashed rgba(96,165,250,0.3)', background:'transparent', color:'rgba(96,165,250,0.6)', fontSize:'0.84rem', fontWeight:600, cursor:'pointer' }}>
+              style={{ width:'100%', padding:'9px', borderRadius:'8px', border:'1px solid rgba(96,165,250,0.5)', background:'rgba(96,165,250,0.08)', color:'#60a5fa', fontSize:'0.84rem', fontWeight:700, cursor:'pointer' }}>
               + Thêm nhà cung cấp
             </button>
           </div>
@@ -796,7 +796,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
               );
             })}
             <button type="button" onClick={addNewRow}
-              style={{ width:'100%', padding:'8px', borderRadius:'8px', border:`1px dashed ${GOLD}50`, background:'transparent', color:`${GOLD}99`, fontSize:'0.84rem', fontWeight:600, cursor:'pointer' }}>
+              style={{ width:'100%', padding:'9px', borderRadius:'8px', border:`1px solid ${GOLD}80`, background:`${GOLD}12`, color:GOLD, fontSize:'0.84rem', fontWeight:700, cursor:'pointer' }}>
               + Thêm thiết bị kho
             </button>
           </div>
