@@ -282,6 +282,7 @@ export default function ExportForm() {
                   setExtItems(s.extItems);
                 }
                 reloadEquipment();
+                api.getEquipmentReservedEvents().then(setReservedMap).catch(() => {});
                 setDoneSlip(null);
               }}
               style={{
@@ -306,6 +307,7 @@ export default function ExportForm() {
               setItems(emptyRows(5));
               setSearchTerms(Array(5).fill(''));
               reloadEquipment();
+              api.getEquipmentReservedEvents().then(setReservedMap).catch(() => {});
             }}
             style={{ color:'var(--text-muted)', fontSize:'0.84rem', background:'none', border:'none', cursor:'pointer' }}>
             + Tạo phiếu mới

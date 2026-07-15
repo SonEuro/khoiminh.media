@@ -17,7 +17,13 @@ function parseDatesField(ev, multiKey, singleKey) {
 export default function EventDetailModal({ eventId, onClose }) {
   const [ev, setEv]   = useState(null);
   const [err, setErr] = useState(false);
-  useEffect(() => { api.getEventById(eventId).then(setEv).catch(() => setErr(true)); }, [eventId]);
+  useEffect(() => {
+    const fetch = () => api.getEventById(eventId).then(setEv).catch(() => setErr(true));
+    fetch();
+    const onVisible = () => { if (!document.hidden) fetch(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [eventId]);
 
   if (err) return (
     <Modal title="Sự kiện" onClose={onClose}>
