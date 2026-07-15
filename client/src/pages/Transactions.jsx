@@ -927,31 +927,21 @@ function TraNccModal({ txId, onClose }) {
             )}
             {sorted.map((row, i) => {
               const realIdx = items.indexOf(row);
-              const dKey = DEPT_KEY[row.dept];
-              const rowNccs = dKey ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(dKey)) : row.dept ? [] : NCC_LIST;
               const dlId = `ncc-tx-${realIdx}`;
               const ipt = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:'0.85rem', padding:'4px 0' };
               const sep = { borderBottom:'1px solid rgba(255,255,255,0.07)', paddingBottom:'6px', marginBottom:'6px' };
               return (
                 <div key={i} style={{ background:'rgba(255,255,255,0.04)', borderRadius:'8px', padding:'10px 12px', marginBottom:'8px', border:'1px solid rgba(255,255,255,0.08)' }}>
-                  {/* Dòng 1: index + bộ phận + xóa */}
+                  {/* Dòng 1: index + NCC + xóa */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
                     <span style={{ color:'#5a5a80', fontSize:'0.84rem', minWidth:'18px' }}>{i + 1}</span>
-                    <select value={row.dept || ''} onChange={e => updateRow(realIdx, 'dept', e.target.value)}
-                      style={{ flex:1, background:'#16162a', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'6px', color:'#a78bfa', fontSize:'0.82rem', height:'32px', padding:'0 6px', cursor:'pointer' }}>
-                      <option value="">— Bộ phận —</option>
-                      {NCC_DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                    <button onClick={() => removeRow(realIdx)}
-                      style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1.1rem', lineHeight:1, padding:'0 2px' }}>×</button>
-                  </div>
-                  {/* Dòng 2: NCC */}
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
                     <span style={{ color:'#5a5a80', fontSize:'0.78rem', width:'30px', flexShrink:0 }}>NCC</span>
                     <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
                       list={dlId} placeholder="Chọn hoặc nhập NCC..."
                       style={{ ...ipt, color:'#60a5fa' }} />
-                    <datalist id={dlId}>{row.supplier.length > 0 && rowNccs.map(n => <option key={n} value={n} />)}</datalist>
+                    <datalist id={dlId}>{row.supplier.length > 0 && NCC_LIST.map(n => <option key={n} value={n} />)}</datalist>
+                    <button onClick={() => removeRow(realIdx)}
+                      style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1.1rem', lineHeight:1, padding:'0 2px' }}>×</button>
                   </div>
                   {/* Dòng 3: Tên thiết bị */}
                   <div style={{ display:'flex', alignItems:'center', gap:'8px', ...sep }}>
