@@ -25,6 +25,7 @@
     background-color: var(--bg-main);
     color: var(--text-primary);
     font-family: ui-sans-serif, system-ui, sans-serif;
+    overscroll-behavior: none;
   }
 
   h1, h2, h3 { color: var(--text-primary); }
