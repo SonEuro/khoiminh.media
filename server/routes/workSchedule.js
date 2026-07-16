@@ -125,18 +125,30 @@ function parseRow(row) {
   return out;
 }
 
+router.get('/trash', (req, res) => {
+  const { role } = req.user;
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
+    return res.status(403).json({ error: 'Không có quyền' });
+  const rows = db.prepare(`
+    SELECT *,
+      CAST((julianday(datetime(deleted_at, '+30 days')) - julianday('now','localtime')) AS INTEGER) + 1 AS days_left
+    FROM work_schedules WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC
+  `).all();
+  res.json(rows.map(parseRow));
+});
+
 router.get('/', (req, res) => {
   const { event_id } = req.query;
-  let sql = 'SELECT * FROM work_schedules';
   const params = [];
-  if (event_id) { sql += ' WHERE event_id = ?'; params.push(event_id); }
+  let sql = 'SELECT * FROM work_schedules WHERE deleted_at IS NULL';
+  if (event_id) { sql += ' AND event_id = ?'; params.push(event_id); }
   sql += ' ORDER BY created_at DESC';
   const rows = db.prepare(sql).all(...params);
   res.json(rows.map(parseRow));
 });
 
 router.get('/:id', (req, res) => {
-  const row = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
+  const row = db.prepare('SELECT * FROM work_schedules WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!row) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
   res.json(parseRow(row));
 });
@@ -208,9 +220,30 @@ router.get('/:id/history', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
+  const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
   if (!canDeleteSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch đã xác nhận' });
+  db.prepare("UPDATE work_schedules SET deleted_at = datetime('now','localtime') WHERE id = ?").run(req.params.id);
+  res.json({ ok: true });
+});
+
+router.post('/:id/restore', (req, res) => {
+  const { role } = req.user;
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
+    return res.status(403).json({ error: 'Không có quyền' });
+  const sched = db.prepare('SELECT id FROM work_schedules WHERE id = ? AND deleted_at IS NOT NULL').get(req.params.id);
+  if (!sched) return res.status(404).json({ error: 'Không tìm thấy trong thùng rác' });
+  db.prepare('UPDATE work_schedules SET deleted_at = NULL WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+router.delete('/:id/permanent', (req, res) => {
+  const { role } = req.user;
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
+    return res.status(403).json({ error: 'Không có quyền' });
+  const sched = db.prepare('SELECT id FROM work_schedules WHERE id = ? AND deleted_at IS NOT NULL').get(req.params.id);
+  if (!sched) return res.status(404).json({ error: 'Không có trong thùng rác' });
+  db.prepare('DELETE FROM work_schedule_edits WHERE schedule_id = ?').run(req.params.id);
   db.prepare('DELETE FROM work_schedules WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

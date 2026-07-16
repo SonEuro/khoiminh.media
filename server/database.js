@@ -245,6 +245,12 @@ if (!eventCols.includes('end_dates')) {
   console.log('[DB] Migration: thêm cột end_dates vào events');
 }
 
+// Migration: soft delete cho work_schedules
+{
+  const cols = db.pragma('table_info(work_schedules)').map(c => c.name);
+  if (!cols.includes('deleted_at')) db.exec("ALTER TABLE work_schedules ADD COLUMN deleted_at TEXT DEFAULT NULL");
+}
+
 // Migration: thêm cột notes + start_times + km_support cho từng phase trong work_schedules
 const wsCols = db.pragma('table_info(work_schedules)').map(c => c.name);
 for (const p of ['setup', 'teardown', 'rehearsal', 'filming']) {

@@ -150,6 +150,9 @@ export const api = {
   confirmWorkSchedule: (id) => request(`/work-schedules/${id}/confirm`, { method: 'POST' }),
   deleteWorkSchedule: (id) => request(`/work-schedules/${id}`, { method: 'DELETE' }),
   getWorkScheduleHistory: (id) => request(`/work-schedules/${id}/history`),
+  getTrashWorkSchedules: () => request('/work-schedules/trash'),
+  restoreWorkSchedule: (id) => request(`/work-schedules/${id}/restore`, { method: 'POST' }),
+  permanentDeleteWorkSchedule: (id) => request(`/work-schedules/${id}/permanent`, { method: 'DELETE' }),
 
   // Lead obligations (nghĩa vụ báo cáo của nhóm trưởng)
   getLeadObligations: () => request('/lead-obligations'),

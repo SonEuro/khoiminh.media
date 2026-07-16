@@ -1134,6 +1134,7 @@ export default function WorkSchedule() {
   const location = useLocation();
   const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
 
+  const isSADir = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const [schedules, setSchedules] = useState([]);
   const [events, setEvents] = useState([]);
   const [modal, setModal] = useState(null);
@@ -1141,6 +1142,13 @@ export default function WorkSchedule() {
   const [selected, setSelected] = useState(null);
   const [scheduleHistory, setScheduleHistory] = useState([]);
   const [obligations, setObligations] = useState([]);
+  const [trash, setTrash] = useState([]);
+  const [showTrash, setShowTrash] = useState(false);
+
+  const loadTrash = useCallback(() => {
+    if (isSADir) api.getTrashWorkSchedules().then(setTrash).catch(() => {});
+  }, [isSADir]);
+
   const load = useCallback(() => {
     api.getWorkSchedules().then(setSchedules).catch(() => {});
     api.getLeadObligations().then(setObligations).catch(() => {});
@@ -1164,6 +1172,8 @@ export default function WorkSchedule() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  useEffect(() => { if (isSADir && showTrash) loadTrash(); }, [isSADir, showTrash, loadTrash]);
 
   // Tự mở modal chi tiết khi navigate từ Dashboard
   useEffect(() => {
@@ -1549,6 +1559,52 @@ export default function WorkSchedule() {
           </div>
         );
       })()}
+
+      {/* ── Thùng rác (SUPER_ADMIN / DIRECTOR) ── */}
+      {isSADir && (
+        <div style={{ marginTop: '32px', padding: '20px', borderRadius: '12px', border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.04)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showTrash ? '16px' : 0 }}>
+            <p style={{ color: '#f87171', fontWeight: 700, fontSize: '0.84rem', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
+              🗑 Thùng rác {trash.length > 0 && `(${trash.length})`}
+            </p>
+            <button
+              onClick={() => setShowTrash(v => !v)}
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', color: '#f87171', padding: '6px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+            >
+              {showTrash ? 'Ẩn' : 'Xem'}
+            </button>
+          </div>
+          {showTrash && (
+            trash.length === 0
+              ? <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>Thùng rác trống.</p>
+              : <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {trash.map(s => (
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.2)' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.event_name}</p>
+                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                          {s.scheduler_name} · Xóa tự động sau {s.days_left ?? '?'} ngày
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button
+                          onClick={async () => { await api.restoreWorkSchedule(s.id); load(); loadTrash(); }}
+                          style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: 'rgba(74,222,128,0.08)', color: '#4ade80', fontSize: '0.8rem', cursor: 'pointer' }}
+                        >Khôi phục</button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Xóa vĩnh viễn lịch "${s.event_name}"? Không thể hoàn tác.`)) return;
+                            await api.permanentDeleteWorkSchedule(s.id); loadTrash();
+                          }}
+                          style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.4)', background: 'rgba(248,113,113,0.08)', color: '#f87171', fontSize: '0.8rem', cursor: 'pointer' }}
+                        >Xóa vĩnh viễn</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+          )}
+        </div>
+      )}
 
       {modal === 'form' && (
         <ScheduleForm
