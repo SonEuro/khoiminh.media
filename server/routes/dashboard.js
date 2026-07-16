@@ -19,11 +19,30 @@ router.get('/', (req, res) => {
     ORDER BY start_date
   `).all();
 
+  // Build set of event IDs that have any work_schedule phase date on a given date
+  const allWs = db.prepare(`SELECT * FROM work_schedules WHERE event_id IS NOT NULL`).all();
+  const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
+  function wsEventIdsForDate(date) {
+    const ids = new Set();
+    for (const ws of allWs) {
+      for (const p of WS_PHASES) {
+        let dates = [];
+        try { dates = JSON.parse(ws[`${p}_dates`] || '[]'); } catch {}
+        if (ws[`${p}_date`]) dates.push(ws[`${p}_date`]);
+        if (dates.includes(date)) { ids.add(ws.event_id); break; }
+      }
+    }
+    return ids;
+  }
+
+  const wsTodayIds    = wsEventIdsForDate(today);
+
   // 1. Events filming today or spanning today
   const todayEvents = allEvents.filter(ev => {
     const dates = getFilmingDates(ev);
     if (dates.includes(today)) return true;
     if (ev.start_date && ev.start_date <= today && (!ev.end_date || ev.end_date >= today)) return true;
+    if (wsTodayIds.has(ev.id)) return true;
     return false;
   }).map(ev => ({
     id: ev.id, name: ev.name, code: ev.code, status: ev.status,
@@ -164,10 +183,12 @@ router.get('/', (req, res) => {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const tomorrow = db.prepare("SELECT date('now','+1 day','localtime') AS d").get().d;
+  const wsTomorrowIds = wsEventIdsForDate(tomorrow);
   const tomorrowEvents = allEvents.filter(ev => {
     const dates = getFilmingDates(ev);
     if (dates.includes(tomorrow)) return true;
     if (ev.start_date && ev.start_date <= tomorrow && (!ev.end_date || ev.end_date >= tomorrow)) return true;
+    if (wsTomorrowIds.has(ev.id)) return true;
     return false;
   }).map(ev => ({
     id: ev.id, name: ev.name, code: ev.code, status: ev.status,
