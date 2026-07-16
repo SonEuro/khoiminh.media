@@ -732,7 +732,7 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
 }
 
 // ── Form tạo / sửa lịch ─────────────────────────────────────────────────────────
-function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwitchToEdit }) {
+export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose, onSwitchToEdit }) {
   const { user } = useAuth();
   const { kmGroups } = useStaffGroups();
   const isPhanLich = !!user?.is_phan_lich && !user?.is_phan_lich_all && !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);

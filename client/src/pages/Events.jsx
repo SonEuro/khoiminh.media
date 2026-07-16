@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import EventDetailModal from '../components/EventDetailModal';
+import { ScheduleForm } from './WorkSchedule';
 import MultiDatePicker from '../components/MultiDatePicker';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
@@ -723,6 +724,21 @@ function ZoneHeader({ color, bg, border, label, count }) {
   );
 }
 
+function buildWsDateMap(wsList) {
+  const map = {};
+  const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
+  for (const ws of wsList) {
+    if (!ws.event_id) continue;
+    const id = ws.event_id;
+    if (!map[id]) map[id] = [];
+    for (const p of WS_PHASES) {
+      try { for (const d of JSON.parse(ws[`${p}_dates`] || '[]')) { if (d && !map[id].includes(d)) map[id].push(d); } } catch {}
+      if (ws[`${p}_date`] && !map[id].includes(ws[`${p}_date`])) map[id].push(ws[`${p}_date`]);
+    }
+  }
+  return map;
+}
+
 export default function Events() {
   const { user, can } = useAuth();
   const navigate    = useNavigate();
@@ -783,6 +799,8 @@ export default function Events() {
   const [selected, setSelected] = useState(null);
   const [showTrash, setShowTrash] = useState(false);
   const [pendingObs, setPendingObs] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -802,22 +820,14 @@ export default function Events() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
-  useEffect(() => {
+  const loadSchedules = useCallback(() => {
     api.getWorkSchedules().then(wsList => {
-      const map = {};
-      const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
-      for (const ws of wsList) {
-        if (!ws.event_id) continue;
-        const id = ws.event_id;
-        if (!map[id]) map[id] = [];
-        for (const p of WS_PHASES) {
-          try { for (const d of JSON.parse(ws[`${p}_dates`] || '[]')) { if (d && !map[id].includes(d)) map[id].push(d); } } catch {}
-          if (ws[`${p}_date`] && !map[id].includes(ws[`${p}_date`])) map[id].push(ws[`${p}_date`]);
-        }
-      }
-      setWsDateMap(map);
+      setSchedules(wsList);
+      setWsDateMap(buildWsDateMap(wsList));
     }).catch(() => {});
   }, []);
+
+  useEffect(() => { loadSchedules(); }, [loadSchedules]);
 
   useEffect(() => {
     const yesterdayVN = (() => {
@@ -1038,7 +1048,12 @@ export default function Events() {
                       )}
                       {canSuaLich && ev.status !== 'cancelled' && (
                         <button className="ev-action" style={{ color: GOLD, borderColor: 'rgba(201,168,76,0.3)' }}
-                          onClick={() => navigate('/work-schedule', { state: { openFormForEvent: ev.id } })}>
+                          onClick={() => {
+                            const existing = schedules.find(s => s.event_id === ev.id);
+                            setSelected(ev);
+                            setScheduleFormInitial(existing || { event_id: ev.id, event_name: ev.name });
+                            setModal('schedule-form');
+                          }}>
                           <span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span>
                         </button>
                       )}
@@ -1205,6 +1220,18 @@ export default function Events() {
 
       {modal === 'detail' && selected && (
         <EventDetailModal eventId={selected.id} onClose={() => setModal(null)} />
+      )}
+
+      {modal === 'schedule-form' && scheduleFormInitial && (
+        <ScheduleForm
+          key={scheduleFormInitial?.id ?? `new-${selected?.id}`}
+          initial={scheduleFormInitial}
+          events={events.filter(e => e.status !== 'cancelled')}
+          schedules={schedules}
+          onSaved={() => { setModal(null); loadSchedules(); }}
+          onClose={() => setModal(null)}
+          onSwitchToEdit={(existing) => setScheduleFormInitial(existing)}
+        />
       )}
     </div>
   );
