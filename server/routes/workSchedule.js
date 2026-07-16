@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../database');
 const { syncObligations } = require('../services/obligations');
+const { pushAll } = require('../services/pushNotify');
 
 function canPhanLich(req, res, next) {
   const { role, is_phan_lich, is_phan_lich_all } = req.user || {};
@@ -172,6 +173,7 @@ router.post('/', canPhanLich, (req, res) => {
   const placeholders = cols.map(() => '?').join(',');
   const r = db.prepare(`INSERT INTO work_schedules (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
   try { syncObligations(r.lastInsertRowid); } catch (e) { console.error('[obligations] sync error:', e.message); }
+  pushAll(`📅 Lịch làm việc mới`, `${b.event_name.trim()}${b.location ? ' · ' + b.location : ''}`, '/work-schedules').catch(() => {});
   res.json({ id: r.lastInsertRowid });
 });
 

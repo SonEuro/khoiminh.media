@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { pushAll } = require('../services/pushNotify');
 
 function canManage(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
@@ -77,6 +78,7 @@ router.post('/', requireAuth, (req, res) => {
     job_content || '',
     JSON.stringify((timeline || []).filter(t => t.time)),
   );
+  pushAll(`📋 Báo cáo sự kiện mới`, `${event_label || '—'} · ${reporter_name || req.user?.full_name || '—'}`, '/event-reports').catch(() => {});
   res.json({ id: result.lastInsertRowid });
 });
 

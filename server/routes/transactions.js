@@ -473,7 +473,6 @@ router.post('/intake', canIntake, (req, res) => {
     res.json(result);
     logEdit(result.id, req.user, 'Tạo phiếu nhập kho mới');
     notifyAll(`📦 Nhập kho mới: ${result.code}\n👤 ${responsible_person || '—'}\n🔢 ${validItems.length} thiết bị${department ? `\n🏢 ${department}` : ''}`).catch(() => {});
-    pushAll('📦 Nhập kho mới', `${result.code} · ${validItems.length} thiết bị · ${responsible_person || '—'}`, '/transactions').catch(() => {});
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
