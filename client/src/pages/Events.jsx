@@ -709,8 +709,8 @@ function ZoneHeader({ color, bg, border, label, count }) {
 export default function Events() {
   const { user, can } = useAuth();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
-  const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
-  const isFullAdmin = canFullEdit;
+  const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowStr = (() => {
