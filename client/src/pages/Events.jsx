@@ -722,8 +722,6 @@ export default function Events() {
 
   function getAllDates(ev) {
     return [
-      ...parseDatesField(ev, 'start_dates', 'start_date'),
-      ...parseDatesField(ev, 'end_dates', 'end_date'),
       ...parseDatesField(ev, 'filming_dates', 'filming_date'),
       ...parseDatesField(ev, 'show_dates', 'show_date'),
     ].filter(Boolean);
@@ -731,15 +729,23 @@ export default function Events() {
   function isEventOnDate(ev, d) {
     const dates = getAllDates(ev);
     if (dates.includes(d)) return true;
-    const starts = parseDatesField(ev, 'start_dates', 'start_date').sort();
-    const ends   = parseDatesField(ev, 'end_dates', 'end_date').sort();
-    if (starts.length && ends.length && starts[0] <= d && d <= ends[ends.length - 1]) return true;
     if ((wsDateMap[ev.id] || []).includes(d)) return true;
+    // Range check chỉ áp dụng cho event liên tục (đúng 1 start và 1 end date)
+    const starts = parseDatesField(ev, 'start_dates', 'start_date');
+    const ends   = parseDatesField(ev, 'end_dates', 'end_date');
+    if (starts.length === 1 && ends.length === 1 && starts[0] <= d && d <= ends[0]) return true;
     return false;
   }
   function nearestUpcomingEvent(ev) {
     const all = getAllDates(ev).sort();
-    return all.find(d => d >= todayStr) || null;
+    const nextFilm = all.find(d => d >= todayStr);
+    if (nextFilm) return nextFilm;
+    // Fallback cho continuous-range events (1 start, 1 end) đang diễn ra
+    const starts = parseDatesField(ev, 'start_dates', 'start_date');
+    const ends   = parseDatesField(ev, 'end_dates', 'end_date');
+    if (starts.length === 1 && ends.length === 1 && ends[0] >= todayStr)
+      return starts[0] >= todayStr ? starts[0] : todayStr;
+    return null;
   }
 
   // TRUONG_PHONG chỉ hủy/khôi phục sự kiện do người cùng phòng tạo
@@ -994,7 +1000,7 @@ export default function Events() {
 
         const todayZone    = sorted.filter(ev => ev.status !== 'cancelled' && isEventOnDate(ev, todayStr));
         const tomorrowZone = sorted.filter(ev => ev.status !== 'cancelled' && isEventOnDate(ev, tomorrowStr));
-        const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled'; });
+        const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled' && !isEventOnDate(ev, tomorrowStr); });
         const pastZone     = sorted.filter(ev => nearestUpcomingEvent(ev) === null || ev.status === 'cancelled' || ev.status === 'completed');
 
         return (
