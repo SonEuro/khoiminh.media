@@ -163,7 +163,17 @@ router.get('/', (req, res) => {
     .map(c => ({ ...c, effective_available: Math.max(0, c.qty_available - c.held_by_others) }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  res.json({ today, today_events: todayEvents, need_confirm: needConfirm, overdue, conflicts });
+  const tomorrow = db.prepare("SELECT date('now','+1 day','localtime') AS d").get().d;
+  const tomorrowEvents = allEvents.filter(ev => {
+    const dates = getFilmingDates(ev);
+    return dates.includes(tomorrow);
+  }).map(ev => ({
+    id: ev.id, name: ev.name, code: ev.code, status: ev.status,
+    start_date: ev.start_date, end_date: ev.end_date,
+    filming_dates: getFilmingDates(ev), client: ev.client, location: ev.location,
+  }));
+
+  res.json({ today, today_events: todayEvents, tomorrow_events: tomorrowEvents, need_confirm: needConfirm, overdue, conflicts });
 });
 
 module.exports = router;

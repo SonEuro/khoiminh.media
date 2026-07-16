@@ -610,7 +610,8 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
 
   const isAdmin = user && (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role) || !!user.is_truong_phong || !!user.is_phan_lich_all);
 
-  const todayEvs   = dash?.today_events || [];
+  const todayEvs    = dash?.today_events    || [];
+  const tomorrowEvs = dash?.tomorrow_events || [];
   const planned    = events.filter(e => e.status === 'planned');
   const completed  = events.filter(e => e.status === 'completed');
   const topObs     = lockedObs;
@@ -652,6 +653,24 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
           ))
         }
       </AdminSec>
+
+      {/* 1b. Vận hành ngày mai */}
+      {tomorrowEvs.length > 0 && (
+        <AdminSec title="VẬN HÀNH NGÀY MAI" color="#60a5fa" rgb="96,165,250" count={tomorrowEvs.length} linkTo="/events">
+          {tomorrowEvs.map((ev, i) => (
+            <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => openCard(ev)}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0, boxShadow:'0 0 5px rgba(96,165,250,0.8)' }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
+              </div>
+              {ev.filming_dates?.length > 0 && (
+                <span style={{ fontSize:'0.80rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
+              )}
+            </ARow>
+          ))}
+        </AdminSec>
+      )}
 
       {/* 2. Đang lên kế hoạch */}
       <AdminSec title="ĐANG LÊN KẾ HOẠCH" color="#60a5fa" rgb="96,165,250" count={planned.length} linkTo="/events">
