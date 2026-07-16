@@ -45,24 +45,35 @@ router.post('/reset-out-transactions/selective', requireRole('SUPER_ADMIN', 'DIR
 
     const eventPlaceholders = eventIds.map(() => '?').join(',') || 'NULL';
 
-    // Tính net qty cần trả lại kho: OUT - RETURN cho các event liên quan
-    const netItems = db.prepare(`
+    // Net qty của completed OUT - RETURN (tính vào qty_in_use)
+    const netCompleted = db.prepare(`
       SELECT ti.equipment_id,
         SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
         SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END) AS net
       FROM transaction_items ti
       JOIN transactions t ON t.id = ti.transaction_id
-      WHERE t.event_id IN (${eventPlaceholders})
-        AND t.status IN ('pending','completed')
+      WHERE t.event_id IN (${eventPlaceholders}) AND t.status = 'completed'
       GROUP BY ti.equipment_id
       HAVING net > 0
     `).all(...eventIds);
 
-    // Cộng lại qty_available, trừ qty_in_use
-    const updEq = db.prepare(
+    // Qty của pending OUT (tính vào qty_reserved)
+    const netPending = db.prepare(`
+      SELECT ti.equipment_id, SUM(ti.quantity) AS net
+      FROM transaction_items ti
+      JOIN transactions t ON t.id = ti.transaction_id
+      WHERE t.event_id IN (${eventPlaceholders}) AND t.status = 'pending' AND t.type = 'OUT'
+      GROUP BY ti.equipment_id
+    `).all(...eventIds);
+
+    const updCompleted = db.prepare(
       `UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?`
     );
-    for (const item of netItems) updEq.run(item.net, item.net, item.equipment_id);
+    const updPending = db.prepare(
+      `UPDATE equipment SET qty_available = qty_available + ?, qty_reserved = MAX(0, qty_reserved - ?) WHERE id = ?`
+    );
+    for (const item of netCompleted) updCompleted.run(item.net, item.net, item.equipment_id);
+    for (const item of netPending)   updPending.run(item.net, item.net, item.equipment_id);
 
     // Xóa items + transactions (OUT và RETURN của cùng event)
     const allTxIds = db.prepare(

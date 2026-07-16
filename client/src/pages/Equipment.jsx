@@ -87,7 +87,6 @@ function ResetModal({ onDone }) {
     }
   }
 
-  const fmtDate = (s) => s ? s.slice(5, 10).replace('-', '/') : '—';
 
   return (
     <>
@@ -97,6 +96,9 @@ function ResetModal({ onDone }) {
       {open && (
         <Modal title="Chọn phiếu xuất để reset" onClose={() => setOpen(false)} size="md">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: '#fb923c', background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.25)', borderRadius: '6px', padding: '6px 10px' }}>
+              ⚠️ Reset theo sự kiện — chọn 1 phiếu sẽ xóa toàn bộ phiếu cùng sự kiện
+            </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', color: '#7878a0' }}>{txList.length} phiếu — đã chọn {selected.size}</span>
               <button onClick={toggleAll} style={{ fontSize: '0.80rem', color: '#c9a84c', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -124,7 +126,7 @@ function ResetModal({ onDone }) {
                       <div style={{ color: tx.status === 'completed' ? '#4ade80' : '#fbbf24', fontWeight: 700 }}>
                         {tx.status === 'completed' ? 'Đã xác nhận' : 'Chờ xác nhận'}
                       </div>
-                      <div>{fmtDate(tx.expected_return_date)}</div>
+                      <div>{fmtD(tx.expected_return_date) || '—'}</div>
                     </div>
                   </div>
                 );
