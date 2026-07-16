@@ -55,6 +55,13 @@ export default function Users() {
   const [loadingEv, setLoadingEv]     = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [deleting, setDeleting]       = useState(false);
+  const [debugModal, setDebugModal]   = useState(false);
+  const [debugData, setDebugData]     = useState(null);
+  const [debugLoading, setDebugLoading] = useState(false);
+  const [restoreModal, setRestoreModal] = useState(false);
+  const [dismissedList, setDismissedList] = useState([]);
+  const [dismissedLoading, setDismissedLoading] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
 
   async function load() {
     try {
@@ -353,27 +360,25 @@ export default function Users() {
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
             <button
               onClick={async () => {
-                try {
-                  const d = await api.debugObligations();
-                  const summary = `📊 DB State:\n• Tổng obligations: ${d.totalObs}\n• Quá hạn (chưa dismissed): ${d.overdueObs}\n• Đã dismissed: ${d.dismissedObs}\n• Tổng violations: ${d.totalViols}\n• Vi phạm hệ thống: ${d.sysViols}\n\nChi tiết quá hạn:\n${d.detail.map(r=>`  ${r.lead_name} | ${r.assigned_date} | dismissed=${r.dismissed} | has_report=${r.has_report}`).join('\n')}`;
-                  alert(summary);
-                } catch(e) { alert('Lỗi: ' + e.message); }
+                setDebugModal(true);
+                setDebugLoading(true);
+                try { setDebugData(await api.debugObligations()); } catch(e) { alert('Lỗi: ' + e.message); }
+                finally { setDebugLoading(false); }
               }}
               style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(96,165,250,0.5)', background:'rgba(96,165,250,0.15)', color:'#60a5fa', cursor:'pointer' }}
             >
-              🔍 Debug Vi Phạm
+              🔍 Chọn và Debug Vi Phạm
             </button>
             <button
               onClick={async () => {
-                if (!confirm('Khôi phục vi phạm cho những người chưa nộp báo cáo (đang bị dismissed)?')) return;
-                try {
-                  const d = await api.resetDismissedObligations();
-                  alert(`✅ Đã reset ${d.reset} obligations. Vi phạm sẽ được tạo lại.`);
-                } catch(e) { alert('Lỗi: ' + e.message); }
+                setRestoreModal(true);
+                setDismissedLoading(true);
+                try { setDismissedList(await api.getDismissedObligations()); } catch(e) { alert('Lỗi: ' + e.message); }
+                finally { setDismissedLoading(false); }
               }}
               style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(251,146,60,0.5)', background:'rgba(251,146,60,0.15)', color:'#fb923c', cursor:'pointer' }}
             >
-              🔄 Khôi phục vi phạm
+              🔄 Xem và Khôi Phục Vi Phạm
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -715,6 +720,101 @@ export default function Users() {
             </button>
             <button onClick={() => setStaffModal(null)} className="btn-secondary">Hủy</button>
           </div>
+        </Modal>
+      )}
+
+      {/* ── Modal Debug Vi Phạm ── */}
+      {debugModal && (
+        <Modal title="🔍 Debug Vi Phạm" onClose={() => setDebugModal(false)} size="lg">
+          {debugLoading ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>⏳ Đang tải...</p>
+          ) : debugData ? (
+            <>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                {[
+                  { label: 'Tổng obligations', value: debugData.totalObs, color: '#60a5fa' },
+                  { label: 'Quá hạn chưa xử lý', value: debugData.overdueObs, color: '#f87171' },
+                  { label: 'Đã dismissed', value: debugData.dismissedObs, color: '#fb923c' },
+                  { label: 'Tổng vi phạm', value: debugData.totalViols, color: '#c084fc' },
+                  { label: 'Vi phạm hệ thống', value: debugData.sysViols, color: '#fbbf24' },
+                ].map(s => (
+                  <div key={s.label} style={{ flex: '1 1 140px', background: 'var(--surface-2)', borderRadius: '8px', padding: '10px 14px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{s.label}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: s.color }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Chi tiết {debugData.detail.length} obligation quá hạn gần nhất:
+              </p>
+              <div style={{ maxHeight: '380px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {debugData.detail.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>Không có obligation quá hạn.</p>
+                ) : debugData.detail.map(r => (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{r.lead_name}</span>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginLeft: '8px' }}>{r.assigned_date}</span>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.has_report ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)', color: r.has_report ? '#4ade80' : '#f87171' }}>
+                      {r.has_report ? '✅ Có BC' : '❌ Chưa BC'}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.dismissed ? 'rgba(251,146,60,0.15)' : 'rgba(148,163,184,0.1)', color: r.dismissed ? '#fb923c' : 'var(--text-muted)' }}>
+                      {r.dismissed ? 'Dismissed' : 'Active'}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.violation_created ? 'rgba(192,132,252,0.15)' : 'rgba(148,163,184,0.1)', color: r.violation_created ? '#c084fc' : 'var(--text-muted)' }}>
+                      {r.violation_created ? '⚡ Vi phạm đã tạo' : 'Chưa có vi phạm'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </Modal>
+      )}
+
+      {/* ── Modal Khôi Phục Vi Phạm ── */}
+      {restoreModal && (
+        <Modal title="🔄 Xem và Khôi Phục Vi Phạm" onClose={() => setRestoreModal(false)} size="lg">
+          {dismissedLoading ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>⏳ Đang tải...</p>
+          ) : dismissedList.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>Không có obligation nào đang bị dismissed.</p>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                {dismissedList.length} obligation bị dismissed. Khôi phục để tạo lại vi phạm.
+              </p>
+              <div style={{ maxHeight: '420px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {dismissedList.map(r => (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'var(--surface-2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{r.lead_name}</span>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginLeft: '8px' }}>{r.assigned_date}</span>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.has_report ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)', color: r.has_report ? '#4ade80' : '#f87171' }}>
+                      {r.has_report ? '✅ Có BC' : '❌ Chưa BC'}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Hạn: {r.deadline?.slice(0, 10)}</span>
+                    <button
+                      disabled={restoringId === r.id}
+                      onClick={async () => {
+                        setRestoringId(r.id);
+                        try {
+                          await api.resetDismissedObligation(r.id);
+                          setDismissedList(prev => prev.filter(x => x.id !== r.id));
+                        } catch(e) { alert('Lỗi: ' + e.message); }
+                        finally { setRestoringId(null); }
+                      }}
+                      style={{ padding: '4px 12px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, border: '1px solid rgba(251,146,60,0.5)', background: 'rgba(251,146,60,0.15)', color: '#fb923c', cursor: restoringId === r.id ? 'not-allowed' : 'pointer', opacity: restoringId === r.id ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                    >
+                      {restoringId === r.id ? '⏳' : '🔄 Khôi phục'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </Modal>
       )}
 
