@@ -970,7 +970,7 @@ export default function Events() {
                       </button>
                       {showEdit && (
                         <button className="ev-action ev-action-edit" onClick={() => { setSelected(ev); setModal('form'); }}>
-                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa SK</span>
+                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa Show</span>
                         </button>
                       )}
                       {canSuaLich && ev.status !== 'cancelled' && (
