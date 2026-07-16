@@ -760,7 +760,7 @@ export default function Users() {
                       {r.has_report ? '✅ Có BC' : '❌ Chưa BC'}
                     </span>
                     <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.dismissed ? 'rgba(251,146,60,0.15)' : 'rgba(148,163,184,0.1)', color: r.dismissed ? '#fb923c' : 'var(--text-muted)' }}>
-                      {r.dismissed ? 'Dismissed' : 'Active'}
+                      {r.dismissed ? 'Đã bỏ qua' : 'Đang theo dõi'}
                     </span>
                     <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '4px', background: r.violation_created ? 'rgba(192,132,252,0.15)' : 'rgba(148,163,184,0.1)', color: r.violation_created ? '#c084fc' : 'var(--text-muted)' }}>
                       {r.violation_created ? '⚡ Vi phạm đã tạo' : 'Chưa có vi phạm'}
