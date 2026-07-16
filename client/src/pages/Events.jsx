@@ -734,6 +734,7 @@ export default function Events() {
     const starts = parseDatesField(ev, 'start_dates', 'start_date').sort();
     const ends   = parseDatesField(ev, 'end_dates', 'end_date').sort();
     if (starts.length && ends.length && starts[0] <= d && d <= ends[ends.length - 1]) return true;
+    if ((wsDateMap[ev.id] || []).includes(d)) return true;
     return false;
   }
   function nearestUpcomingEvent(ev) {
@@ -750,6 +751,7 @@ export default function Events() {
   };
   const location = useLocation();
   const [events, setEvents] = useState([]);
+  const [wsDateMap, setWsDateMap] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [modal, setModal] = useState(null);
@@ -773,6 +775,23 @@ export default function Events() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  useEffect(() => {
+    api.getWorkSchedules().then(wsList => {
+      const map = {};
+      const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
+      for (const ws of wsList) {
+        if (!ws.event_id) continue;
+        const id = ws.event_id;
+        if (!map[id]) map[id] = [];
+        for (const p of WS_PHASES) {
+          try { for (const d of JSON.parse(ws[`${p}_dates`] || '[]')) { if (d && !map[id].includes(d)) map[id].push(d); } } catch {}
+          if (ws[`${p}_date`] && !map[id].includes(ws[`${p}_date`])) map[id].push(ws[`${p}_date`]);
+        }
+      }
+      setWsDateMap(map);
+    }).catch(() => {});
+  }, []);
 
   // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {
@@ -974,7 +993,7 @@ export default function Events() {
         });
 
         const todayZone    = sorted.filter(ev => ev.status !== 'cancelled' && isEventOnDate(ev, todayStr));
-        const tomorrowZone = sorted.filter(ev => ev.status !== 'cancelled' && !isEventOnDate(ev, todayStr) && isEventOnDate(ev, tomorrowStr));
+        const tomorrowZone = sorted.filter(ev => ev.status !== 'cancelled' && isEventOnDate(ev, tomorrowStr));
         const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled'; });
         const pastZone     = sorted.filter(ev => nearestUpcomingEvent(ev) === null || ev.status === 'cancelled' || ev.status === 'completed');
 
