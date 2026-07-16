@@ -251,7 +251,6 @@ export default function Layout() {
 
   const nav = [
     { to: '/events',        Icon: CalendarDays,    label: 'Sự Kiện',                always: true },
-    { to: '/work-schedule', Icon: CalendarCog,     label: 'Lịch Làm Việc',          always: true },
     { to: '/event-report',  Icon: ClipboardList,   label: 'Báo Cáo Sự Kiện',        always: true },
     { to: '/violations',    Icon: ShieldAlert,     label: 'Vi Phạm Nội Quy',         always: true },
     { to: '/transactions',  Icon: History,         label: 'Lịch Sử Vận Hành',        always: true },
