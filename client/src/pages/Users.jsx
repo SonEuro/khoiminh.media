@@ -1,6 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-const NccAdmin  = lazy(() => import('./NccAdmin'));
-const Equipment = lazy(() => import('./Equipment'));
+const NccAdmin = lazy(() => import('./NccAdmin'));
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
@@ -200,17 +199,9 @@ export default function Users() {
       {/* Tab bar */}
       {isSuperAdmin && (
         <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.07)', paddingBottom: '0' }}>
-          <button style={tabStyle(tab === 'users')}     onClick={() => setTab('users')}>👤 Người Dùng</button>
-          <button style={tabStyle(tab === 'equipment')} onClick={() => setTab('equipment')}>📦 Thiết Bị KM</button>
-          <button style={tabStyle(tab === 'ncc')}       onClick={() => setTab('ncc')}>🏪 Nhà Cung Cấp</button>
+          <button style={tabStyle(tab === 'users')} onClick={() => setTab('users')}>👤 Người Dùng</button>
+          <button style={tabStyle(tab === 'ncc')}   onClick={() => setTab('ncc')}>🏪 Nhà Cung Cấp</button>
         </div>
-      )}
-
-      {/* Equipment tab */}
-      {tab === 'equipment' && (
-        <Suspense fallback={<p style={{ color: 'var(--text-muted)' }}>Đang tải...</p>}>
-          <Equipment />
-        </Suspense>
       )}
 
       {/* NCC tab */}
