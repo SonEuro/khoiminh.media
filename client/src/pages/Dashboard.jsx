@@ -759,13 +759,13 @@ export default function Dashboard() {
     }
     api.getViolations().then(vs => setViolations(vs)).catch(() => {});
     api.getLeadObligations().then(obs => {
-      setLockedObs(obs.filter(o => o.locked && !o.submitted && !o.violation_created));
+      setLockedObs(obs.filter(o => o.locked && !o.submitted));
       const yesterdayVN = (() => {
         const d = new Date(Date.now() + 7 * 3600 * 1000);
         d.setUTCDate(d.getUTCDate() - 1);
         return d.toISOString().slice(0, 10);
       })();
-      setMyObs(obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN && !o.violation_created));
+      setMyObs(obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN));
     }).catch(() => {});
   }, []);
 
