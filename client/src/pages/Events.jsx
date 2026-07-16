@@ -1016,6 +1016,7 @@ export default function Events() {
                 const hasActions = showEdit || (canSuaLich && ev.status !== 'cancelled') || showCancel;
                 return (
                   <div style={{ padding:'6px 16px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
+                    <div className="ev-btn-group">
                     {/* Hàng 1: xem thông tin */}
                     <div className="ev-card-row">
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}>
@@ -1060,6 +1061,7 @@ export default function Events() {
                         )}
                       </div>
                     )}
+                    </div>{/* end ev-btn-group */}
                     {(showArchive || showDelete) && (
                       <div style={{ display:'flex', gap:'6px' }}>
                         {showArchive && <button className="ev-action ev-action-edit" style={{ flex:1 }} onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
