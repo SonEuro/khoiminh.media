@@ -211,4 +211,22 @@ function checkAndCreateViolations() {
   }
 }
 
-module.exports = { syncObligations, checkAndCreateViolations };
+// 23:59 mỗi ngày: finalize vi phạm tự động
+const ranObligations = { date: null };
+
+function scheduleObligationsCheck() {
+  setInterval(() => {
+    const now = new Date(Date.now() + 7 * 3600 * 1000); // VN time
+    const hhmm = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+
+    // 23:59 → 23:68 (window 10 phút)
+    if (hhmm >= 23 * 60 + 59 && hhmm < 24 * 60 + 9 && ranObligations.date !== today) {
+      ranObligations.date = today;
+      console.log('[obligations] 23:59 scheduled check...');
+      try { checkAndCreateViolations(); } catch (e) { console.error('[obligations] scheduled check error:', e.message); }
+    }
+  }, 60_000);
+}
+
+module.exports = { syncObligations, checkAndCreateViolations, scheduleObligationsCheck };

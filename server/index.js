@@ -15,7 +15,7 @@ require('./seedNcc');
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
 const { uploadBackupToDrive, scheduleAutoBackup, restoreFromDriveIfNeeded } = require('./utils/gdriveBackup');
-const { checkAndCreateViolations } = require('./services/obligations');
+const { checkAndCreateViolations, scheduleObligationsCheck } = require('./services/obligations');
 const { scheduleKhoCheck } = require('./services/khoWarning');
 
 const app = express();
@@ -187,7 +187,8 @@ app.listen(PORT, async () => {
   runViolationCheck();                          // chạy ngay khi server khởi động
   setInterval(runViolationCheck, 5 * 60_000);  // chạy lại mỗi 5 phút
 
-  scheduleKhoCheck(); // cảnh báo 12h + vi phạm 15h cho sự kiện Kỹ Thuật chưa xuất kho
+  scheduleKhoCheck();         // cảnh báo 12h + vi phạm 15h cho sự kiện Kỹ Thuật chưa xuất kho
+  scheduleObligationsCheck(); // finalize vi phạm báo cáo lúc 23:59
 });
 
 // Backup lên Google Drive trước khi Render tắt server (SIGTERM)
