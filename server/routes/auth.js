@@ -19,9 +19,9 @@ router.post('/login', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho FROM users WHERE id = ?').get(req.user.id);
   if (!user || !user.is_active) return res.status(401).json({ error: 'Tài khoản không hợp lệ' });
-  res.json(user);
+  res.json({ ...user, is_truong_phong: user.position === 'Trưởng phòng' });
 });
 
 router.post('/change-password', requireAuth, (req, res) => {
