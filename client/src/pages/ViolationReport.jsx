@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
@@ -304,7 +305,10 @@ export default function ViolationReport() {
 
 function ViolationCard({ v, isSuperAdmin, onDelete }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const hasDetail = v.description || v.images?.length > 0;
+  const isReportViol = ['Không nộp báo cáo', 'Nộp báo cáo trễ'].includes(v.violation_type);
+  const assignedDate = v.description?.match(/ngày (\d{4}-\d{2}-\d{2})/)?.[1];
 
   return (
     <div style={{
@@ -350,6 +354,12 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+          {isReportViol && (
+            <button onClick={() => navigate('/event-report', { state: { prefill: { event_id: v.event_id, event_label: v.event_name || v.event_label, report_date: assignedDate } } })}
+              style={{ background:'rgba(251,146,60,0.12)', border:'1px solid rgba(251,146,60,0.3)', color:'#fb923c', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontSize:'0.80rem', fontWeight:700, whiteSpace:'nowrap' }}>
+              Nộp BC bổ sung
+            </button>
+          )}
           {hasDetail && (
             <button onClick={() => setOpen(x => !x)} style={{
               background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)',

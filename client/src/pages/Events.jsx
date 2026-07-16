@@ -836,8 +836,8 @@ export default function Events() {
       return d.toISOString().slice(0, 10);
     })();
     api.getLeadObligations().then(obs => {
-      const locked  = obs.filter(o => !o.submitted && o.locked);
-      const pending = obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN);
+      const locked  = obs.filter(o => !o.submitted && o.locked  && !o.violation_created);
+      const pending = obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN && !o.violation_created);
       setPendingObs([...locked, ...pending]);
     }).catch(() => {});
   }, []);

@@ -168,9 +168,7 @@ function checkAndCreateViolations() {
       `).get(ob.lead_name, `%ngày ${ob.assigned_date}%`);
 
       if (!reportRow) {
-        // Chưa nộp — chỉ xử lý khi đã qua 23:59 (hard deadline)
-        if (!hardPassed) continue;
-
+        // Chưa nộp — tạo vi phạm ngay khi qua deadline 12:00
         db.transaction(() => {
           if (!existingViol) {
             db.prepare(`
@@ -178,7 +176,7 @@ function checkAndCreateViolations() {
               VALUES (?, ?, 'Hệ thống', ?, 'Không nộp báo cáo', ?)
             `).run(
               safeEventId, label, ob.lead_name,
-              `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn cuối: ${hardDeadline}.`,
+              `Không nộp báo cáo sự kiện ngày ${ob.assigned_date} (${phaseLabel}). Hạn nộp: ${ob.deadline}.`,
             );
           }
           db.prepare('UPDATE lead_report_obligations SET violation_created = 1 WHERE id = ?').run(ob.id);
