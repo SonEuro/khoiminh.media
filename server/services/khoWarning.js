@@ -1,7 +1,11 @@
 const db = require('../database');
-const { pushByRoles } = require('./pushNotify');
+const { pushByRoles, pushByUserIds } = require('./pushNotify');
 
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
+
+function getManagerIds() {
+  return db.prepare('SELECT id FROM users WHERE is_quan_ly_kho = 1 AND is_active = 1').all().map(u => u.id);
+}
 
 function todayVN() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
@@ -35,17 +39,19 @@ function getEventsKyThuatNoOut() {
   `).all(today, today, today, today, today, today);
 }
 
-// 12h: cảnh báo push
+// 12h: cảnh báo push → chỉ gửi cho user có flag is_quan_ly_kho
 function checkKhoWarning() {
   const events = getEventsKyThuatNoOut();
   if (!events.length) return;
+  const managerIds = getManagerIds();
+  if (!managerIds.length) return;
   const names = events.map(e => e.name).join(', ');
-  console.log(`[khoWarning] 12h cảnh báo: ${events.length} sự kiện chưa có phiếu xuất`);
-  pushByRoles(
+  console.log(`[khoWarning] 12h cảnh báo: ${events.length} sự kiện chưa có phiếu xuất → ${managerIds.length} quản lý kho`);
+  pushByUserIds(
     '⚠️ Chưa có phiếu xuất kho',
     `${events.length} sự kiện Kỹ Thuật hôm nay chưa xuất: ${names}`,
     '/transactions',
-    ALL_ROLES
+    managerIds
   ).catch(e => console.error('[khoWarning] push error:', e.message));
 }
 
@@ -76,11 +82,11 @@ function checkKhoViolation() {
   }
 
   const names = events.map(e => e.name).join(', ');
-  pushByRoles(
+  pushByUserIds(
     '🚨 Vi phạm: chưa xuất kho',
     `${events.length} sự kiện Kỹ Thuật quá 15:00 chưa xuất: ${names}`,
     '/transactions',
-    ALL_ROLES
+    managers.map(u => u.id)
   ).catch(e => console.error('[khoWarning] push error:', e.message));
 }
 

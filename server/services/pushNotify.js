@@ -51,4 +51,18 @@ async function pushByRoles(title, body, url = '/', roles = []) {
   await sendToSubs(subs, { title, body, url });
 }
 
-module.exports = { pushAll, pushByRoles };
+// userIds: mảng user id, vd [1, 3, 5]
+async function pushByUserIds(title, body, url = '/', userIds = []) {
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY) return;
+  if (!userIds.length) return;
+  const placeholders = userIds.map(() => '?').join(',');
+  const subs = db.prepare(`
+    SELECT ps.* FROM push_subscriptions ps
+    WHERE ps.user_id IN (${placeholders})
+  `).all(...userIds);
+  console.log(`[push] "${title}" → ${subs.length} subscriber(s) (by user IDs)`);
+  if (!subs.length) return;
+  await sendToSubs(subs, { title, body, url });
+}
+
+module.exports = { pushAll, pushByRoles, pushByUserIds };
