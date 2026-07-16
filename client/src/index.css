@@ -303,10 +303,10 @@
   /* Row 2 (3 items, each ~33%): [Đã lưu trữ] [Đã hủy] [Thùng Rác] */
   .ev-btn-filter   { order: 3; flex: 1 1 calc(33.33% - 6px) !important; }
   .ev-btn-trash    { order: 4; flex: 1 1 calc(33.33% - 6px) !important; }
-  /* Card buttons: mobile = icon trên, text dưới, 3 cột */
+  /* Card buttons: mobile = icon trên, text dưới */
   .ev-card-btn  { flex-direction: column !important; gap: 3px !important; padding: 9px 10px !important; }
   .ev-action    { flex-direction: column !important; gap: 3px !important; padding: 10px 4px !important; }
-  .ev-card-row  { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+  .ev-card-row > button { flex: 1 !important; min-width: 0 !important; }
 }
 
 /* ── WorkSchedule card action buttons ───────────────── */

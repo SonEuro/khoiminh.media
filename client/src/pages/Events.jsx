@@ -987,8 +987,10 @@ export default function Events() {
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                 const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
+                const hasActions = showEdit || (canSuaLich && ev.status !== 'cancelled') || showCancel;
                 return (
                   <div style={{ padding:'6px 16px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
+                    {/* Hàng 1: xem thông tin */}
                     <div className="ev-card-row">
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}>
                         <span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span>
@@ -996,37 +998,42 @@ export default function Events() {
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
                         <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
-                      {showEdit && (
-                        <button className="ev-action ev-action-edit" onClick={() => { setSelected(ev); setModal('form'); }}>
-                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa Show</span>
-                        </button>
-                      )}
-                      {canSuaLich && ev.status !== 'cancelled' && (
-                        <button className="ev-action" style={{ color: GOLD, borderColor: 'rgba(201,168,76,0.3)' }}
-                          onClick={() => {
-                            const existing = schedules.find(s => s.event_id === ev.id);
-                            setSelected(ev);
-                            setScheduleFormInitial(existing || {
-                              event_id:        ev.id,
-                              event_name:      ev.name,
-                              client:          ev.client   || '',
-                              location:        ev.location || '',
-                              setup_dates:     parseDatesField(ev, 'start_dates',   'start_date'),
-                              teardown_dates:  parseDatesField(ev, 'end_dates',     'end_date'),
-                              rehearsal_dates: parseDatesField(ev, 'show_dates',    'show_date'),
-                              filming_dates:   parseFilmingDates(ev),
-                            });
-                            setModal('schedule-form');
-                          }}>
-                          <span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span>
-                        </button>
-                      )}
-                      {showCancel && (
-                        <button className="ev-action ev-action-danger" onClick={() => handleCancel(ev)}>
-                          <span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span>
-                        </button>
-                      )}
                     </div>
+                    {/* Hàng 2: hành động quản lý */}
+                    {hasActions && (
+                      <div className="ev-card-row">
+                        {showEdit && (
+                          <button className="ev-action ev-action-edit" onClick={() => { setSelected(ev); setModal('form'); }}>
+                            <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa Show</span>
+                          </button>
+                        )}
+                        {canSuaLich && ev.status !== 'cancelled' && (
+                          <button className="ev-action" style={{ color: GOLD, borderColor: 'rgba(201,168,76,0.3)' }}
+                            onClick={() => {
+                              const existing = schedules.find(s => s.event_id === ev.id);
+                              setSelected(ev);
+                              setScheduleFormInitial(existing || {
+                                event_id:        ev.id,
+                                event_name:      ev.name,
+                                client:          ev.client   || '',
+                                location:        ev.location || '',
+                                setup_dates:     parseDatesField(ev, 'start_dates',   'start_date'),
+                                teardown_dates:  parseDatesField(ev, 'end_dates',     'end_date'),
+                                rehearsal_dates: parseDatesField(ev, 'show_dates',    'show_date'),
+                                filming_dates:   parseFilmingDates(ev),
+                              });
+                              setModal('schedule-form');
+                            }}>
+                            <span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span>
+                          </button>
+                        )}
+                        {showCancel && (
+                          <button className="ev-action ev-action-danger" onClick={() => handleCancel(ev)}>
+                            <span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                     {(showArchive || showDelete) && (
                       <div style={{ display:'flex', gap:'6px' }}>
                         {showArchive && <button className="ev-action ev-action-edit" style={{ flex:1 }} onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
