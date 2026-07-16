@@ -73,7 +73,8 @@ function ResetModal({ onDone }) {
 
   async function handleReset() {
     if (selected.size === 0) return;
-    if (!confirm(`⚠️ Reset ${selected.size} phiếu xuất đã chọn?\n\nThao tác này không thể hoàn tác!`)) return;
+    const selectedCodes = txList.filter(t => selected.has(t.id)).map(t => `• ${t.code}`).join('\n');
+    if (!confirm(`⚠️ Xác nhận reset ${selected.size} phiếu sau?\n\n${selectedCodes}\n\nToàn bộ phiếu xuất + phiếu nhập cùng sự kiện sẽ bị xóa. Không thể hoàn tác!`)) return;
     setLoading(true);
     try {
       const r = await api.resetOutTransactionsSelective([...selected]);
