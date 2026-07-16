@@ -131,6 +131,7 @@ export const api = {
   deleteEventReport: (id) => request(`/event-reports/${id}`, { method: 'DELETE' }),
   updateEventReport: (id, data) => request(`/event-reports/${id}`, { method: 'PUT', body: data }),
   confirmEventReport: (id) => request(`/event-reports/${id}/confirm`, { method: 'PATCH' }),
+  getReportDeleteLog: () => request('/event-reports/admin/delete-log'),
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),

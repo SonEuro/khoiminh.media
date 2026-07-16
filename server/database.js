@@ -204,6 +204,13 @@ db.exec(`
   );
 `);
 
+// Migration: soft delete columns cho event_reports
+{
+  const cols = db.pragma('table_info(event_reports)').map(c => c.name);
+  if (!cols.includes('deleted_at'))   db.exec("ALTER TABLE event_reports ADD COLUMN deleted_at TEXT DEFAULT NULL");
+  if (!cols.includes('deleted_by_id')) db.exec("ALTER TABLE event_reports ADD COLUMN deleted_by_id INTEGER DEFAULT NULL");
+}
+
 // Migration: thêm job_content + timeline vào event_reports nếu chưa có
 const erCols = db.pragma('table_info(event_reports)').map(c => c.name);
 if (!erCols.includes('job_content')) {
@@ -386,6 +393,17 @@ db.exec(`
     p256dh     TEXT NOT NULL,
     auth       TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+  CREATE TABLE IF NOT EXISTS report_delete_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id       INTEGER NOT NULL,
+    event_label     TEXT,
+    event_date      TEXT,
+    reporter_name   TEXT,
+    report_summary  TEXT,
+    deleted_by_id   INTEGER,
+    deleted_by_name TEXT,
+    deleted_at      TEXT DEFAULT (datetime('now','localtime'))
   );
 `);
 

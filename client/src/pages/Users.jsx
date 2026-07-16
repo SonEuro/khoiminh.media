@@ -36,7 +36,10 @@ export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
   const { kmGroups, freelancerGroups, refresh: refreshStaff } = useStaffGroups();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role);
   const [users, setUsers]       = useState([]);
+  const [deleteLog, setDeleteLog] = useState([]);
+  const [showDeleteLog, setShowDeleteLog] = useState(false);
   const [modal, setModal]       = useState(null);
   const [staffModal, setStaffModal]   = useState(null); // null | 'km' | 'freelancer'
   const [staffDraft,  setStaffDraft]  = useState([]);   // [{dept, members: '...'}]
@@ -61,6 +64,11 @@ export default function Users() {
     } catch {}
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (isAdmin && showDeleteLog) {
+      api.getReportDeleteLog().then(setDeleteLog).catch(() => {});
+    }
+  }, [isAdmin, showDeleteLog]);
 
   function openStaffModal(type) {
     const groups = type === 'km' ? kmGroups : freelancerGroups;
@@ -282,6 +290,51 @@ export default function Users() {
               🎯 Nhân sự Freelancer
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── Lịch sử xóa báo cáo (SUPER_ADMIN / DIRECTOR) ── */}
+      {isAdmin && (
+        <div style={{ marginTop: '32px', padding: '20px', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.25)', background: 'rgba(251,191,36,0.04)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showDeleteLog ? '16px' : 0 }}>
+            <p style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.84rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              🗑 Lịch sử xóa báo cáo
+            </p>
+            <button
+              onClick={() => setShowDeleteLog(v => !v)}
+              style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '8px', color: '#fbbf24', padding: '6px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+            >
+              {showDeleteLog ? 'Ẩn' : 'Xem'}
+            </button>
+          </div>
+          {showDeleteLog && (
+            deleteLog.length === 0
+              ? <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Chưa có báo cáo nào bị xóa.</p>
+              : <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.83rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(251,191,36,0.2)' }}>
+                        {['ID BC', 'Sự kiện', 'Ngày BC', 'Người báo cáo', 'Tóm tắt', 'Người xóa', 'Thời gian xóa'].map(h => (
+                          <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: '#fbbf24', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deleteLog.map(row => (
+                        <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>#{row.report_id}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-primary)' }}>{row.event_label || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{row.event_date ? fmtD(row.event_date) : '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-primary)' }}>{row.reporter_name || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.report_summary || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: '#f87171' }}>{row.deleted_by_name || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{row.deleted_at ? row.deleted_at.slice(0, 16) : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+          )}
         </div>
       )}
 

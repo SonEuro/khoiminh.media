@@ -29,7 +29,9 @@ router.get('/', (req, res) => {
     LEFT JOIN users u ON u.id = er.reporter_user_id
   `;
   const params = [];
-  if (event_id) { sql += ' WHERE er.event_id = ?'; params.push(event_id); }
+  const conditions = ['er.deleted_at IS NULL'];
+  if (event_id) { conditions.push('er.event_id = ?'); params.push(event_id); }
+  sql += ' WHERE ' + conditions.join(' AND ');
   sql += ' ORDER BY er.created_at DESC';
   const rows = db.prepare(sql).all(...params);
   res.json(rows.map(r => ({
@@ -144,22 +146,48 @@ router.patch('/:id/confirm', requireAuth, (req, res) => {
 });
 
 router.delete('/:id', canManage, (req, res) => {
-  const { role, is_truong_phong } = req.user;
+  const { role, is_truong_phong, id: userId, full_name } = req.user;
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role);
 
-  if (!isFullAdmin && is_truong_phong) {
-    const report = db.prepare('SELECT reporter_user_id FROM event_reports WHERE id = ?').get(req.params.id);
-    if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
-    if (report.reporter_user_id) {
-      const reporter = db.prepare('SELECT role FROM users WHERE id = ?').get(report.reporter_user_id);
-      if (reporter && reporter.role !== role) {
-        return res.status(403).json({ error: 'Chỉ được xóa báo cáo của nhân viên trong phòng' });
-      }
+  const report = db.prepare(`
+    SELECT er.id, er.event_label, er.report_date, er.reporter_name, er.reporter_user_id,
+           er.job_content, er.deleted_at
+    FROM event_reports er WHERE er.id = ?
+  `).get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
+  if (report.deleted_at) return res.status(410).json({ error: 'Báo cáo đã bị xóa trước đó' });
+
+  if (!isFullAdmin && is_truong_phong && report.reporter_user_id) {
+    const reporter = db.prepare('SELECT role FROM users WHERE id = ?').get(report.reporter_user_id);
+    if (reporter && reporter.role !== role) {
+      return res.status(403).json({ error: 'Chỉ được xóa báo cáo của nhân viên trong phòng' });
     }
   }
 
-  db.prepare('DELETE FROM event_reports WHERE id = ?').run(req.params.id);
+  const now = db.prepare("SELECT datetime('now','localtime') AS t").get().t;
+  db.prepare('UPDATE event_reports SET deleted_at = ?, deleted_by_id = ? WHERE id = ?')
+    .run(now, userId, report.id);
+  db.prepare(`
+    INSERT INTO report_delete_log (report_id, event_label, event_date, reporter_name, report_summary, deleted_by_id, deleted_by_name, deleted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(report.id, report.event_label || '', report.report_date || '', report.reporter_name || '',
+         report.job_content ? String(report.job_content).slice(0, 200) : '', userId, full_name, now);
+
   res.json({ ok: true });
+});
+
+router.get('/admin/delete-log', (req, res) => {
+  const { role } = req.user;
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
+    return res.status(403).json({ error: 'Không có quyền' });
+  const rows = db.prepare(`
+    SELECT l.*, er.deleted_at AS soft_deleted_at
+    FROM report_delete_log l
+    LEFT JOIN event_reports er ON er.id = l.report_id
+    ORDER BY l.deleted_at DESC
+    LIMIT 200
+  `).all();
+  res.json(rows);
 });
 
 module.exports = router;
