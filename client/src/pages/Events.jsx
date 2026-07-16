@@ -1051,7 +1051,16 @@ export default function Events() {
                           onClick={() => {
                             const existing = schedules.find(s => s.event_id === ev.id);
                             setSelected(ev);
-                            setScheduleFormInitial(existing || { event_id: ev.id, event_name: ev.name });
+                            setScheduleFormInitial(existing || {
+                              event_id:        ev.id,
+                              event_name:      ev.name,
+                              client:          ev.client   || '',
+                              location:        ev.location || '',
+                              setup_dates:     parseDatesField(ev, 'start_dates',   'start_date'),
+                              teardown_dates:  parseDatesField(ev, 'end_dates',     'end_date'),
+                              rehearsal_dates: parseDatesField(ev, 'show_dates',    'show_date'),
+                              filming_dates:   parseFilmingDates(ev),
+                            });
                             setModal('schedule-form');
                           }}>
                           <span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span>
