@@ -74,6 +74,7 @@ jobs:
             echo "━━━ npm install ━━━"
             cd /var/www/kho-khoiminh/server
             npm install --omit=dev
+            npm install web-push --omit=dev
 
             echo "━━━ Reload PM2 ━━━"
             cd /var/www/kho-khoiminh
