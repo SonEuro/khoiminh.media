@@ -11,15 +11,12 @@ if (webpush && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-async function pushAll(title, body, url = '/') {
-  if (!webpush || !process.env.VAPID_PUBLIC_KEY) return;
-  const subs = db.prepare('SELECT * FROM push_subscriptions').all();
-  if (!subs.length) return;
+async function sendToSubs(subs, payload) {
   await Promise.allSettled(subs.map(async sub => {
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify({ title, body, url })
+        JSON.stringify(payload)
       );
     } catch (e) {
       if (e.statusCode === 410 || e.statusCode === 404) {
@@ -29,4 +26,25 @@ async function pushAll(title, body, url = '/') {
   }));
 }
 
-module.exports = { pushAll };
+async function pushAll(title, body, url = '/') {
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY) return;
+  const subs = db.prepare('SELECT * FROM push_subscriptions').all();
+  if (!subs.length) return;
+  await sendToSubs(subs, { title, body, url });
+}
+
+// roles: mảng role string, vd ['SUPER_ADMIN','DIRECTOR','PRODUCTION']
+async function pushByRoles(title, body, url = '/', roles = []) {
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY) return;
+  if (!roles.length) return pushAll(title, body, url);
+  const placeholders = roles.map(() => '?').join(',');
+  const subs = db.prepare(`
+    SELECT ps.* FROM push_subscriptions ps
+    LEFT JOIN users u ON u.id = ps.user_id
+    WHERE u.role IN (${placeholders}) OR ps.user_id IS NULL
+  `).all(...roles);
+  if (!subs.length) return;
+  await sendToSubs(subs, { title, body, url });
+}
+
+module.exports = { pushAll, pushByRoles };
