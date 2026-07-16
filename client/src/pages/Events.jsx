@@ -77,15 +77,28 @@ function StaffScheduleModal({ event, onClose }) {
     );
   }
 
-  function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport = {} }) {
+  function renderEntry({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport = {}, dayStartTimes = {} }) {
     const isPast = date < todayStr;
     const dateColor = date === todayStr ? '#f87171' : date === tomorrowStr ? '#4ade80' : isPast ? '#7878a0' : '#60a5fa';
+    const startTimeEntries = Object.entries(dayStartTimes).filter(([, t]) => t);
     return (
       <div key={`${phase.key}-${date}`} style={{ marginBottom:'6px', padding:'10px 12px', background: isPast ? 'rgba(120,120,160,0.04)' : 'rgba(201,168,76,0.04)', border:`1px solid ${isPast ? 'rgba(120,120,160,0.15)' : 'rgba(201,168,76,0.12)'}`, borderRadius:'8px', opacity: isPast ? 0.65 : 1 }}>
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
           <span style={{ fontWeight:700, color:GOLD, fontSize:'0.82rem' }}>{phase.label}</span>
           <span style={{ fontSize:'0.82rem', color: dateColor, fontWeight:700 }}>{fmtD(date)}</span>
         </div>
+        {startTimeEntries.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
+            {startTimeEntries.map(([dept, time]) => {
+              const dc = getDeptColor(dept);
+              return (
+                <span key={dept} style={{ fontSize:'0.78rem', fontWeight:700, padding:'2px 8px', borderRadius:'6px', background:dc.bg, border:`1px solid ${dc.border}`, color:dc.color }}>
+                  ⏰ {dept}: {time}
+                </span>
+              );
+            })}
+          </div>
+        )}
         {dLeads.map((l, i) => {
           const dc = getDeptColor(l.department);
           return <div key={i} style={{ ...itemStyle, color:'#e8c97a' }}>👑 {l.name} <span style={{ color:dc.color, fontWeight:700, fontSize:'0.82rem' }}>({l.department})</span></div>;
@@ -161,9 +174,11 @@ function StaffScheduleModal({ event, onClose }) {
           const kmFlat    = s[`${phase.key}_km_staff`] || [];
           const isNewFree = freeMap && Object.values(freeMap).some(v => v && typeof v === 'object');
 
-          const kmSupportMap = s[`${phase.key}_km_support`] || {};
+          const kmSupportMap   = s[`${phase.key}_km_support`]   || {};
+          const startTimesMap  = s[`${phase.key}_start_times`] || {};
           for (const date of dates) {
-            const daySupport = kmSupportMap[date] || {};
+            const daySupport    = kmSupportMap[date]  || {};
+            const dayStartTimes = startTimesMap[date] || {};
             const dLeads   = leadsMap ? (leadsMap[date] || []) : leadsFlat;
             const dKm      = kmMap    ? (kmMap[date]    || []) : kmFlat;
             const byDeptKM = dKm.reduce((acc, n) => {
@@ -187,8 +202,8 @@ function StaffScheduleModal({ event, onClose }) {
             const noteStr   = (noteVal && typeof noteVal === 'string') ? noteVal.trim() : '';
             const hasNote   = noteDepts.length > 0 || !!noteStr;
 
-            if (!dLeads.length && !Object.keys(byDeptKM).length && !freeDepts.length && !hasNote) continue;
-            allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport });
+            if (!dLeads.length && !Object.keys(byDeptKM).length && !freeDepts.length && !hasNote && !Object.keys(dayStartTimes).length) continue;
+            allEntries.push({ phase, date, dLeads, byDeptKM, freeDepts, noteDepts, noteStr, hasNote, daySupport, dayStartTimes });
           }
         }
 
