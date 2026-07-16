@@ -89,8 +89,10 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
   }
 
   const rowStyle = (selected) => ({
-    display:'flex', alignItems:'center', gap:'10px',
-    padding:'8px 12px',
+    display:'grid',
+    gridTemplateColumns: '18px 1fr 88px 54px 70px',
+    alignItems:'center', gap:'8px',
+    padding:'7px 12px',
     background: selected ? 'rgba(201,168,76,0.05)' : 'rgba(255,255,255,0.02)',
     border: `1px solid ${selected ? 'rgba(201,168,76,0.22)' : 'rgba(255,255,255,0.05)'}`,
     borderRadius:'7px', transition:'background 0.12s',
@@ -147,16 +149,14 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
                 <div key={it.equipment_id} style={rowStyle(it.selected)}>
                   <input type="checkbox" checked={it.selected}
                     onChange={e => updateItem(idx, 'selected', e.target.checked)}
-                    style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0, cursor:'pointer' }} />
-                  <span style={{ flex:1, fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    style={{ accentColor: GOLD, width:'15px', height:'15px', cursor:'pointer' }} />
+                  <span style={{ fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {it.eq_name}
-                    {it.combo && (
-                      <span style={{ marginLeft:'5px', fontSize:'0.68rem', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'3px', padding:'0 4px', color:'#a78bfa' }}>FREE</span>
-                    )}
+                    {it.combo && <span style={{ marginLeft:'5px', fontSize:'0.68rem', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'3px', padding:'0 4px', color:'#a78bfa' }}>FREE</span>}
                   </span>
-                  <span style={{ fontSize:'0.74rem', color:'#555570', fontFamily:'monospace', flexShrink:0 }}>{it.eq_code}</span>
+                  <span style={{ fontSize:'0.72rem', color:'#555570', fontFamily:'monospace', textAlign:'right' }}>{it.eq_code}</span>
                   {qtyInput(it.selected, it.transferQty, it.quantity, v => updateItem(idx, 'transferQty', v))}
-                  <span style={{ fontSize:'0.74rem', color:'#7878a0', flexShrink:0 }}>/{it.quantity} {it.unit}</span>
+                  <span style={{ fontSize:'0.74rem', color:'#7878a0' }}>/{it.quantity} {it.unit}</span>
                 </div>
               ))}
             </div>
@@ -174,15 +174,14 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
                 <div key={idx} style={rowStyle(it.selected)}>
                   <input type="checkbox" checked={it.selected}
                     onChange={e => updateExtItem(idx, 'selected', e.target.checked)}
-                    style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0, cursor:'pointer' }} />
-                  <span style={{ flex:1, fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    style={{ accentColor: GOLD, width:'15px', height:'15px', cursor:'pointer' }} />
+                  <span style={{ fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {it.name}
-                    {it.supplier && (
-                      <span style={{ marginLeft:'5px', fontSize:'0.72rem', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'3px', padding:'0 4px', color:'#fb923c' }}>{it.supplier}</span>
-                    )}
+                    {it.supplier && <span style={{ marginLeft:'5px', fontSize:'0.72rem', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'3px', padding:'0 4px', color:'#fb923c' }}>{it.supplier}</span>}
                   </span>
+                  <span />
                   {qtyInput(it.selected, it.transferQty, it.quantity, v => updateExtItem(idx, 'transferQty', v))}
-                  <span style={{ fontSize:'0.74rem', color:'#7878a0', flexShrink:0 }}>/{it.quantity} {it.unit || 'Cái'}</span>
+                  <span style={{ fontSize:'0.74rem', color:'#7878a0' }}>/{it.quantity} {it.unit || 'Cái'}</span>
                 </div>
               ))}
             </div>
