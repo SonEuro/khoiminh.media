@@ -30,7 +30,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, zalo_uid: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -139,7 +139,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, zalo_uid: u.zalo_uid || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -248,13 +248,14 @@ export default function Users() {
                       ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Hoạt động</span>
                       : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
-                  <div style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) ? '6px' : '10px' }}>{u.username}</div>
-                  {(u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc) && (
+                  <div style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) ? '6px' : '10px' }}>{u.username}</div>
+                  {(u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'10px' }}>
                       {!!u.is_truong_phong  && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
                       {!!u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
                       {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
                       {!!u.is_tra_ncc     && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>NCC</span>}
+                      {!!u.is_quan_ly_kho && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.4)', color:'#f87171' }}>Quản lý kho</span>}
                     </div>
                   )}
                   {isSuperAdmin && (
@@ -640,6 +641,15 @@ export default function Users() {
                 style={{ width: '16px', height: '16px', accentColor: '#4ade80' }} />
               <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
                 🏪 NCC <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(xem form và in phiếu trả thiết bị cho nhà cung cấp)</span>
+              </span>
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.is_quan_ly_kho}
+                onChange={e => set('is_quan_ly_kho', e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#f87171' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                🏭 Quản lý kho <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(nhận vi phạm nếu sự kiện Kỹ Thuật chưa xuất kho lúc 15h)</span>
               </span>
             </label>
 
