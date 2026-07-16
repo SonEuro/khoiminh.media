@@ -29,22 +29,21 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-  const { username, full_name, position, role, is_active, password, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, zalo_uid } = req.body;
+  const { username, full_name, position, role, is_active, password, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, zalo_uid } = req.body;
   if (!username?.trim() || !full_name?.trim() || !role)
     return res.status(400).json({ error: 'Tên đăng nhập, họ tên và vai trò là bắt buộc' });
   const id  = req.params.id;
-  const tp  = is_truong_phong  ? 1 : 0;
   const pl  = is_phan_lich     ? 1 : 0;
   const pla = is_phan_lich_all ? 1 : 0;
   const tncc = is_tra_ncc      ? 1 : 0;
   const qlk  = is_quan_ly_kho  ? 1 : 0;
   const zalo = zalo_uid?.trim() || null;
   if (password) {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, zalo_uid=?, password_hash=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, pl, pla, tncc, qlk, zalo, bcrypt.hashSync(password, 10), id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, zalo_uid=?, password_hash=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, zalo, bcrypt.hashSync(password, 10), id);
   } else {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_truong_phong=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, zalo_uid=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, tp, pl, pla, tncc, qlk, zalo, id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, zalo_uid=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, zalo, id);
   }
   res.json({ ok: true });
 });

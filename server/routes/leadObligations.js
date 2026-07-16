@@ -6,7 +6,17 @@ router.get('/', (req, res) => {
   try { checkAndCreateViolations(); } catch (e) { console.error('[obligations] check error:', e.message); }
 
   const { role, id: userId, full_name, is_truong_phong, is_phan_lich_all } = req.user;
-  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_truong_phong || !!is_phan_lich_all;
+  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role) || !!is_phan_lich_all;
+  const isTruongPhong = !!is_truong_phong;
+
+  const ROLE_TO_DEPT = {
+    ATAS: 'ATAS-LED',
+    TECHNICAL: 'Kỹ Thuật',
+    PRODUCTION: 'Sản Xuất',
+    STAGE: 'Sân Khấu',
+    CSVC: 'Cơ Sở Vật Chất',
+    ACCOUNTING: 'Kế Toán',
+  };
 
   // Cho phép report_date = assigned_date HOẶC ngày hôm sau (người dùng có thể nộp muộn 1 ngày)
   const reportSubquery = `
@@ -25,6 +35,21 @@ router.get('/', (req, res) => {
       LEFT JOIN events e ON e.id = o.event_id
       ORDER BY o.assigned_date DESC
     `).all();
+  } else if (isTruongPhong && ROLE_TO_DEPT[role]) {
+    const dept = ROLE_TO_DEPT[role];
+    const groupRows = db.prepare(`SELECT members FROM staff_groups WHERE dept = ?`).all(dept);
+    const deptMembers = new Set([full_name]);
+    for (const g of groupRows) {
+      try { for (const m of JSON.parse(g.members)) if (m) deptMembers.add(m); } catch (_) {}
+    }
+    const placeholders = [...deptMembers].map(() => '?').join(',');
+    rows = db.prepare(`
+      SELECT o.*, e.name AS event_display, ${reportSubquery}
+      FROM lead_report_obligations o
+      LEFT JOIN events e ON e.id = o.event_id
+      WHERE o.lead_name IN (${placeholders})
+      ORDER BY o.assigned_date DESC
+    `).all([...deptMembers]);
   } else {
     rows = db.prepare(`
       SELECT o.*, e.name AS event_display, ${reportSubquery}

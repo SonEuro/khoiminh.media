@@ -31,7 +31,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_truong_phong: false, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, zalo_uid: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, zalo_uid: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -141,7 +141,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_truong_phong: !!u.is_truong_phong, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, zalo_uid: u.zalo_uid || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, zalo_uid: u.zalo_uid || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -274,10 +274,10 @@ export default function Users() {
                       ? <span style={{ color:'#4ade80', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Hoạt động</span>
                       : <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.84rem', flexShrink:0 }}>● Vô hiệu</span>}
                   </div>
-                  <div style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom: (u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) ? '6px' : '10px' }}>{u.username}</div>
-                  {(u.is_truong_phong || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) && (
+                  <div style={{ fontSize:'0.84rem', color:'var(--text-muted)', marginBottom: (u.position === 'Trưởng phòng' || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) ? '6px' : '10px' }}>{u.username}</div>
+                  {(u.position === 'Trưởng phòng' || u.is_phan_lich || u.is_phan_lich_all || u.is_tra_ncc || u.is_quan_ly_kho) && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'10px' }}>
-                      {!!u.is_truong_phong  && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
+                      {u.position === 'Trưởng phòng' && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.4)', color:'#a78bfa' }}>Trưởng phòng</span>}
                       {!!u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(74,222,128,0.15)', border:'1px solid rgba(74,222,128,0.4)', color:'#4ade80' }}>Phân lịch tất cả</span>}
                       {!!u.is_phan_lich && !u.is_phan_lich_all && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(96,165,250,0.15)', border:'1px solid rgba(96,165,250,0.4)', color:'#60a5fa' }}>Phân lịch</span>}
                       {!!u.is_tra_ncc     && <span style={{ fontSize:'0.82rem', fontWeight:700, padding:'2px 7px', borderRadius:'4px', background:'rgba(251,191,36,0.15)', border:'1px solid rgba(251,191,36,0.4)', color:'#fbbf24' }}>NCC</span>}
@@ -633,15 +633,6 @@ export default function Users() {
                 <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>Tài khoản đang hoạt động</span>
               </label>
             )}
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={!!form.is_truong_phong}
-                onChange={e => set('is_truong_phong', e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: '#2dd4bf' }} />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
-                🏅 Trưởng phòng <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>(có quyền hủy sự kiện &amp; xem thùng rác)</span>
-              </span>
-            </label>
 
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <input type="checkbox" checked={!!form.is_phan_lich}

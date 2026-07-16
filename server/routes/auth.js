@@ -13,7 +13,7 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Sai tên đăng nhập hoặc mật khẩu' });
   }
 
-  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: !!user.is_truong_phong, is_phan_lich: !!user.is_phan_lich, is_phan_lich_all: !!user.is_phan_lich_all, is_tra_ncc: !!user.is_tra_ncc, is_quan_ly_kho: !!user.is_quan_ly_kho };
+  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: user.position === 'Trưởng phòng', is_phan_lich: !!user.is_phan_lich, is_phan_lich_all: !!user.is_phan_lich_all, is_tra_ncc: !!user.is_tra_ncc, is_quan_ly_kho: !!user.is_quan_ly_kho };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
   res.json({ token, user: payload });
 });
