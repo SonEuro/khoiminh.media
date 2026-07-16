@@ -172,7 +172,7 @@ function ConflictSection({ conflicts }) {
   return (
     <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(251,113,133,0.30)' }}>
       <SectionHeader title="Xung đột thiết bị" color="#fb7185" colorRgb="251,113,133" count={conflicts.length} />
-      <div style={{ background: '#13131d' }}>
+      <div style={{ background: '#13131d', maxHeight: '360px', overflowY: 'auto' }}>
         {conflicts.length === 0 ? (
           <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có xung đột nào</p>
         ) : conflicts.map((c, i) => {
