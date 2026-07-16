@@ -765,10 +765,11 @@ router.post('/transfer', canTransact, (req, res) => {
       targetCode   = nextCode('OUT', target_event_id, req.user.full_name);
       targetStatus = 'pending';
     } else {
-      targetCode = `${existingOut.code} - cập nhật`;
+      const baseCode = existingOut.code.replace(/ - cập nhật( \d+)?$/, '');
+      targetCode = `${baseCode} - cập nhật`;
       let n = 1;
       while (db.prepare('SELECT 1 FROM transactions WHERE code = ?').get(targetCode))
-        targetCode = `${existingOut.code} - cập nhật ${++n}`;
+        targetCode = `${baseCode} - cập nhật ${++n}`;
       targetStatus = 'completed';
     }
 
