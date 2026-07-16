@@ -1028,9 +1028,9 @@ export default function Events() {
                       )}
                     </div>
                     {(showArchive || showDelete) && (
-                      <div className="ev-card-row">
-                        {showArchive && <button className="ev-action ev-action-edit" onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
-                        {showDelete  && <button className="ev-action ev-action-danger" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                      <div style={{ display:'flex', gap:'6px' }}>
+                        {showArchive && <button className="ev-action ev-action-edit" style={{ flex:1 }} onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
+                        {showDelete  && <button className="ev-action ev-action-danger" style={{ flex:1 }} onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
                       </div>
                     )}
                   </div>
