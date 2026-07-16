@@ -41,6 +41,114 @@ const DEPT_OPTIONS = [
   { value: 'CSVC', label: 'CSVC',            cats: ['CSVC'],                           Icon: Package      },
 ];
 
+function ResetModal({ onDone }) {
+  const [open, setOpen] = useState(false);
+  const [txList, setTxList] = useState([]);
+  const [selected, setSelected] = useState(new Set());
+  const [loading, setLoading] = useState(false);
+
+  async function openModal() {
+    setLoading(true);
+    try {
+      const rows = await api.getOutTransactions();
+      setTxList(rows);
+      setSelected(new Set());
+    } finally {
+      setLoading(false);
+      setOpen(true);
+    }
+  }
+
+  function toggle(id) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected(selected.size === txList.length ? new Set() : new Set(txList.map(t => t.id)));
+  }
+
+  async function handleReset() {
+    if (selected.size === 0) return;
+    if (!confirm(`⚠️ Reset ${selected.size} phiếu xuất đã chọn?\n\nThao tác này không thể hoàn tác!`)) return;
+    setLoading(true);
+    try {
+      const r = await api.resetOutTransactionsSelective([...selected]);
+      alert(`✅ Hoàn tất!\n• Thiết bị cập nhật: ${r.equipment_updated}\n• Phiếu đã xóa: ${r.transactions_deleted}`);
+      setOpen(false);
+      onDone();
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const fmtDate = (s) => s ? s.slice(5, 10).replace('-', '/') : '—';
+
+  return (
+    <>
+      <button className="btn-danger btn-sm" onClick={openModal}>
+        🔄 Reset phiếu xuất
+      </button>
+      {open && (
+        <Modal title="Chọn phiếu xuất để reset" onClose={() => setOpen(false)} size="md">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.82rem', color: '#7878a0' }}>{txList.length} phiếu — đã chọn {selected.size}</span>
+              <button onClick={toggleAll} style={{ fontSize: '0.80rem', color: '#c9a84c', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                {selected.size === txList.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+              </button>
+            </div>
+            <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {txList.map(tx => {
+                const sel = selected.has(tx.id);
+                return (
+                  <div key={tx.id} onClick={() => toggle(tx.id)} style={{
+                    display: 'grid', gridTemplateColumns: '18px 1fr auto', alignItems: 'center', gap: '10px',
+                    padding: '9px 12px', borderRadius: '8px', cursor: 'pointer',
+                    background: sel ? 'rgba(251,113,133,0.07)' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${sel ? 'rgba(251,113,133,0.30)' : 'rgba(255,255,255,0.06)'}`,
+                  }}>
+                    <input type="checkbox" checked={sel} onChange={() => toggle(tx.id)}
+                      onClick={e => e.stopPropagation()}
+                      style={{ accentColor: '#fb7185', width: '14px', height: '14px', cursor: 'pointer' }} />
+                    <div>
+                      <div style={{ fontSize: '0.85rem', color: sel ? '#fda4af' : '#e0e0ee', fontWeight: 600 }}>{tx.code}</div>
+                      <div style={{ fontSize: '0.76rem', color: '#7878a0' }}>{tx.event_name} · {tx.item_count} loại</div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.76rem', color: '#555570', flexShrink: 0 }}>
+                      <div style={{ color: tx.status === 'completed' ? '#4ade80' : '#fbbf24', fontWeight: 700 }}>
+                        {tx.status === 'completed' ? 'Đã xác nhận' : 'Chờ xác nhận'}
+                      </div>
+                      <div>{fmtDate(tx.expected_return_date)}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              disabled={selected.size === 0 || loading}
+              onClick={handleReset}
+              style={{
+                padding: '11px', borderRadius: '8px', fontWeight: 700, fontSize: '0.92rem',
+                cursor: selected.size > 0 && !loading ? 'pointer' : 'not-allowed',
+                border: `1px solid ${selected.size > 0 ? 'rgba(251,113,133,0.5)' : 'rgba(255,255,255,0.07)'}`,
+                background: selected.size > 0 ? 'rgba(251,113,133,0.12)' : 'transparent',
+                color: selected.size > 0 ? '#fb7185' : '#4a4a6a',
+              }}>
+              {loading ? 'Đang xử lý...' : `🔄 Reset ${selected.size > 0 ? selected.size + ' phiếu' : ''}`}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
+
 const CAT_ORDER = ['TECH', 'AUDIO', 'LIGHT', 'LED', 'MATRIX', 'STAGE', 'CSVC'];
 const sortCats = (cats) => [...cats].sort((a, b) => {
   const ai = CAT_ORDER.indexOf(a.code), bi = CAT_ORDER.indexOf(b.code);
@@ -293,21 +401,7 @@ export default function Equipment() {
           <p className="text-gray-500 text-sm">{visibleEquipment.length} thiết bị</p>
         </div>
         {['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && (
-          <button
-            className="btn-danger btn-sm"
-            onClick={async () => {
-              if (!confirm('⚠️ Xóa TOÀN BỘ phiếu xuất kho và reset "Đang dùng" về 0?\n\nThao tác này không thể hoàn tác!')) return;
-              try {
-                const r = await api.resetOutTransactions();
-                alert(`✅ Hoàn tất!\n• Thiết bị cập nhật: ${r.equipment_updated}\n• Phiếu xuất đã xóa: ${r.transactions_deleted}`);
-                load();
-              } catch (e) {
-                alert('Lỗi: ' + e.message);
-              }
-            }}
-          >
-            🔄 Reset phiếu xuất
-          </button>
+          <ResetModal onDone={load} />
         )}
       </div>
 

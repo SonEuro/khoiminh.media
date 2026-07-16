@@ -12,6 +12,81 @@ router.post('/import-equipment', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, r
   }
 });
 
+// Danh sách phiếu OUT để chọn reset
+router.get('/out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const rows = db.prepare(`
+    SELECT t.id, t.code, t.status, t.created_at, t.expected_return_date,
+      e.name AS event_name,
+      COUNT(ti.id) AS item_count
+    FROM transactions t
+    JOIN events e ON e.id = t.event_id
+    LEFT JOIN transaction_items ti ON ti.transaction_id = t.id
+    WHERE t.type = 'OUT'
+    GROUP BY t.id
+    ORDER BY t.created_at DESC
+  `).all();
+  res.json(rows);
+});
+
+// Reset từng phiếu xuất được chọn (theo tx_ids)
+router.post('/reset-out-transactions/selective', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const { tx_ids } = req.body;
+  if (!Array.isArray(tx_ids) || tx_ids.length === 0)
+    return res.status(400).json({ error: 'Thiếu tx_ids' });
+
+  const ids = tx_ids.map(Number).filter(Boolean);
+  const placeholders = ids.map(() => '?').join(',');
+
+  const doReset = db.transaction(() => {
+    // Lấy tất cả event_id liên quan để tìm cả RETURN transactions
+    const eventIds = db.prepare(
+      `SELECT DISTINCT event_id FROM transactions WHERE id IN (${placeholders})`
+    ).all(...ids).map(r => r.event_id);
+
+    const eventPlaceholders = eventIds.map(() => '?').join(',') || 'NULL';
+
+    // Tính net qty cần trả lại kho: OUT - RETURN cho các event liên quan
+    const netItems = db.prepare(`
+      SELECT ti.equipment_id,
+        SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
+        SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END) AS net
+      FROM transaction_items ti
+      JOIN transactions t ON t.id = ti.transaction_id
+      WHERE t.event_id IN (${eventPlaceholders})
+        AND t.status IN ('pending','completed')
+      GROUP BY ti.equipment_id
+      HAVING net > 0
+    `).all(...eventIds);
+
+    // Cộng lại qty_available, trừ qty_in_use
+    const updEq = db.prepare(
+      `UPDATE equipment SET qty_available = qty_available + ?, qty_in_use = MAX(0, qty_in_use - ?) WHERE id = ?`
+    );
+    for (const item of netItems) updEq.run(item.net, item.net, item.equipment_id);
+
+    // Xóa items + transactions (OUT và RETURN của cùng event)
+    const allTxIds = db.prepare(
+      `SELECT id FROM transactions WHERE event_id IN (${eventPlaceholders}) AND type IN ('OUT','RETURN')`
+    ).all(...eventIds).map(r => r.id);
+
+    if (allTxIds.length) {
+      const allPlaceholders = allTxIds.map(() => '?').join(',');
+      try { db.prepare(`DELETE FROM external_items WHERE transaction_id IN (${allPlaceholders})`).run(...allTxIds); } catch (_) {}
+      db.prepare(`DELETE FROM transaction_items WHERE transaction_id IN (${allPlaceholders})`).run(...allTxIds);
+      db.prepare(`DELETE FROM transactions WHERE id IN (${allPlaceholders})`).run(...allTxIds);
+    }
+
+    return { equipment_updated: netItems.length, transactions_deleted: allTxIds.length };
+  });
+
+  try {
+    const result = doReset();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Reset toàn bộ phiếu xuất (OUT) và đưa qty_in_use về 0
 router.post('/reset-out-transactions', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const doReset = db.transaction(() => {
