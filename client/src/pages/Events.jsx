@@ -1008,11 +1008,12 @@ export default function Events() {
                   return false;
                 })();
                 // Cho phép khi: dept khớp, HOẶC lịch có km_staff của dept,
-                // HOẶC event chưa set dept VÀ chưa có lịch (tạo lịch ban đầu)
+                // HOẶC người cùng role tạo event, HOẶC event hoàn toàn không có thông tin dept
                 const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (
                   evDepts.includes(userDept)
                   || !!schedHasDeptMember
-                  || (evDepts.length === 0 && !sched)
+                  || ev.created_by_role === user?.role
+                  || (!ev.created_by_role && evDepts.length === 0 && !sched)
                 );
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
@@ -1141,7 +1142,8 @@ export default function Events() {
                   const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (
                     pastEvDepts.includes(userDept)
                     || !!pastSchedHasDeptMember
-                    || (pastEvDepts.length === 0 && !pastSched)
+                    || ev.created_by_role === user?.role
+                    || (!ev.created_by_role && pastEvDepts.length === 0 && !pastSched)
                   );
                   const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
