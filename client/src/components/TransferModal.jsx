@@ -9,15 +9,22 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
   const [items, setItems] = useState(
     (tx.items || []).map(it => ({ ...it, selected: true, transferQty: it.quantity }))
   );
+  const [extItems, setExtItems] = useState(
+    (tx.external_items || []).map(it => ({ ...it, selected: true, transferQty: it.quantity }))
+  );
   const [loading, setLoading] = useState(false);
   const [result,  setResult]  = useState(null);
 
   const availableEvents = events.filter(e => String(e.id) !== String(tx.event_id));
-  const selectedItems   = items.filter(it => it.selected && parseInt(it.transferQty) > 0);
-  const canSubmit       = targetEventId && selectedItems.length > 0 && !loading;
+  const selectedItems    = items.filter(it => it.selected && parseInt(it.transferQty) > 0);
+  const selectedExtItems = extItems.filter(it => it.selected && parseInt(it.transferQty) > 0);
+  const canSubmit = targetEventId && (selectedItems.length > 0 || selectedExtItems.length > 0) && !loading;
 
   function updateItem(idx, field, value) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it));
+  }
+  function updateExtItem(idx, field, value) {
+    setExtItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it));
   }
 
   async function handleSubmit() {
@@ -31,6 +38,14 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
           quantity:     parseInt(it.transferQty) || 1,
           notes:        it.notes || null,
           combo:        it.combo || null,
+        })),
+        external_items: selectedExtItems.map(it => ({
+          supplier:    it.supplier || null,
+          name:        it.name,
+          quantity:    parseInt(it.transferQty) || 1,
+          unit:        it.unit || 'Cái',
+          notes:       it.notes || null,
+          rental_days: it.rental_days || null,
         })),
       });
       setResult(res);
@@ -73,12 +88,34 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
     );
   }
 
+  const rowStyle = (selected) => ({
+    display:'flex', alignItems:'center', gap:'10px',
+    padding:'8px 12px',
+    background: selected ? 'rgba(201,168,76,0.05)' : 'rgba(255,255,255,0.02)',
+    border: `1px solid ${selected ? 'rgba(201,168,76,0.22)' : 'rgba(255,255,255,0.05)'}`,
+    borderRadius:'7px', transition:'background 0.12s',
+  });
+
+  const qtyInput = (selected, value, max, onChange) => (
+    <input type="number" min="1" max={max}
+      disabled={!selected}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      style={{
+        width:'50px', height:'30px', textAlign:'center', borderRadius:'6px',
+        border: `1px solid ${selected ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.07)'}`,
+        background: selected ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.02)',
+        color: selected ? '#4ade80' : '#555570',
+        fontWeight:800, fontSize:'0.95rem', outline:'none',
+      }} />
+  );
+
   /* ── Form ── */
   return (
     <Modal title={`Chuyển thiết bị — ${tx.code}`} onClose={onClose} size="md">
       <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
 
-        {/* Sự kiện đích — đầu tiên */}
+        {/* Sự kiện đích */}
         <div>
           <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
             Thiết bị đến sự kiện
@@ -99,49 +136,62 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
           </select>
         </div>
 
-        {/* Danh sách thiết bị */}
-        <div>
-          <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
-            Danh sách thiết bị
-          </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-            {items.length === 0 && (
-              <p style={{ fontSize:'0.84rem', color:'#7878a0', margin:0 }}>Không có thiết bị nào trong phiếu này</p>
-            )}
-            {items.map((it, idx) => (
-              <div key={it.equipment_id} style={{
-                display:'flex', alignItems:'center', gap:'10px',
-                padding:'8px 12px',
-                background: it.selected ? 'rgba(201,168,76,0.05)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${it.selected ? 'rgba(201,168,76,0.22)' : 'rgba(255,255,255,0.05)'}`,
-                borderRadius:'7px', transition:'background 0.12s',
-              }}>
-                <input type="checkbox" checked={it.selected}
-                  onChange={e => updateItem(idx, 'selected', e.target.checked)}
-                  style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0, cursor:'pointer' }} />
-                <span style={{ flex:1, fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                  {it.eq_name}
-                  {it.combo && (
-                    <span style={{ marginLeft:'5px', fontSize:'0.68rem', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'3px', padding:'0 4px', color:'#a78bfa' }}>FREE</span>
-                  )}
-                </span>
-                <span style={{ fontSize:'0.74rem', color:'#555570', fontFamily:'monospace', flexShrink:0 }}>{it.eq_code}</span>
-                <input type="number" min="1" max={it.quantity}
-                  disabled={!it.selected}
-                  value={it.transferQty}
-                  onChange={e => updateItem(idx, 'transferQty', e.target.value)}
-                  style={{
-                    width:'50px', height:'30px', textAlign:'center', borderRadius:'6px',
-                    border: `1px solid ${it.selected ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                    background: it.selected ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.02)',
-                    color: it.selected ? '#4ade80' : '#555570',
-                    fontWeight:800, fontSize:'0.95rem', outline:'none',
-                  }} />
-                <span style={{ fontSize:'0.74rem', color:'#7878a0', flexShrink:0 }}>/{it.quantity} {it.unit}</span>
-              </div>
-            ))}
+        {/* Thiết bị Khôi Minh */}
+        {items.length > 0 && (
+          <div>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
+              Thiết bị Khôi Minh
+            </p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {items.map((it, idx) => (
+                <div key={it.equipment_id} style={rowStyle(it.selected)}>
+                  <input type="checkbox" checked={it.selected}
+                    onChange={e => updateItem(idx, 'selected', e.target.checked)}
+                    style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0, cursor:'pointer' }} />
+                  <span style={{ flex:1, fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {it.eq_name}
+                    {it.combo && (
+                      <span style={{ marginLeft:'5px', fontSize:'0.68rem', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'3px', padding:'0 4px', color:'#a78bfa' }}>FREE</span>
+                    )}
+                  </span>
+                  <span style={{ fontSize:'0.74rem', color:'#555570', fontFamily:'monospace', flexShrink:0 }}>{it.eq_code}</span>
+                  {qtyInput(it.selected, it.transferQty, it.quantity, v => updateItem(idx, 'transferQty', v))}
+                  <span style={{ fontSize:'0.74rem', color:'#7878a0', flexShrink:0 }}>/{it.quantity} {it.unit}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Thiết bị NCC */}
+        {extItems.length > 0 && (
+          <div>
+            <p style={{ fontSize:'0.75rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 8px' }}>
+              Thiết bị NCC
+            </p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {extItems.map((it, idx) => (
+                <div key={idx} style={rowStyle(it.selected)}>
+                  <input type="checkbox" checked={it.selected}
+                    onChange={e => updateExtItem(idx, 'selected', e.target.checked)}
+                    style={{ accentColor: GOLD, width:'15px', height:'15px', flexShrink:0, cursor:'pointer' }} />
+                  <span style={{ flex:1, fontSize:'0.87rem', color: it.selected ? '#e0e0ee' : '#7878a0', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {it.name}
+                    {it.supplier && (
+                      <span style={{ marginLeft:'5px', fontSize:'0.72rem', border:'1px solid rgba(251,146,60,0.4)', borderRadius:'3px', padding:'0 4px', color:'#fb923c' }}>{it.supplier}</span>
+                    )}
+                  </span>
+                  {qtyInput(it.selected, it.transferQty, it.quantity, v => updateExtItem(idx, 'transferQty', v))}
+                  <span style={{ fontSize:'0.74rem', color:'#7878a0', flexShrink:0 }}>/{it.quantity} {it.unit || 'Cái'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {items.length === 0 && extItems.length === 0 && (
+          <p style={{ fontSize:'0.84rem', color:'#7878a0', margin:0 }}>Không có thiết bị nào trong phiếu này</p>
+        )}
 
         {/* Submit */}
         <button
@@ -155,7 +205,7 @@ export default function TransferModal({ tx, events, onClose, onDone }) {
             color: canSubmit ? '#e8c97a' : '#4a4a6a',
             fontWeight:700, fontSize:'0.92rem',
           }}>
-          {loading ? 'Đang xử lý...' : '🔄 Cập nhật'}
+          {loading ? 'Đang xử lý...' : '🔄 Chuyển thiết bị'}
         </button>
       </div>
     </Modal>

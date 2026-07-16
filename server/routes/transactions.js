@@ -739,8 +739,10 @@ router.delete('/:id', requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'ACCO
 
 // POST /transactions/transfer — chuyển thiết bị sang sự kiện khác
 router.post('/transfer', canTransact, (req, res) => {
-  const { source_tx_id, target_event_id, items } = req.body;
-  if (!source_tx_id || !target_event_id || !Array.isArray(items) || items.length === 0)
+  const { source_tx_id, target_event_id, items, external_items } = req.body;
+  const validItems = (items || []).filter(i => parseInt(i.quantity) > 0);
+  const validExt   = (external_items || []).filter(i => i.name?.trim() && parseInt(i.quantity) > 0);
+  if (!source_tx_id || !target_event_id || (validItems.length === 0 && validExt.length === 0))
     return res.status(400).json({ error: 'Thiếu thông tin' });
 
   const sourceTx = db.prepare('SELECT * FROM transactions WHERE id = ? AND deleted_at IS NULL').get(source_tx_id);
@@ -796,14 +798,22 @@ router.post('/transfer', canTransact, (req, res) => {
     const insItem = db.prepare(
       `INSERT INTO transaction_items (transaction_id, equipment_id, quantity, notes, combo) VALUES (?, ?, ?, ?, ?)`
     );
+    const insExt = db.prepare(
+      `INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
 
-    // Items cho phiếu đích + ghi nhận để tạo RETURN nguồn
-    for (const item of items) {
+    // KM items cho phiếu đích + nguồn
+    for (const item of validItems) {
       const qty = parseInt(item.quantity) || 0;
-      if (qty > 0) {
-        insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
-        insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
-      }
+      insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+      insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+    }
+
+    // NCC items cho phiếu đích + nguồn
+    for (const it of validExt) {
+      const qty = parseInt(it.quantity) || 0;
+      insExt.run(targetTxR.lastInsertRowid, it.supplier || null, it.name, qty, it.notes || null, it.unit || 'Cái', it.rental_days || null);
+      insExt.run(sourceTxR.lastInsertRowid, it.supplier || null, it.name, qty, it.notes || null, it.unit || 'Cái', it.rental_days || null);
     }
 
     return {
