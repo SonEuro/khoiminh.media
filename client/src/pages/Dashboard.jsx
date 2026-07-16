@@ -655,10 +655,10 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
             const sl = EV_STATUS_LABEL[ev.status];
             return (
               <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => openCard(ev)}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:sc, flexShrink:0, boxShadow:`0 0 5px ${sc}99` }} />
+                <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                    <p style={{ ...T.name, color:sc }}>{ev.name}</p>
+                    <p style={T.name}>{ev.name}</p>
                     {sl && <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'4px', background:`${sc}22`, color:sc, border:`1px solid ${sc}44`, flexShrink:0 }}>{sl}</span>}
                   </div>
                   {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
@@ -678,10 +678,10 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
             const sl = EV_STATUS_LABEL[ev.status];
             return (
               <ARow key={ev.id} i={i} rgb="96,165,250" onClick={() => openCard(ev)}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:sc, flexShrink:0, boxShadow:`0 0 5px ${sc}99` }} />
+                <div style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa', flexShrink:0, boxShadow:'0 0 5px rgba(96,165,250,0.8)' }} />
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                    <p style={{ ...T.name, color:sc }}>{ev.name}</p>
+                    <p style={T.name}>{ev.name}</p>
                     {sl && <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'4px', background:`${sc}22`, color:sc, border:`1px solid ${sc}44`, flexShrink:0 }}>{sl}</span>}
                   </div>
                   {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
