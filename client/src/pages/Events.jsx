@@ -159,7 +159,7 @@ function StaffScheduleModal({ event, onClose }) {
   }
 
   return (
-    <Modal title={`Nhân sự — ${event.name}`} onClose={onClose} size="lg">
+    <Modal title={`Nhân Sự — ${event.name}`} onClose={onClose} size="lg">
       {schedules === null && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Đang tải...</p>}
       {schedules?.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px' }}>Chưa có lịch làm việc cho sự kiện này</p>}
       {schedules?.map(s => {
@@ -540,16 +540,16 @@ function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
           </div>
         )}
 
-        {/* Thiết bị trong kho */}
+        {/* Thiết Bị trong kho */}
         <div>
-          <h3 className="font-semibold mb-2" style={{ color: '#e0e0ee' }}>Thiết bị xuất kho</h3>
+          <h3 className="font-semibold mb-2" style={{ color: '#e0e0ee' }}>Thiết Bị xuất kho</h3>
           {ev.items.length === 0 ? (
             <p className="text-gray-400 text-sm">Chưa có thiết bị nào được xuất</p>
           ) : (
             <div className="table-wrap">
               <table className="w-full text-sm" style={{ minWidth: '360px' }}>
                 <thead><tr className="border-b text-gray-500 text-left">
-                  <th className="pb-2">Mã</th><th className="pb-2">Thiết bị</th>
+                  <th className="pb-2">Mã</th><th className="pb-2">Thiết Bị</th>
                   <th className="pb-2 text-right">Xuất</th><th className="pb-2 text-right">Đã trả</th><th className="pb-2 text-right">Còn nợ</th>
                 </tr></thead>
                 <tbody>
@@ -599,11 +599,11 @@ function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
           )}
         </div>
 
-        {/* Thiết bị mượn từ nhà cung cấp */}
+        {/* Thiết Bị mượn từ nhà cung cấp */}
         {ev.external_items?.length > 0 && (
           <div>
             <h3 className="font-semibold mb-2" style={{ color: '#e0e0ee' }}>
-              Thiết bị thuê từ nhà cung cấp
+              Thiết Bị thuê từ nhà cung cấp
             </h3>
             <div className="table-wrap">
               <table className="w-full text-sm" style={{ minWidth: '320px' }}>
@@ -979,10 +979,10 @@ export default function Events() {
                   <div style={{ padding:'6px 16px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
                     <div className="ev-card-row">
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}>
-                        <span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span>
+                        <span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span>
                       </button>
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
-                        <span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span>
+                        <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
                       {showEdit && (
                         <button className="ev-action ev-action-edit" onClick={() => { setSelected(ev); setModal('form'); }}>
@@ -992,7 +992,7 @@ export default function Events() {
                       {canSuaLich && ev.status !== 'cancelled' && (
                         <button className="ev-action" style={{ color: GOLD, borderColor: 'rgba(201,168,76,0.3)' }}
                           onClick={() => navigate('/work-schedule', { state: { openFormForEvent: ev.id } })}>
-                          <span className="ev-ico">📅</span><span className="ev-lbl">Sửa lịch</span>
+                          <span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span>
                         </button>
                       )}
                       {showCancel && (
@@ -1122,8 +1122,8 @@ export default function Events() {
                       {/* Hàng 5: buttons */}
                       <div style={{ padding:'0 12px 10px' }}>
                         <div className="ev-card-row">
-                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết bị</span></button>
-                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân sự</span></button>
+                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span></button>
+                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span></button>
                           {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
                           {showArchive && <button className="ev-action ev-action-edit"   onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
                           {showUnarch  && <button className="ev-action"                  onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu</span></button>}
