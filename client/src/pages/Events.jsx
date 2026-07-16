@@ -259,6 +259,7 @@ const STATUS_MAP = {
   completed: { label: 'Hoàn thành',   cls: 'badge-available' },
   cancelled: { label: 'Đã hủy',       cls: 'badge-lost' },
 };
+const PHASE_LABEL_MAP = { setup: 'Setup', teardown: 'Tháo dỡ', rehearsal: 'Rehearsal', filming: 'Ghi hình' };
 
 function parseFilmingDates(ev) {
   if (!ev) return [];
@@ -781,6 +782,7 @@ export default function Events() {
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [showTrash, setShowTrash] = useState(false);
+  const [pendingObs, setPendingObs] = useState([]);
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -814,6 +816,19 @@ export default function Events() {
         }
       }
       setWsDateMap(map);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const yesterdayVN = (() => {
+      const d = new Date(Date.now() + 7 * 3600 * 1000);
+      d.setUTCDate(d.getUTCDate() - 1);
+      return d.toISOString().slice(0, 10);
+    })();
+    api.getLeadObligations().then(obs => {
+      const locked  = obs.filter(o => !o.submitted && o.locked);
+      const pending = obs.filter(o => !o.submitted && !o.locked && o.assigned_date === yesterdayVN);
+      setPendingObs([...locked, ...pending]);
     }).catch(() => {});
   }, []);
 
@@ -899,6 +914,38 @@ export default function Events() {
           <button className="btn-secondary btn-sm ev-btn-trash" onClick={() => setShowTrash(true)}>🗑 Thùng Rác</button>
         )}
       </div>
+
+      {pendingObs.length > 0 && (
+        <div style={{ marginBottom:'12px', borderRadius:'10px', overflow:'hidden', border:'1px solid rgba(251,146,60,0.28)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(251,146,60,0.14) 0%,rgba(251,146,60,0.03) 100%)', borderBottom:'1px solid rgba(251,146,60,0.16)', borderLeft:'3px solid #fb923c' }}>
+            <span style={{ fontWeight:700, color:'#fb923c', fontSize:'0.84rem', flex:1, letterSpacing:'0.04em' }}>BÁO CÁO CẦN NỘP</span>
+            <span style={{ background:'rgba(251,146,60,0.2)', color:'#fb923c', borderRadius:'999px', fontSize:'0.76rem', fontWeight:800, padding:'1px 8px', border:'1px solid rgba(251,146,60,0.4)' }}>{pendingObs.length}</span>
+          </div>
+          <div style={{ background:'#13131d', maxHeight:'292px', overflowY:'auto' }}>
+            {pendingObs.map((ob, i) => (
+              <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 14px', borderTop: i > 0 ? '1px solid rgba(251,146,60,0.07)' : 'none' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                    <p style={{ fontWeight:600, color: ob.overdue ? '#fca5a5' : '#fbbf24', fontSize:'0.83rem', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {ob.event_display || ob.event_name || 'Sự kiện'}
+                    </p>
+                    {ob.overdue && <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>Quá hạn</span>}
+                  </div>
+                  <p style={{ fontSize:'0.82rem', color:'#a0a0c0', margin:'1px 0 0', fontWeight:600 }}>{ob.lead_name}</p>
+                  <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'1px 0 0' }}>
+                    {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)} · <span style={{ color: ob.overdue ? '#f87171' : '#fb923c', fontWeight:700 }}>Hạn {fmtD(ob.deadline?.slice(0,10))}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/event-report', { state: { prefill: { event_id: ob.event_id, event_label: ob.event_display || ob.event_name, report_date: ob.assigned_date } } })}
+                  style={{ flexShrink:0, padding:'5px 12px', borderRadius:'7px', cursor:'pointer', border:'none', background: ob.overdue ? 'rgba(248,113,113,0.2)' : 'rgba(251,146,60,0.2)', color: ob.overdue ? '#f87171' : '#fb923c', fontSize:'0.80rem', fontWeight:700 }}>
+                  Nộp báo cáo
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(() => {
         if (events.length === 0) return (
