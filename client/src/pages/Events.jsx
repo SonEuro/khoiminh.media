@@ -709,8 +709,10 @@ function ZoneHeader({ color, bg, border, label, count }) {
 export default function Events() {
   const { user, can } = useAuth();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
-  const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role);
+  const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(user?.role);
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
+  const userDept = ROLE_TO_DEPT[user?.role] || null;
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowStr = (() => {
@@ -924,7 +926,9 @@ export default function Events() {
               </div>
               {/* Hàng 5: buttons */}
               {(() => {
-                const showEdit    = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
+                const evDepts = parseDepts(ev);
+                const isTruongPhongOfDept = !!user?.is_truong_phong && userDept && evDepts.includes(userDept);
+                const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                 const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';

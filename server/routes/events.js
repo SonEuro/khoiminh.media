@@ -313,16 +313,26 @@ router.post('/', canWrite, (req, res) => {
   pushByRoles(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, '/events', ALL_ROLES).catch(() => {});
 });
 
+const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
+
 router.put('/:id', (req, res, next) => {
   const { role, is_truong_phong } = req.user || {};
-  const allowed = ['SUPER_ADMIN','DIRECTOR','PRODUCTION','TECHNICAL','ATAS','STAGE','CSVC'];
-  if (allowed.includes(role) || is_truong_phong) return next();
+  // SUPER_ADMIN, DIRECTOR, PRODUCTION → sửa tất cả
+  if (['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(role)) return next();
+  // Trưởng phòng → chỉ sửa sự kiện có nhãn bộ phận mình
+  if (is_truong_phong) {
+    const ev = db.prepare('SELECT departments FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+    if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+    const depts = (() => { try { return JSON.parse(ev.departments || '[]'); } catch { return []; } })();
+    if (depts.includes(ROLE_TO_DEPT[role])) return next();
+    return res.status(403).json({ error: 'Trưởng phòng chỉ được sửa sự kiện có nhãn bộ phận mình' });
+  }
   return res.status(403).json({ error: 'Không có quyền chỉnh sửa sự kiện' });
 }, (req, res) => {
   const ev = db.prepare('SELECT status, created_by_id FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
-  if (ev.status === 'completed' && !['SUPER_ADMIN','DIRECTOR'].includes(req.user.role) && !req.user.is_truong_phong)
-    return res.status(403).json({ error: 'Chỉ SUPER_ADMIN/DIRECTOR/Trưởng phòng được chỉnh sửa sự kiện đã hoàn thành' });
+  if (ev.status === 'completed' && !['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(req.user.role) && !req.user.is_truong_phong)
+    return res.status(403).json({ error: 'Không có quyền chỉnh sửa sự kiện đã hoàn thành' });
   const { name, client, location, start_dates, end_dates, filming_dates, show_dates, status, notes, departments } = req.body;
   const deptsJson2 = departments?.length ? JSON.stringify(departments) : null;
   const startArr2 = parseMultiField(start_dates);
