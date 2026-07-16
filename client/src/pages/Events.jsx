@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import EventDetailModal from '../components/EventDetailModal';
@@ -708,8 +708,10 @@ function ZoneHeader({ color, bg, border, label, count }) {
 
 export default function Events() {
   const { user, can } = useAuth();
+  const navigate    = useNavigate();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(user?.role);
+  const canSuaLich  = canFullEdit || !!user?.is_phan_lich || !!user?.is_phan_lich_all || !!user?.is_truong_phong;
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
   const userDept = ROLE_TO_DEPT[user?.role] || null;
@@ -968,7 +970,13 @@ export default function Events() {
                       </button>
                       {showEdit && (
                         <button className="ev-action ev-action-edit" onClick={() => { setSelected(ev); setModal('form'); }}>
-                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span>
+                          <span className="ev-ico">✏️</span><span className="ev-lbl">Sửa SK</span>
+                        </button>
+                      )}
+                      {canSuaLich && ev.status !== 'cancelled' && (
+                        <button className="ev-action" style={{ color: GOLD, borderColor: 'rgba(201,168,76,0.3)' }}
+                          onClick={() => navigate('/work-schedule', { state: { openFormForEvent: ev.id } })}>
+                          <span className="ev-ico">📅</span><span className="ev-lbl">Sửa lịch</span>
                         </button>
                       )}
                       {showCancel && (

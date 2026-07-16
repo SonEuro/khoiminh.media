@@ -1136,6 +1136,7 @@ export default function WorkSchedule() {
 
   const isSADir = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const [schedules, setSchedules] = useState([]);
+  const [schedulesLoaded, setSchedulesLoaded] = useState(false);
   const [events, setEvents] = useState([]);
   const [modal, setModal] = useState(null);
 
@@ -1150,7 +1151,7 @@ export default function WorkSchedule() {
   }, [isSADir]);
 
   const load = useCallback(() => {
-    api.getWorkSchedules().then(setSchedules).catch(() => {});
+    api.getWorkSchedules().then(data => { setSchedules(data); setSchedulesLoaded(true); }).catch(() => {});
     api.getLeadObligations().then(setObligations).catch(() => {});
   }, []);
 
@@ -1186,6 +1187,20 @@ export default function WorkSchedule() {
     setScheduleHistory([]);
     api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {});
   }, [schedules, location.state?.schedId]);
+
+  // Tự mở form khi navigate từ trang Sự kiện với openFormForEvent
+  const openFormHandled = useRef(null);
+  useEffect(() => {
+    const eventId = location.state?.openFormForEvent;
+    if (!eventId || !events.length || !schedulesLoaded) return;
+    if (openFormHandled.current === eventId) return;
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+    openFormHandled.current = eventId;
+    const existing = schedules.find(s => s.event_id === eventId);
+    setSelected(existing || { event_id: eventId, event_name: ev.name });
+    setModal('form');
+  }, [events, schedules, schedulesLoaded, location.state?.openFormForEvent]);
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowStr = (() => {
