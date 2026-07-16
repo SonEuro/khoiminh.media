@@ -37,11 +37,11 @@ router.get('/', (req, res) => {
 
   const wsTodayIds    = wsEventIdsForDate(today);
 
-  // 1. Events filming today or spanning today
+  // 1. Events with specific operations today (filming date or work schedule phase)
   const todayEvents = allEvents.filter(ev => {
+    if (ev.status === 'cancelled') return false;
     const dates = getFilmingDates(ev);
     if (dates.includes(today)) return true;
-    if (ev.start_date && ev.start_date <= today && (!ev.end_date || ev.end_date >= today)) return true;
     if (wsTodayIds.has(ev.id)) return true;
     return false;
   }).map(ev => ({
@@ -185,9 +185,9 @@ router.get('/', (req, res) => {
   const tomorrow = db.prepare("SELECT date('now','+1 day','localtime') AS d").get().d;
   const wsTomorrowIds = wsEventIdsForDate(tomorrow);
   const tomorrowEvents = allEvents.filter(ev => {
+    if (ev.status === 'cancelled') return false;
     const dates = getFilmingDates(ev);
     if (dates.includes(tomorrow)) return true;
-    if (ev.start_date && ev.start_date <= tomorrow && (!ev.end_date || ev.end_date >= tomorrow)) return true;
     if (wsTomorrowIds.has(ev.id)) return true;
     return false;
   }).map(ev => ({
