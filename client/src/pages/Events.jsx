@@ -92,8 +92,9 @@ function StaffScheduleModal({ event, onClose }) {
             {startTimeEntries.map(([dept, time]) => {
               const dc = getDeptColor(dept);
               return (
-                <span key={dept} style={{ fontSize:'0.78rem', fontWeight:700, padding:'2px 8px', borderRadius:'6px', background:dc.bg, border:`1px solid ${dc.border}`, color:dc.color }}>
-                  ⏰ {dept}: {time}
+                <span key={dept} style={{ display:'inline-flex', alignItems:'baseline', gap:'5px', padding:'3px 9px', borderRadius:'6px', background:dc.bg, border:`1px solid ${dc.border}` }}>
+                  <span style={{ fontSize:'0.72rem', fontWeight:700, color:dc.color }}>⏰ {dept}</span>
+                  <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fff', letterSpacing:'0.03em' }}>{time}</span>
                 </span>
               );
             })}
