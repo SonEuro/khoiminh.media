@@ -10,7 +10,7 @@ import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, ChevronUp, ChevronDown,
-  Printer, MapPin, User, Archive, ArchiveRestore, Trash2,
+  Printer, MapPin, User, Archive, ArchiveRestore, Trash2, TriangleAlert,
 } from 'lucide-react';
 
 const GOLD = '#c9a84c';
@@ -1059,6 +1059,39 @@ function Empty({ text }) {
   return <p style={{ color:'#7878a0', fontSize:'0.84rem', padding:'12px 0', textAlign:'center' }}>{text}</p>;
 }
 
+function ConflictRows({ conflicts }) {
+  if (conflicts.length === 0) return <Empty text="Không có xung đột thiết bị" />;
+  return (
+    <div style={{ display:'flex', flexDirection:'column' }}>
+      {conflicts.map((c, i) => {
+        const total = c.events.reduce((s, e) => s + e.qty, 0);
+        const avail = c.effective_available ?? c.qty_available;
+        return (
+          <div key={i} style={{ padding:'10px 16px', borderTop: i > 0 ? '1px solid rgba(251,113,133,0.08)' : 'none' }}>
+            <div style={{ display:'flex', alignItems:'baseline', gap:'8px', marginBottom:'5px' }}>
+              <span style={{ fontSize:'0.84rem', color:'#fb7185', fontWeight:700 }}>GH {fmtD(c.date)}</span>
+              <span style={{ fontSize:'0.85rem', color:'#e0e0ee', fontWeight:700, flex:1 }}>{c.eq_name}</span>
+              <span style={{ fontSize:'0.78rem', color:'#fb7185', fontWeight:800, flexShrink:0 }}>cần {total} / có {avail} {c.unit}</span>
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>
+              {c.events.map(ev => (
+                <span key={ev.id} style={{ fontSize:'0.82rem', padding:'2px 8px', borderRadius:'9999px', background:'rgba(251,113,133,0.12)', border:'1px solid rgba(251,113,133,0.3)', color:'#fda4af' }}>
+                  {ev.name} ({ev.qty} {c.unit})
+                </span>
+              ))}
+              {c.held_by_others > 0 && (
+                <span style={{ fontSize:'0.78rem', padding:'2px 8px', borderRadius:'9999px', background:'rgba(251,146,60,0.10)', border:'1px solid rgba(251,146,60,0.3)', color:'#fb923c' }}>
+                  +{c.held_by_others} {c.unit} event khác đang giữ
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Section contents ──────────────────────────────────────────────────────────
 function EventRows({ events, isSuperAdmin, onArchive }) {
   if (!events.length) return <Empty text="Chưa có sự kiện nào" />;
@@ -1308,6 +1341,7 @@ export default function Transactions() {
   const [transferTx,          setTransferTx]          = useState(null);
   const [trashedTxs,          setTrashedTxs]          = useState([]);
   const [trashLoaded,         setTrashLoaded]         = useState(false);
+  const [conflicts,           setConflicts]           = useState([]);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1325,11 +1359,13 @@ export default function Transactions() {
       api.getTransactions({ type: 'RETURN',                   limit: 10, hide_archived: 'true' }),
       api.getEventReports(),
       api.getViolations(),
-    ]).then(([ev, allEv, pending, out, ret, rep, vio]) => {
+      api.getDashboard(),
+    ]).then(([ev, allEv, pending, out, ret, rep, vio, dash]) => {
       setEvents(ev);
       setArchivedEvents(allEv.filter(e => !!e.archived_at));
       setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
       setReports(rep); setViolations(vio);
+      setConflicts(dash?.conflicts || []);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
 
@@ -1447,6 +1483,10 @@ export default function Transactions() {
               onUnarchive={handleUnarchiveEvent}
               onDelete={handleDeleteArchivedEvent}
             />
+          </Section>
+
+          <Section Icon={TriangleAlert} title="Xung Đột Thiết Bị" color="#fb7185" border="rgba(251,113,133,0.30)" count={conflicts.length}>
+            <ConflictRows conflicts={conflicts} />
           </Section>
 
           {isSuperAdmin && (

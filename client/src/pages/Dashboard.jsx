@@ -742,11 +742,10 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
 
 
       {/* Xuất kho + quá hạn trả (vẫn cần cho admin) */}
-      {(dash?.need_confirm?.length > 0 || dash?.overdue?.length > 0 || dash?.conflicts?.length > 0) && (
+      {(dash?.need_confirm?.length > 0 || dash?.overdue?.length > 0) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {dash.need_confirm.length > 0 && <ConfirmSection items={dash.need_confirm} onConfirmed={onConfirmed} />}
           {dash.overdue.length > 0 && <OverdueSection items={dash.overdue} />}
-          {dash.conflicts.length > 0 && <ConflictSection conflicts={dash.conflicts} />}
         </div>
       )}
     </div>
