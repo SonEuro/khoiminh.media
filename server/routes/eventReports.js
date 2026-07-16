@@ -133,6 +133,7 @@ router.put('/:id', requireAuth, (req, res) => {
     JSON.stringify(newHistory),
     req.params.id,
   );
+  pushAll(`✏️ Báo cáo sự kiện cập nhật`, `${report.event_label || '—'} · ${report.reporter_name || '—'}`, '/event-reports').catch(() => {});
   res.json({ ok: true });
 });
 

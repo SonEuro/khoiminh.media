@@ -199,6 +199,8 @@ router.put('/:id', (req, res) => {
   db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'edit')`)
     .run(req.params.id, req.user.id, req.user.full_name);
   try { syncObligations(req.params.id); } catch (e) { console.error('[obligations] sync error:', e.message); }
+  const name = b.event_name?.trim() || sched.event_name;
+  pushAll(`✏️ Lịch làm việc cập nhật`, `${name}${b.location ? ' · ' + b.location : ''}`, '/work-schedules').catch(() => {});
   res.json({ ok: true });
 });
 
@@ -211,6 +213,7 @@ router.post('/:id/confirm', canPhanLich, (req, res) => {
   db.prepare(`INSERT INTO work_schedule_edits (schedule_id, edited_by_id, edited_by_name, action) VALUES (?, ?, ?, 'confirm')`)
     .run(req.params.id, req.user.id, req.user.full_name);
   try { syncObligations(req.params.id); } catch (e) { console.error('[obligations] sync error:', e.message); }
+  pushAll(`✅ Lịch làm việc xác nhận`, `${sched.event_name}${sched.location ? ' · ' + sched.location : ''}`, '/work-schedules').catch(() => {});
   res.json({ ok: true });
 });
 
