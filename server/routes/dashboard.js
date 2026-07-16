@@ -135,7 +135,7 @@ router.get('/', (req, res) => {
       WHERE t.status IN ('pending', 'completed')
         AND e.archived_at IS NULL AND e.deleted_at IS NULL
         AND t.event_id NOT IN (${upcomingIdsStr})
-        AND (t.expected_return_date IS NULL OR t.expected_return_date >= ?)
+        AND t.expected_return_date IS NOT NULL AND t.expected_return_date >= ?
       GROUP BY ti.equipment_id
       HAVING qty > 0
     `).all(d);
