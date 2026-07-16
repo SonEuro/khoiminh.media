@@ -7,7 +7,7 @@ import { printNccReturn } from '../utils/printNccReturn';
 import Modal from '../components/Modal';
 import DateInput from '../components/DateInput';
 import { LayoutGrid, Clapperboard, Headphones, Theater, Package, Printer } from 'lucide-react';
-import { NCC_CATALOG, NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
+import { NCC_CATALOG as NCC_CATALOG_STATIC, NCC_LIST as NCC_LIST_STATIC, NCC_DEPT as NCC_DEPT_STATIC } from '../utils/nccCatalog';
 
 const DEPTS = [
   { value: '',       Icon: LayoutGrid,   label: 'Tất cả',   cats: null },
@@ -42,12 +42,25 @@ export default function ExportForm() {
   const defaultDept = ROLE_DEPT[user?.role] || '';
   const isLocked = LOCKED_ROLES.includes(user?.role);
 
-  // Lọc NCC theo bộ phận của người dùng
   const roleDeptCode = { TECHNICAL: 'TECH', ATAS: 'ATAS', STAGE: 'STAGE', CSVC: 'CSVC' };
   const userDept = roleDeptCode[user?.role];
+
+  // NCC catalog từ DB (fallback về static nếu chưa load xong)
+  const [nccCatalog, setNccCatalog]       = useState(NCC_CATALOG_STATIC);
+  const [nccSuppliers, setNccSuppliers]   = useState(
+    NCC_LIST_STATIC.map(name => ({ name, dept: NCC_DEPT_STATIC[name]?.[0] || null }))
+  );
+
+  useEffect(() => {
+    api.getNccCatalog().then(({ suppliers, catalog }) => {
+      setNccSuppliers(suppliers);
+      setNccCatalog(catalog);
+    }).catch(() => {});
+  }, []);
+
   const visibleNCC = isLocked
-    ? NCC_LIST.filter(s => NCC_DEPT[s]?.includes(userDept))
-    : NCC_LIST; // SUPER_ADMIN / DIRECTOR / PRODUCTION thấy tất cả
+    ? nccSuppliers.filter(s => s.dept === userDept).map(s => s.name)
+    : nccSuppliers.map(s => s.name);
 
   const [equipment, setEquipment] = useState([]);
   const [events, setEvents]       = useState([]);
@@ -182,7 +195,7 @@ export default function ExportForm() {
     const rowExt = items
       .filter(it => it.mode === 'ext' && it.ext_name.trim())
       .map(it => {
-        const catalog = NCC_CATALOG[it.ext_supplier] || [];
+        const catalog = nccCatalog[it.ext_supplier] || [];
         const found = catalog.find(c => c.name === it.ext_name.trim());
         return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(0.5, parseFloat(it.rental_days) || 1), combo: it.combo || null };
       });
@@ -508,7 +521,7 @@ export default function ExportForm() {
                 const supplierSuggestions = item.ext_supplier
                   ? visibleNCC.filter(s => s.toLowerCase().includes(item.ext_supplier.toLowerCase()) && s !== item.ext_supplier).slice(0, 6)
                   : visibleNCC.slice(0, 6);
-                const catalog = item.ext_supplier ? (NCC_CATALOG[item.ext_supplier] || []) : [];
+                const catalog = item.ext_supplier ? (nccCatalog[item.ext_supplier] || []) : [];
                 const nameSuggestions = item.ext_name
                   ? catalog.filter(c => c.name.toLowerCase().includes(item.ext_name.toLowerCase())).slice(0, 8)
                   : [];

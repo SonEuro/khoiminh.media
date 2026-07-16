@@ -162,4 +162,15 @@ export const api = {
   // Staff groups (danh sách nhân sự theo bộ phận)
   getStaffGroups: (type) => request(`/staff-groups?type=${type}`),
   updateStaffGroups: (type, groups) => request(`/staff-groups/${type}`, { method: 'PUT', body: groups }),
+
+  // NCC catalog
+  getNccCatalog: () => request('/ncc/catalog'),
+  getNccSuppliers: () => request('/ncc'),
+  getNccSupplier: (id) => request(`/ncc/${id}`),
+  createNccSupplier: (data) => request('/ncc', { method: 'POST', body: data }),
+  updateNccSupplier: (id, data) => request(`/ncc/${id}`, { method: 'PUT', body: data }),
+  deleteNccSupplier: (id) => request(`/ncc/${id}`, { method: 'DELETE' }),
+  createNccEquipment: (supplierId, data) => request(`/ncc/${supplierId}/equipment`, { method: 'POST', body: data }),
+  updateNccEquipment: (id, data) => request(`/ncc/equipment/${id}`, { method: 'PUT', body: data }),
+  deleteNccEquipment: (id) => request(`/ncc/equipment/${id}`, { method: 'DELETE' }),
 };

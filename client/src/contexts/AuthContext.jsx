@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
     const role = user.role;
     switch (action) {
       case 'manageUsers':    return role === 'SUPER_ADMIN';
+      case 'manageNcc':      return role === 'SUPER_ADMIN';
       case 'editEquipment':  return ['DIRECTOR', 'SUPER_ADMIN', 'PRODUCTION'].includes(role);
       case 'deleteEquipment':return ['DIRECTOR', 'SUPER_ADMIN'].includes(role);
       case 'transact':       return ['DIRECTOR', 'SUPER_ADMIN', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(role);

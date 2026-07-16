@@ -113,6 +113,26 @@ try { db.prepare("ALTER TABLE events ADD COLUMN departments TEXT DEFAULT NULL").
 try { db.prepare("ALTER TABLE transaction_items ADD COLUMN combo TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN is_quan_ly_kho INTEGER DEFAULT 0").run(); } catch (_) {}
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ncc_suppliers (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL UNIQUE,
+    dept       TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active  INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+  CREATE TABLE IF NOT EXISTS ncc_equipment (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    supplier_id INTEGER NOT NULL REFERENCES ncc_suppliers(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,
+    unit        TEXT DEFAULT 'Cái',
+    qty         INTEGER DEFAULT 1,
+    sort_order  INTEGER DEFAULT 0,
+    created_at  TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
+
 // Backfill location từ events table cho các báo cáo cũ chưa có địa điểm
 try {
   db.prepare(`

@@ -10,6 +10,7 @@ const os = require('os');
 
 require('./seed');
 try { require('./import-equipment').runOnce(); } catch (e) { console.error('[Import] Lỗi khi import thiết bị:', e.message); }
+require('./seedNcc');
 
 const { requireAuth, requireRole } = require('./middleware/auth');
 const db = require('./database');
@@ -38,6 +39,7 @@ app.use('/api/work-schedules', requireAuth, require('./routes/workSchedule'));
 app.use('/api/lead-obligations', requireAuth, require('./routes/leadObligations'));
 app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
+app.use('/api/ncc',          requireAuth, require('./routes/ncc'));
 app.use('/api/upload-image', requireAuth, require('./routes/upload'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

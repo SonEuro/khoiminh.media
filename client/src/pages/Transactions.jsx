@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import TransferModal from '../components/TransferModal';
 import { printSlip } from '../utils/printSlip';
 import { printNccReturn } from '../utils/printNccReturn';
-import { NCC_CATALOG, NCC_LIST, NCC_DEPT } from '../utils/nccCatalog';
+import { NCC_CATALOG as NCC_CATALOG_STATIC, NCC_LIST as NCC_LIST_STATIC, NCC_DEPT as NCC_DEPT_STATIC } from '../utils/nccCatalog';
 import { fmtD, fmtDT } from '../utils/fmt';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
@@ -226,11 +226,18 @@ function EditPendingModal({ txId, onClose, onSaved }) {
   const [search, setSearch]       = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const [nccCatalog, setNccCatalog]     = useState(NCC_CATALOG_STATIC);
+  const [nccList,    setNccList]        = useState(NCC_LIST_STATIC);
   const mounted = useRef(true);
   const searchWrapRef = useRef(null);
 
   useEffect(() => {
     mounted.current = true;
+    api.getNccCatalog().then(({ suppliers, catalog }) => {
+      if (!mounted.current) return;
+      setNccList(suppliers.map(s => s.name));
+      setNccCatalog(catalog);
+    }).catch(() => {});
     return () => { mounted.current = false; };
   }, []);
 
@@ -529,18 +536,29 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
   const [expandedNotes, setExpandedNotes] = useState({});
+  const [nccCatalog, setNccCatalog] = useState(NCC_CATALOG_STATIC);
+  const [nccList,    setNccList]    = useState(NCC_LIST_STATIC);
+  const [nccDept,    setNccDept]    = useState(NCC_DEPT_STATIC);
   const mounted = useRef(true);
 
   const userDept = ROLE_TO_DEPT[currentUser?.role] || '';
   const deptOfSupplier = (supplier) => {
     if (!supplier) return userDept;
-    const deptKey = NCC_DEPT[supplier]?.[0];
+    const deptKey = nccDept[supplier]?.[0];
     if (!deptKey) return userDept;
     return Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept;
   };
 
   useEffect(() => {
     mounted.current = true;
+    api.getNccCatalog().then(({ suppliers, catalog }) => {
+      if (!mounted.current) return;
+      const deptMap = {};
+      suppliers.forEach(s => { if (s.dept) deptMap[s.name] = [s.dept]; });
+      setNccList(suppliers.map(s => s.name));
+      setNccCatalog(catalog);
+      setNccDept(deptMap);
+    }).catch(() => {});
     return () => { mounted.current = false; };
   }, []);
 
@@ -639,13 +657,13 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                         list={`ncc-dl-${idx}`}
                         style={{ ...inputStyle, width:'100%', fontSize:'0.84rem', height:H, padding:'0 8px', color: it.supplier ? '#60a5fa' : undefined, fontWeight: it.supplier ? 700 : 400 }} />
                       <datalist id={`ncc-dl-${idx}`}>
-                        {it.supplier.length > 0 && (it.dept ? NCC_LIST.filter(n => NCC_DEPT[n]?.includes(DEPT_KEY[it.dept])) : NCC_LIST).map(n => <option key={n} value={n} />)}
+                        {it.supplier.length > 0 && nccList.map(n => <option key={n} value={n} />)}
                       </datalist>
                       <input placeholder="Tên thiết bị *" value={it.name} onChange={e => updateExtItem(idx, 'name', e.target.value)}
                         list={`ncc-items-dl-${idx}`}
                         style={{ ...inputStyle, width:'100%', fontSize:'0.84rem', height:H, padding:'0 8px', color: it.name ? '#93c5fd' : undefined, fontWeight: it.name ? 600 : 400 }} />
                       <datalist id={`ncc-items-dl-${idx}`}>
-                        {it.name.length > 0 && (NCC_CATALOG[it.supplier] || []).map((item, i) => (
+                        {it.name.length > 0 && (nccCatalog[it.supplier] || []).map((item, i) => (
                           <option key={i} value={item.name} />
                         ))}
                       </datalist>
@@ -856,7 +874,7 @@ function TraNccModal({ txId, onClose }) {
       const userDept = ROLE_TO_DEPT[user?.role] || '';
       setItems((data.external_items || []).map(e => {
         const supplier = e.supplier || '';
-        const deptKey = supplier ? NCC_DEPT[supplier]?.[0] : null;
+        const deptKey = supplier ? nccDept[supplier]?.[0] : null;
         const dept = deptKey
           ? Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept
           : userDept;
@@ -941,7 +959,7 @@ function TraNccModal({ txId, onClose }) {
                     <input value={row.supplier} onChange={e => updateRow(realIdx, 'supplier', e.target.value)}
                       list={dlId} placeholder="Chọn hoặc nhập NCC..."
                       style={{ ...ipt, color:'#60a5fa' }} />
-                    <datalist id={dlId}>{row.supplier.length > 0 && NCC_LIST.map(n => <option key={n} value={n} />)}</datalist>
+                    <datalist id={dlId}>{row.supplier.length > 0 && nccList.map(n => <option key={n} value={n} />)}</datalist>
                     <button onClick={() => removeRow(realIdx)}
                       style={{ background:'transparent', border:'none', cursor:'pointer', color:'#f87171', fontSize:'1.1rem', lineHeight:1, padding:'0 2px' }}>×</button>
                   </div>
