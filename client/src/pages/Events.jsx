@@ -744,7 +744,7 @@ export default function Events() {
   const navigate    = useNavigate();
   const canManage   = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canFullEdit = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(user?.role);
-  const canSuaLich  = canFullEdit || !!user?.is_phan_lich || !!user?.is_phan_lich_all || !!user?.is_truong_phong;
+  const canSuaLichBase = canFullEdit || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
   const userDept = ROLE_TO_DEPT[user?.role] || null;
@@ -983,6 +983,7 @@ export default function Events() {
               {(() => {
                 const evDepts = parseDepts(ev);
                 const isTruongPhongOfDept = !!user?.is_truong_phong && userDept && evDepts.includes(userDept);
+                const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
