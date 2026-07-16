@@ -650,46 +650,32 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
       <AdminSec title="VẬN HÀNH HÔM NAY" color="#f87171" rgb="248,113,113" count={todayEvs.length} linkTo="/events">
         {todayEvs.length === 0
           ? <AEmpty text="Không có sự kiện nào hôm nay" />
-          : todayEvs.map((ev, i) => {
-            const sc = EV_STATUS_COLOR[ev.status] || '#e0e0ee';
-            const sl = EV_STATUS_LABEL[ev.status];
-            return (
-              <ARow key={ev.id} i={i} rgb="248,113,113" onClick={() => openCard(ev)}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:'#f87171', flexShrink:0, boxShadow:'0 0 5px rgba(248,113,113,0.8)' }} />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                    <p style={T.name}>{ev.name}</p>
-                    {sl && <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'4px', background:`${sc}22`, color:sc, border:`1px solid ${sc}44`, flexShrink:0 }}>{sl}</span>}
-                  </div>
-                  {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
-                </div>
-                <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{evDateLabel(ev)}</span>
-              </ARow>
-            );
-          })
+          : todayEvs.map((ev, i) => (
+            <ARow key={ev.id} i={i} rgb="248,113,113" onClick={() => openCard(ev)}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#f87171', flexShrink:0, boxShadow:'0 0 5px rgba(248,113,113,0.8)' }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
+              </div>
+              <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{evDateLabel(ev)}</span>
+            </ARow>
+          ))
         }
       </AdminSec>
 
       {/* 1b. Vận hành ngày mai */}
       {tomorrowEvs.length > 0 && (
         <AdminSec title="VẬN HÀNH NGÀY MAI" color="#4ade80" rgb="74,222,128" count={tomorrowEvs.length} linkTo="/events">
-          {tomorrowEvs.map((ev, i) => {
-            const sc = EV_STATUS_COLOR[ev.status] || '#e0e0ee';
-            const sl = EV_STATUS_LABEL[ev.status];
-            return (
-              <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => openCard(ev)}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                    <p style={T.name}>{ev.name}</p>
-                    {sl && <span style={{ fontSize:'0.70rem', fontWeight:700, padding:'1px 5px', borderRadius:'4px', background:`${sc}22`, color:sc, border:`1px solid ${sc}44`, flexShrink:0 }}>{sl}</span>}
-                  </div>
-                  {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
-                </div>
-                <span style={{ fontSize:'0.80rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>{evDateLabel(ev)}</span>
-              </ARow>
-            );
-          })}
+          {tomorrowEvs.map((ev, i) => (
+            <ARow key={ev.id} i={i} rgb="74,222,128" onClick={() => openCard(ev)}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#4ade80', flexShrink:0, boxShadow:'0 0 5px rgba(74,222,128,0.8)' }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={T.name}>{ev.name}</p>
+                {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
+              </div>
+              <span style={{ fontSize:'0.80rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>{evDateLabel(ev)}</span>
+            </ARow>
+          ))}
         </AdminSec>
       )}
 
