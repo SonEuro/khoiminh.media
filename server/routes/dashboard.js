@@ -166,7 +166,9 @@ router.get('/', (req, res) => {
   const tomorrow = db.prepare("SELECT date('now','+1 day','localtime') AS d").get().d;
   const tomorrowEvents = allEvents.filter(ev => {
     const dates = getFilmingDates(ev);
-    return dates.includes(tomorrow);
+    if (dates.includes(tomorrow)) return true;
+    if (ev.start_date && ev.start_date <= tomorrow && (!ev.end_date || ev.end_date >= tomorrow)) return true;
+    return false;
   }).map(ev => ({
     id: ev.id, name: ev.name, code: ev.code, status: ev.status,
     start_date: ev.start_date, end_date: ev.end_date,

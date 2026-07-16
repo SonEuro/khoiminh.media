@@ -604,6 +604,15 @@ function AEmpty({ text }) {
   return <p style={{ color: '#7878a0', fontSize: '0.82rem', padding: '10px 14px', margin: 0 }}>{text}</p>;
 }
 
+function evDateLabel(ev) {
+  if (ev.start_date && ev.end_date && ev.start_date !== ev.end_date)
+    return `${fmtD(ev.start_date)} – ${fmtD(ev.end_date)}`;
+  const ghDates = (ev.filming_dates || []).filter(Boolean);
+  if (ghDates.length > 0) return ghDates.map(d => fmtD(d)).join(', ');
+  if (ev.start_date) return fmtD(ev.start_date);
+  return '';
+}
+
 function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirmed, userName, user }) {
   const navigate = useNavigate();
   const [cardEv, setCardEv] = useState(null);
@@ -646,9 +655,9 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
                 <p style={T.name}>{ev.name}</p>
                 {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.filming_dates?.length > 0 && (
-                <span style={{ fontSize:'0.80rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
-              )}
+              <span style={{ fontSize:'0.80rem', color:'#4ade80', fontWeight:700, flexShrink:0 }}>
+                {evDateLabel(ev)}
+              </span>
             </ARow>
           ))
         }
@@ -664,9 +673,9 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
                 <p style={T.name}>{ev.name}</p>
                 {(ev.client || ev.location) && <p style={T.sub}>{[ev.client, ev.location].filter(Boolean).join(' · ')}</p>}
               </div>
-              {ev.filming_dates?.length > 0 && (
-                <span style={{ fontSize:'0.80rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>GH {ev.filming_dates.filter(Boolean).map(d => fmtD(d)).join(', ')}</span>
-              )}
+              <span style={{ fontSize:'0.80rem', color:'#60a5fa', fontWeight:700, flexShrink:0 }}>
+                {evDateLabel(ev)}
+              </span>
             </ARow>
           ))}
         </AdminSec>
