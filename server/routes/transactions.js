@@ -2,7 +2,8 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 const { notifyAll } = require('../services/zaloNotify');
-const { pushAll } = require('../services/pushNotify');
+const { pushByRoles } = require('../services/pushNotify');
+const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
 function canTransact(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
@@ -323,7 +324,7 @@ router.post('/out', canTransact, (req, res) => {
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id);
     const label = result._pending ? '📋 Phiếu xuất tạm' : '📋 Phiếu xuất mới';
     notifyAll(`${label}: ${result.code}\n👤 ${responsible_person || req.user.full_name}\n🗓 Sự kiện: ${ev?.name || '—'}`).catch(() => {});
-    pushAll(label, `${result.code} · ${ev?.name || '—'} · ${responsible_person || req.user.full_name}`, '/transactions').catch(() => {});
+    pushByRoles(label, `${result.code} · ${ev?.name || '—'} · ${responsible_person || req.user.full_name}`, '/transactions', ALL_ROLES).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -357,7 +358,7 @@ router.post('/confirm/:id', canTransact, (req, res) => {
     logEdit(tx.id, req.user, 'Xác nhận xuất kho');
     const ev = tx.event_id ? db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id) : null;
     notifyAll(`✅ Xác nhận xuất kho: ${tx.code}\n🗓 Sự kiện: ${ev?.name || '—'}\n👤 ${tx.responsible_person || '—'}`).catch(() => {});
-    pushAll('✅ Xác nhận xuất kho', `${tx.code} · ${ev?.name || '—'}`, '/transactions').catch(() => {});
+    pushByRoles('✅ Xác nhận xuất kho', `${tx.code} · ${ev?.name || '—'}`, '/transactions', ALL_ROLES).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { pushAll } = require('../services/pushNotify');
+const { pushByRoles } = require('../services/pushNotify');
+const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
 function canManage(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
@@ -78,7 +79,7 @@ router.post('/', requireAuth, (req, res) => {
     job_content || '',
     JSON.stringify((timeline || []).filter(t => t.time)),
   );
-  pushAll(`📋 Báo cáo sự kiện mới`, `${event_label || '—'} · ${reporter_name || req.user?.full_name || '—'}`, '/event-reports').catch(() => {});
+  pushByRoles(`📋 Báo cáo sự kiện mới`, `${event_label || '—'} · ${reporter_name || req.user?.full_name || '—'}`, '/event-reports', ALL_ROLES).catch(() => {});
   res.json({ id: result.lastInsertRowid });
 });
 
@@ -133,7 +134,7 @@ router.put('/:id', requireAuth, (req, res) => {
     JSON.stringify(newHistory),
     req.params.id,
   );
-  pushAll(`✏️ Báo cáo sự kiện cập nhật`, `${report.event_label || '—'} · ${report.reporter_name || '—'}`, '/event-reports').catch(() => {});
+  pushByRoles(`✏️ Báo cáo sự kiện cập nhật`, `${report.event_label || '—'} · ${report.reporter_name || '—'}`, '/event-reports', ALL_ROLES).catch(() => {});
   res.json({ ok: true });
 });
 

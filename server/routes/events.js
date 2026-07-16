@@ -2,7 +2,8 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
 const { notifyAll } = require('../services/zaloNotify');
-const { pushAll } = require('../services/pushNotify');
+const { pushByRoles } = require('../services/pushNotify');
+const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
 const canWrite  = requireRole('SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC');
 const adminOnly = requireRole('SUPER_ADMIN');
@@ -309,7 +310,7 @@ router.post('/', canWrite, (req, res) => {
   );
   res.json({ id: r.lastInsertRowid, code, name: finalName });
   notifyAll(`🗓 Sự kiện mới: ${finalName}\n📍 ${location || '—'}\n📅 ${startDate || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushAll(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, '/events').catch(() => {});
+  pushByRoles(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, '/events', ALL_ROLES).catch(() => {});
 });
 
 router.put('/:id', (req, res, next) => {
@@ -352,7 +353,7 @@ router.put('/:id', (req, res, next) => {
   try { db.prepare('UPDATE event_reports SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   res.json({ ok: true });
   notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${startDate2 || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushAll(`✏️ Sự kiện cập nhật: ${name}`, `📍 ${location || '—'}  📅 ${startDate2 || '—'}`, '/events').catch(() => {});
+  pushByRoles(`✏️ Sự kiện cập nhật: ${name}`, `📍 ${location || '—'}  📅 ${startDate2 || '—'}`, '/events', ALL_ROLES).catch(() => {});
 });
 
 // Soft delete → trash (chỉ sự kiện đã hủy)
