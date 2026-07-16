@@ -152,10 +152,10 @@ router.get('/', (req, res) => {
     }
   }
 
-  // Step 3: Conflict = upcoming needs exceed dynamic available (qty_available - held_by_others)
+  // Step 3: Conflict = ≥2 upcoming events competing AND total exceeds dynamic available
   const conflicts = Object.values(dateEquipMap)
     .filter(c => {
-      if (c.events.length === 0) return false;
+      if (c.events.length < 2) return false;
       const total = c.events.reduce((s, e) => s + e.qty, 0);
       const effective = Math.max(0, c.qty_available - c.held_by_others);
       return total > effective;
