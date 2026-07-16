@@ -22,12 +22,8 @@ function getEventsKyThuatNoOut() {
       AND e.status NOT IN ('completed','cancelled')
       AND e.departments LIKE '%Kỹ Thuật%'
       AND (
-        e.start_date = ?
-        OR e.filming_date = ?
-        OR (e.start_dates  IS NOT NULL AND e.start_dates  LIKE '%"' || ? || '"%')
+        e.filming_date = ?
         OR (e.filming_dates IS NOT NULL AND e.filming_dates LIKE '%"' || ? || '"%')
-        OR (e.show_date = ?)
-        OR (e.show_dates IS NOT NULL AND e.show_dates LIKE '%"' || ? || '"%')
       )
       AND NOT EXISTS (
         SELECT 1 FROM transactions t
@@ -36,7 +32,7 @@ function getEventsKyThuatNoOut() {
           AND t.status = 'completed'
           AND t.deleted_at IS NULL
       )
-  `).all(today, today, today, today, today, today);
+  `).all(today, today);
 }
 
 // 12h: cảnh báo push → chỉ gửi cho user có flag is_quan_ly_kho
@@ -62,7 +58,7 @@ function checkKhoViolation() {
   const managers = db.prepare(`SELECT id, full_name FROM users WHERE is_quan_ly_kho = 1 AND is_active = 1`).all();
   if (!managers.length) return;
 
-  console.log(`[khoWarning] 12h vi phạm: ${events.length} SK × ${managers.length} người`);
+  console.log(`[khoWarning] 15h vi phạm: ${events.length} SK × ${managers.length} người`);
 
   for (const ev of events) {
     for (const u of managers) {
@@ -76,7 +72,7 @@ function checkKhoViolation() {
         VALUES (?, ?, 'Hệ thống', ?, 'Chưa xuất kho đúng hạn', ?)
       `).run(
         ev.id, ev.name, u.full_name,
-        `Sự kiện "${ev.name}" (Kỹ Thuật) đến 12:00 vẫn chưa có phiếu xuất kho.`
+        `Sự kiện "${ev.name}" (Kỹ Thuật) đến 15:00 vẫn chưa có phiếu xuất kho.`
       );
     }
   }
@@ -84,7 +80,7 @@ function checkKhoViolation() {
   const names = events.map(e => e.name).join(', ');
   pushByUserIds(
     '🚨 Vi phạm: chưa xuất kho',
-    `${events.length} sự kiện Kỹ Thuật quá 12:00 chưa xuất: ${names}`,
+    `${events.length} sự kiện Kỹ Thuật quá 15:00 chưa xuất: ${names}`,
     '/transactions',
     managers.map(u => u.id)
   ).catch(e => console.error('[khoWarning] push error:', e.message));
@@ -99,10 +95,15 @@ function scheduleKhoCheck() {
     const hhmm = now.getUTCHours() * 60 + now.getUTCMinutes();
     const today = todayVN();
 
-    // 12:00 → 12:09: cảnh báo + tạo vi phạm
-    if (hhmm >= 12 * 60 && hhmm < 12 * 60 + 10 && ran.viol !== today) {
-      ran.viol = today;
+    // 12:00 → 12:09: push cảnh báo
+    if (hhmm >= 12 * 60 && hhmm < 12 * 60 + 10 && ran.warn !== today) {
+      ran.warn = today;
       checkKhoWarning();
+    }
+
+    // 15:00 → 15:09: tạo vi phạm
+    if (hhmm >= 15 * 60 && hhmm < 15 * 60 + 10 && ran.viol !== today) {
+      ran.viol = today;
       checkKhoViolation();
     }
   }, 60_000); // kiểm tra mỗi phút
