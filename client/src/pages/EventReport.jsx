@@ -1029,7 +1029,30 @@ export default function EventReport() {
   }
 
   function selectEvent(ev) {
-    setForm(f => ({ ...f, event_id: ev.id, event_label: ev.name, location: ev.location || '' }));
+    // Auto-detect report_date từ ngày sự kiện: ưu tiên hôm nay → hôm qua → giữ nguyên
+    let bestDate = null;
+    if (!dateLocked) {
+      const today = todayVN();
+      const d = new Date(Date.now() + 7 * 3600 * 1000);
+      d.setUTCDate(d.getUTCDate() - 1);
+      const yesterday = d.toISOString().slice(0, 10);
+      const allDates = [];
+      for (const f of ['filming_date', 'start_date', 'show_date']) {
+        if (ev[f]) allDates.push(ev[f]);
+      }
+      for (const f of ['filming_dates', 'start_dates', 'show_dates']) {
+        try { allDates.push(...JSON.parse(ev[f] || '[]')); } catch (_) {}
+      }
+      const valid = allDates.filter(d => d === today || d === yesterday);
+      bestDate = valid.sort().reverse()[0] || null;
+    }
+    setForm(f => ({
+      ...f,
+      event_id: ev.id,
+      event_label: ev.name,
+      location: ev.location || '',
+      ...(bestDate ? { report_date: bestDate } : {}),
+    }));
     setEvSearch(ev.name);
     setShowEvDrop(false);
   }
