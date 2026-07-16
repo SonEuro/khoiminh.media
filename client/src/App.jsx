@@ -17,7 +17,6 @@ import Users from './pages/Users';
 import ViolationReport from './pages/ViolationReport';
 import EventReport from './pages/EventReport';
 import WorkSchedule from './pages/WorkSchedule';
-import NccAdmin from './pages/NccAdmin';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -44,7 +43,6 @@ function AppRoutes() {
         <Route path="event-report" element={<EventReport />} />
         <Route path="work-schedule" element={<WorkSchedule />} />
         <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
-        <Route path="ncc-admin"  element={can('manageNcc') ? <NccAdmin /> : <Navigate to="/" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

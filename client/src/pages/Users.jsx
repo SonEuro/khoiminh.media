@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+const NccAdmin = lazy(() => import('./NccAdmin'));
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
@@ -37,6 +38,7 @@ export default function Users() {
   const { kmGroups, freelancerGroups, refresh: refreshStaff } = useStaffGroups();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role);
+  const [tab, setTab] = useState('users'); // 'users' | 'ncc'
   const [users, setUsers]       = useState([]);
   const [deleteLog, setDeleteLog] = useState([]);
   const [showDeleteLog, setShowDeleteLog] = useState(false);
@@ -185,8 +187,32 @@ export default function Users() {
   // Các role không nằm trong ROLES (nếu có)
   const otherUsers = users.filter(u => !ROLE_ORDER.includes(u.role));
 
+  const tabStyle = (active) => ({
+    padding: '8px 20px', borderRadius: '8px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
+    border: 'none', background: active ? 'rgba(201,168,76,0.12)' : 'transparent',
+    color: active ? '#e8c97a' : 'var(--text-muted)',
+    borderBottom: active ? '2px solid #c9a84c' : '2px solid transparent',
+  });
+
   return (
     <div className="p-6">
+      {/* Tab bar */}
+      {isSuperAdmin && (
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.07)', paddingBottom: '0' }}>
+          <button style={tabStyle(tab === 'users')} onClick={() => setTab('users')}>👤 Người Dùng</button>
+          <button style={tabStyle(tab === 'ncc')}   onClick={() => setTab('ncc')}>🏪 Nhà Cung Cấp</button>
+        </div>
+      )}
+
+      {/* NCC tab */}
+      {tab === 'ncc' && (
+        <Suspense fallback={<p style={{ color: 'var(--text-muted)' }}>Đang tải...</p>}>
+          <NccAdmin />
+        </Suspense>
+      )}
+
+      {/* Users tab */}
+      {tab === 'users' && <div>
       <div className="flex items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">Người Dùng</h1>
@@ -852,6 +878,7 @@ export default function Users() {
           </div>
         </Modal>
       )}
+      </div>} {/* end users tab */}
     </div>
   );
 }

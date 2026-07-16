@@ -6,7 +6,7 @@ import { subscribePush } from '../utils/pushSubscribe';
 import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, History, CalendarCog,
-  Warehouse, PackagePlus, Users, Store, LogOut, ChevronUp, ChevronDown, Menu, KeyRound, Bell, BellOff,
+  Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu, KeyRound, Bell, BellOff,
 } from 'lucide-react';
 
 const GOLD         = '#c9a84c';
@@ -260,7 +260,6 @@ export default function Layout() {
     { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('viewIntakePage') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
-    { to: '/ncc-admin',    Icon: Store,           label: 'Quản Lý NCC',             show: can('manageNcc') },
   ].filter(item => item.always || item.show);
 
   // Close drawer on resize to desktop
