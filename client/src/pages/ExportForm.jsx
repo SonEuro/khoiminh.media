@@ -269,6 +269,7 @@ export default function ExportForm() {
           <div className="flex gap-3 justify-center">
             <button
               onClick={async () => {
+                if (!confirm(`Quay lại chỉnh sửa sẽ xóa phiếu ${doneSlip.code} đang chờ.\nBạn có chắc không?`)) return;
                 try { await api.deleteTransaction(doneSlip.id); } catch {}
                 const s = savedSnapshot.current;
                 if (s) {
