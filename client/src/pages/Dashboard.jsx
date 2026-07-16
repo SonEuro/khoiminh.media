@@ -640,8 +640,8 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {cardEv && <DashEventCard ev={cardEv} onClose={() => setCardEv(null)} />}
 
-      {/* Báo cáo cần nộp - đầu dashboard, tất cả user, chỉ ngày hôm qua */}
-      {myObs.length > 0 && <PendingReportsSection obs={myObs} />}
+      {/* Báo cáo cần nộp - chỉ admin/trưởng phòng, nhân viên xem trên trang Sự Kiện */}
+      {isAdmin && myObs.length > 0 && <PendingReportsSection obs={myObs} />}
 
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} userId={user?.id} />}
