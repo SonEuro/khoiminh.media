@@ -50,7 +50,6 @@ export default function Users() {
   const [saving, setSaving]     = useState(false);
   const [showPw, setShowPw]     = useState(false);
   const [resetInfo, setResetInfo]   = useState(null); // { name, username, password }
-  const [clearing, setClearing]     = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [eventList, setEventList]     = useState([]);
   const [loadingEv, setLoadingEv]     = useState(false);
@@ -388,33 +387,6 @@ export default function Users() {
               }}
             >
               📋 Chọn sự kiện để xóa
-            </button>
-            <button
-              disabled={clearing}
-              onClick={async () => {
-                const first = confirm('⚠️ XÓA TOÀN BỘ SỰ KIỆN?\n\nSẽ xóa:\n• Tất cả sự kiện\n• Phiếu xuất / nhập kho\n• Báo cáo sự kiện\n• Vi phạm nội quy\n• Reset tồn kho về ban đầu\n\nNhấn OK để xác nhận lần 1...');
-                if (!first) return;
-                const second = confirm('⛔ XÁC NHẬN LẦN 2\n\nThao tác này KHÔNG THỂ HOÀN TÁC.\n\nBạn có chắc chắn muốn xóa tất cả không?');
-                if (!second) return;
-                setClearing(true);
-                try {
-                  const data = await api.clearAllEvents();
-                  alert('✅ ' + data.message);
-                } catch (err) {
-                  alert('❌ Lỗi: ' + err.message);
-                } finally {
-                  setClearing(false);
-                }
-              }}
-              style={{
-                padding: '9px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700,
-                border: '1px solid rgba(248,113,113,0.5)',
-                background: clearing ? 'rgba(248,113,113,0.1)' : 'rgba(248,113,113,0.15)',
-                color: '#f87171', cursor: clearing ? 'not-allowed' : 'pointer',
-                opacity: clearing ? 0.6 : 1,
-              }}
-            >
-              {clearing ? '⏳ Đang xóa...' : '🗑 Xóa sạch toàn bộ sự kiện'}
             </button>
           </div>
         </div>
