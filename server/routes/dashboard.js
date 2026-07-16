@@ -75,12 +75,16 @@ router.get('/', (req, res) => {
     ORDER BY t.expected_return_date ASC
   `).all(today);
 
-  // 4. Conflict detection: upcoming events on same filming date sharing equipment
+  // 4. Conflict detection: dynamic inventory per date
   const upcomingEvents = allEvents.filter(ev => {
     const dates = getFilmingDates(ev);
     return dates.some(d => d >= today);
   });
 
+  const upcomingIds = upcomingEvents.map(ev => ev.id);
+  const upcomingIdsStr = upcomingIds.length > 0 ? upcomingIds.join(',') : '-1';
+
+  // Step 1: Build map of upcoming event needs per (date, equipment)
   const dateEquipMap = {};
   for (const ev of upcomingEvents) {
     const futureDates = getFilmingDates(ev).filter(d => d >= today);
@@ -108,6 +112,7 @@ router.get('/', (req, res) => {
             eq_name: item.eq_name,
             unit: item.unit,
             qty_available: item.qty_available,
+            held_by_others: 0,
             events: [],
           };
         }
@@ -117,12 +122,41 @@ router.get('/', (req, res) => {
     }
   }
 
+  // Step 2: For each unique date, find qty held by non-upcoming events (filmed already, not yet returned)
+  const uniqueDates = [...new Set(Object.values(dateEquipMap).map(c => c.date))];
+  for (const d of uniqueDates) {
+    const heldByOthers = db.prepare(`
+      SELECT ti.equipment_id,
+        SUM(CASE WHEN t.type='OUT'    THEN ti.quantity ELSE 0 END) -
+        SUM(CASE WHEN t.type='RETURN' THEN ti.quantity ELSE 0 END) AS qty
+      FROM transactions t
+      JOIN transaction_items ti ON ti.transaction_id = t.id
+      JOIN events e ON e.id = t.event_id
+      WHERE t.status IN ('pending', 'completed')
+        AND e.archived_at IS NULL AND e.deleted_at IS NULL
+        AND t.event_id NOT IN (${upcomingIdsStr})
+        AND (t.expected_return_date IS NULL OR t.expected_return_date >= ?)
+      GROUP BY ti.equipment_id
+      HAVING qty > 0
+    `).all(d);
+
+    for (const held of heldByOthers) {
+      const key = `${d}_${held.equipment_id}`;
+      if (dateEquipMap[key]) {
+        dateEquipMap[key].held_by_others += held.qty;
+      }
+    }
+  }
+
+  // Step 3: Conflict = upcoming needs exceed dynamic available (qty_available - held_by_others)
   const conflicts = Object.values(dateEquipMap)
     .filter(c => {
-      if (c.events.length < 2) return false;
+      if (c.events.length === 0) return false;
       const total = c.events.reduce((s, e) => s + e.qty, 0);
-      return total > c.qty_available;
+      const effective = Math.max(0, c.qty_available - c.held_by_others);
+      return total > effective;
     })
+    .map(c => ({ ...c, effective_available: Math.max(0, c.qty_available - c.held_by_others) }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   res.json({ today, today_events: todayEvents, need_confirm: needConfirm, overdue, conflicts });

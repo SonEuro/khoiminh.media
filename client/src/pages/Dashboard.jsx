@@ -177,6 +177,7 @@ function ConflictSection({ conflicts }) {
           <p style={{ color: '#7878a0', fontSize: '0.84rem', padding: '14px 18px', margin: 0 }}>Không có xung đột nào</p>
         ) : conflicts.map((c, i) => {
           const total = c.events.reduce((s, e) => s + e.qty, 0);
+          const avail = c.effective_available ?? c.qty_available;
           return (
             <div key={i} style={{
               padding: '10px 16px',
@@ -186,7 +187,7 @@ function ConflictSection({ conflicts }) {
                 <span style={{ fontSize: '0.84rem', color: '#fb7185', fontWeight: 700 }}>GH {fmtD(c.date)}</span>
                 <span style={{ fontSize: '0.85rem', color: '#e0e0ee', fontWeight: 700, flex: 1 }}>{c.eq_name}</span>
                 <span style={{ fontSize: '0.78rem', color: '#fb7185', fontWeight: 800, flexShrink: 0 }}>
-                  cần {total} / có {c.qty_available} {c.unit}
+                  cần {total} / có {avail} {c.unit}
                 </span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -199,6 +200,15 @@ function ConflictSection({ conflicts }) {
                     {ev.name} ({ev.qty} {c.unit})
                   </span>
                 ))}
+                {c.held_by_others > 0 && (
+                  <span style={{
+                    fontSize: '0.78rem', padding: '2px 8px', borderRadius: '9999px',
+                    background: 'rgba(251,146,60,0.10)', border: '1px solid rgba(251,146,60,0.3)',
+                    color: '#fb923c',
+                  }}>
+                    +{c.held_by_others} {c.unit} event khác đang giữ
+                  </span>
+                )}
               </div>
             </div>
           );
