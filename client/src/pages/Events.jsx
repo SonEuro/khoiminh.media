@@ -800,6 +800,7 @@ export default function Events() {
   const [showTrash, setShowTrash] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
+  const [deptMemberSet, setDeptMemberSet] = useState(new Set());
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -827,6 +828,19 @@ export default function Events() {
   }, []);
 
   useEffect(() => { loadSchedules(); }, [loadSchedules]);
+
+  // Load danh sách thành viên km theo dept cho trưởng phòng
+  useEffect(() => {
+    if (!user?.is_truong_phong || !userDept) return;
+    api.getStaffGroups('km').then(groups => {
+      const group = groups.find(g => g.dept === userDept);
+      if (!group) return;
+      try {
+        const members = JSON.parse(group.members || '[]');
+        setDeptMemberSet(new Set(members.filter(Boolean)));
+      } catch {}
+    }).catch(() => {});
+  }, [user?.is_truong_phong, userDept]);
 
   // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {
@@ -982,7 +996,18 @@ export default function Events() {
               {/* Hàng 5: buttons */}
               {(() => {
                 const evDepts = parseDepts(ev);
-                const isTruongPhongOfDept = !!user?.is_truong_phong && userDept && evDepts.includes(userDept);
+                const sched = schedules.find(s => s.event_id === ev.id);
+                const schedHasDeptMember = sched && deptMemberSet.size > 0 && (() => {
+                  for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
+                    try {
+                      const km = JSON.parse(sched[`${ph}_km_staff`] || '[]');
+                      const arr = Array.isArray(km) ? km : Object.values(km).flat();
+                      if (arr.some(n => deptMemberSet.has(n))) return true;
+                    } catch {}
+                  }
+                  return false;
+                })();
+                const isTruongPhongOfDept = !!user?.is_truong_phong && userDept && (evDepts.includes(userDept) || !!schedHasDeptMember);
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
