@@ -644,7 +644,7 @@ function TrashView({ onClose, canPermanentDelete, user }) {
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canRestoreEvent = (ev) => {
     if (isFullAdmin) return true;
-    if (!user?.is_truong_phong) return false;
+    if (user?.position !== 'Trưởng phòng') return false;
     if (!ev.created_by_id || !ev.created_by_role) return true;
     return ev.created_by_role === user?.role;
   };
@@ -786,7 +786,7 @@ export default function Events() {
   // TRUONG_PHONG chỉ hủy/khôi phục sự kiện do người cùng phòng tạo
   const canManageEvent = (ev) => {
     if (isFullAdmin) return true;
-    if (!user?.is_truong_phong) return false;
+    if (user?.position !== 'Trưởng phòng') return false;
     if (!ev.created_by_id || !ev.created_by_role) return true; // sự kiện cũ chưa có created_by_id
     return ev.created_by_role === user?.role;
   };
@@ -831,7 +831,7 @@ export default function Events() {
 
   // Load danh sách thành viên km theo dept cho trưởng phòng
   useEffect(() => {
-    if (!user?.is_truong_phong || !userDept) return;
+    if (user?.position !== 'Trưởng phòng' || !userDept) return;
     api.getStaffGroups('km').then(groups => {
       const group = groups.find(g => g.dept === userDept);
       if (!group) return;
@@ -840,7 +840,7 @@ export default function Events() {
         setDeptMemberSet(new Set(members.filter(Boolean)));
       } catch {}
     }).catch(() => {});
-  }, [user?.is_truong_phong, userDept]);
+  }, [user?.position, userDept]);
 
   // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {
@@ -1007,7 +1007,7 @@ export default function Events() {
                   }
                   return false;
                 })();
-                const isTruongPhongOfDept = !!user?.is_truong_phong && userDept && (evDepts.includes(userDept) || !!schedHasDeptMember);
+                const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (evDepts.includes(userDept) || !!schedHasDeptMember);
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
@@ -1120,7 +1120,20 @@ export default function Events() {
                   const startDates = parseDatesField(ev, 'start_dates', 'start_date');
                   const endDates   = parseDatesField(ev, 'end_dates',   'end_date');
                   const filmDates  = parseDatesField(ev, 'filming_dates', 'filming_date');
-                  const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || !!user?.is_truong_phong) : (canFullEdit || !!user?.is_truong_phong);
+                  const pastEvDepts = parseDepts(ev);
+                  const pastSched = schedules.find(s => s.event_id === ev.id);
+                  const pastSchedHasDeptMember = pastSched && deptMemberSet.size > 0 && (() => {
+                    for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
+                      try {
+                        const km = JSON.parse(pastSched[`${ph}_km_staff`] || '[]');
+                        const arr = Array.isArray(km) ? km : Object.values(km).flat();
+                        if (arr.some(n => deptMemberSet.has(n))) return true;
+                      } catch {}
+                    }
+                    return false;
+                  })();
+                  const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (pastEvDepts.includes(userDept) || !!pastSchedHasDeptMember);
+                  const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
