@@ -201,7 +201,8 @@ router.put('/:id', (req, res) => {
     .run(req.params.id, req.user.id, req.user.full_name);
   try { syncObligations(req.params.id); } catch (e) { console.error('[obligations] sync error:', e.message); }
   const name = b.event_name?.trim() || sched.event_name;
-  pushByRoles(`✏️ Lịch làm việc cập nhật`, `${name}${b.location ? ' · ' + b.location : ''}`, '/work-schedules', ALL_ROLES).catch(() => {});
+  console.log('[push] workSchedule update, name=', name);
+  pushByRoles(`✏️ Lịch làm việc cập nhật`, `${name}${b.location ? ' · ' + b.location : ''}`, '/work-schedules', ALL_ROLES).catch(e => console.error('[push] workSchedule update error:', e.message));
   res.json({ ok: true });
 });
 

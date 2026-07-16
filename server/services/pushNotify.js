@@ -35,7 +35,10 @@ async function pushAll(title, body, url = '/') {
 
 // roles: mảng role string, vd ['SUPER_ADMIN','DIRECTOR','PRODUCTION']
 async function pushByRoles(title, body, url = '/', roles = []) {
-  if (!webpush || !process.env.VAPID_PUBLIC_KEY) return;
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY) {
+    console.warn('[push] skipped — webpush or VAPID key missing');
+    return;
+  }
   if (!roles.length) return pushAll(title, body, url);
   const placeholders = roles.map(() => '?').join(',');
   const subs = db.prepare(`
@@ -43,6 +46,7 @@ async function pushByRoles(title, body, url = '/', roles = []) {
     LEFT JOIN users u ON u.id = ps.user_id
     WHERE u.role IN (${placeholders}) OR ps.user_id IS NULL
   `).all(...roles);
+  console.log(`[push] "${title}" → ${subs.length} subscriber(s)`);
   if (!subs.length) return;
   await sendToSubs(subs, { title, body, url });
 }
