@@ -1007,7 +1007,13 @@ export default function Events() {
                   }
                   return false;
                 })();
-                const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (evDepts.includes(userDept) || !!schedHasDeptMember);
+                // Cho phép khi: dept khớp, HOẶC lịch có km_staff của dept,
+                // HOẶC event chưa set dept VÀ chưa có lịch (tạo lịch ban đầu)
+                const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (
+                  evDepts.includes(userDept)
+                  || !!schedHasDeptMember
+                  || (evDepts.length === 0 && !sched)
+                );
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
@@ -1132,7 +1138,11 @@ export default function Events() {
                     }
                     return false;
                   })();
-                  const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (pastEvDepts.includes(userDept) || !!pastSchedHasDeptMember);
+                  const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (
+                    pastEvDepts.includes(userDept)
+                    || !!pastSchedHasDeptMember
+                    || (pastEvDepts.length === 0 && !pastSched)
+                  );
                   const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
