@@ -811,6 +811,11 @@ export default function Events() {
       if (showArchived) setEvents(data.filter(e => e.archived_at));
       else setEvents(data);
     });
+    // Reload work schedule dates cùng lúc để zone cập nhật khi ngày lịch thay đổi
+    api.getWorkSchedules().then(wsList => {
+      setSchedules(wsList);
+      setWsDateMap(buildWsDateMap(wsList));
+    }).catch(() => {});
   }, [statusFilter, showArchived]);
 
   useEffect(() => {
@@ -820,15 +825,6 @@ export default function Events() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
-
-  const loadSchedules = useCallback(() => {
-    api.getWorkSchedules().then(wsList => {
-      setSchedules(wsList);
-      setWsDateMap(buildWsDateMap(wsList));
-    }).catch(() => {});
-  }, []);
-
-  useEffect(() => { loadSchedules(); }, [loadSchedules]);
 
   const highlightedIdRef = useRef(null);
   useEffect(() => {
@@ -1239,7 +1235,7 @@ export default function Events() {
           initial={scheduleFormInitial}
           events={events.filter(e => e.status !== 'cancelled')}
           schedules={schedules}
-          onSaved={() => { setModal(null); loadSchedules(); }}
+          onSaved={() => { setModal(null); load(); }}
           onClose={() => setModal(null)}
           onSwitchToEdit={(existing) => setScheduleFormInitial(existing)}
         />
