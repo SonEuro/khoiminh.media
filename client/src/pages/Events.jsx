@@ -1170,13 +1170,20 @@ export default function Events() {
                       )}
                       {/* Hàng 5: buttons */}
                       <div style={{ padding:'0 12px 10px' }}>
-                        <div className="ev-card-row">
-                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span></button>
-                          <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span></button>
-                          {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
-                          {showArchive && <button className="ev-action ev-action-edit"   onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
-                          {showUnarch  && <button className="ev-action"                  onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu</span></button>}
-                          {showDelete  && <button className="ev-action ev-action-danger" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                        <div className="ev-btn-group">
+                          <div className="ev-card-row">
+                            <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span></button>
+                            <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span></button>
+                          </div>
+                          {(showEdit || showArchive || showUnarch || showCancel || showDelete) && (
+                            <div className="ev-card-row">
+                              {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                              {showArchive && <button className="ev-action ev-action-edit"   onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
+                              {showUnarch  && <button className="ev-action"                  onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu</span></button>}
+                              {showCancel  && <button className="ev-action ev-action-danger" onClick={() => handleCancel(ev)}><span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span></button>}
+                              {showDelete  && <button className="ev-action ev-action-danger" onClick={() => handleDelete(ev)}><span className="ev-ico">🗑</span><span className="ev-lbl">Xóa</span></button>}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
