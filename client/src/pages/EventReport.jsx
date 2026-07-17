@@ -1066,6 +1066,8 @@ export default function EventReport() {
       event_id: ev.id,
       event_label: ev.name,
       location: ev.location || '',
+      km_staff: [],
+      freelancer_staff: '',
       ...(bestDate ? { report_date: bestDate } : {}),
     }));
     setEvSearch(ev.name);
