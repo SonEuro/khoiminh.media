@@ -1387,26 +1387,46 @@ function ReportRows({ reports }) {
 
 function ViolationRows({ violations, isSuperAdmin, onDelete }) {
   if (!violations.length) return <Empty text="Chưa có vi phạm nào" />;
+
+  const groups = [];
+  const seen = new Map();
+  for (const v of violations) {
+    const key = v.event_id ?? `__${v.event_label ?? 'noname'}`;
+    if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name: v.event_label || 'Không rõ sự kiện', items: [] }); }
+    seen.get(key).push(v);
+  }
+  for (const g of groups) g.items = seen.get(g.key);
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-      {violations.map(v => (
-        <div key={v.id} style={{ padding:'9px 12px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.12)', borderRadius:'8px', display:'flex', alignItems:'center', gap:'12px' }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ fontWeight:700, color:'#f87171', margin:'0 0 2px', fontSize:'0.84rem' }}>{v.violator}</p>
-            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
-              {v.violation_type}{v.event_label ? <> · <span style={{ color:'#e8c97a' }}>{v.event_label}</span></> : ''}
-            </p>
+    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+      {groups.map(({ key, name, items }) => (
+        <div key={key}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 4px', marginBottom:'4px' }}>
+            <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+            <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+            <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+            <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} vi phạm</span>
           </div>
-          <div style={{ textAlign:'right', fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
-            <div>{fmtD(v.created_at)}</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+            {items.map(v => (
+              <div key={v.id} style={{ padding:'8px 10px', background:'rgba(248,113,113,0.04)', border:'1px solid rgba(248,113,113,0.12)', borderRadius:'7px', display:'flex', alignItems:'center', gap:'12px' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontWeight:700, color:'#f87171', margin:'0 0 2px', fontSize:'0.84rem' }}>{v.violator}</p>
+                  <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>{v.violation_type}</p>
+                </div>
+                <div style={{ textAlign:'right', fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'4px', justifyContent:'flex-end' }}><User size={11} /> {v.reporter_name}</div>
+                  <div>{fmtD(v.created_at)}</div>
+                </div>
+                {isSuperAdmin && (
+                  <button onClick={() => { if (confirm('Xóa vi phạm này?')) onDelete(v.id); }}
+                    style={{ background:'rgba(229,62,62,0.08)', border:'1px solid rgba(229,62,62,0.2)', color:'#fc8181', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', fontSize:'0.84rem', flexShrink:0 }}>
+                    🗑
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-          {isSuperAdmin && (
-            <button onClick={() => { if (confirm('Xóa vi phạm này?')) onDelete(v.id); }}
-              style={{ background:'rgba(229,62,62,0.08)', border:'1px solid rgba(229,62,62,0.2)', color:'#fc8181', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', fontSize:'0.84rem', flexShrink:0 }}>
-              🗑
-            </button>
-          )}
         </div>
       ))}
     </div>
