@@ -3,6 +3,124 @@ import Modal from './Modal';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 
+function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
+  const CAT_COLORS = { TECH:'#e07b2a', AUDIO:'#3a7bd5', LIGHT:'#d4a017', LED:'#1a8a4a', STAGE:'#9b3a6e', CSVC:'#4a6a8a', MATRIX:'#6a3a9b' };
+  const sorted = [...ev.items].sort((a, b) => (a.eq_code || '').localeCompare(b.eq_code || ''));
+
+  let itemRows = '';
+  let lastCat = null;
+  sorted.forEach(it => {
+    const cat = (it.eq_code || '').split('-')[0];
+    if (cat !== lastCat) {
+      const color = CAT_COLORS[cat] || '#8a7a3a';
+      itemRows += `<tr class="cat-row"><td colspan="5" style="padding:8px 0 4px;"><span class="cat-label" style="color:${color};border-color:${color}">${cat}</span></td></tr>`;
+      lastCat = cat;
+    }
+    const rem = it.qty_out - (it.qty_returned || 0);
+    itemRows += `<tr>
+      <td class="code">${it.eq_code || ''}</td>
+      <td>${it.eq_name || ''}${it.combo ? ` <span class="combo">FREE-${it.combo}</span>` : ''}</td>
+      <td class="num red">${it.qty_out}</td>
+      <td class="num green">${it.qty_returned || 0}</td>
+      <td class="num ${rem > 0 ? 'orange bold' : 'gray'}">${rem}</td>
+    </tr>`;
+  });
+
+  let externalRows = '';
+  if (ev.external_items?.length > 0) {
+    ev.external_items.forEach(it => {
+      const note = [it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ');
+      externalRows += `<tr><td class="sup">${it.supplier || '—'}</td><td>${it.name || ''}</td><td class="num blue bold">${it.quantity}</td><td class="note">${note}</td></tr>`;
+    });
+  }
+
+  const startDates = parseDatesField(ev, 'start_dates', 'start_date');
+  const showDates = parseDatesField(ev, 'show_dates', 'show_date');
+  const filmingDates = parseFilmingDates(ev);
+  const endDates = parseDatesField(ev, 'end_dates', 'end_date');
+
+  const dateRow = (label, dates, colorClass) => dates.length === 0 ? '' :
+    `<div class="meta-row"><span class="meta-label">${label}</span><span class="${colorClass}">${dates.map(d => fmtD(d)).join(', ')}</span></div>`;
+
+  return `<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8">
+<title>Phiếu Xuất Kho · ${ev.code}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a2e; padding: 20px 28px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #1a1a2e; padding-bottom:10px; margin-bottom:12px; }
+  .company { font-size:11px; color:#555; line-height:1.6; }
+  .company strong { font-size:14px; color:#1a1a2e; display:block; }
+  .event-title { text-align:right; }
+  .event-title h1 { font-size:17px; font-weight:800; color:#1a1a2e; }
+  .event-code { font-size:11px; color:#888; margin-top:2px; }
+  .meta { display:flex; flex-direction:column; gap:4px; margin-bottom:14px; background:#f7f7fa; border-radius:6px; padding:10px 14px; }
+  .meta-row { display:flex; gap:8px; }
+  .meta-label { color:#666; min-width:120px; font-size:12px; }
+  .green2 { color:#1a7a3a; font-weight:600; }
+  .orange2 { color:#c75a00; font-weight:700; }
+  .red2 { color:#c0392b; font-weight:600; }
+  .gray2 { color:#555; }
+  .notes-box { border-left:3px solid #c9a84c; background:#fdfbf4; padding:8px 12px; margin-bottom:14px; font-size:12px; color:#333; line-height:1.7; white-space:pre-wrap; }
+  .notes-box .notes-label { font-weight:700; color:#8a6a00; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+  h3 { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:#333; margin-bottom:6px; border-bottom:1px solid #ddd; padding-bottom:4px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:14px; }
+  th { font-size:11px; color:#666; font-weight:600; padding:4px 6px; text-align:left; border-bottom:1px solid #ccc; }
+  td { padding:4px 6px; border-bottom:1px solid #eee; vertical-align:middle; }
+  .code { font-family:monospace; font-size:11px; color:#777; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .red { color:#c0392b; font-weight:600; }
+  .green { color:#1a7a3a; }
+  .orange { color:#c75a00; }
+  .bold { font-weight:700; }
+  .gray { color:#aaa; }
+  .blue { color:#2563aa; }
+  .sup { color:#8a6a00; font-weight:600; }
+  .note { color:#888; font-size:11px; }
+  .combo { font-size:10px; font-weight:700; border:1px solid #bbb; border-radius:3px; padding:0 4px; color:#777; }
+  .cat-row td { padding:8px 0 2px; }
+  .cat-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; border-top:1px solid; border-bottom:1px solid; padding:1px 8px; }
+  .footer { margin-top:20px; display:flex; justify-content:space-around; text-align:center; font-size:11px; color:#444; }
+  .footer .sig-name { font-weight:700; margin-top:40px; }
+  .print-date { font-size:10px; color:#aaa; text-align:right; margin-bottom:6px; }
+  @media print { body { padding:10mm 14mm; } }
+</style></head><body>
+<div class="print-date">In ngày: ${new Date().toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+<div class="header">
+  <div class="company"><strong>KHÔI MINH MEDIA</strong>Phiếu Xuất Kho Thiết Bị Sự Kiện</div>
+  <div class="event-title"><h1>${ev.name}</h1><div class="event-code">${ev.code}</div></div>
+</div>
+<div class="meta">
+  <div class="meta-row"><span class="meta-label">Khách hàng:</span><strong>${ev.client || '—'}</strong></div>
+  <div class="meta-row"><span class="meta-label">Địa điểm:</span><span>${ev.location || '—'}</span></div>
+  ${dateRow('Ngày bắt đầu:', startDates, 'red2')}
+  ${dateRow('Ngày Rehearsal:', showDates, 'green2')}
+  ${dateRow('Ngày ghi hình:', filmingDates, 'orange2')}
+  ${dateRow('Ngày kết thúc:', endDates, 'gray2')}
+  ${ev.created_by ? `<div class="meta-row"><span class="meta-label">Người tạo:</span><span>${ev.created_by}</span></div>` : ''}
+</div>
+${ev.notes ? `<div class="notes-box"><div class="notes-label">Ghi chú</div>${ev.notes}</div>` : ''}
+${ev.items.length > 0 ? `
+<h3>Thiết bị xuất kho</h3>
+<table>
+  <thead><tr><th>Mã</th><th>Thiết bị</th><th style="text-align:right">Xuất</th><th style="text-align:right">Đã trả</th><th style="text-align:right">Còn nợ</th></tr></thead>
+  <tbody>${itemRows}</tbody>
+</table>` : ''}
+${externalRows ? `
+<h3>Thiết bị thuê NCC</h3>
+<table>
+  <thead><tr><th>Nhà cung cấp</th><th>Tên thiết bị</th><th style="text-align:right">SL</th><th>Ghi chú</th></tr></thead>
+  <tbody>${externalRows}</tbody>
+</table>` : ''}
+<div class="footer">
+  <div><div>Người lập phiếu</div><div class="sig-name">&nbsp;</div></div>
+  <div><div>Thủ kho</div><div class="sig-name">&nbsp;</div></div>
+  <div><div>Người nhận</div><div class="sig-name">&nbsp;</div></div>
+</div>
+<script>window.onload=()=>{window.print();}</script>
+</body></html>`;
+}
+
 function parseFilmingDates(ev) {
   if (!ev) return [];
   if (ev.filming_dates) { try { return JSON.parse(ev.filming_dates); } catch {} }
@@ -25,6 +143,12 @@ export default function EventDetailModal({ eventId, onClose }) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [eventId]);
 
+  const handlePrint = () => {
+    const w = window.open('', '_blank');
+    w.document.write(buildPrintHtml(ev, parseFilmingDates, parseDatesField));
+    w.document.close();
+  };
+
   if (err) return (
     <Modal title="Sự kiện" onClose={onClose}>
       <div className="text-center py-8" style={{ color:'#f87171' }}>Không thể tải sự kiện.</div>
@@ -36,8 +160,18 @@ export default function EventDetailModal({ eventId, onClose }) {
     </Modal>
   );
 
+  const printBtn = ev ? (
+    <button onClick={handlePrint} title="In phiếu xuất kho" style={{
+      background:'none', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'6px',
+      cursor:'pointer', color:'#c9a84c', fontSize:'0.82rem', fontWeight:600,
+      padding:'3px 10px', display:'flex', alignItems:'center', gap:'5px', whiteSpace:'nowrap',
+    }}>
+      🖨️ In phiếu
+    </button>
+  ) : null;
+
   return (
-    <Modal title={`${ev.name} · ${ev.code}`} onClose={onClose} size="lg">
+    <Modal title={`${ev.name} · ${ev.code}`} onClose={onClose} size="lg" extra={printBtn}>
       <div className="space-y-4">
         <div style={{ display:'flex', flexDirection:'column', gap:'6px', fontSize:'0.88rem' }}>
           <div style={{ display:'flex', gap:'6px', alignItems:'baseline' }}><span style={{ color:'#7878a0', flexShrink:0, whiteSpace:'nowrap' }}>Khách hàng:</span><strong>{ev.client || '—'}</strong></div>
