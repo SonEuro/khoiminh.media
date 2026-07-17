@@ -44,7 +44,7 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
 
   return `<!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8">
-<title>${ev.name}-phieu-xuat-kho</title>
+<title>${ev.name} - Đã Xuất</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a2e; padding: 20px 28px; }
@@ -237,7 +237,7 @@ export default function EventDetailModal({ eventId, onClose }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${ev.name}-phieu-xuat-kho.xls`;
+    a.download = `${ev.name} - Đã Xuất.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
