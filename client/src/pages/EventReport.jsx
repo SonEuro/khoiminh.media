@@ -1090,6 +1090,11 @@ export default function EventReport() {
             kmForDate.forEach(n => {
               if (!deptFilter || deptFilter.has(n) || n === myName) names.add(n);
             });
+            // Nhân sự hỗ trợ (HT): người từ bộ phận khác được giao hỗ trợ bộ phận của user
+            const supportForDate = (s[`${key}_km_support`] || {})[matchDate] || {};
+            Object.entries(supportForDate).forEach(([name, forDept]) => {
+              if (!deptFilter || forDept === userKmDept) names.add(name);
+            });
           }
           // Freelancer: dùng matchDate, nếu không có thì fallback về '_all'
           const freeKey = matchDate || '_all';
@@ -1149,6 +1154,11 @@ export default function EventReport() {
           const kmMap = s[`${key}_km_staff_map`] || {};
           (kmMap[matchDate] || []).forEach(n => {
             if (deptMembers.has(n) || n === myName) staffNames.add(n);
+          });
+          // Nhân sự hỗ trợ (HT): người từ bộ phận khác hỗ trợ bộ phận này
+          const supportForDate = (s[`${key}_km_support`] || {})[matchDate] || {};
+          Object.entries(supportForDate).forEach(([name, forDept]) => {
+            if (forDept === userDept) staffNames.add(name);
           });
           // Freelancer theo dept + ngày cho nhóm trưởng
           if (user?.is_truong_phong) {
