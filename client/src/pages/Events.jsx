@@ -987,6 +987,7 @@ export default function Events() {
                 const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (
                   evDepts.includes(userDept) || evDepts.length === 0
                 );
+                if (ev.id === 61) console.log('[DEBUG ev61]', { pos: user?.position, userDept, evDepts, canSuaLichBase, isTruongPhongOfDept, is_phan_lich: user?.is_phan_lich });
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
