@@ -29,7 +29,12 @@ function canEditSchedule(sched, user) {
   if (!!user.is_phan_lich_all) return true;
   if (!!user.is_truong_phong) return true;
   if (sched.status === 'draft') return !!user.is_phan_lich;
-  return sched.scheduler_user_id === user.id;
+  // confirmed: người tạo có 24h từ lúc xác nhận để sửa
+  if (sched.scheduler_user_id === user.id && sched.confirmed_at) {
+    const confirmedMs = new Date(sched.confirmed_at.replace(' ', 'T') + '+07:00').getTime();
+    return Date.now() - confirmedMs < 24 * 60 * 60 * 1000;
+  }
+  return false;
 }
 
 function canDeleteSchedule(sched, user) {
