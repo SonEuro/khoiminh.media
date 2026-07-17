@@ -1,12 +1,37 @@
 const router = require('express').Router();
 const db = require('../database');
 
+// Ngày hiển thị (filming + show) — dùng cho label trên card
 const getFilmingDates = (ev) => {
   let dates = [];
   try { dates = JSON.parse(ev.filming_dates || '[]'); } catch {}
   if (ev.filming_date) dates.push(ev.filming_date);
   if (ev.show_date)    dates.push(ev.show_date);
   return [...new Set(dates.filter(Boolean))].sort();
+};
+
+// Tất cả ngày từ sự kiện — nguồn duy nhất cho zone/filter
+const getAllEventDates = (ev) => {
+  const s = new Set();
+  for (const [plural, singular] of [
+    ['start_dates','start_date'], ['end_dates','end_date'],
+    ['filming_dates','filming_date'], ['show_dates','show_date'],
+  ]) {
+    try { for (const d of JSON.parse(ev[plural] || '[]')) if (d) s.add(d); } catch {}
+    if (ev[singular]) s.add(ev[singular]);
+  }
+  return [...s].sort();
+};
+
+// Kiểm tra sự kiện có ngày d không (bao gồm range check cho sự kiện liên tục)
+const isEventOnDate = (ev, d) => {
+  if (getAllEventDates(ev).includes(d)) return true;
+  let starts = [], ends = [];
+  try { starts = JSON.parse(ev.start_dates || '[]').filter(Boolean); } catch {}
+  if (!starts.length && ev.start_date) starts = [ev.start_date];
+  try { ends = JSON.parse(ev.end_dates || '[]').filter(Boolean); } catch {}
+  if (!ends.length && ev.end_date) ends = [ev.end_date];
+  return starts.length === 1 && ends.length === 1 && starts[0] <= d && d <= ends[0];
 };
 
 router.get('/', (req, res) => {
@@ -19,31 +44,10 @@ router.get('/', (req, res) => {
     ORDER BY start_date
   `).all();
 
-  // Build set of event IDs that have any work_schedule phase date on a given date
-  const allWs = db.prepare(`SELECT * FROM work_schedules WHERE event_id IS NOT NULL`).all();
-  const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
-  function wsEventIdsForDate(date) {
-    const ids = new Set();
-    for (const ws of allWs) {
-      for (const p of WS_PHASES) {
-        let dates = [];
-        try { dates = JSON.parse(ws[`${p}_dates`] || '[]'); } catch {}
-        if (ws[`${p}_date`]) dates.push(ws[`${p}_date`]);
-        if (dates.includes(date)) { ids.add(ws.event_id); break; }
-      }
-    }
-    return ids;
-  }
-
-  const wsTodayIds    = wsEventIdsForDate(today);
-
-  // 1. Events with specific operations today (filming date or work schedule phase)
+  // 1. Events with operations today — chỉ dùng ngày trên sự kiện
   const todayEvents = allEvents.filter(ev => {
     if (ev.status === 'cancelled') return false;
-    const dates = getFilmingDates(ev);
-    if (dates.includes(today)) return true;
-    if (wsTodayIds.has(ev.id)) return true;
-    return false;
+    return isEventOnDate(ev, today);
   }).map(ev => ({
     id: ev.id, name: ev.name, code: ev.code, status: ev.status,
     start_date: ev.start_date, end_date: ev.end_date,
@@ -96,8 +100,15 @@ router.get('/', (req, res) => {
 
   // 4. Conflict detection: dynamic inventory per date
   const upcomingEvents = allEvents.filter(ev => {
-    const dates = getFilmingDates(ev);
-    return dates.some(d => d >= today);
+    const dates = getAllEventDates(ev);
+    if (dates.some(d => d >= today)) return true;
+    // Range event đang diễn ra (start đã qua, end chưa tới)
+    let starts = [], ends = [];
+    try { starts = JSON.parse(ev.start_dates || '[]').filter(Boolean); } catch {}
+    if (!starts.length && ev.start_date) starts = [ev.start_date];
+    try { ends = JSON.parse(ev.end_dates || '[]').filter(Boolean); } catch {}
+    if (!ends.length && ev.end_date) ends = [ev.end_date];
+    return starts.length === 1 && ends.length === 1 && ends[0] >= today;
   });
 
   const upcomingIds = upcomingEvents.map(ev => ev.id);
@@ -106,7 +117,7 @@ router.get('/', (req, res) => {
   // Step 1: Build map of upcoming event needs per (date, equipment)
   const dateEquipMap = {};
   for (const ev of upcomingEvents) {
-    const futureDates = getFilmingDates(ev).filter(d => d >= today);
+    const futureDates = getAllEventDates(ev).filter(d => d >= today);
     if (!futureDates.length) continue;
 
     const items = db.prepare(`
@@ -183,13 +194,9 @@ router.get('/', (req, res) => {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const tomorrow = db.prepare("SELECT date('now','+1 day','localtime') AS d").get().d;
-  const wsTomorrowIds = wsEventIdsForDate(tomorrow);
   const tomorrowEvents = allEvents.filter(ev => {
     if (ev.status === 'cancelled') return false;
-    const dates = getFilmingDates(ev);
-    if (dates.includes(tomorrow)) return true;
-    if (wsTomorrowIds.has(ev.id)) return true;
-    return false;
+    return isEventOnDate(ev, tomorrow);
   }).map(ev => ({
     id: ev.id, name: ev.name, code: ev.code, status: ev.status,
     start_date: ev.start_date, end_date: ev.end_date,

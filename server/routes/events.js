@@ -124,6 +124,18 @@ function autoUpdateStatuses() {
       AND archived_at IS NULL
   `).run();
   if (r2.changes > 0) console.log(`[AutoStatus] Chuyển ${r2.changes} sự kiện → 'Đã hoàn thành' (filming_date đã qua)`);
+
+  // Không có filming_date nhưng end_date đã qua → completed
+  const r3 = db.prepare(`
+    UPDATE events SET status = 'completed'
+    WHERE status NOT IN ('completed', 'cancelled')
+      AND filming_date IS NULL
+      AND end_date IS NOT NULL
+      AND end_date < date('now','localtime')
+      AND deleted_at IS NULL
+      AND archived_at IS NULL
+  `).run();
+  if (r3.changes > 0) console.log(`[AutoStatus] Chuyển ${r3.changes} sự kiện → 'Đã hoàn thành' (end_date đã qua)`);
 }
 autoUpdateStatuses();
 setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
