@@ -121,86 +121,72 @@ ${externalRows ? `
 </body></html>`;
 }
 
-function escXml(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function cell(val, type = 'String', styleId = '') {
-  return `<Cell${styleId ? ` ss:StyleID="${styleId}"` : ''}><Data ss:Type="${type}">${escXml(val)}</Data></Cell>`;
-}
-function row(...cells) { return `<Row>${cells.join('')}</Row>`; }
+function escH(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function buildExcelXml(ev, parseFilmingDatesFn, parseDatesFieldFn) {
-  const startDates   = parseDatesFieldFn(ev, 'start_dates',  'start_date').map(fmtD).join(', ');
-  const showDates    = parseDatesFieldFn(ev, 'show_dates',   'show_date').map(fmtD).join(', ');
-  const filmDates    = parseFilmingDatesFn(ev).map(fmtD).join(', ');
-  const endDates     = parseDatesFieldFn(ev, 'end_dates',    'end_date').map(fmtD).join(', ');
+function buildExcelHtml(ev, parseFilmingDatesFn, parseDatesFieldFn) {
+  const startDates = parseDatesFieldFn(ev,'start_dates','start_date').map(fmtD).join(', ');
+  const showDates  = parseDatesFieldFn(ev,'show_dates', 'show_date').map(fmtD).join(', ');
+  const filmDates  = parseFilmingDatesFn(ev).map(fmtD).join(', ');
+  const endDates   = parseDatesFieldFn(ev,'end_dates',  'end_date').map(fmtD).join(', ');
 
-  const sorted = [...ev.items].sort((a, b) => (a.eq_code || '').localeCompare(b.eq_code || ''));
-  let itemRows = '';
-  let lastCat = null;
+  const sorted = [...ev.items].sort((a,b) => (a.eq_code||'').localeCompare(b.eq_code||''));
+  let itemRows = ''; let lastCat = null;
   sorted.forEach(it => {
-    const cat = (it.eq_code || '').split('-')[0];
+    const cat = (it.eq_code||'').split('-')[0];
     if (cat !== lastCat) {
-      itemRows += row(cell(cat, 'String', 'cat'), cell('','String','cat'), cell('','String','cat'), cell('','String','cat'), cell('','String','cat'));
+      itemRows += `<tr><td colspan="5" style="background:#1E1A0A;color:#C9A84C;font-weight:bold;padding:5px 8px">${escH(cat)}</td></tr>`;
       lastCat = cat;
     }
-    const rem = it.qty_out - (it.qty_returned || 0);
-    itemRows += row(
-      cell(it.eq_code || ''),
-      cell(it.eq_name || ''),
-      cell(it.qty_out, 'Number'),
-      cell(it.qty_returned || 0, 'Number'),
-      cell(rem, 'Number'),
-    );
+    const rem = it.qty_out - (it.qty_returned||0);
+    itemRows += `<tr>
+      <td style="font-family:monospace;color:#555;font-size:11px">${escH(it.eq_code||'')}</td>
+      <td>${escH(it.eq_name||'')}</td>
+      <td style="text-align:right;color:#c0392b;font-weight:600">${it.qty_out}</td>
+      <td style="text-align:right;color:#1a7a3a">${it.qty_returned||0}</td>
+      <td style="text-align:right;${rem>0?'color:#c75a00;font-weight:700':'color:#aaa'}">${rem}</td>
+    </tr>`;
   });
 
   let extRows = '';
   if (ev.external_items?.length > 0) {
-    extRows += row(cell(''), cell(''), cell(''), cell(''), cell(''));
-    extRows += row(cell('THIẾT BỊ THUÊ NCC','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'));
-    extRows += row(cell('Nhà cung cấp','String','hdr2'), cell('Tên thiết bị','String','hdr2'), cell('Số lượng','String','hdr2'), cell('Ghi chú','String','hdr2'), cell('','String','hdr2'));
+    extRows = `<tr><td colspan="5"></td></tr>
+    <tr><td colspan="5" style="background:#1A1A2E;color:white;font-weight:bold;padding:6px 8px">THIẾT BỊ THUÊ NCC</td></tr>
+    <tr style="background:#2D2D4A">
+      <td style="color:white;font-weight:bold">Nhà cung cấp</td><td style="color:white;font-weight:bold">Tên thiết bị</td>
+      <td style="color:white;font-weight:bold;text-align:right">Số lượng</td><td style="color:white;font-weight:bold" colspan="2">Ghi chú</td>
+    </tr>`;
     ev.external_items.forEach(it => {
-      const note = [it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ');
-      extRows += row(cell(it.supplier || ''), cell(it.name || ''), cell(it.quantity, 'Number'), cell(note));
+      const note = [it.rental_days>0?`Thuê ${it.rental_days} ngày`:'', it.notes||''].filter(Boolean).join(' · ');
+      extRows += `<tr><td style="color:#8a6a00;font-weight:600">${escH(it.supplier||'')}</td><td>${escH(it.name||'')}</td><td style="text-align:right;color:#2563aa;font-weight:bold">${it.quantity}</td><td colspan="2" style="color:#888;font-size:11px">${escH(note)}</td></tr>`;
     });
   }
 
-  return `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-  <Styles>
-    <Style ss:ID="title"><Font ss:Bold="1" ss:Size="14"/></Style>
-    <Style ss:ID="label"><Font ss:Bold="1" ss:Color="#555555"/></Style>
-    <Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/><Interior ss:Color="#1A1A2E" ss:Pattern="Solid"/></Style>
-    <Style ss:ID="hdr2"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2D2D4A" ss:Pattern="Solid"/></Style>
-    <Style ss:ID="cat"><Font ss:Bold="1" ss:Color="#C9A84C"/><Interior ss:Color="#1E1A0A" ss:Pattern="Solid"/></Style>
-    <Style ss:ID="num"><Alignment ss:Horizontal="Right"/></Style>
-  </Styles>
-  <Worksheet ss:Name="Phieu Xuat Kho">
-    <Table ss:DefaultColumnWidth="120">
-      <Column ss:Width="90"/>
-      <Column ss:Width="220"/>
-      <Column ss:Width="70"/>
-      <Column ss:Width="70"/>
-      <Column ss:Width="70"/>
-      ${row(cell(ev.name, 'String', 'title'), cell(''), cell(''), cell(''), cell(ev.code))}
-      ${row(cell(''))}
-      ${row(cell('Khách hàng','String','label'), cell(ev.client || ''))}
-      ${row(cell('Địa điểm','String','label'), cell(ev.location || ''))}
-      ${startDates ? row(cell('Ngày bắt đầu','String','label'), cell(startDates)) : ''}
-      ${showDates  ? row(cell('Ngày Rehearsal','String','label'), cell(showDates)) : ''}
-      ${filmDates  ? row(cell('Ngày ghi hình','String','label'), cell(filmDates)) : ''}
-      ${endDates   ? row(cell('Ngày kết thúc','String','label'), cell(endDates)) : ''}
-      ${ev.created_by ? row(cell('Người tạo','String','label'), cell(ev.created_by)) : ''}
-      ${ev.notes   ? row(cell('Ghi chú','String','label'), cell(ev.notes)) : ''}
-      ${row(cell(''))}
-      ${row(cell('THIẾT BỊ XUẤT KHO','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'))}
-      ${row(cell('Mã','String','hdr2'), cell('Thiết bị','String','hdr2'), cell('Xuất','String','hdr2'), cell('Đã trả','String','hdr2'), cell('Còn nợ','String','hdr2'))}
-      ${itemRows}
-      ${extRows}
-    </Table>
-  </Worksheet>
-</Workbook>`;
+  const infoRow = (label, val) => val ? `<tr><td style="color:#666;font-weight:bold;white-space:nowrap">${label}</td><td colspan="4">${escH(val)}</td></tr>` : '';
+
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="UTF-8"><style>
+body{font-family:Arial,sans-serif;font-size:12px}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #ddd;padding:4px 8px;vertical-align:middle}
+</style></head><body><table>
+<tr><td colspan="4" style="font-size:16px;font-weight:800;padding:8px">${escH(ev.name)}</td><td style="color:#888;font-size:11px">${escH(ev.code)}</td></tr>
+<tr><td colspan="5"></td></tr>
+${infoRow('Khách hàng',ev.client)}
+${infoRow('Địa điểm',ev.location)}
+${startDates?infoRow('Ngày bắt đầu',startDates):''}
+${showDates ?infoRow('Ngày Rehearsal',showDates):''}
+${filmDates ?infoRow('Ngày ghi hình',filmDates):''}
+${endDates  ?infoRow('Ngày kết thúc',endDates):''}
+${ev.created_by?infoRow('Người tạo',ev.created_by):''}
+${ev.notes  ?infoRow('Ghi chú',ev.notes):''}
+<tr><td colspan="5"></td></tr>
+<tr><td colspan="5" style="background:#1A1A2E;color:white;font-weight:bold;font-size:13px;padding:6px 8px">THIẾT BỊ XUẤT KHO</td></tr>
+<tr style="background:#2D2D4A">
+  <th style="color:white">Mã</th><th style="color:white">Thiết bị</th>
+  <th style="color:white;text-align:right">Xuất</th><th style="color:white;text-align:right">Đã trả</th><th style="color:white;text-align:right">Còn nợ</th>
+</tr>
+${itemRows}${extRows}
+</table></body></html>`;
 }
 
 function parseFilmingDates(ev) {
@@ -232,8 +218,8 @@ export default function EventDetailModal({ eventId, onClose }) {
   };
 
   const handleExcel = () => {
-    const xml = buildExcelXml(ev, parseFilmingDates, parseDatesField);
-    const blob = new Blob(['﻿' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const html = buildExcelHtml(ev, parseFilmingDates, parseDatesField);
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
