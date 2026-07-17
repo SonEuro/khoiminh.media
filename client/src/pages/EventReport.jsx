@@ -1533,6 +1533,7 @@ export default function EventReport() {
                       {grp.items.map((ob, i) => {
                         const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
                         const deptC = obDept ? getDeptColor(obDept) : null;
+                        const canDismiss = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
                         return (
                           <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 10px', borderTop: i > 0 ? '1px solid rgba(248,113,113,0.07)' : 'none' }}>
                             <div style={{ flex:1, minWidth:0 }}>
@@ -1545,6 +1546,16 @@ export default function EventReport() {
                                 <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
                               </div>
                             </div>
+                            {canDismiss && (
+                              <button
+                                onClick={() => {
+                                  if (!window.confirm(`Bỏ qua vi phạm của ${ob.lead_name}?`)) return;
+                                  api.dismissLeadObligation(ob.id).then(load).catch(e => alert(e.message));
+                                }}
+                                style={{ background:'none', border:'1px solid rgba(248,113,113,0.35)', borderRadius:'6px', color:'#f87171', fontSize:'0.78rem', padding:'3px 8px', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}
+                                title="Bỏ qua vi phạm này"
+                              >Bỏ qua</button>
+                            )}
                           </div>
                         );
                       })}

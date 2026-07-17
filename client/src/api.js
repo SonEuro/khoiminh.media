@@ -160,6 +160,7 @@ export const api = {
 
   // Lead obligations (nghĩa vụ báo cáo của nhóm trưởng)
   getLeadObligations: () => request('/lead-obligations'),
+  dismissLeadObligation: (id) => request(`/lead-obligations/${id}`, { method: 'DELETE' }),
 
   // Staff groups (danh sách nhân sự theo bộ phận)
   getStaffGroups: (type) => request(`/staff-groups?type=${type}`),

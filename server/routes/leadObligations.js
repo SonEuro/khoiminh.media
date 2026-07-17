@@ -33,6 +33,7 @@ router.get('/', (req, res) => {
       SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
+      WHERE o.dismissed IS NULL OR o.dismissed = 0
       ORDER BY o.assigned_date DESC
     `).all();
   } else if (isTruongPhong && ROLE_TO_DEPT[role]) {
@@ -47,7 +48,7 @@ router.get('/', (req, res) => {
       SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
-      WHERE o.lead_name IN (${placeholders})
+      WHERE o.lead_name IN (${placeholders}) AND (o.dismissed IS NULL OR o.dismissed = 0)
       ORDER BY o.assigned_date DESC
     `).all([...deptMembers]);
   } else {
@@ -55,7 +56,7 @@ router.get('/', (req, res) => {
       SELECT o.*, e.name AS event_display, ${reportSubquery}
       FROM lead_report_obligations o
       LEFT JOIN events e ON e.id = o.event_id
-      WHERE o.user_id = ? OR o.lead_name = ?
+      WHERE (o.user_id = ? OR o.lead_name = ?) AND (o.dismissed IS NULL OR o.dismissed = 0)
       ORDER BY o.assigned_date DESC
     `).all(userId, full_name);
   }
@@ -84,6 +85,17 @@ router.get('/', (req, res) => {
     const ws_locked = !submitted && ws_lock_time <= now;
     return { ...r, lock_time, ws_lock_time, submitted, overdue, locked, ws_locked };
   }));
+});
+
+// DELETE /api/lead-obligations/:id  (SUPER_ADMIN, DIRECTOR only)
+router.delete('/:id', (req, res) => {
+  const { role } = req.user;
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
+    return res.status(403).json({ error: 'Không có quyền' });
+  const row = db.prepare('SELECT id FROM lead_report_obligations WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Không tìm thấy' });
+  db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
 });
 
 module.exports = router;
