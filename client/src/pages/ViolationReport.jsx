@@ -338,8 +338,8 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
       overflow: 'hidden',
     }}>
       {/* Row chính */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '14px 16px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="vc-row">
+        <div className="vc-content" style={{ flex: 1, minWidth: 0 }}>
           {/* Badge loại + sự kiện */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
             <span style={{
@@ -372,7 +372,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+        <div className="vc-actions">
           {isReportViol && (
             <button onClick={() => navigate('/event-report', { state: { prefill: { event_id: v.event_id, event_label: v.event_name || v.event_label, report_date: assignedDate } } })}
               style={{ background:'rgba(251,146,60,0.12)', border:'1px solid rgba(251,146,60,0.3)', color:'#fb923c', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontSize:'0.80rem', fontWeight:700, whiteSpace:'nowrap' }}>
