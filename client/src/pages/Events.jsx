@@ -724,20 +724,6 @@ function ZoneHeader({ color, bg, border, label, count }) {
   );
 }
 
-function buildWsDateMap(wsList) {
-  const map = {};
-  const WS_PHASES = ['filming', 'setup', 'rehearsal', 'teardown'];
-  for (const ws of wsList) {
-    if (!ws.event_id) continue;
-    const id = ws.event_id;
-    if (!map[id]) map[id] = [];
-    for (const p of WS_PHASES) {
-      try { for (const d of JSON.parse(ws[`${p}_dates`] || '[]')) { if (d && !map[id].includes(d)) map[id].push(d); } } catch {}
-      if (ws[`${p}_date`] && !map[id].includes(ws[`${p}_date`])) map[id].push(ws[`${p}_date`]);
-    }
-  }
-  return map;
-}
 
 export default function Events() {
   const { user, can } = useAuth();
@@ -757,15 +743,15 @@ export default function Events() {
 
   function getAllDates(ev) {
     return [
+      ...parseDatesField(ev, 'start_dates', 'start_date'),
+      ...parseDatesField(ev, 'end_dates', 'end_date'),
       ...parseDatesField(ev, 'filming_dates', 'filming_date'),
       ...parseDatesField(ev, 'show_dates', 'show_date'),
     ].filter(Boolean);
   }
   function isEventOnDate(ev, d) {
-    const dates = getAllDates(ev);
-    if (dates.includes(d)) return true;
-    if ((wsDateMap[ev.id] || []).includes(d)) return true;
-    // Range check chỉ áp dụng cho event liên tục (đúng 1 start và 1 end date)
+    if (getAllDates(ev).includes(d)) return true;
+    // Range check cho event liên tục (đúng 1 start và 1 end — bao phủ ngày ở giữa)
     const starts = parseDatesField(ev, 'start_dates', 'start_date');
     const ends   = parseDatesField(ev, 'end_dates', 'end_date');
     if (starts.length === 1 && ends.length === 1 && starts[0] <= d && d <= ends[0]) return true;
@@ -794,7 +780,7 @@ export default function Events() {
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('id');
   const [events, setEvents] = useState([]);
-  const [wsDateMap, setWsDateMap] = useState({});
+
   const [statusFilter, setStatusFilter] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [modal, setModal] = useState(null);
@@ -811,11 +797,7 @@ export default function Events() {
       if (showArchived) setEvents(data.filter(e => e.archived_at));
       else setEvents(data);
     });
-    // Reload work schedule dates cùng lúc để zone cập nhật khi ngày lịch thay đổi
-    api.getWorkSchedules().then(wsList => {
-      setSchedules(wsList);
-      setWsDateMap(buildWsDateMap(wsList));
-    }).catch(() => {});
+    api.getWorkSchedules().then(setSchedules).catch(() => {});
   }, [statusFilter, showArchived]);
 
   useEffect(() => {
