@@ -38,7 +38,7 @@ function canEditSchedule(sched, user) {
 }
 
 function canDeleteSchedule(sched, user) {
-  if (sched.status !== 'draft') return user.role === 'SUPER_ADMIN';
+  if (sched.status !== 'draft') return ['SUPER_ADMIN', 'DIRECTOR'].includes(user.role);
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
   if (!!user.is_phan_lich_all) return true;
   if (!!user.is_truong_phong) return !isPastSchedule(sched);

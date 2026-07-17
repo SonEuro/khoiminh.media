@@ -44,7 +44,7 @@ async function pushByRoles(title, body, url = '/', roles = []) {
   const subs = db.prepare(`
     SELECT ps.* FROM push_subscriptions ps
     LEFT JOIN users u ON u.id = ps.user_id
-    WHERE u.role IN (${placeholders}) OR ps.user_id IS NULL
+    WHERE u.role IN (${placeholders})
   `).all(...roles);
   console.log(`[push] "${title}" → ${subs.length} subscriber(s)`);
   if (!subs.length) return;
