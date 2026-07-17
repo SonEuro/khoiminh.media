@@ -44,6 +44,10 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
             margin-bottom: max(env(safe-area-inset-bottom, 0px), 10px) !important;
             max-height: calc(100dvh - max(env(safe-area-inset-top, 0px), 20px) - max(env(safe-area-inset-bottom, 0px), 10px)) !important;
           }
+          /* Khi có extra buttons: title hàng 1, buttons hàng 2 bên phải */
+          .modal-hdr--extra { flex-wrap: wrap !important; gap: 4px 8px !important; }
+          .modal-hdr--extra .modal-hdr-title { flex: 1 1 100% !important; white-space: normal !important; overflow: visible !important; text-overflow: unset !important; }
+          .modal-hdr--extra .modal-hdr-actions { margin-left: auto; }
         }
         /* Landscape mobile (phone): centered sheet với safe area
            Dùng max-height thay max-width để catch cả iPhone Pro Max landscape (~932px wide) */
@@ -90,14 +94,14 @@ export default function Modal({ title, onClose, children, size = 'md', extra }) 
         </div>
 
         {/* Header */}
-        <div style={{
+        <div className={extra ? 'modal-hdr--extra' : ''} style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '12px 16px',
           borderBottom: '1px solid var(--gold-dim)',
           flexShrink: 0,
         }}>
-          <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gold)', margin: 0, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <h2 className="modal-hdr-title" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gold)', margin: 0, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</h2>
+          <div className="modal-hdr-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {extra}
             <button onClick={onClose}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.4rem', lineHeight: 1, padding: '2px 6px' }}
