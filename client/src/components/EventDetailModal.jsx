@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import ExcelJS from 'exceljs';
 import Modal from './Modal';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
@@ -122,7 +121,7 @@ ${externalRows ? `
 </body></html>`;
 }
 
-async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
+async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn, ExcelJS) {
   const startDates = parseDatesFieldFn(ev,'start_dates','start_date').map(fmtD).join(', ');
   const showDates  = parseDatesFieldFn(ev,'show_dates', 'show_date').map(fmtD).join(', ');
   const filmDates  = parseFilmingDatesFn(ev).map(fmtD).join(', ');
@@ -222,7 +221,8 @@ export default function EventDetailModal({ eventId, onClose }) {
   };
 
   const handleExcel = async () => {
-    const wb = await buildExcelWorkbook(ev, parseFilmingDates, parseDatesField);
+    const { default: ExcelJS } = await import('exceljs');
+    const wb = await buildExcelWorkbook(ev, parseFilmingDates, parseDatesField, ExcelJS);
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
