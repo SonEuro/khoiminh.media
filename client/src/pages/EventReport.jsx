@@ -966,6 +966,8 @@ export default function EventReport() {
           if (Object.values(leadsMap).some(arr => arr?.some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
           const kmMap = s[`${key}_km_staff_map`] || {};
           if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
+          const kmSupport = s[`${key}_km_support`] || {};
+          if (Object.values(kmSupport).some(dateObj => dateObj && myName in dateObj)) { found = true; break; }
         }
         if (!found) continue;
         // Kiểm tra còn trong deadline: ít nhất 1 phase date chưa quá hạn (date + 1 ngày 12:00 VN)
@@ -1224,6 +1226,8 @@ export default function EventReport() {
           if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { inSched = true; break outer; }
           const km = s[`${key}_km_staff_map`]?.[matchDate] || s[`${key}_km_staff`] || [];
           if (km.includes(myName)) { inSched = true; break outer; }
+          const support = (s[`${key}_km_support`] || {})[matchDate] || {};
+          if (myName in support) { inSched = true; break outer; }
         }
       }
       setNotInSchedule(!inSched);
