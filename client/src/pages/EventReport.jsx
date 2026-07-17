@@ -946,48 +946,11 @@ export default function EventReport() {
   const fileInputRef = useRef(null);
 
   // Build danh sách event_id mà user có lịch làm việc VÀ còn trong deadline báo cáo
-  useEffect(() => {
-    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
-    if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
-    const myName = user.full_name;
-    const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
-    api.getWorkSchedules({}).then(scheds => {
-      const ids = new Set();
-      for (const s of scheds) {
-        if (!s.event_id) continue;
-        // Kiểm tra user có trong lịch không
-        let found = false;
-        for (const key of phaseKeys) {
-          const leads = s[`${key}_leads`] || [];
-          if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { found = true; break; }
-          const km = s[`${key}_km_staff`] || [];
-          if (km.includes(myName)) { found = true; break; }
-          const leadsMap = s[`${key}_leads_map`] || {};
-          if (Object.values(leadsMap).some(arr => arr?.some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
-          const kmMap = s[`${key}_km_staff_map`] || {};
-          if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
-          const kmSupport = s[`${key}_km_support`] || {};
-          if (Object.values(kmSupport).some(dateObj => dateObj && myName in dateObj)) { found = true; break; }
-        }
-        if (!found) continue;
-        // Kiểm tra còn trong deadline: ít nhất 1 phase date chưa quá hạn (date + 1 ngày 12:00 VN)
-        let hasOpenDeadline = false;
-        for (const key of phaseKeys) {
-          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-          if (dates.some(d => withinEditDeadline(d))) { hasOpenDeadline = true; break; }
-        }
-        if (hasOpenDeadline) ids.add(String(s.event_id));
-      }
-      setAllowedEventIds(ids);
-    }).catch(() => setAllowedEventIds(null));
-  }, [user?.full_name, user?.role, user?.is_phan_lich_all]);
-
   const load = useCallback(() => {
     Promise.all([api.getEventReports(), api.getEvents()])
       .then(([r, e]) => { setReports(r); setEvents(e); })
       .finally(() => setLoading(false));
     // Lấy các obligation đã bị khóa (vi phạm không nộp)
-    // Admin/is_phan_lich_all: thấy tất cả; lead/user thường: chỉ thấy của mình
     api.getLeadObligations()
       .then(obs => {
         const locked = obs.filter(o => o.locked && !o.submitted);
@@ -1006,7 +969,39 @@ export default function EventReport() {
         }
       })
       .catch(() => {});
-  }, [user?.full_name, user?.id]);
+    // Tính allowedEventIds từ lịch làm việc — refresh cùng interval để cập nhật khi lịch thay đổi
+    const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+    if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
+    const myName = user.full_name;
+    const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+    api.getWorkSchedules({}).then(scheds => {
+      const ids = new Set();
+      for (const s of scheds) {
+        if (!s.event_id) continue;
+        let found = false;
+        for (const key of phaseKeys) {
+          const leads = s[`${key}_leads`] || [];
+          if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { found = true; break; }
+          const km = s[`${key}_km_staff`] || [];
+          if (km.includes(myName)) { found = true; break; }
+          const leadsMap = s[`${key}_leads_map`] || {};
+          if (Object.values(leadsMap).some(arr => arr?.some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
+          const kmMap = s[`${key}_km_staff_map`] || {};
+          if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
+          const kmSupport = s[`${key}_km_support`] || {};
+          if (Object.values(kmSupport).some(dateObj => dateObj && myName in dateObj)) { found = true; break; }
+        }
+        if (!found) continue;
+        let hasOpenDeadline = false;
+        for (const key of phaseKeys) {
+          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          if (dates.some(d => withinEditDeadline(d))) { hasOpenDeadline = true; break; }
+        }
+        if (hasOpenDeadline) ids.add(String(s.event_id));
+      }
+      setAllowedEventIds(ids);
+    }).catch(() => setAllowedEventIds(null));
+  }, [user?.full_name, user?.id, user?.role, user?.is_phan_lich_all, user?.is_truong_phong]);
 
   useEffect(() => {
     load();
