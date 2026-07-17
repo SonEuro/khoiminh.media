@@ -1343,20 +1343,41 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
 
 function ReportRows({ reports }) {
   if (!reports.length) return <Empty text="Chưa có báo cáo nào" />;
+
+  const groups = [];
+  const seen = new Map();
+  for (const r of reports) {
+    const key = r.event_id ?? `__${r.event_label ?? 'noname'}`;
+    if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name: r.event_label || 'Sự kiện', items: [] }); }
+    seen.get(key).push(r);
+  }
+  for (const g of groups) g.items = seen.get(g.key);
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-      {reports.map(r => (
-        <div key={r.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', display:'flex', alignItems:'center', gap:'12px' }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ fontWeight:600, color:'#e0e0ee', margin:'0 0 2px', fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.event_label || 'Sự kiện'}</p>
-            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
-              {r.location && <span style={{ marginRight:'8px', display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {r.location}</span>}
-              {r.reporter_name && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><User size={11} /> {r.reporter_name}</span>}
-            </p>
+    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+      {groups.map(({ key, name, items }) => (
+        <div key={key}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 4px', marginBottom:'4px' }}>
+            <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+            <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#eeeef5', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+            <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(255,255,255,0.15), transparent)' }} />
+            <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} báo cáo</span>
           </div>
-          <div style={{ textAlign:'right', fontSize:'0.78rem', flexShrink:0 }}>
-            {r.report_date && <div style={{ color:'#7878a0' }}>{fmtDate(r.report_date)}</div>}
-            {r.service_quality && <div style={{ color:GOLD, fontWeight:600 }}>{r.service_quality}</div>}
+          <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+            {items.map(r => (
+              <div key={r.id} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px', display:'flex', alignItems:'center', gap:'12px' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
+                    {r.location && <span style={{ marginRight:'8px', display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {r.location}</span>}
+                    {r.reporter_name && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><User size={11} /> {r.reporter_name}</span>}
+                  </p>
+                </div>
+                <div style={{ textAlign:'right', fontSize:'0.78rem', flexShrink:0 }}>
+                  {r.report_date && <div style={{ color:'#7878a0' }}>{fmtDate(r.report_date)}</div>}
+                  {r.service_quality && <div style={{ color:GOLD, fontWeight:600 }}>{r.service_quality}</div>}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ))}
