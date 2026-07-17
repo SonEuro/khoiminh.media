@@ -392,14 +392,15 @@ router.post('/return', canTransact, (req, res) => {
       const cond = item.condition || 'good';
       insertItem.run(txId, item.equipment_id, qty, cond, item.notes || null);
 
+      // MIN(?, qty_in_use) = số thực sự giảm khỏi in_use (SQLite dùng giá trị gốc trước khi SET)
       if (cond === 'good') {
-        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_available = qty_available + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_available = qty_available + MIN(?, qty_in_use) WHERE id = ?`).run(qty, qty, item.equipment_id);
       } else if (cond === 'damaged') {
-        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_damaged = qty_damaged + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_damaged = qty_damaged + MIN(?, qty_in_use) WHERE id = ?`).run(qty, qty, item.equipment_id);
       } else if (cond === 'maintenance') {
-        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_maintenance = qty_maintenance + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_maintenance = qty_maintenance + MIN(?, qty_in_use) WHERE id = ?`).run(qty, qty, item.equipment_id);
       } else if (cond === 'lost') {
-        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_lost = qty_lost + ? WHERE id = ?`).run(qty, qty, item.equipment_id);
+        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_lost = qty_lost + MIN(?, qty_in_use) WHERE id = ?`).run(qty, qty, item.equipment_id);
       }
     }
 
