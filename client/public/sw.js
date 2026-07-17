@@ -19,12 +19,10 @@ self.addEventListener('notificationclick', e => {
   const url = e.notification.data?.url || '/';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      const pu = new URL(url, self.location.origin);
-      const existing = list.find(c => {
-        const cu = new URL(c.url);
-        return cu.pathname === pu.pathname && cu.search === pu.search;
-      });
-      if (existing) return existing.focus();
+      const origin = new URL(url, self.location.origin).origin;
+      // Tìm bất kỳ tab nào của app đang mở, điều hướng đến URL đích thay vì mở tab mới
+      const existing = list.find(c => new URL(c.url).origin === origin);
+      if (existing) return existing.navigate(url).then(c => c?.focus()).catch(() => existing.focus());
       return clients.openWindow(url);
     })
   );
