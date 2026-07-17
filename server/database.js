@@ -144,6 +144,36 @@ try {
   `).run();
 } catch (_) {}
 
+// Infer departments cho events cũ dựa trên km_staff trong work_schedule
+try {
+  const sgRows = db.prepare("SELECT dept, members FROM staff_groups WHERE type='km'").all();
+  const nameToDept = {};
+  for (const g of sgRows) {
+    try {
+      for (const name of JSON.parse(g.members || '[]')) {
+        if (name && !nameToDept[name]) nameToDept[name] = g.dept;
+      }
+    } catch (_) {}
+  }
+  const evRows = db.prepare(`
+    SELECT e.id, ws.setup_km_staff, ws.teardown_km_staff, ws.rehearsal_km_staff, ws.filming_km_staff
+    FROM events e JOIN work_schedules ws ON ws.event_id = e.id
+    WHERE e.departments IS NULL
+  `).all();
+  const upd = db.prepare('UPDATE events SET departments = ? WHERE id = ? AND departments IS NULL');
+  for (const ev of evRows) {
+    const depts = new Set();
+    for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
+      try {
+        const km = JSON.parse(ev[`${ph}_km_staff`] || '[]');
+        const arr = Array.isArray(km) ? km : Object.values(km).flat();
+        for (const name of arr) { if (name && nameToDept[name]) depts.add(nameToDept[name]); }
+      } catch (_) {}
+    }
+    if (depts.size > 0) upd.run(JSON.stringify([...depts]), ev.id);
+  }
+} catch (_) {}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS work_schedules (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,

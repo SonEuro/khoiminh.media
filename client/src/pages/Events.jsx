@@ -999,11 +999,8 @@ export default function Events() {
                 const sched = schedules.find(s => s.event_id === ev.id);
                 const schedHasDeptMember = sched && deptMemberSet.size > 0 && (() => {
                   for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
-                    try {
-                      const km = JSON.parse(sched[`${ph}_km_staff`] || '[]');
-                      const arr = Array.isArray(km) ? km : Object.values(km).flat();
-                      if (arr.some(n => deptMemberSet.has(n))) return true;
-                    } catch {}
+                    const km = sched[`${ph}_km_staff`]; // server đã parse thành flat array
+                    if (Array.isArray(km) && km.some(n => deptMemberSet.has(n))) return true;
                   }
                   return false;
                 })();
@@ -1131,11 +1128,8 @@ export default function Events() {
                   const pastSched = schedules.find(s => s.event_id === ev.id);
                   const pastSchedHasDeptMember = pastSched && deptMemberSet.size > 0 && (() => {
                     for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
-                      try {
-                        const km = JSON.parse(pastSched[`${ph}_km_staff`] || '[]');
-                        const arr = Array.isArray(km) ? km : Object.values(km).flat();
-                        if (arr.some(n => deptMemberSet.has(n))) return true;
-                      } catch {}
+                      const km = pastSched[`${ph}_km_staff`]; // server đã parse thành flat array
+                      if (Array.isArray(km) && km.some(n => deptMemberSet.has(n))) return true;
                     }
                     return false;
                   })();
