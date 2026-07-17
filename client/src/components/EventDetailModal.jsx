@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import Modal from './Modal';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
@@ -122,64 +122,74 @@ ${externalRows ? `
 </body></html>`;
 }
 
-function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
+async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
   const startDates = parseDatesFieldFn(ev,'start_dates','start_date').map(fmtD).join(', ');
   const showDates  = parseDatesFieldFn(ev,'show_dates', 'show_date').map(fmtD).join(', ');
   const filmDates  = parseFilmingDatesFn(ev).map(fmtD).join(', ');
   const endDates   = parseDatesFieldFn(ev,'end_dates',  'end_date').map(fmtD).join(', ');
 
-  const rows = [];
-  rows.push([ev.name, '', '', '', ev.code]);
-  rows.push([]);
-  if (ev.client)      rows.push(['Khách hàng', ev.client]);
-  if (ev.location)    rows.push(['Địa điểm', ev.location]);
-  if (startDates)     rows.push(['Ngày bắt đầu', startDates]);
-  if (showDates)      rows.push(['Ngày Rehearsal', showDates]);
-  if (filmDates)      rows.push(['Ngày ghi hình', filmDates]);
-  if (endDates)       rows.push(['Ngày kết thúc', endDates]);
-  if (ev.created_by)  rows.push(['Người tạo', ev.created_by]);
-  if (ev.notes)       rows.push(['Ghi chú', ev.notes]);
-  rows.push([]);
-  rows.push(['THIẾT BỊ XUẤT KHO']);
-  rows.push(['Mã', 'Thiết bị', 'Xuất', 'Đã trả', 'Còn nợ']);
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet((ev.code || 'Phieu Xuat Kho').slice(0, 31));
+  ws.columns = [{ width: 14 }, { width: 36 }, { width: 10 }, { width: 10 }, { width: 10 }];
+
+  const thin = { style: 'thin', color: { argb: 'FFAAAAAA' } };
+  const bdr  = { top: thin, bottom: thin, left: thin, right: thin };
+
+  function addRow(values, opts = {}) {
+    const row = ws.addRow(values);
+    row.eachCell({ includeEmpty: false }, cell => {
+      if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
+        cell.border = bdr;
+        if (opts.bold)       cell.font = { ...(cell.font||{}), bold: true };
+        if (opts.size)       cell.font = { ...(cell.font||{}), size: opts.size };
+        if (opts.color)      cell.font = { ...(cell.font||{}), color: { argb: opts.color } };
+        if (opts.bgColor)    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: opts.bgColor } };
+      }
+    });
+    return row;
+  }
+
+  // Title
+  addRow([ev.name, '', '', '', ev.code], { bold: true, size: 14 });
+  ws.addRow([]);
+
+  // Info
+  if (ev.client)     addRow(['Khách hàng', ev.client],      { bold: true });
+  if (ev.location)   addRow(['Địa điểm',   ev.location],    { bold: true });
+  if (startDates)    addRow(['Ngày bắt đầu',   startDates], { bold: true });
+  if (showDates)     addRow(['Ngày Rehearsal',  showDates],  { bold: true });
+  if (filmDates)     addRow(['Ngày ghi hình',   filmDates],  { bold: true });
+  if (endDates)      addRow(['Ngày kết thúc',   endDates],   { bold: true });
+  if (ev.created_by) addRow(['Người tạo',  ev.created_by],  { bold: true });
+  if (ev.notes)      addRow(['Ghi chú',    ev.notes],        { bold: true });
+  ws.addRow([]);
+
+  // Equipment section header
+  addRow(['THIẾT BỊ XUẤT KHO'], { bold: true, bgColor: 'FF1A1A2E', color: 'FFFFFFFF' });
+  addRow(['Mã', 'Thiết bị', 'Xuất', 'Đã trả', 'Còn nợ'], { bold: true, bgColor: 'FF2D2D4A', color: 'FFFFFFFF' });
 
   const sorted = [...ev.items].sort((a,b) => (a.eq_code||'').localeCompare(b.eq_code||''));
   let lastCat = null;
   sorted.forEach(it => {
     const cat = (it.eq_code||'').split('-')[0];
-    if (cat !== lastCat) { rows.push([`── ${cat} ──`]); lastCat = cat; }
+    if (cat !== lastCat) {
+      addRow([cat], { bold: true, bgColor: 'FF1E1A0A', color: 'FFC9A84C' });
+      lastCat = cat;
+    }
     const rem = it.qty_out - (it.qty_returned||0);
-    rows.push([it.eq_code||'', it.eq_name||'', it.qty_out, it.qty_returned||0, rem]);
+    addRow([it.eq_code||'', it.eq_name||'', it.qty_out, it.qty_returned||0, rem]);
   });
 
   if (ev.external_items?.length > 0) {
-    rows.push([]);
-    rows.push(['THIẾT BỊ THUÊ NCC']);
-    rows.push(['Nhà cung cấp', 'Tên thiết bị', 'Số lượng', 'Ghi chú']);
+    ws.addRow([]);
+    addRow(['THIẾT BỊ THUÊ NCC'], { bold: true, bgColor: 'FF1A1A2E', color: 'FFFFFFFF' });
+    addRow(['Nhà cung cấp', 'Tên thiết bị', 'Số lượng', 'Ghi chú'], { bold: true, bgColor: 'FF2D2D4A', color: 'FFFFFFFF' });
     ev.external_items.forEach(it => {
       const note = [it.rental_days>0?`Thuê ${it.rental_days} ngày`:'', it.notes||''].filter(Boolean).join(' · ');
-      rows.push([it.supplier||'', it.name||'', it.quantity, note]);
+      addRow([it.supplier||'', it.name||'', it.quantity, note]);
     });
   }
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 14 }, { wch: 36 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
-
-  // Add thin border to all non-empty cells
-  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-  const thin = { style: 'thin' };
-  const border = { top: thin, bottom: thin, left: thin, right: thin };
-  for (let R = range.s.r; R <= range.e.r; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const addr = XLSX.utils.encode_cell({ r: R, c: C });
-      const cell = ws[addr];
-      if (!cell || cell.v === undefined || cell.v === '') continue;
-      cell.s = { ...(cell.s || {}), border };
-    }
-  }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, (ev.code || 'Phieu Xuat Kho').slice(0, 31));
   return wb;
 }
 
@@ -211,9 +221,18 @@ export default function EventDetailModal({ eventId, onClose }) {
     w.document.close();
   };
 
-  const handleExcel = () => {
-    const wb = buildExcelWorkbook(ev, parseFilmingDates, parseDatesField);
-    XLSX.writeFile(wb, `${ev.name} - Đã Xuất.xlsx`);
+  const handleExcel = async () => {
+    const wb = await buildExcelWorkbook(ev, parseFilmingDates, parseDatesField);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${ev.name} - Đã Xuất.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (err) return (
