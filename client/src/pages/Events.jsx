@@ -982,13 +982,16 @@ export default function Events() {
               {/* Hàng 5: buttons */}
               {(() => {
                 const evDepts = parseDepts(ev);
+                const isTp = user?.position === 'Trưởng phòng';
                 // Nếu event đã có departments → filter strict theo dept
                 // Nếu chưa có (null/rỗng) → cho tất cả TP xem (fallback)
-                const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (
+                const isTruongPhongOfDept = isTp && userDept && (
                   evDepts.includes(userDept) || evDepts.length === 0
                 );
-                if (ev.id === 61) console.log('[DEBUG ev61]', { pos: user?.position, userDept, evDepts, canSuaLichBase, isTruongPhongOfDept, is_phan_lich: user?.is_phan_lich });
-                const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
+                // is_phan_lich_all → luôn được; is_phan_lich → chỉ khi không phải TP (TP bị filter theo dept)
+                const canSuaLich = canFullEdit || !!user?.is_phan_lich_all
+                  || isTruongPhongOfDept
+                  || (!!user?.is_phan_lich && !isTp);
                 const showEdit = canFullEdit || isTruongPhongOfDept;
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
@@ -1101,7 +1104,8 @@ export default function Events() {
                   const endDates   = parseDatesField(ev, 'end_dates',   'end_date');
                   const filmDates  = parseDatesField(ev, 'filming_dates', 'filming_date');
                   const pastEvDepts = parseDepts(ev);
-                  const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (
+                  const isTpPast = user?.position === 'Trưởng phòng';
+                  const isTruongPhongOfDeptPast = isTpPast && userDept && (
                     pastEvDepts.includes(userDept) || pastEvDepts.length === 0
                   );
                   const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
