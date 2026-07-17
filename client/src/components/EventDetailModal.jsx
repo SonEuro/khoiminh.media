@@ -165,15 +165,15 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
   ws.addRow([]);
 
   // Equipment section header
-  addRow(['THIẾT BỊ XUẤT KHO'], { bold: true, bgColor: 'FF1A1A2E', color: 'FFFFFFFF' });
-  addRow(['Mã', 'Thiết bị', 'Xuất', 'Đã trả', 'Còn nợ'], { bold: true, bgColor: 'FF2D2D4A', color: 'FFFFFFFF' });
+  addRow(['THIẾT BỊ XUẤT KHO'], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
+  addRow(['Mã', 'Thiết bị', 'Xuất', 'Đã trả', 'Còn nợ'], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
 
   const sorted = [...ev.items].sort((a,b) => (a.eq_code||'').localeCompare(b.eq_code||''));
   let lastCat = null;
   sorted.forEach(it => {
     const cat = (it.eq_code||'').split('-')[0];
     if (cat !== lastCat) {
-      addRow([cat], { bold: true, bgColor: 'FF1E1A0A', color: 'FFC9A84C' });
+      addRow([cat], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
       lastCat = cat;
     }
     const rem = it.qty_out - (it.qty_returned||0);
@@ -182,8 +182,8 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
 
   if (ev.external_items?.length > 0) {
     ws.addRow([]);
-    addRow(['THIẾT BỊ THUÊ NCC'], { bold: true, bgColor: 'FF1A1A2E', color: 'FFFFFFFF' });
-    addRow(['Nhà cung cấp', 'Tên thiết bị', 'Số lượng', 'Ghi chú'], { bold: true, bgColor: 'FF2D2D4A', color: 'FFFFFFFF' });
+    addRow(['THIẾT BỊ THUÊ NCC'], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
+    addRow(['Nhà cung cấp', 'Tên thiết bị', 'Số lượng', 'Ghi chú'], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
     ev.external_items.forEach(it => {
       const note = [it.rental_days>0?`Thuê ${it.rental_days} ngày`:'', it.notes||''].filter(Boolean).join(' · ');
       addRow([it.supplier||'', it.name||'', it.quantity, note]);
