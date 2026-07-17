@@ -44,7 +44,7 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
 
   return `<!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8">
-<title>Phiếu Xuất Kho · ${ev.code}</title>
+<title>${ev.name}-phieu-xuat-kho</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a2e; padding: 20px 28px; }
