@@ -15,8 +15,12 @@ router.get('/catalog', requireAuth, (req, res) => {
   res.json({ suppliers, catalog });
 });
 
-// ── Admin routes — SUPER_ADMIN only ───────────────────────────────────────────
-router.use(requireAuth, requireRole('SUPER_ADMIN'));
+// ── Admin routes — SUPER_ADMIN hoặc is_quan_ly_kho ────────────────────────────
+const requireNccAccess = (req, res, next) => {
+  if (req.user?.role === 'SUPER_ADMIN' || req.user?.is_quan_ly_kho) return next();
+  return res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
+};
+router.use(requireAuth, requireNccAccess);
 
 // GET /api/ncc — list suppliers với equipment count
 router.get('/', (req, res) => {
