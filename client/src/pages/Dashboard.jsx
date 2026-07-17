@@ -713,19 +713,17 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
               for (const g of groups) g.items = seen.get(g.key);
               return groups.map(({ key, name, items }) => (
                 <div key={key} style={{ marginBottom:'10px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'3px 0', marginBottom:'5px' }}>
-                    <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
-                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
-                    <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', padding:'3px 14px', marginBottom:'5px', minWidth:0 }}>
+                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase', overflow:'hidden', textOverflow:'ellipsis', flex:1, minWidth:0 }}>{name}</span>
                     <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} phiếu</span>
                   </div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+                  <div style={{ display:'flex', flexDirection:'column', borderLeft:'2px solid rgba(201,168,76,0.18)', marginLeft:'14px' }}>
                     {items.map((ob, i) => (
                       <ARow key={`ob-${ob.id}`} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                             <p style={{ ...T.name, color:'#fca5a5', margin:0 }}>{ob.lead_name}</p>
-                            <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px' }}>Chưa nộp BC</span>
+                            <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px', flexShrink:0 }}>Chưa nộp BC</span>
                           </div>
                           <p style={T.sub}>{PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
                         </div>
@@ -748,13 +746,11 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
               for (const g of groups) g.items = seen.get(g.key);
               return groups.map(({ key, name, items }) => (
                 <div key={key} style={{ marginBottom:'10px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'3px 0', marginBottom:'5px' }}>
-                    <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
-                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
-                    <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', padding:'3px 14px', marginBottom:'5px', minWidth:0 }}>
+                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase', overflow:'hidden', textOverflow:'ellipsis', flex:1, minWidth:0 }}>{name}</span>
                     <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} vi phạm</span>
                   </div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+                  <div style={{ display:'flex', flexDirection:'column', borderLeft:'2px solid rgba(201,168,76,0.18)', marginLeft:'14px' }}>
                     {items.map((v, i) => (
                       <ARow key={`v-${v.id}`} i={i} rgb="251,146,60" onClick={() => navigate('/violations')}>
                         <div style={{ flex:1, minWidth:0 }}>
