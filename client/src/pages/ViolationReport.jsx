@@ -339,7 +339,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
     }}>
       {/* Row chính */}
       <div className="vc-row">
-        <div className="vc-content" style={{ flex: 1, minWidth: 0 }}>
+        <div className="vc-content">
           {/* Badge loại + sự kiện */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
             <span style={{

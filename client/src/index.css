@@ -316,12 +316,13 @@
 
 /* ── ViolationCard: actions lên hàng trên bên phải trên mobile ── */
 .vc-row     { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+.vc-content { flex: 1; min-width: 0; }
 .vc-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
 @media (max-width: 767px) {
   .vc-row     { flex-wrap: wrap; padding: 10px 12px; gap: 4px; }
+  .vc-content { flex: 1 1 100% !important; }
   .vc-actions { order: -1; margin-left: auto; }
-  .vc-content { flex: 1 1 100%; }
 }
 
 /* ── WorkSchedule card action buttons ───────────────── */
