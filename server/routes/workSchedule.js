@@ -184,7 +184,7 @@ router.post('/', canPhanLich, (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-  const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(req.params.id);
+  const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
   if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Lịch đã xác nhận, không có quyền sửa' });
 

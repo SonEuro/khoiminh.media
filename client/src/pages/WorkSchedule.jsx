@@ -1178,11 +1178,14 @@ export default function WorkSchedule() {
 
   useEffect(() => { if (isSADir && showTrash) loadTrash(); }, [isSADir, showTrash, loadTrash]);
 
+  const highlightedIdRef = useRef(null);
   useEffect(() => {
     if (!highlightId || !schedules.length) return;
+    if (highlightedIdRef.current === highlightId) return;
     const t = setTimeout(() => {
       const el = document.getElementById(`ws-card-${highlightId}`);
       if (!el) return;
+      highlightedIdRef.current = highlightId;
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.style.outline = '2px solid #c9a84c';
       el.style.boxShadow = '0 0 18px rgba(201,168,76,0.35)';
