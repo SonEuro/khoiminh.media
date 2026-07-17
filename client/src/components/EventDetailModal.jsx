@@ -121,6 +121,88 @@ ${externalRows ? `
 </body></html>`;
 }
 
+function escXml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function cell(val, type = 'String', styleId = '') {
+  return `<Cell${styleId ? ` ss:StyleID="${styleId}"` : ''}><Data ss:Type="${type}">${escXml(val)}</Data></Cell>`;
+}
+function row(...cells) { return `<Row>${cells.join('')}</Row>`; }
+
+function buildExcelXml(ev, parseFilmingDatesFn, parseDatesFieldFn) {
+  const startDates   = parseDatesFieldFn(ev, 'start_dates',  'start_date').map(fmtD).join(', ');
+  const showDates    = parseDatesFieldFn(ev, 'show_dates',   'show_date').map(fmtD).join(', ');
+  const filmDates    = parseFilmingDatesFn(ev).map(fmtD).join(', ');
+  const endDates     = parseDatesFieldFn(ev, 'end_dates',    'end_date').map(fmtD).join(', ');
+
+  const sorted = [...ev.items].sort((a, b) => (a.eq_code || '').localeCompare(b.eq_code || ''));
+  let itemRows = '';
+  let lastCat = null;
+  sorted.forEach(it => {
+    const cat = (it.eq_code || '').split('-')[0];
+    if (cat !== lastCat) {
+      itemRows += row(cell(cat, 'String', 'cat'), cell('','String','cat'), cell('','String','cat'), cell('','String','cat'), cell('','String','cat'));
+      lastCat = cat;
+    }
+    const rem = it.qty_out - (it.qty_returned || 0);
+    itemRows += row(
+      cell(it.eq_code || ''),
+      cell(it.eq_name || ''),
+      cell(it.qty_out, 'Number'),
+      cell(it.qty_returned || 0, 'Number'),
+      cell(rem, 'Number'),
+    );
+  });
+
+  let extRows = '';
+  if (ev.external_items?.length > 0) {
+    extRows += row(cell(''), cell(''), cell(''), cell(''), cell(''));
+    extRows += row(cell('THIẾT BỊ THUÊ NCC','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'));
+    extRows += row(cell('Nhà cung cấp','String','hdr2'), cell('Tên thiết bị','String','hdr2'), cell('Số lượng','String','hdr2'), cell('Ghi chú','String','hdr2'), cell('','String','hdr2'));
+    ev.external_items.forEach(it => {
+      const note = [it.rental_days > 0 ? `Thuê ${it.rental_days} ngày` : '', it.notes || ''].filter(Boolean).join(' · ');
+      extRows += row(cell(it.supplier || ''), cell(it.name || ''), cell(it.quantity, 'Number'), cell(note));
+    });
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Styles>
+    <Style ss:ID="title"><Font ss:Bold="1" ss:Size="14"/></Style>
+    <Style ss:ID="label"><Font ss:Bold="1" ss:Color="#555555"/></Style>
+    <Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/><Interior ss:Color="#1A1A2E" ss:Pattern="Solid"/></Style>
+    <Style ss:ID="hdr2"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2D2D4A" ss:Pattern="Solid"/></Style>
+    <Style ss:ID="cat"><Font ss:Bold="1" ss:Color="#C9A84C"/><Interior ss:Color="#1E1A0A" ss:Pattern="Solid"/></Style>
+    <Style ss:ID="num"><Alignment ss:Horizontal="Right"/></Style>
+  </Styles>
+  <Worksheet ss:Name="Phieu Xuat Kho">
+    <Table ss:DefaultColumnWidth="120">
+      <Column ss:Width="90"/>
+      <Column ss:Width="220"/>
+      <Column ss:Width="70"/>
+      <Column ss:Width="70"/>
+      <Column ss:Width="70"/>
+      ${row(cell(ev.name, 'String', 'title'), cell(''), cell(''), cell(''), cell(ev.code))}
+      ${row(cell(''))}
+      ${row(cell('Khách hàng','String','label'), cell(ev.client || ''))}
+      ${row(cell('Địa điểm','String','label'), cell(ev.location || ''))}
+      ${startDates ? row(cell('Ngày bắt đầu','String','label'), cell(startDates)) : ''}
+      ${showDates  ? row(cell('Ngày Rehearsal','String','label'), cell(showDates)) : ''}
+      ${filmDates  ? row(cell('Ngày ghi hình','String','label'), cell(filmDates)) : ''}
+      ${endDates   ? row(cell('Ngày kết thúc','String','label'), cell(endDates)) : ''}
+      ${ev.created_by ? row(cell('Người tạo','String','label'), cell(ev.created_by)) : ''}
+      ${ev.notes   ? row(cell('Ghi chú','String','label'), cell(ev.notes)) : ''}
+      ${row(cell(''))}
+      ${row(cell('THIẾT BỊ XUẤT KHO','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'), cell('','String','hdr'))}
+      ${row(cell('Mã','String','hdr2'), cell('Thiết bị','String','hdr2'), cell('Xuất','String','hdr2'), cell('Đã trả','String','hdr2'), cell('Còn nợ','String','hdr2'))}
+      ${itemRows}
+      ${extRows}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+}
+
 function parseFilmingDates(ev) {
   if (!ev) return [];
   if (ev.filming_dates) { try { return JSON.parse(ev.filming_dates); } catch {} }
@@ -149,6 +231,19 @@ export default function EventDetailModal({ eventId, onClose }) {
     w.document.close();
   };
 
+  const handleExcel = () => {
+    const xml = buildExcelXml(ev, parseFilmingDates, parseDatesField);
+    const blob = new Blob(['﻿' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${ev.code}-phieu-xuat-kho.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (err) return (
     <Modal title="Sự kiện" onClose={onClose}>
       <div className="text-center py-8" style={{ color:'#f87171' }}>Không thể tải sự kiện.</div>
@@ -160,14 +255,16 @@ export default function EventDetailModal({ eventId, onClose }) {
     </Modal>
   );
 
+  const btnStyle = {
+    background:'none', border:'1px solid rgba(201,168,76,0.35)', borderRadius:'6px',
+    cursor:'pointer', color:'#c9a84c', fontSize:'0.78rem', fontWeight:600,
+    padding:'3px 9px', display:'flex', alignItems:'center', gap:'4px', whiteSpace:'nowrap',
+  };
   const printBtn = ev ? (
-    <button onClick={handlePrint} title="In phiếu xuất kho" style={{
-      background:'none', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'6px',
-      cursor:'pointer', color:'#c9a84c', fontSize:'0.82rem', fontWeight:600,
-      padding:'3px 10px', display:'flex', alignItems:'center', gap:'5px', whiteSpace:'nowrap',
-    }}>
-      🖨️ In phiếu
-    </button>
+    <div style={{ display:'flex', gap:'6px' }}>
+      <button onClick={handlePrint} title="In / lưu PDF" style={btnStyle}>🖨️ PDF</button>
+      <button onClick={handleExcel} title="Tải file Excel" style={{ ...btnStyle, borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }}>📊 Excel</button>
+    </div>
   ) : null;
 
   return (
