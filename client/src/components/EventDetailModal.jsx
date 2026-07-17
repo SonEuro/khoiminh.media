@@ -237,7 +237,7 @@ export default function EventDetailModal({ eventId, onClose }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${ev.code}-phieu-xuat-kho.xls`;
+    a.download = `${ev.name}-phieu-xuat-kho.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
