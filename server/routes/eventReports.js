@@ -47,7 +47,7 @@ router.get('/:id', (req, res) => {
     SELECT er.*, u.role AS reporter_role
     FROM event_reports er
     LEFT JOIN users u ON u.id = er.reporter_user_id
-    WHERE er.id = ?
+    WHERE er.id = ? AND er.deleted_at IS NULL
   `).get(req.params.id);
   if (!r) return res.status(404).json({ error: 'Không tìm thấy' });
   res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]'), timeline: JSON.parse(r.timeline || '[]'), edit_history: JSON.parse(r.edit_history || '[]') });
@@ -92,7 +92,7 @@ function withinEditDeadline(reportDate) {
 }
 
 router.put('/:id', requireAuth, (req, res) => {
-  const report = db.prepare('SELECT * FROM event_reports WHERE id = ?').get(req.params.id);
+  const report = db.prepare('SELECT * FROM event_reports WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
 
   const { role } = req.user;
