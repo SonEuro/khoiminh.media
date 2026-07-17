@@ -701,27 +701,73 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
         {topObs.length === 0 && topViols.length === 0
           ? <AEmpty text="Không có vi phạm gần đây" />
           : <>
-            {topObs.map((ob, i) => (
-              <ARow key={`ob-${ob.id}`} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                    <p style={{ ...T.name, color:'#fca5a5', margin:0 }}>{ob.lead_name}</p>
-                    <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px' }}>Chưa nộp BC</span>
+            {(() => {
+              const groups = [];
+              const seen = new Map();
+              for (const ob of topObs) {
+                const key = ob.event_id ?? `__${ob.event_display ?? ob.event_name ?? 'noname'}`;
+                const name = ob.event_display || ob.event_name || 'Nội bộ';
+                if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name, items: [] }); }
+                seen.get(key).push(ob);
+              }
+              for (const g of groups) g.items = seen.get(g.key);
+              return groups.map(({ key, name, items }) => (
+                <div key={key} style={{ marginBottom:'10px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'3px 0', marginBottom:'5px' }}>
+                    <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+                    <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                    <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} phiếu</span>
                   </div>
-                  <p style={T.sub}>{ob.event_display || ob.event_name} · {PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+                    {items.map((ob, i) => (
+                      <ARow key={`ob-${ob.id}`} i={i} rgb="248,113,113" onClick={() => navigate('/event-report')}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                            <p style={{ ...T.name, color:'#fca5a5', margin:0 }}>{ob.lead_name}</p>
+                            <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.15)', borderRadius:'4px', padding:'1px 5px' }}>Chưa nộp BC</span>
+                          </div>
+                          <p style={T.sub}>{PHASE_LABEL_MAP[ob.phase] || ob.phase}</p>
+                        </div>
+                        <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
+                      </ARow>
+                    ))}
+                  </div>
                 </div>
-                <span style={{ fontSize:'0.80rem', color:'#f87171', fontWeight:700, flexShrink:0 }}>{fmtD(ob.assigned_date)}</span>
-              </ARow>
-            ))}
-            {topViols.map((v, i) => (
-              <ARow key={`v-${v.id}`} i={topObs.length + i} rgb="251,146,60" onClick={() => navigate('/violations')}>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={T.name}>{v.violator}</p>
-                  <p style={T.sub}>{v.violation_type}</p>
+              ));
+            })()}
+            {(() => {
+              const groups = [];
+              const seen = new Map();
+              for (const v of topViols) {
+                const key = v.event_id ?? `__${v.event_name ?? v.event_label ?? 'noname'}`;
+                const name = v.event_name || v.event_label || 'Nội bộ';
+                if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name, items: [] }); }
+                seen.get(key).push(v);
+              }
+              for (const g of groups) g.items = seen.get(g.key);
+              return groups.map(({ key, name, items }) => (
+                <div key={key} style={{ marginBottom:'10px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'3px 0', marginBottom:'5px' }}>
+                    <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+                    <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+                    <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                    <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} vi phạm</span>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+                    {items.map((v, i) => (
+                      <ARow key={`v-${v.id}`} i={i} rgb="251,146,60" onClick={() => navigate('/violations')}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={T.name}>{v.violator}</p>
+                          <p style={T.sub}>{v.violation_type}</p>
+                        </div>
+                        <span style={{ fontSize:'0.80rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
+                      </ARow>
+                    ))}
+                  </div>
                 </div>
-                <span style={{ fontSize:'0.80rem', color:'#fb923c', fontWeight:700, flexShrink:0 }}>{fmtD(v.created_at?.slice(0,10))}</span>
-              </ARow>
-            ))}
+              ));
+            })()}
           </>
         }
       </AdminSec>}
