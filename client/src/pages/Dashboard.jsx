@@ -534,11 +534,11 @@ function PendingReportsSection({ obs }) {
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.15)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>Quá hạn</span>
               )}
             </div>
-            <p style={{ fontSize: '0.82rem', color: '#a0a0c0', margin: '1px 0 0', fontWeight: 600 }}>
+            <p style={{ fontSize: '0.82rem', color: ob.overdue ? '#fca5a5' : '#a0a0c0', margin: '1px 0 0', fontWeight: 600 }}>
               {ob.lead_name}
             </p>
-            <p style={{ fontSize: '0.80rem', color: '#7878a0', margin: '1px 0 0' }}>
-              {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)} · <span style={{ color: ob.overdue ? '#f87171' : '#fb923c', fontWeight: 700 }}>Hạn {fmtD(ob.deadline?.slice(0, 10))}</span>
+            <p style={{ fontSize: '0.80rem', color: ob.overdue ? '#f87171' : '#7878a0', margin: '1px 0 0' }}>
+              {PHASE_LABEL_MAP[ob.phase] || ob.phase} · {fmtD(ob.assigned_date)} · <span style={{ fontWeight: 700 }}>Hạn {fmtD(ob.deadline?.slice(0, 10))}</span>
             </p>
           </div>
           <button
