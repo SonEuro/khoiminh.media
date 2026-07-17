@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import Modal from '../components/Modal';
 import EventDetailModal from '../components/EventDetailModal';
@@ -791,6 +791,8 @@ export default function Events() {
     return ev.created_by_role === user?.role;
   };
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('id');
   const [events, setEvents] = useState([]);
   const [wsDateMap, setWsDateMap] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
@@ -827,6 +829,18 @@ export default function Events() {
   }, []);
 
   useEffect(() => { loadSchedules(); }, [loadSchedules]);
+
+  useEffect(() => {
+    if (!highlightId || !events.length) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(`ev-card-${highlightId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = '2px solid #c9a84c';
+      el.style.boxShadow = '0 0 18px rgba(201,168,76,0.35)';
+    }, 500);
+    return () => clearTimeout(t);
+  }, [highlightId, events]);
 
   // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {

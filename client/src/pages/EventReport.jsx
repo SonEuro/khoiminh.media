@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { KM_STAFF_GROUPS } from '../constants/staff';
@@ -305,8 +305,18 @@ function withinEditDeadline(reportDate) {
 }
 
 // ── Report detail card ────────────────────────────────────────────────────────
-function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false }) {
-  const [expanded, setExpanded] = useState(false);
+function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEventName = false, hideDateRow = false, highlightId }) {
+  const isHighlight = highlightId && String(report.id) === String(highlightId);
+  const [expanded, setExpanded] = useState(isHighlight);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (!isHighlight || !cardRef.current) return;
+    const t = setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 500);
+    return () => clearTimeout(t);
+  }, [isHighlight]);
   const [fullData, setFullData] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [imgIdx, setImgIdx] = useState(null);
@@ -465,12 +475,13 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
   }
 
   return (
-    <div style={{
+    <div ref={cardRef} style={{
       background: hideEventName ? 'rgba(255,255,255,0.03)' : '#13131d',
-      border: hideEventName ? '1px solid rgba(201,168,76,0.28)' : '1px solid rgba(201,168,76,0.42)',
+      border: isHighlight ? '2px solid #c9a84c' : hideEventName ? '1px solid rgba(201,168,76,0.28)' : '1px solid rgba(201,168,76,0.42)',
       borderRadius: hideEventName ? '10px' : '12px',
       overflow:'hidden',
       marginBottom: hideEventName ? '8px' : '12px',
+      boxShadow: isHighlight ? '0 0 16px rgba(201,168,76,0.35)' : 'none',
     }}>
       {/* Header */}
       <div
@@ -701,7 +712,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 }
 
 // ── Dept section: nhóm báo cáo theo bộ phận ──────────────────────────────────
-function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDeleteReport }) {
+function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDeleteReport, highlightId }) {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ background:'#13131d', border:`1px solid ${color}33`, borderRadius:'14px', overflow:'hidden', marginBottom:'14px' }}>
@@ -722,7 +733,7 @@ function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDel
       {open && (
         <div style={{ borderTop:`1px solid ${color}22`, padding:'8px 10px 10px' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} highlightId={highlightId} />
           ))}
         </div>
       )}
@@ -731,7 +742,7 @@ function DeptSection({ dept, color, reports, onDelete, onEdit, onConfirm, canDel
 }
 
 // ── Date zone: nhóm tất cả báo cáo cùng ngày ────────────────────────────────
-function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport }) {
+function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport, highlightId }) {
   const [open, setOpen] = useState(true);
   const totalImages = reports.reduce((sum, r) => sum + (r.image_count ?? r.images?.length ?? 0), 0);
 
@@ -785,7 +796,7 @@ function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport 
       {open && (
         <div style={{ paddingLeft: '8px', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
           {reports.map(r => (
-            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideDateRow />
+            <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideDateRow highlightId={highlightId} />
           ))}
         </div>
       )}
@@ -794,7 +805,7 @@ function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport 
 }
 
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
-function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport }) {
+function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport, highlightId }) {
   const [open, setOpen] = useState(true);
   const totalImages = group.reports.reduce((sum, r) => sum + (r.image_count ?? r.images?.length ?? 0), 0);
   const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
@@ -870,7 +881,7 @@ function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport }) {
                   )}
                   <div style={multiDate ? { paddingLeft:'8px', borderLeft:'2px solid rgba(201,168,76,0.35)' } : {}}>
                     {byDate[d].map(r => (
-                      <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} />
+                      <ReportCard key={r.id} report={r} onDelete={onDelete} onEdit={onEdit} onConfirm={onConfirm} isSuperAdmin={canDeleteReport(r)} hideEventName hideDateRow={multiDate} highlightId={highlightId} />
                     ))}
                   </div>
                 </div>
@@ -901,6 +912,8 @@ const makeEmptyForm = () => ({
 export default function EventReport() {
   const { user } = useAuth();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('id');
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canViewAllDepts = isFullAdmin || !!user?.is_phan_lich_all;
   // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng
@@ -1423,7 +1436,7 @@ export default function EventReport() {
             return latestB.localeCompare(latestA);
           });
           return order.map(k => (
-            <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+            <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
           ));
         })()}
 
@@ -1438,7 +1451,7 @@ export default function EventReport() {
           });
           order.sort((a, b) => b.localeCompare(a)); // mới nhất lên trên
           return order.map(d => (
-            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+            <DateZone key={d} date={d} reports={map[d]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
           ));
         })()}
 
@@ -1448,7 +1461,7 @@ export default function EventReport() {
             ? null
             : deptGroups.order.map(dept => (
                 <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
-                  onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+                  onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
               ))
         )}
 
@@ -1471,7 +1484,7 @@ export default function EventReport() {
               </div>
               <div style={{ background:'#13131d', maxHeight:'585px', overflowY:'auto', padding:'8px 12px' }}>
                 {order.map(k => (
-                  <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} />
+                  <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
                 ))}
               </div>
             </div>

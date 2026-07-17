@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
@@ -1132,6 +1132,8 @@ export default function WorkSchedule() {
   const { kmGroups, freelancerGroups } = useStaffGroups();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('id');
   const canPhanLich = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich || !!user?.is_phan_lich_all;
 
   const isSADir = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -1175,6 +1177,18 @@ export default function WorkSchedule() {
   }, [load]);
 
   useEffect(() => { if (isSADir && showTrash) loadTrash(); }, [isSADir, showTrash, loadTrash]);
+
+  useEffect(() => {
+    if (!highlightId || !schedules.length) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(`ws-card-${highlightId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = '2px solid #c9a84c';
+      el.style.boxShadow = '0 0 18px rgba(201,168,76,0.35)';
+    }, 500);
+    return () => clearTimeout(t);
+  }, [highlightId, schedules]);
 
   // Tự mở modal chi tiết khi navigate từ Dashboard
   useEffect(() => {
@@ -1442,7 +1456,7 @@ export default function WorkSchedule() {
           const isTomorrow = zone === 'tomorrow';
           const isPast     = zone === 'past';
           return (
-            <div key={s.id} className="ev-card-flat" style={{
+            <div key={s.id} id={`ws-card-${s.id}`} className="ev-card-flat" style={{
               background: isToday ? 'rgba(248,113,113,0.04)' : isTomorrow ? 'rgba(74,222,128,0.03)' : 'var(--bg-card)',
               border: isToday ? '1px solid rgba(248,113,113,0.35)' : isTomorrow ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(201,168,76,0.15)',
               borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
@@ -1545,7 +1559,7 @@ export default function WorkSchedule() {
                     .filter(({ dates }) => dates.length > 0)
                     .sort(({ dates: a }, { dates: b }) => ([...a].sort()[0] || '').localeCompare([...b].sort()[0] || ''));
                   return (
-                    <div key={s.id} className="ev-card-flat" style={{ background:'rgba(120,120,160,0.03)', border:'1px solid rgba(120,120,160,0.15)', borderLeft:'3px solid #7878a0', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
+                    <div key={s.id} id={`ws-card-${s.id}`} className="ev-card-flat" style={{ background:'rgba(120,120,160,0.03)', border:'1px solid rgba(120,120,160,0.15)', borderLeft:'3px solid #7878a0', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
                       {/* Hàng 1: tên — band */}
                       <p style={{ margin:0, fontWeight:700, fontSize:'0.93rem', color:'#a0a0b8', padding:'8px 12px 8px', background:'rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{s.event_name}</p>
                       {/* Hàng 2: dept */}

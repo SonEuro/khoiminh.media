@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -1179,7 +1180,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
       {txs.map(tx => (
-        <div key={tx.id} style={{
+        <div key={tx.id} id={`tx-card-${tx.id}`} style={{
           padding:'10px 12px', borderRadius:'10px',
           background:'rgba(251,191,36,0.05)',
           border:'1px solid rgba(251,191,36,0.3)',
@@ -1225,7 +1226,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
       {txs.map(tx => {
         const cfg = TX_CFG[tx.type] || TX_CFG.OUT;
         return (
-          <div key={tx.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
+          <div key={tx.id} id={`tx-card-${tx.id}`} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
               <p style={{ fontSize:'0.82rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
               <span style={{ fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
@@ -1297,7 +1298,7 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
           {/* Transactions */}
           <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
             {gTxs.map(tx => (
-              <div key={tx.id} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px' }}>
+              <div key={tx.id} id={`tx-card-${tx.id}`} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
                   <p style={{ fontSize:'0.82rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
                   <span style={{ fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
@@ -1436,6 +1437,8 @@ function ViolationRows({ violations, isSuperAdmin, onDelete }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Transactions() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('id');
   const [events,         setEvents]         = useState([]);
   const [archivedEvents, setArchivedEvents] = useState([]);
   const [pendingTxs,     setPendingTxs]     = useState([]);
@@ -1488,6 +1491,18 @@ export default function Transactions() {
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
+
+  useEffect(() => {
+    if (!highlightId || loading) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(`tx-card-${highlightId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = '2px solid #c9a84c';
+      el.style.boxShadow = '0 0 18px rgba(201,168,76,0.35)';
+    }, 500);
+    return () => clearTimeout(t);
+  }, [highlightId, loading, pendingTxs, outTxs, returnTxs]);
 
   async function handleDeleteTx(tx) {
     if (tx.type === 'OUT' && tx.status === 'completed') {

@@ -79,7 +79,7 @@ router.post('/', requireAuth, (req, res) => {
     job_content || '',
     JSON.stringify((timeline || []).filter(t => t.time)),
   );
-  pushByRoles(`📋 Báo cáo sự kiện mới`, `${event_label || '—'} · ${reporter_name || req.user?.full_name || '—'}`, '/event-reports', ALL_ROLES).catch(() => {});
+  pushByRoles(`📋 Báo cáo sự kiện mới`, `${event_label || '—'} · ${reporter_name || req.user?.full_name || '—'}`, `/event-report?id=${result.lastInsertRowid}`, ALL_ROLES).catch(() => {});
   res.json({ id: result.lastInsertRowid });
 });
 
@@ -134,7 +134,7 @@ router.put('/:id', requireAuth, (req, res) => {
     JSON.stringify(newHistory),
     req.params.id,
   );
-  pushByRoles(`✏️ Báo cáo sự kiện cập nhật`, `${report.event_label || '—'} · ${report.reporter_name || '—'}`, '/event-reports', ALL_ROLES).catch(() => {});
+  pushByRoles(`✏️ Báo cáo sự kiện cập nhật`, `${report.event_label || '—'} · ${report.reporter_name || '—'}`, `/event-report?id=${req.params.id}`, ALL_ROLES).catch(() => {});
   res.json({ ok: true });
 });
 

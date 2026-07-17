@@ -310,7 +310,7 @@ router.post('/', canWrite, (req, res) => {
   );
   res.json({ id: r.lastInsertRowid, code, name: finalName });
   notifyAll(`🗓 Sự kiện mới: ${finalName}\n📍 ${location || '—'}\n📅 ${startDate || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushByRoles(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, '/events', ALL_ROLES).catch(() => {});
+  pushByRoles(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, `/events?id=${r.lastInsertRowid}`, ALL_ROLES).catch(() => {});
 });
 
 const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
@@ -363,7 +363,7 @@ router.put('/:id', (req, res, next) => {
   try { db.prepare('UPDATE event_reports SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   res.json({ ok: true });
   notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${startDate2 || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushByRoles(`✏️ Sự kiện cập nhật: ${name}`, `📍 ${location || '—'}  📅 ${startDate2 || '—'}`, '/events', ALL_ROLES).catch(() => {});
+  pushByRoles(`✏️ Sự kiện cập nhật: ${name}`, `📍 ${location || '—'}  📅 ${startDate2 || '—'}`, `/events?id=${req.params.id}`, ALL_ROLES).catch(() => {});
 });
 
 // Soft delete → trash (chỉ sự kiện đã hủy)
