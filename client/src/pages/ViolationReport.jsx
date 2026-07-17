@@ -300,10 +300,8 @@ export default function ViolationReport() {
             for (const g of groups) g.items = seen.get(g.key);
             return groups.map(({ key, name, items }) => (
               <div key={key} style={{ marginBottom: '12px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'4px 0', marginBottom:'6px' }}>
-                  <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
-                  <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
-                  <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                <div style={{ display:'flex', alignItems:'center', gap:'6px', padding:'4px 0', marginBottom:'6px', minWidth:0 }}>
+                  <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase', overflow:'hidden', textOverflow:'ellipsis', flex:1, minWidth:0 }}>{name}</span>
                   <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} vi phạm</span>
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:'6px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
