@@ -279,10 +279,10 @@
 .ev-top-controls > button { flex: 0 0 auto; }
 .ev-card-row              { display: flex; gap: 6px; }
 
-/* Desktop: tất cả nút trên 1 hàng */
+/* Desktop: tất cả nút trên 1 hàng, auto width */
 .ev-btn-group             { display: flex; gap: 6px; }
 .ev-btn-group > .ev-card-row { display: contents; }
-.ev-btn-group .ev-action  { flex: 1; }
+.ev-btn-group .ev-action  { flex: 0 0 auto; }
 
 /* Event card flat ghost buttons */
 .ev-action {
