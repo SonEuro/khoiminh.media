@@ -800,7 +800,6 @@ export default function Events() {
   const [showTrash, setShowTrash] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
-  const [deptMemberSet, setDeptMemberSet] = useState(new Set());
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -828,19 +827,6 @@ export default function Events() {
   }, []);
 
   useEffect(() => { loadSchedules(); }, [loadSchedules]);
-
-  // Load danh sách thành viên km theo dept cho trưởng phòng
-  useEffect(() => {
-    if (user?.position !== 'Trưởng phòng' || !userDept) return;
-    api.getStaffGroups('km').then(groups => {
-      const group = groups.find(g => g.dept === userDept);
-      if (!group) return;
-      try {
-        const members = JSON.parse(group.members || '[]');
-        setDeptMemberSet(new Set(members.filter(Boolean)));
-      } catch {}
-    }).catch(() => {});
-  }, [user?.position, userDept]);
 
   // Mở modal khi navigate từ Dashboard với openEventId + openModal
   useEffect(() => {
@@ -996,21 +982,10 @@ export default function Events() {
               {/* Hàng 5: buttons */}
               {(() => {
                 const evDepts = parseDepts(ev);
-                const sched = schedules.find(s => s.event_id === ev.id);
-                const schedHasDeptMember = sched && deptMemberSet.size > 0 && (() => {
-                  for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
-                    const km = sched[`${ph}_km_staff`]; // server đã parse thành flat array
-                    if (Array.isArray(km) && km.some(n => deptMemberSet.has(n))) return true;
-                  }
-                  return false;
-                })();
-                // Cho phép khi: dept khớp, HOẶC lịch có km_staff của dept,
-                // HOẶC người cùng role tạo event, HOẶC event hoàn toàn không có thông tin dept
+                // Nếu event đã có departments → filter strict theo dept
+                // Nếu chưa có (null/rỗng) → cho tất cả TP xem (fallback)
                 const isTruongPhongOfDept = user?.position === 'Trưởng phòng' && userDept && (
-                  evDepts.includes(userDept)
-                  || !!schedHasDeptMember
-                  || ev.created_by_role === user?.role
-                  || (!ev.created_by_role && evDepts.length === 0 && !sched)
+                  evDepts.includes(userDept) || evDepts.length === 0
                 );
                 const canSuaLich = canSuaLichBase || isTruongPhongOfDept;
                 const showEdit = canFullEdit || isTruongPhongOfDept;
@@ -1125,19 +1100,8 @@ export default function Events() {
                   const endDates   = parseDatesField(ev, 'end_dates',   'end_date');
                   const filmDates  = parseDatesField(ev, 'filming_dates', 'filming_date');
                   const pastEvDepts = parseDepts(ev);
-                  const pastSched = schedules.find(s => s.event_id === ev.id);
-                  const pastSchedHasDeptMember = pastSched && deptMemberSet.size > 0 && (() => {
-                    for (const ph of ['setup', 'teardown', 'rehearsal', 'filming']) {
-                      const km = pastSched[`${ph}_km_staff`]; // server đã parse thành flat array
-                      if (Array.isArray(km) && km.some(n => deptMemberSet.has(n))) return true;
-                    }
-                    return false;
-                  })();
                   const isTruongPhongOfDeptPast = user?.position === 'Trưởng phòng' && userDept && (
-                    pastEvDepts.includes(userDept)
-                    || !!pastSchedHasDeptMember
-                    || ev.created_by_role === user?.role
-                    || (!ev.created_by_role && pastEvDepts.length === 0 && !pastSched)
+                    pastEvDepts.includes(userDept) || pastEvDepts.length === 0
                   );
                   const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
