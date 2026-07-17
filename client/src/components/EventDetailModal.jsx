@@ -179,7 +179,7 @@ function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
   }
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Phieu Xuat Kho');
+  XLSX.utils.book_append_sheet(wb, ws, (ev.code || 'Phieu Xuat Kho').slice(0, 31));
   return wb;
 }
 
