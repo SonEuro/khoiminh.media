@@ -1500,6 +1500,16 @@ export default function EventReport() {
         {/* Vi phạm báo cáo – obligations đã bị khóa, hiển thị cuối trang */}
         {!loading && lockedObs.length > 0 && (() => {
           const phaseLabel = { setup:'Setup', teardown:'Tháo dỡ', rehearsal:'Rehearsal', filming:'Ghi hình' };
+          // Group by event
+          const order = [], groupMap = {};
+          lockedObs.forEach(ob => {
+            const key = ob.event_id ? String(ob.event_id) : `_${ob.id}`;
+            if (!groupMap[key]) {
+              groupMap[key] = { label: ob.event_display || ob.event_name || 'Sự kiện không rõ', items: [] };
+              order.push(key);
+            }
+            groupMap[key].items.push(ob);
+          });
           return (
             <div style={{ marginTop:'8px', borderRadius:'10px', overflow:'hidden', border:'1px solid rgba(248,113,113,0.28)' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(248,113,113,0.14) 0%,rgba(248,113,113,0.03) 100%)', borderLeft:'3px solid #f87171', borderBottom:'1px solid rgba(248,113,113,0.16)' }}>
@@ -1508,25 +1518,36 @@ export default function EventReport() {
                   {lockedObs.length} mục
                 </span>
               </div>
-              <div style={{ background:'#13131d', maxHeight:'292px', overflowY:'auto' }}>
-                {lockedObs.map((ob, i) => {
-                  const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
-                  const deptC = obDept ? getDeptColor(obDept) : null;
+              <div style={{ background:'#13131d', maxHeight:'360px', overflowY:'auto', padding:'8px 12px' }}>
+                {order.map((key, gi) => {
+                  const grp = groupMap[key];
                   return (
-                    <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 14px', borderTop: i > 0 ? '1px solid rgba(248,113,113,0.07)' : 'none' }}>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                          <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
-                          {deptC && <span style={{ fontSize:'0.78rem', fontWeight:600, color: deptC, background:`${deptC}22`, border:`1px solid ${deptC}55`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>{obDept}</span>}
-                        </div>
-                        <div style={{ fontSize:'0.84rem', color: GOLD, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', margin:'1px 0' }}>
-                          {ob.event_display || ob.event_name || 'Sự kiện'}
-                        </div>
-                        <div style={{ fontSize:'0.82rem', color:'#a0a0b8' }}>
-                          {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
-                          <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
-                        </div>
+                    <div key={key} style={{ marginTop: gi > 0 ? '10px' : '0' }}>
+                      {/* Event zone header */}
+                      <div style={{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 8px', background:'rgba(248,113,113,0.07)', borderRadius:'6px', borderLeft:'2px solid rgba(248,113,113,0.5)', marginBottom:'4px' }}>
+                        <span style={{ fontSize:'0.83rem', fontWeight:700, color: GOLD, flex:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{grp.label}</span>
+                        <span style={{ fontSize:'0.75rem', color:'#f87171', background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'9999px', padding:'1px 6px', whiteSpace:'nowrap', fontWeight:600 }}>
+                          {grp.items.length} vi phạm
+                        </span>
                       </div>
+                      {grp.items.map((ob, i) => {
+                        const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
+                        const deptC = obDept ? getDeptColor(obDept) : null;
+                        return (
+                          <div key={ob.id} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 10px', borderTop: i > 0 ? '1px solid rgba(248,113,113,0.07)' : 'none' }}>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
+                                <span style={{ fontSize:'0.85rem', fontWeight:700, color:'#eeeef5' }}>{ob.lead_name}</span>
+                                {deptC && <span style={{ fontSize:'0.78rem', fontWeight:600, color: deptC, background:`${deptC}22`, border:`1px solid ${deptC}55`, borderRadius:'4px', padding:'1px 6px', whiteSpace:'nowrap' }}>{obDept}</span>}
+                              </div>
+                              <div style={{ fontSize:'0.82rem', color:'#a0a0b8' }}>
+                                {phaseLabel[ob.phase] || ob.phase} · {fmtDate(ob.assigned_date)}
+                                <span style={{ color:'#f87171', marginLeft:'6px', fontWeight:700 }}>Không nộp báo cáo</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
