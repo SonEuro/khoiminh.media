@@ -164,6 +164,20 @@ function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = [{ wch: 14 }, { wch: 36 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+
+  // Add thin border to all non-empty cells
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+  const thin = { style: 'thin' };
+  const border = { top: thin, bottom: thin, left: thin, right: thin };
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      const cell = ws[addr];
+      if (!cell || cell.v === undefined || cell.v === '') continue;
+      cell.s = { ...(cell.s || {}), border };
+    }
+  }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Phieu Xuat Kho');
   return wb;
