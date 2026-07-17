@@ -288,15 +288,36 @@ export default function ViolationReport() {
         )}
 
         <div style={{ maxHeight: '292px', overflowY: 'auto' }}>
-          {violations.map((v, i) => (
-            <div key={v.id} style={{ marginBottom: i < violations.length - 1 ? '12px' : 0 }}>
-            <ViolationCard v={v} isSuperAdmin={isSuperAdmin}
-              onDelete={() => {
-                if (!confirm('Xóa báo cáo này?')) return;
-                api.deleteViolation(v.id).then(load).catch(e => alert(e.message));
-              }} />
-            </div>
-          ))}
+          {(() => {
+            const groups = [];
+            const seen = new Map();
+            for (const v of violations) {
+              const key = v.event_id ?? `__${v.event_name ?? v.event_label ?? 'noname'}`;
+              const name = v.event_name || v.event_label || 'Nội bộ';
+              if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name, items: [] }); }
+              seen.get(key).push(v);
+            }
+            for (const g of groups) g.items = seen.get(g.key);
+            return groups.map(({ key, name, items }) => (
+              <div key={key} style={{ marginBottom: '12px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'4px 0', marginBottom:'6px' }}>
+                  <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+                  <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+                  <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+                  <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{items.length} vi phạm</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+                  {items.map(v => (
+                    <ViolationCard key={v.id} v={v} isSuperAdmin={isSuperAdmin}
+                      onDelete={() => {
+                        if (!confirm('Xóa báo cáo này?')) return;
+                        api.deleteViolation(v.id).then(load).catch(e => alert(e.message));
+                      }} />
+                  ))}
+                </div>
+              </div>
+            ));
+          })()}
         </div>
       </div>
     </div>
