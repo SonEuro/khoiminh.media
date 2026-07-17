@@ -1270,6 +1270,77 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
   );
 }
 
+function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
+  if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
+
+  // Group by event_id (hoặc event_name nếu không có id)
+  const groups = [];
+  const seen = new Map();
+  for (const tx of txs) {
+    const key = tx.event_id ?? `__${tx.event_name ?? 'noname'}`;
+    if (!seen.has(key)) { seen.set(key, []); groups.push({ key, name: tx.event_name || 'Nội bộ', txs: [] }); }
+    seen.get(key).push(tx);
+  }
+  for (const g of groups) g.txs = seen.get(g.key);
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+      {groups.map(({ key, name, txs: gTxs }) => (
+        <div key={key}>
+          {/* Event header */}
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 4px', marginBottom:'4px' }}>
+            <div style={{ height:'1px', width:'10px', background:'rgba(201,168,76,0.4)' }} />
+            <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em', whiteSpace:'nowrap', textTransform:'uppercase' }}>{name}</span>
+            <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(201,168,76,0.4), transparent)' }} />
+            <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{gTxs.length} phiếu</span>
+          </div>
+          {/* Transactions */}
+          <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
+            {gTxs.map(tx => (
+              <div key={tx.id} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
+                  <p style={{ fontSize:'0.82rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
+                  <span style={{ fontSize:'0.78rem', color:'#7878a0', flexShrink:0 }}>{fmtD(tx.transaction_date)}</span>
+                </div>
+                <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {tx.responsible_person || '—'} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
+                </p>
+                <div className="ev-card-row">
+                  <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
+                  {onTraNcc && tx.ext_count > 0 && (
+                    <button className="ev-action" onClick={() => onTraNcc(tx.id)}
+                      style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(74,222,128,0.1)'; e.currentTarget.style.borderColor='rgba(74,222,128,0.6)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(74,222,128,0.35)'; }}>
+                      <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
+                    </button>
+                  )}
+                  <button className="ev-action ev-action-edit"
+                    onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
+                    <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
+                  </button>
+                  {onTransfer && tx.type === 'OUT' && (
+                    <button className="ev-action"
+                      style={{ borderColor:'rgba(248,113,113,0.35)', color:'rgba(248,113,113,0.7)' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(248,113,113,0.1)'; e.currentTarget.style.borderColor='rgba(248,113,113,0.6)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.borderColor='rgba(248,113,113,0.35)'; }}
+                      onClick={async () => { try { const full = await api.getTransactionById(tx.id); onTransfer(full); } catch { alert('Không thể tải phiếu'); } }}>
+                      <span className="ev-ico">🔄</span><span className="ev-lbl">Chuyển</span>
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button className="ev-action ev-action-danger" onClick={() => onDelete(tx)} title="Xóa phiếu"><span className="ev-ico">🗑</span></button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ReportRows({ reports }) {
   if (!reports.length) return <Empty text="Chưa có báo cáo nào" />;
   return (
@@ -1461,7 +1532,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
-            <TxRows txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} />
+            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
