@@ -22,7 +22,8 @@ self.addEventListener('notificationclick', e => {
       const origin = new URL(url, self.location.origin).origin;
       // Tìm bất kỳ tab nào của app đang mở, điều hướng đến URL đích thay vì mở tab mới
       const existing = list.find(c => new URL(c.url).origin === origin);
-      if (existing) return existing.navigate(url).then(c => c?.focus()).catch(() => existing.focus());
+      // navigate() = Chrome desktop; openWindow() trên iOS standalone = điều hướng tab hiện tại (không mở mới)
+      if (existing) return existing.navigate(url).then(c => c?.focus()).catch(() => clients.openWindow(url));
       return clients.openWindow(url);
     })
   );
