@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import Modal from './Modal';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
@@ -121,72 +122,51 @@ ${externalRows ? `
 </body></html>`;
 }
 
-function escH(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function buildExcelHtml(ev, parseFilmingDatesFn, parseDatesFieldFn) {
+function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn) {
   const startDates = parseDatesFieldFn(ev,'start_dates','start_date').map(fmtD).join(', ');
   const showDates  = parseDatesFieldFn(ev,'show_dates', 'show_date').map(fmtD).join(', ');
   const filmDates  = parseFilmingDatesFn(ev).map(fmtD).join(', ');
   const endDates   = parseDatesFieldFn(ev,'end_dates',  'end_date').map(fmtD).join(', ');
 
+  const rows = [];
+  rows.push([ev.name, '', '', '', ev.code]);
+  rows.push([]);
+  if (ev.client)      rows.push(['Khách hàng', ev.client]);
+  if (ev.location)    rows.push(['Địa điểm', ev.location]);
+  if (startDates)     rows.push(['Ngày bắt đầu', startDates]);
+  if (showDates)      rows.push(['Ngày Rehearsal', showDates]);
+  if (filmDates)      rows.push(['Ngày ghi hình', filmDates]);
+  if (endDates)       rows.push(['Ngày kết thúc', endDates]);
+  if (ev.created_by)  rows.push(['Người tạo', ev.created_by]);
+  if (ev.notes)       rows.push(['Ghi chú', ev.notes]);
+  rows.push([]);
+  rows.push(['THIẾT BỊ XUẤT KHO']);
+  rows.push(['Mã', 'Thiết bị', 'Xuất', 'Đã trả', 'Còn nợ']);
+
   const sorted = [...ev.items].sort((a,b) => (a.eq_code||'').localeCompare(b.eq_code||''));
-  let itemRows = ''; let lastCat = null;
+  let lastCat = null;
   sorted.forEach(it => {
     const cat = (it.eq_code||'').split('-')[0];
-    if (cat !== lastCat) {
-      itemRows += `<tr><td colspan="5" style="background:#1E1A0A;color:#C9A84C;font-weight:bold;padding:5px 8px">${escH(cat)}</td></tr>`;
-      lastCat = cat;
-    }
+    if (cat !== lastCat) { rows.push([`── ${cat} ──`]); lastCat = cat; }
     const rem = it.qty_out - (it.qty_returned||0);
-    itemRows += `<tr>
-      <td style="font-family:monospace;color:#555;font-size:11px">${escH(it.eq_code||'')}</td>
-      <td>${escH(it.eq_name||'')}</td>
-      <td style="text-align:right;color:#c0392b;font-weight:600">${it.qty_out}</td>
-      <td style="text-align:right;color:#1a7a3a">${it.qty_returned||0}</td>
-      <td style="text-align:right;${rem>0?'color:#c75a00;font-weight:700':'color:#aaa'}">${rem}</td>
-    </tr>`;
+    rows.push([it.eq_code||'', it.eq_name||'', it.qty_out, it.qty_returned||0, rem]);
   });
 
-  let extRows = '';
   if (ev.external_items?.length > 0) {
-    extRows = `<tr><td colspan="5"></td></tr>
-    <tr><td colspan="5" style="background:#1A1A2E;color:white;font-weight:bold;padding:6px 8px">THIẾT BỊ THUÊ NCC</td></tr>
-    <tr style="background:#2D2D4A">
-      <td style="color:white;font-weight:bold">Nhà cung cấp</td><td style="color:white;font-weight:bold">Tên thiết bị</td>
-      <td style="color:white;font-weight:bold;text-align:right">Số lượng</td><td style="color:white;font-weight:bold" colspan="2">Ghi chú</td>
-    </tr>`;
+    rows.push([]);
+    rows.push(['THIẾT BỊ THUÊ NCC']);
+    rows.push(['Nhà cung cấp', 'Tên thiết bị', 'Số lượng', 'Ghi chú']);
     ev.external_items.forEach(it => {
       const note = [it.rental_days>0?`Thuê ${it.rental_days} ngày`:'', it.notes||''].filter(Boolean).join(' · ');
-      extRows += `<tr><td style="color:#8a6a00;font-weight:600">${escH(it.supplier||'')}</td><td>${escH(it.name||'')}</td><td style="text-align:right;color:#2563aa;font-weight:bold">${it.quantity}</td><td colspan="2" style="color:#888;font-size:11px">${escH(note)}</td></tr>`;
+      rows.push([it.supplier||'', it.name||'', it.quantity, note]);
     });
   }
 
-  const infoRow = (label, val) => val ? `<tr><td style="color:#666;font-weight:bold;white-space:nowrap">${label}</td><td colspan="4">${escH(val)}</td></tr>` : '';
-
-  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
-<head><meta charset="UTF-8"><style>
-body{font-family:Arial,sans-serif;font-size:12px}
-table{border-collapse:collapse;width:100%}
-td,th{border:1px solid #ddd;padding:4px 8px;vertical-align:middle}
-</style></head><body><table>
-<tr><td colspan="4" style="font-size:16px;font-weight:800;padding:8px">${escH(ev.name)}</td><td style="color:#888;font-size:11px">${escH(ev.code)}</td></tr>
-<tr><td colspan="5"></td></tr>
-${infoRow('Khách hàng',ev.client)}
-${infoRow('Địa điểm',ev.location)}
-${startDates?infoRow('Ngày bắt đầu',startDates):''}
-${showDates ?infoRow('Ngày Rehearsal',showDates):''}
-${filmDates ?infoRow('Ngày ghi hình',filmDates):''}
-${endDates  ?infoRow('Ngày kết thúc',endDates):''}
-${ev.created_by?infoRow('Người tạo',ev.created_by):''}
-${ev.notes  ?infoRow('Ghi chú',ev.notes):''}
-<tr><td colspan="5"></td></tr>
-<tr><td colspan="5" style="background:#1A1A2E;color:white;font-weight:bold;font-size:13px;padding:6px 8px">THIẾT BỊ XUẤT KHO</td></tr>
-<tr style="background:#2D2D4A">
-  <th style="color:white">Mã</th><th style="color:white">Thiết bị</th>
-  <th style="color:white;text-align:right">Xuất</th><th style="color:white;text-align:right">Đã trả</th><th style="color:white;text-align:right">Còn nợ</th>
-</tr>
-${itemRows}${extRows}
-</table></body></html>`;
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 14 }, { wch: 36 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Phieu Xuat Kho');
+  return wb;
 }
 
 function parseFilmingDates(ev) {
@@ -218,16 +198,8 @@ export default function EventDetailModal({ eventId, onClose }) {
   };
 
   const handleExcel = () => {
-    const html = buildExcelHtml(ev, parseFilmingDates, parseDatesField);
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${ev.name} - Đã Xuất.xls`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const wb = buildExcelWorkbook(ev, parseFilmingDates, parseDatesField);
+    XLSX.writeFile(wb, `${ev.name} - Đã Xuất.xlsx`);
   };
 
   if (err) return (
