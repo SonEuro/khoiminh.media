@@ -411,7 +411,7 @@ export default function Equipment() {
       {/* Tab bar */}
       {canSeeNcc && (
         <div style={{ display:'flex', gap:'4px', marginBottom:'20px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-          <button style={tabStyle(tab === 'equipment')} onClick={() => setTab('equipment')}>🏭 Thiết Bị</button>
+          <button style={tabStyle(tab === 'equipment')} onClick={() => setTab('equipment')}>🏭 Thiết Bị Khôi Minh</button>
           <button style={tabStyle(tab === 'ncc')}       onClick={() => setTab('ncc')}>🏪 Nhà Cung Cấp</button>
         </div>
       )}
