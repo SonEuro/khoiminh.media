@@ -1305,29 +1305,29 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
                 <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                   {tx.responsible_person || '—'} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại{tx.ext_count > 0 ? ` (${tx.ext_count} NCC)` : ''}
                 </p>
-                <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-                  <div style={{ display:'flex', gap:'6px' }}>
-                    <button className="ev-action" style={{ flex:1 }} onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
+                <div className="ev-btn-group">
+                  <div className="ev-card-row">
+                    <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
                     {onTraNcc && tx.ext_count > 0 && (
-                      <button className="ev-action" style={{ flex:1, borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
+                      <button className="ev-action" style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                       </button>
                     )}
-                    <button className="ev-action ev-action-edit" style={{ flex:1 }}
+                    <button className="ev-action ev-action-edit"
                       onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
                       <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
                     </button>
                   </div>
                   {((onTransfer && tx.type === 'OUT') || onDelete) && (
-                    <div style={{ display:'flex', gap:'6px' }}>
+                    <div className="ev-card-row">
                       {onTransfer && tx.type === 'OUT' && (
-                        <button className="ev-action" style={{ flex:1, borderColor:'rgba(248,113,113,0.35)', color:'rgba(248,113,113,0.7)' }}
+                        <button className="ev-action" style={{ borderColor:'rgba(248,113,113,0.35)', color:'rgba(248,113,113,0.7)' }}
                           onClick={async () => { try { const full = await api.getTransactionById(tx.id); onTransfer(full); } catch { alert('Không thể tải phiếu'); } }}>
                           <span className="ev-ico">🔄</span><span className="ev-lbl">Chuyển</span>
                         </button>
                       )}
                       {onDelete && (
-                        <button className="ev-action ev-action-danger" style={{ flex:1 }} onClick={() => onDelete(tx)} title="Xóa phiếu"><span className="ev-ico">🗑</span></button>
+                        <button className="ev-action ev-action-danger" onClick={() => onDelete(tx)} title="Xóa phiếu"><span className="ev-ico">🗑</span></button>
                       )}
                     </div>
                   )}
