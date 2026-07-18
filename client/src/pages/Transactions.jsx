@@ -26,8 +26,9 @@ const STATUS_CFG = {
 };
 
 const TX_CFG = {
-  OUT:    { label: '↑ Xuất', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.35)' },
-  RETURN: { label: '↓ Nhập', color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.35)'  },
+  OUT:     { label: '↑ Xuất',     color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.35)' },
+  RETURN:  { label: '↓ Nhập',     color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.35)'  },
+  TRA_NCC: { label: '🏪 Trả NCC', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.35)'  },
 };
 const PENDING_COLOR = '#fbbf24';
 
@@ -1511,6 +1512,7 @@ export default function Transactions() {
   const [trashLoaded,         setTrashLoaded]         = useState(false);
   const [conflicts,           setConflicts]           = useState([]);
   const [outstandingExtMap,   setOutstandingExtMap]   = useState({});
+  const [traNccTxs,           setTraNccTxs]           = useState([]);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1527,13 +1529,14 @@ export default function Transactions() {
       api.getTransactions({ type: 'OUT', status: 'pending',   limit: 10, hide_archived: 'true' }),
       api.getTransactions({ type: 'OUT', status: 'completed', limit: 10, hide_archived: 'true' }),
       api.getTransactions({ type: 'RETURN',                   limit: 10, hide_archived: 'true' }),
+      api.getTransactions({ type: 'TRA_NCC',                  limit: 10, hide_archived: 'true' }),
       api.getEventReports(),
       api.getViolations(),
       api.getDashboard(),
-    ]).then(([ev, allEv, pending, out, ret, rep, vio, dash]) => {
+    ]).then(([ev, allEv, pending, out, ret, traNcc, rep, vio, dash]) => {
       setEvents(ev);
       setArchivedEvents(allEv.filter(e => !!e.archived_at));
-      setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
+      setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret); setTraNccTxs(traNcc);
       setReports(rep); setViolations(vio);
       setConflicts(dash?.conflicts || []);
       const eids = [...new Set([...out, ...ret].filter(t => t.event_id && t.ext_count > 0).map(t => t.event_id))];
@@ -1660,6 +1663,12 @@ export default function Transactions() {
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
             <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} />
           </Section>
+
+          {traNccTxs.length > 0 && (
+            <Section Icon={ArrowUpFromLine} title="Xuất trả NCC" color="#60a5fa" border="rgba(96,165,250,0.25)" count={traNccTxs.length} maxHeight="585px">
+              <TxRowsGrouped txs={traNccTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} outstandingExtMap={{}} />
+            </Section>
+          )}
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
             <ReportRows reports={reports} />
