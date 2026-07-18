@@ -256,19 +256,20 @@ export default function NccAdmin() {
             {/* Supplier row */}
             <div style={{ display: 'flex', flexDirection: 'column', padding: '10px 16px', gap: '6px', cursor: 'pointer' }}
               onClick={() => loadDetail(sup.id)}>
-              {/* Hàng 1: tên + badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Hàng 1: tên */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1, fontWeight: 700, fontSize: '0.95rem', color: sup.is_active ? '#e0e0ee' : '#5a5a7a' }}>
                   {sup.name}
                   {!sup.is_active && <span style={{ marginLeft: '6px', fontSize: '0.7rem', color: '#7878a0' }}>(ẩn)</span>}
                 </span>
-                <Badge dept={sup.dept} />
               </div>
-              {/* Hàng 2: số thiết bị + nút */}
+              {/* Hàng 2: số thiết bị + badge + nút */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ flex: 1, fontSize: '0.78rem', color: '#7878a0' }}>
+                <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>
                   {sup.eq_count} thiết bị
                 </span>
+                <Badge dept={sup.dept} />
+                <span style={{ flex: 1 }} />
                 <button onClick={e => { e.stopPropagation(); setSupModal(sup); }}
                   style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'transparent', color: GOLD, fontSize: '0.78rem', cursor: 'pointer' }}>
                   Sửa
