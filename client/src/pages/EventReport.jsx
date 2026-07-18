@@ -606,7 +606,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                     </div>
                   );
                 })()}
-                {(kmDur || khDur) && (
+                {(kmDur || khDur) && !!user?.is_phan_lich_all && (
                   <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'14px' }}>
                     {kmDur && (
                       <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
@@ -1790,7 +1790,7 @@ export default function EventReport() {
             }
             const kmDur  = calcDuration(form.time_present, form.time_end);
             const khDur  = calcDuration(form.time_onset,   form.time_off);
-            if (!kmDur && !khDur) return null;
+            if (!kmDur && !khDur || !user?.is_phan_lich_all) return null;
             return (
               <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginTop:'10px' }}>
                 {kmDur && (
