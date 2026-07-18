@@ -44,7 +44,7 @@ function Badge({ color, bg, border, label }) {
 const fmtDate = fmtD;
 
 // ── TX detail modal ───────────────────────────────────────────────────────────
-function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEditCompleted }) {
+function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEditCompleted, canPrint }) {
   const [tx, setTx] = useState(null);
   const [err, setErr] = useState(false);
   useEffect(() => { api.getTransactionById(txId).then(setTx).catch(() => setErr(true)); }, [txId]);
@@ -79,7 +79,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
               ✏️ Chỉnh sửa
             </button>
           )}
-          <button onClick={() => printSlip(tx)} className="btn-secondary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}><Printer size={13} /> In phiếu</button>
+          {canPrint && <button onClick={() => printSlip(tx)} className="btn-secondary btn-sm" style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}><Printer size={13} /> In phiếu</button>}
         </div>
       }
     >
@@ -1219,7 +1219,7 @@ function PendingTxRows({ txs, onConfirm, onSelect, onDelete, canDeleteRow, confi
   );
 }
 
-function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
+function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
@@ -1244,10 +1244,12 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
                   <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                 </button>
               )}
-              <button className="ev-action ev-action-edit"
-                onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
-                <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
-              </button>
+              {canPrint && (
+                <button className="ev-action ev-action-edit"
+                  onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
+                  <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
+                </button>
+              )}
               {onTransfer && tx.type === 'OUT' && (
                 <button className="ev-action"
                   style={{ borderColor:'rgba(248,113,113,0.35)', color:'rgba(248,113,113,0.7)' }}
@@ -1271,7 +1273,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
   );
 }
 
-function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
+function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
 
   // Group by event_id (hoặc event_name nếu không có id)
@@ -1314,10 +1316,12 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer }) {
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                       </button>
                     )}
-                    <button className="ev-action ev-action-edit"
-                      onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
-                      <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
-                    </button>
+                    {canPrint && (
+                      <button className="ev-action ev-action-edit"
+                        onClick={async () => { try { const full = await api.getTransactionById(tx.id); printSlip(full); } catch { alert('Không thể tải phiếu để in'); } }}>
+                        <span className="ev-ico"><Printer size={14} /></span><span className="ev-lbl">In</span>
+                      </button>
+                    )}
                   </div>
                   {((onTransfer && tx.type === 'OUT') || onDelete) && (
                     <div className="ev-card-row">
@@ -1463,6 +1467,7 @@ export default function Transactions() {
   const canEdit           = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
   const canTransfer       = user?.role === 'SUPER_ADMIN' || !!user?.is_quan_ly_kho;
   const canEditCompleted  = ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTING'].includes(user?.role) || !!user?.is_truong_phong;
+  const canPrint          = ['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(user?.role) || !!user?.is_truong_phong;
 
   const load = useCallback(() => {
     if (!user) return;
@@ -1591,11 +1596,11 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} />
+            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} />
+            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} />
           </Section>
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
@@ -1673,6 +1678,7 @@ export default function Transactions() {
           onEdit={(id) => { setSelectedTx(null); setEditingTx(id); }}
           canEditCompleted={canEditCompleted}
           onEditCompleted={(id) => { setSelectedTx(null); setEditingCompletedTx(id); }}
+          canPrint={canPrint}
         />
       )}
       {editingTx && (
