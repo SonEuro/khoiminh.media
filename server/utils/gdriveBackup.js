@@ -165,9 +165,9 @@ function scheduleAutoBackup(db) {
         .catch(e => console.error('[LocalBackup] ❌', e.message));
     } catch(e) { console.error('[LocalBackup] ❌', e.message); }
   };
-  setTimeout(() => { runLocal(); setInterval(runLocal, 6 * 60 * 60 * 1000); }, 5 * 60 * 1000);
+  setTimeout(() => { runLocal(); setInterval(runLocal, 2 * 60 * 60 * 1000); }, 5 * 60 * 1000);
 
-  console.log('[AutoBackup] Lên lịch: GDrive 5 phút/lần + daily 12h + local 6 tiếng/lần');
+  console.log('[AutoBackup] Lên lịch: GDrive 5 phút/lần + daily 12h + local 2 tiếng/lần');
 }
 
 async function restoreFromDriveIfNeeded(db) {
