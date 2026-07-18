@@ -559,24 +559,59 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             <div style={{ textAlign:'center', color:'#7878a0', fontSize:'0.82rem', padding:'8px 0 4px' }}>⏳ Đang tải...</div>
           )}
           {/* Timeline row */}
-          {(report.time_present || report.time_onset || report.time_off || report.time_end) && (
-            <div className="time-grid-4" style={{
-              display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(80px, 1fr))', gap:'8px',
-              background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom:'14px',
-            }}>
-              {[
-                ['Có mặt', report.time_present],
-                ['Onset', report.time_onset],
-                ['Off máy', report.time_off],
-                ['Kết thúc', report.time_end],
-              ].map(([l, v]) => v && v !== '00:00' && (
-                <div key={l} style={{ textAlign:'center' }}>
-                  <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
-                  <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+          {(report.time_present || report.time_onset || report.time_off || report.time_end) && (() => {
+            function calcDuration(start, end) {
+              if (!start || !end) return null;
+              const [sh, sm] = start.split(':').map(Number);
+              const [eh, em] = end.split(':').map(Number);
+              if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+              let startMins = sh * 60 + sm;
+              let endMins   = eh * 60 + em;
+              if (endMins < startMins) endMins += 24 * 60;
+              const diff  = endMins - startMins;
+              const hours = Math.floor(diff / 60);
+              const mins  = diff % 60;
+              return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, '0')}`;
+            }
+            const kmDur = calcDuration(report.time_present, report.time_end);
+            const khDur = calcDuration(report.time_onset,   report.time_off);
+            return (
+              <>
+                <div className="time-grid-4" style={{
+                  display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(80px, 1fr))', gap:'8px',
+                  background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom: (kmDur || khDur) ? '8px' : '14px',
+                }}>
+                  {[
+                    ['Có mặt', report.time_present],
+                    ['Onset', report.time_onset],
+                    ['Off máy', report.time_off],
+                    ['Kết thúc', report.time_end],
+                  ].map(([l, v]) => v && v !== '00:00' && (
+                    <div key={l} style={{ textAlign:'center' }}>
+                      <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
+                      <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+                {(kmDur || khDur) && (
+                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'14px' }}>
+                    {kmDur && (
+                      <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
+                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em' }}>TIME KHÔI MINH</span>
+                        <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fde68a', fontVariantNumeric:'tabular-nums' }}>{kmDur}</span>
+                      </div>
+                    )}
+                    {khDur && (
+                      <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
+                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#60a5fa', letterSpacing:'0.06em' }}>TIME KHÁCH HÀNG</span>
+                        <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#93c5fd', fontVariantNumeric:'tabular-nums' }}>{khDur}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Staff */}
           {report.km_staff?.length > 0 && (
