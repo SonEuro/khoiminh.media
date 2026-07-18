@@ -64,6 +64,8 @@ export default function EventReturn() {
   const [extQty,          setExtQty]          = useState({});   // `${supplier}|${name}` → qty
   const [extNotes,        setExtNotes]        = useState({});   // key → notes
   const [checkedExt,      setCheckedExt]      = useState(new Set());
+  // NCC items thêm thủ công (không có trong phiếu xuất)
+  const [manualExtItems, setManualExtItems]   = useState([]);
 
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
@@ -105,6 +107,7 @@ export default function EventReturn() {
       setExtQty(eq);
       setExtNotes({});
       setCheckedExt(new Set(extRows.map(extKey)));
+      setManualExtItems([]);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
 
@@ -155,7 +158,8 @@ export default function EventReturn() {
   const toggleCheck = (id) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const hasKhoItems = visibleItems.some(r => checked.has(r.equipment_id));
-  const hasExtItems = outstandingExt.some(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0);
+  const hasExtItems = outstandingExt.some(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0)
+    || manualExtItems.some(i => i.name?.trim() && i.quantity > 0);
   const canSubmit = eventId && person && (hasKhoItems || hasExtItems);
 
   const submit = async () => {
@@ -174,16 +178,28 @@ export default function EventReturn() {
         });
         return result;
       });
-    const external_items = outstandingExt
-      .filter(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0)
-      .map(r => ({
-        supplier:    r.supplier,
-        name:        r.name,
-        quantity:    Math.min(Math.max(0, parseInt(extQty[extKey(r)]) || 0), r.qty_pending),
-        unit:        r.unit || 'Cái',
-        rental_days: r.rental_days || 1,
-        notes:       extNotes[extKey(r)] || '',
-      }));
+    const external_items = [
+      ...outstandingExt
+        .filter(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0)
+        .map(r => ({
+          supplier:    r.supplier,
+          name:        r.name,
+          quantity:    Math.min(Math.max(0, parseInt(extQty[extKey(r)]) || 0), r.qty_pending),
+          unit:        r.unit || 'Cái',
+          rental_days: r.rental_days || 1,
+          notes:       extNotes[extKey(r)] || '',
+        })),
+      ...manualExtItems
+        .filter(i => i.name?.trim() && i.quantity > 0)
+        .map(i => ({
+          supplier:    i.supplier || '',
+          name:        i.name.trim(),
+          quantity:    Math.max(1, parseInt(i.quantity) || 1),
+          unit:        i.unit || 'Cái',
+          rental_days: 1,
+          notes:       i.notes || '',
+        })),
+    ];
     setSubmitting(true);
     try {
       const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items, external_items, transaction_date: returnDate });
@@ -213,7 +229,7 @@ export default function EventReturn() {
             <button onClick={() => printSlip(done)} className="btn-primary">🖨️ In phiếu</button>
             <button onClick={() => navigate('/transactions')} className="btn-secondary">Xem lịch sử</button>
           </div>
-          <button onClick={() => { setDone(null); setEventId(''); setEventSearch(''); setEventName(''); setOutstanding([]); }}
+          <button onClick={() => { setDone(null); setEventId(''); setEventSearch(''); setEventName(''); setOutstanding([]); setManualExtItems([]); }}
             style={{ color:'var(--text-muted)', fontSize:'0.84rem', background:'none', border:'none', cursor:'pointer' }}>
             + Nhập kho sự kiện khác
           </button>
@@ -770,21 +786,35 @@ export default function EventReturn() {
       )}
 
       {/* ── NCC / Thiết bị ngoài ──────────────────────────── */}
-      {eventId && !loading && outstandingExt.length > 0 && (
+      {eventId && !loading && (
         <div className="card p-0 overflow-hidden mb-5">
-          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(96,165,250,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontWeight:700, color:'#60a5fa', fontSize:'0.875rem' }}>🏪 Thiết bị NCC chưa trả — {outstandingExt.length} loại</span>
-            <button type="button"
-              onClick={() => {
-                const eq = {};
-                outstandingExt.forEach(r => { eq[extKey(r)] = r.qty_pending; });
-                setExtQty(prev => ({ ...prev, ...eq }));
-                setExtNotes({});
-                setCheckedExt(new Set(outstandingExt.map(extKey)));
-              }}
-              style={{ fontSize:'0.82rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
-              Chọn tất cả
-            </button>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(96,165,250,0.2)', display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <span style={{ fontWeight:700, color:'#60a5fa', fontSize:'0.875rem' }}>🏪 Thiết bị NCC</span>
+              <span style={{ marginLeft:'8px', fontSize:'0.78rem', color:'#7878a0', background:'rgba(96,165,250,0.08)', border:'1px solid rgba(96,165,250,0.2)', borderRadius:'9999px', padding:'2px 8px' }}>
+                không nhập kho
+              </span>
+            </div>
+            <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
+              {outstandingExt.length > 0 && (
+                <button type="button"
+                  onClick={() => {
+                    const eq = {};
+                    outstandingExt.forEach(r => { eq[extKey(r)] = r.qty_pending; });
+                    setExtQty(prev => ({ ...prev, ...eq }));
+                    setExtNotes({});
+                    setCheckedExt(new Set(outstandingExt.map(extKey)));
+                  }}
+                  style={{ fontSize:'0.82rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
+                  Chọn tất cả
+                </button>
+              )}
+              <button type="button"
+                onClick={() => setManualExtItems(p => [...p, { name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }])}
+                style={{ fontSize:'0.82rem', color:'#60a5fa', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'6px', padding:'4px 12px', cursor:'pointer', fontWeight:700 }}>
+                + Thêm NCC
+              </button>
+            </div>
           </div>
           {/* ── Desktop: bảng ── */}
           <div className="return-table-wrap table-wrap">
@@ -876,10 +906,58 @@ export default function EventReturn() {
               );
             })}
           </div>
+
+          {/* Empty state khi không có outstanding NCC */}
+          {outstandingExt.length === 0 && manualExtItems.length === 0 && (
+            <div style={{ padding:'20px', textAlign:'center', color:'#7878a0', fontSize:'0.84rem' }}>
+              Không có thiết bị NCC từ phiếu xuất. Nhấn <strong style={{ color:'#60a5fa' }}>+ Thêm NCC</strong> để ghi nhận trả NCC.
+            </div>
+          )}
+
+          {/* Manual NCC items */}
+          {manualExtItems.length > 0 && (
+            <div style={{ padding:'10px 14px', borderTop: outstandingExt.length > 0 ? '1px solid rgba(96,165,250,0.12)' : 'none', display:'flex', flexDirection:'column', gap:'8px' }}>
+              {manualExtItems.map((it, idx) => (
+                <div key={idx} style={{ background:'rgba(96,165,250,0.04)', border:'1px solid rgba(96,165,250,0.2)', borderRadius:'10px', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'8px' }}>
+                  <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+                    <input className="input" placeholder="Tên thiết bị NCC *"
+                      value={it.name}
+                      onChange={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, name:e.target.value} : x))}
+                      style={{ flex:2, fontSize:'0.85rem', borderColor:'rgba(96,165,250,0.35)' }}
+                    />
+                    <input className="input" placeholder="Nhà cung cấp"
+                      value={it.supplier}
+                      onChange={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, supplier:e.target.value} : x))}
+                      style={{ flex:1, fontSize:'0.85rem', borderColor:'rgba(96,165,250,0.25)' }}
+                    />
+                    <input type="number" min="1" className="input" placeholder="SL"
+                      value={it.quantity}
+                      onChange={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, quantity:e.target.value===''?'':+e.target.value} : x))}
+                      onBlur={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, quantity:Math.max(1,parseInt(e.target.value)||1)} : x))}
+                      style={{ width:'60px', textAlign:'center', fontWeight:700, color:'#60a5fa', borderColor:'rgba(96,165,250,0.35)' }}
+                    />
+                    <input className="input" placeholder="Đvt"
+                      value={it.unit}
+                      onChange={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, unit:e.target.value} : x))}
+                      style={{ width:'56px', fontSize:'0.82rem', textAlign:'center', borderColor:'rgba(96,165,250,0.25)' }}
+                    />
+                    <button type="button"
+                      onClick={() => setManualExtItems(p => p.filter((_,i) => i!==idx))}
+                      style={{ padding:'6px 10px', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:'7px', color:'#f87171', cursor:'pointer', flexShrink:0 }}>×</button>
+                  </div>
+                  <input className="input" placeholder="Ghi chú..."
+                    value={it.notes}
+                    onChange={e => setManualExtItems(p => p.map((x,i) => i===idx ? {...x, notes:e.target.value} : x))}
+                    style={{ fontSize:'0.82rem', borderColor:'rgba(96,165,250,0.18)' }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {eventId && !loading && (visibleItems.length > 0 || outstandingExt.length > 0) && (
+      {eventId && !loading && (visibleItems.length > 0 || outstandingExt.length > 0 || manualExtItems.length > 0) && (
         <div className="flex gap-3">
           <button onClick={submit} disabled={submitting || !canSubmit} className="btn-primary flex-1"
             style={{ fontSize:'1rem', padding:'14px' }}>
