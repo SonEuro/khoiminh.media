@@ -1020,6 +1020,7 @@ export default function EventReport() {
     // Tính allowedEventIds từ lịch làm việc — refresh cùng interval để cập nhật khi lịch thay đổi
     const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
     if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
+    setAllowedEventIds(new Set()); // rỗng trong lúc chờ API — tránh hiện sự kiện chưa được lọc
     const myName = user.full_name;
     const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
     api.getWorkSchedules({}).then(scheds => {
