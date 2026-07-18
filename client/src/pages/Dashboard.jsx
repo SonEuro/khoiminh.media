@@ -322,7 +322,7 @@ function StaffSummarySection() {
   const totalAll = today.total + tomorrow.total;
 
   return (
-    <AdminSec title="TỔNG HỢP NHÂN SỰ" color={COLOR} rgb={RGB} count={totalAll} linkTo="/work-schedule">
+    <AdminSec title="TỔNG HỢP NHÂN SỰ" color={COLOR} rgb={RGB} count={totalAll}>
       {today.total > 0 && (
         <ARow i={0} rgb={RGB}>
           <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Hôm nay</span>
