@@ -1602,7 +1602,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} />
+            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
           </Section>
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
