@@ -110,7 +110,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
               {/* KHO items */}
               {(tx.items || []).map(it => (
                 <div key={it.id} style={{
-                  display:'grid', gridTemplateColumns:'1fr auto auto',
+                  display:'grid', gridTemplateColumns:'1fr auto 68px',
                   gap:'8px', alignItems:'center',
                   padding:'8px 10px', borderRadius:'8px',
                   background:'rgba(201,168,76,0.05)',
@@ -123,7 +123,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                   <span style={{ fontSize:'0.78rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
                     {condLabel[it.condition] || it.condition}
                   </span>
-                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.92rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.92rem', whiteSpace:'nowrap', textAlign:'right', display:'block', fontVariantNumeric:'tabular-nums' }}>
                     {it.quantity} {it.unit}
                   </span>
                 </div>
@@ -141,7 +141,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
               {/* NCC items */}
               {(tx.external_items || []).map((it, i) => (
                 <div key={i} style={{
-                  display:'grid', gridTemplateColumns:'1fr auto auto',
+                  display:'grid', gridTemplateColumns:'1fr auto 68px',
                   gap:'8px', alignItems:'center',
                   padding:'8px 10px', borderRadius:'8px',
                   background:'rgba(96,165,250,0.05)',
@@ -157,7 +157,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                     )}
                   </div>
                   <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
-                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem', whiteSpace:'nowrap', minWidth:'52px', textAlign:'right' }}>
+                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem', whiteSpace:'nowrap', textAlign:'right', display:'block', fontVariantNumeric:'tabular-nums' }}>
                     {it.quantity} {it.unit || 'Cái'}
                   </span>
                 </div>
