@@ -594,17 +594,17 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                   ))}
                 </div>
                 {(kmDur || khDur) && (
-                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'14px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'14px' }}>
                     {kmDur && (
-                      <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
-                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em' }}>TIME KHÔI MINH</span>
-                        <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fde68a', fontVariantNumeric:'tabular-nums' }}>{kmDur}</span>
+                      <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khôi Minh</p>
+                        <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
                       </div>
                     )}
                     {khDur && (
-                      <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
-                        <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#60a5fa', letterSpacing:'0.06em' }}>TIME KHÁCH HÀNG</span>
-                        <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#93c5fd', fontVariantNumeric:'tabular-nums' }}>{khDur}</span>
+                      <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khách Hàng</p>
+                        <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
                       </div>
                     )}
                   </div>
@@ -1779,17 +1779,17 @@ export default function EventReport() {
             const khDur  = calcDuration(form.time_onset,   form.time_off);
             if (!kmDur && !khDur) return null;
             return (
-              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginTop:'10px' }}>
+              <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginTop:'10px' }}>
                 {kmDur && (
-                  <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
-                    <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em' }}>TIME KHÔI MINH</span>
-                    <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fde68a', fontVariantNumeric:'tabular-nums' }}>{kmDur}</span>
+                  <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khôi Minh</p>
+                    <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
                   </div>
                 )}
                 {khDur && (
-                  <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
-                    <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#60a5fa', letterSpacing:'0.06em' }}>TIME KHÁCH HÀNG</span>
-                    <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#93c5fd', fontVariantNumeric:'tabular-nums' }}>{khDur}</span>
+                  <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khách Hàng</p>
+                    <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
                   </div>
                 )}
               </div>
