@@ -1024,30 +1024,35 @@ export default function EventReport() {
     setAllowedEventIds(new Set()); // rỗng trong lúc chờ API — tránh hiện sự kiện chưa được lọc
     const myName = user.full_name;
     const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
+    // Cửa sổ hôm nay ± 1 ngày (VN timezone)
+    const vnNow = new Date(Date.now() + 7 * 3600 * 1000);
+    const yDay = new Date(vnNow); yDay.setUTCDate(vnNow.getUTCDate() - 1);
+    const tDay = new Date(vnNow); tDay.setUTCDate(vnNow.getUTCDate() + 1);
+    const yStr = yDay.toISOString().slice(0, 10);
+    const tStr = tDay.toISOString().slice(0, 10);
     api.getWorkSchedules({}).then(scheds => {
       const ids = new Set();
       for (const s of scheds) {
         if (!s.event_id) continue;
         let found = false;
         for (const key of phaseKeys) {
+          // Chỉ xét các ngày trong cửa sổ hôm nay ± 1 (và còn deadline)
+          const allDates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
+          const recentDates = allDates.filter(d => d >= yStr && d <= tStr && withinEditDeadline(d));
+          if (recentDates.length === 0) continue;
+          // Kiểm tra user có được assign cho phase này không (global hoặc theo ngày cụ thể)
           const leads = s[`${key}_leads`] || [];
           if (leads.some(l => (typeof l === 'string' ? l : l?.name) === myName)) { found = true; break; }
           const km = s[`${key}_km_staff`] || [];
           if (km.includes(myName)) { found = true; break; }
           const leadsMap = s[`${key}_leads_map`] || {};
-          if (Object.values(leadsMap).some(arr => arr?.some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
+          if (recentDates.some(d => (leadsMap[d] || []).some(l => (typeof l === 'string' ? l : l?.name) === myName))) { found = true; break; }
           const kmMap = s[`${key}_km_staff_map`] || {};
-          if (Object.values(kmMap).some(arr => arr?.includes(myName))) { found = true; break; }
+          if (recentDates.some(d => (kmMap[d] || []).includes(myName))) { found = true; break; }
           const kmSupport = s[`${key}_km_support`] || {};
-          if (Object.values(kmSupport).some(dateObj => dateObj && myName in dateObj)) { found = true; break; }
+          if (recentDates.some(d => kmSupport[d] && myName in kmSupport[d])) { found = true; break; }
         }
-        if (!found) continue;
-        let hasOpenDeadline = false;
-        for (const key of phaseKeys) {
-          const dates = s[`${key}_dates`] || (s[`${key}_date`] ? [s[`${key}_date`]] : []);
-          if (dates.some(d => withinEditDeadline(d))) { hasOpenDeadline = true; break; }
-        }
-        if (hasOpenDeadline) ids.add(String(s.event_id));
+        if (found) ids.add(String(s.event_id));
       }
       setAllowedEventIds(ids);
     }).catch(() => {}); // giữ Set rỗng khi API lỗi — không reset về null (không hiện tất cả)
