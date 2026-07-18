@@ -336,7 +336,6 @@ function StaffSummarySection() {
               <span style={{ fontWeight:800, color:COLOR }}>{today.free}</span>
               <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
             </span>
-            <span style={{ fontSize:'0.78rem', fontWeight:800, color:COLOR }}>= {today.total}</span>
           </div>
         </ARow>
       )}
@@ -353,7 +352,6 @@ function StaffSummarySection() {
               <span style={{ fontWeight:800, color:COLOR }}>{tomorrow.free}</span>
               <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
             </span>
-            <span style={{ fontSize:'0.78rem', fontWeight:800, color:COLOR }}>= {tomorrow.total}</span>
           </div>
         </ARow>
       )}
