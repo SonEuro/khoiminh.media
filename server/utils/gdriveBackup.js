@@ -134,12 +134,12 @@ function scheduleAutoBackup(db) {
     } catch(e) { console.error('[AutoBackup] Lỗi dọn file kho_*:', e.message); }
   }, 3 * 60 * 1000);
 
-  // Backup mỗi 2 phút
-  setTimeout(() => { runShort(); setInterval(runShort, 2 * 60 * 1000); }, 60 * 1000);
+  // Backup mỗi 5 phút
+  setTimeout(() => { runShort(); setInterval(runShort, 5 * 60 * 1000); }, 60 * 1000);
   // Backup mỗi 12h, giữ 60 bản (30 ngày)
   setTimeout(() => { runDaily(); setInterval(runDaily, 12 * 60 * 60 * 1000); }, 2 * 60 * 1000);
 
-  console.log('[AutoBackup] Lên lịch: backup 2 phút/lần + daily backup mỗi 24h');
+  console.log('[AutoBackup] Lên lịch: backup 5 phút/lần + daily backup mỗi 24h');
 }
 
 async function restoreFromDriveIfNeeded(db) {

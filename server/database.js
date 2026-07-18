@@ -491,4 +491,36 @@ if (staffCount === 0) {
   console.log('[DB] Seed: staff_groups');
 }
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+// SQLite không tự tạo index cho foreign keys — phải tạo thủ công
+db.exec(`
+  -- transactions: các cột được WHERE/JOIN thường xuyên nhất
+  CREATE INDEX IF NOT EXISTS idx_tx_event_id   ON transactions(event_id);
+  CREATE INDEX IF NOT EXISTS idx_tx_type        ON transactions(type);
+  CREATE INDEX IF NOT EXISTS idx_tx_status      ON transactions(status);
+  CREATE INDEX IF NOT EXISTS idx_tx_deleted_at  ON transactions(deleted_at);
+  CREATE INDEX IF NOT EXISTS idx_tx_type_status ON transactions(type, status);
+
+  -- transaction_items: JOIN với transactions và equipment
+  CREATE INDEX IF NOT EXISTS idx_ti_transaction_id ON transaction_items(transaction_id);
+  CREATE INDEX IF NOT EXISTS idx_ti_equipment_id   ON transaction_items(equipment_id);
+
+  -- external_items: JOIN với transactions
+  CREATE INDEX IF NOT EXISTS idx_ei_transaction_id ON external_items(transaction_id);
+
+  -- events: lọc theo status và soft delete
+  CREATE INDEX IF NOT EXISTS idx_events_status     ON events(status);
+  CREATE INDEX IF NOT EXISTS idx_events_deleted_at ON events(deleted_at);
+
+  -- work_schedules: JOIN với events
+  CREATE INDEX IF NOT EXISTS idx_ws_event_id ON work_schedules(event_id);
+
+  -- lead_report_obligations: lọc theo schedule và user
+  CREATE INDEX IF NOT EXISTS idx_lro_schedule_id ON lead_report_obligations(schedule_id);
+  CREATE INDEX IF NOT EXISTS idx_lro_user_id     ON lead_report_obligations(user_id);
+
+  -- transaction_edits: JOIN với transactions
+  CREATE INDEX IF NOT EXISTS idx_tedits_transaction_id ON transaction_edits(transaction_id);
+`);
+
 module.exports = db;
