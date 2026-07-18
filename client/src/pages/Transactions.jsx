@@ -862,28 +862,40 @@ const DEPT_KEY    = { 'Kỹ Thuật':'TECH', 'ATAS-LED':'ATAS', 'Sân Khấu':'S
 const ROLE_TO_DEPT = { TECHNICAL:'Kỹ Thuật', ATAS:'ATAS-LED', STAGE:'Sân Khấu', PRODUCTION:'Sản Xuất', ACCOUNTING:'Kế Toán', CSVC:'Cơ Sở Vật Chất' };
 
 // ── Trả NCC modal ─────────────────────────────────────────────────────────────
-function TraNccModal({ txId, onClose }) {
+function TraNccModal({ txId, onClose, onSuccess }) {
   const { user }              = useAuth();
   const [tx,      setTx]      = useState(null);
   const [items,   setItems]   = useState([]);
   const [sortBy,  setSortBy]  = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  const [saving,  setSaving]  = useState(false);
   const nccDept = NCC_DEPT_STATIC;
   const nccList = NCC_LIST_STATIC;
 
   useEffect(() => {
+    if (!txId) return;
+    setTx(null); setItems([]);
     api.getTransactionById(txId).then(data => {
       setTx(data);
       const userDept = ROLE_TO_DEPT[user?.role] || '';
-      setItems((data.external_items || []).map(e => {
-        const supplier = e.supplier || '';
-        const deptKey = supplier ? nccDept[supplier]?.[0] : null;
-        const dept = deptKey
-          ? Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept
-          : userDept;
-        return { name: e.name || '', supplier, dept, quantity: e.quantity || 1, unit: e.unit || 'Cái', notes: e.notes || '' };
-      }));
-    });
+      if (!data.event_id) {
+        setItems((data.external_items || []).map(e => {
+          const supplier = e.supplier || '';
+          const deptKey = supplier ? nccDept[supplier]?.[0] : null;
+          const dept = deptKey ? Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept : userDept;
+          return { name: e.name || '', supplier, dept, quantity: e.quantity || 1, unit: e.unit || 'Cái', notes: e.notes || '' };
+        }));
+        return;
+      }
+      api.getOutstandingExt(data.event_id).then(outstanding => {
+        setItems(outstanding.map(r => {
+          const supplier = r.supplier || '';
+          const deptKey = supplier ? nccDept[supplier]?.[0] : null;
+          const dept = deptKey ? Object.entries(DEPT_KEY).find(([, k]) => k === deptKey)?.[0] || userDept : userDept;
+          return { name: r.name || '', supplier, dept, quantity: r.qty_pending, unit: r.unit || 'Cái', notes: '' };
+        }));
+      });
+    }).catch(() => {});
   }, [txId]);
 
   const sorted = sortBy ? [...items].sort((a, b) => {
@@ -900,6 +912,24 @@ function TraNccModal({ txId, onClose }) {
   function addRow() { setItems(p => [...p, { dept: ROLE_TO_DEPT[user?.role] || '', name:'', supplier:'', quantity:1, unit:'Cái', notes:'' }]); }
   function removeRow(i) { setItems(p => p.filter((_, j) => j !== i)); }
   function updateRow(i, key, val) { setItems(p => p.map((r, j) => j === i ? { ...r, [key]: val } : r)); }
+
+  async function handleTraNcc() {
+    if (!tx?.event_id || saving) return;
+    const external_items = items.filter(i => i.name.trim() && i.quantity > 0)
+      .map(i => ({ supplier: i.supplier, name: i.name.trim(), quantity: i.quantity, unit: i.unit || 'Cái', notes: i.notes || '' }));
+    if (external_items.length === 0) return alert('Chưa có thiết bị nào để trả');
+    setSaving(true);
+    try {
+      const result = await api.createTraNcc({ event_id: tx.event_id, responsible_person: user?.full_name || tx.responsible_person, items: external_items });
+      onSuccess?.();
+      onClose();
+      alert(`✅ Đã tạo ${result.code}`);
+    } catch (err) {
+      alert(err.message || 'Lỗi tạo phiếu xuất trả NCC');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const SortArrow = ({ col }) => {
     if (sortBy !== col) return <span style={{ opacity:0.3, marginLeft:'4px' }}>↕</span>;
@@ -988,6 +1018,23 @@ function TraNccModal({ txId, onClose }) {
             })}
           </div>
           <p style={{ fontSize:'0.84rem', color:'#5a5a80', marginTop:'8px' }}>{sorted.length} dòng</p>
+          {tx?.event_id && (
+            <div style={{ marginTop:'16px', borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:'14px' }}>
+              <button
+                disabled={saving || items.filter(i => i.name.trim() && i.quantity > 0).length === 0}
+                onClick={handleTraNcc}
+                style={{
+                  width:'100%', padding:'13px 18px',
+                  background: items.some(i => i.name.trim()) ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.03)',
+                  border: `1.5px solid ${items.some(i => i.name.trim()) ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius:'10px', cursor: saving ? 'wait' : items.some(i => i.name.trim()) ? 'pointer' : 'not-allowed',
+                  color: items.some(i => i.name.trim()) ? '#60a5fa' : '#5a5a80', fontWeight:700, fontSize:'0.92rem',
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', transition:'all 0.15s',
+                }}>
+                🏪 {saving ? 'Đang tạo phiếu...' : 'Xuất trả NCC'}
+              </button>
+            </div>
+          )}
         </>
       )}
     </Modal>
@@ -1275,7 +1322,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
   );
 }
 
-function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
+function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint, outstandingExtMap = {} }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
 
   // Group by event_id (hoặc event_name nếu không có id)
@@ -1313,7 +1360,7 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
                 <div className="ev-btn-group">
                   <div className="ev-card-row">
                     <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
-                    {onTraNcc && tx.ext_count > 0 && (
+                    {onTraNcc && (outstandingExtMap[tx.event_id] > 0) && (
                       <button className="ev-action" style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                       </button>
@@ -1463,6 +1510,7 @@ export default function Transactions() {
   const [trashedTxs,          setTrashedTxs]          = useState([]);
   const [trashLoaded,         setTrashLoaded]         = useState(false);
   const [conflicts,           setConflicts]           = useState([]);
+  const [outstandingExtMap,   setOutstandingExtMap]   = useState({});
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canConfirm        = ['SUPER_ADMIN', 'DIRECTOR', 'TECHNICAL', 'ATAS', 'STAGE', 'CSVC'].includes(user?.role) || !!user?.is_truong_phong;
@@ -1488,6 +1536,14 @@ export default function Transactions() {
       setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret);
       setReports(rep); setViolations(vio);
       setConflicts(dash?.conflicts || []);
+      const eids = [...new Set([...out, ...ret].filter(t => t.event_id && t.ext_count > 0).map(t => t.event_id))];
+      if (eids.length > 0) {
+        Promise.all(eids.map(eid => api.getOutstandingExt(eid).then(rows => [eid, rows.reduce((s, r) => s + (r.qty_pending || 0), 0)])))
+          .then(results => setOutstandingExtMap(Object.fromEntries(results)))
+          .catch(() => {});
+      } else {
+        setOutstandingExtMap({});
+      }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
 
@@ -1598,11 +1654,11 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} />
+            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} outstandingExtMap={outstandingExtMap} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} />
+            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} />
           </Section>
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
@@ -1705,7 +1761,7 @@ export default function Transactions() {
         />
       )}
       {traNccTx && (
-        <TraNccModal txId={traNccTx} onClose={() => setTraNccTx(null)} />
+        <TraNccModal txId={traNccTx} onClose={() => setTraNccTx(null)} onSuccess={load} />
       )}
       {transferTx && (
         <TransferModal

@@ -97,6 +97,7 @@ export const api = {
   createOut: (data) => request('/transactions/out', { method: 'POST', body: data }),
   confirmPending: (id) => request(`/transactions/confirm/${id}`, { method: 'POST' }),
   createReturn: (data) => request('/transactions/return', { method: 'POST', body: data }),
+  createTraNcc: (data) => request('/transactions/tra-ncc', { method: 'POST', body: data }),
   createFix: (data) => request('/transactions/fix', { method: 'POST', body: data }),
   createIntake: (data) => request('/transactions/intake', { method: 'POST', body: data }),
 

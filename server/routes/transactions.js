@@ -59,7 +59,7 @@ function nextCode(type, eventId, userName) {
     const rows = db.prepare(`SELECT code FROM transactions WHERE type = 'FIX' AND code LIKE ?`).all(name + ' %');
     return findNextSeq(rows, seq => `${name} ${String(seq).padStart(3, '0')}`);
   }
-  const prefix = type === 'OUT' ? 'Xuất' : 'Nhập';
+  const prefix = type === 'OUT' ? 'Xuất' : type === 'TRA_NCC' ? 'Tra' : 'Nhập';
   let namePart = '';
   let rows;
   if (eventId) {
@@ -179,8 +179,8 @@ router.get('/outstanding-ext', (req, res) => {
       ei.name,
       ei.unit,
       MAX(ei.rental_days) AS rental_days,
-      SUM(CASE WHEN t.type = 'OUT'    THEN ei.quantity ELSE 0 END) AS qty_out,
-      SUM(CASE WHEN t.type = 'RETURN' THEN ei.quantity ELSE 0 END) AS qty_returned
+      SUM(CASE WHEN t.type = 'OUT'                       THEN ei.quantity ELSE 0 END) AS qty_out,
+      SUM(CASE WHEN t.type IN ('RETURN', 'TRA_NCC')     THEN ei.quantity ELSE 0 END) AS qty_returned
     FROM external_items ei
     JOIN transactions t ON t.id = ei.transaction_id
     WHERE t.event_id = ? AND t.status != 'pending'
@@ -416,6 +416,30 @@ router.post('/return', canTransact, (req, res) => {
     const result = doReturn();
     res.json(result);
     logEdit(result.id, req.user, 'Tạo phiếu nhập kho');
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Xuất trả NCC — trả thiết bị mượn về cho nhà cung cấp
+router.post('/tra-ncc', canTransact, (req, res) => {
+  const { event_id, responsible_person, notes, items } = req.body;
+  if (!event_id) return res.status(400).json({ error: 'Thiếu sự kiện' });
+  const validExt = (items || []).filter(i => i.name?.trim() && parseInt(i.quantity) > 0);
+  if (validExt.length === 0) return res.status(400).json({ error: 'Chưa có thiết bị nào' });
+  try {
+    const code = nextCode('TRA_NCC', event_id, null);
+    const txR = db.prepare(`
+      INSERT INTO transactions (code, type, event_id, responsible_person, notes, status)
+      VALUES (?, 'TRA_NCC', ?, ?, ?, 'completed')
+    `).run(code, event_id, responsible_person || null, notes || null);
+    const txId = txR.lastInsertRowid;
+    const insertExt = db.prepare(`INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    for (const ext of validExt) {
+      insertExt.run(txId, ext.supplier || '', ext.name.trim(), parseInt(ext.quantity), ext.notes || null, ext.unit || 'Cái', ext.rental_days || 1);
+    }
+    res.json({ id: txId, code });
+    logEdit(txId, req.user, 'Tạo phiếu xuất trả NCC');
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
