@@ -59,7 +59,7 @@ function nextCode(type, eventId, userName) {
     const rows = db.prepare(`SELECT code FROM transactions WHERE type = 'FIX' AND code LIKE ?`).all(name + ' %');
     return findNextSeq(rows, seq => `${name} ${String(seq).padStart(3, '0')}`);
   }
-  const prefix = type === 'OUT' ? 'Xuất' : type === 'TRA_NCC' ? 'Tra' : 'Nhập';
+  const prefix = type === 'OUT' ? 'Xuất' : type === 'TRA_NCC' ? 'Trả NCC' : 'Nhập';
   let namePart = '';
   let rows;
   if (eventId) {
