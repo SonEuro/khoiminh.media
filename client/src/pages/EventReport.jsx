@@ -577,38 +577,46 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             const khDur = calcDuration(report.time_onset,   report.time_off);
             return (
               <>
-                <div className="time-grid-4" style={{
-                  display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0,
-                  background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom: (kmDur || khDur) ? '8px' : '14px',
-                }}>
-                  {[
+                {(() => {
+                  const cells = [
                     ['Có mặt', report.time_present],
                     ['Onset', report.time_onset],
                     ['Off máy', report.time_off],
                     ['Kết thúc', report.time_end],
-                  ].map(([l, v], i) => v && v !== '00:00' && (
-                    <div key={l} style={{
-                      textAlign:'center',
-                      borderRight: i === 1 ? '1px solid rgba(255,255,255,0.1)' : undefined,
-                      paddingRight: i === 1 ? '8px' : undefined,
-                      paddingLeft: i === 2 ? '8px' : undefined,
+                  ].filter(([, v]) => v && v !== '00:00');
+                  const onsetIdx = cells.findIndex(([l]) => l === 'Onset');
+                  const offIdx   = cells.findIndex(([l]) => l === 'Off máy');
+                  const hasDivider = onsetIdx !== -1 && offIdx === onsetIdx + 1;
+                  return (
+                    <div className="time-grid-4" style={{
+                      display:'grid', gridTemplateColumns:`repeat(${cells.length}, 1fr)`, gap:0,
+                      background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom: (kmDur || khDur) ? '8px' : '14px',
                     }}>
-                      <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
-                      <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+                      {cells.map(([l, v], i) => (
+                        <div key={l} style={{
+                          textAlign:'center',
+                          borderRight: hasDivider && i === onsetIdx ? '1px solid rgba(255,255,255,0.1)' : undefined,
+                          paddingRight: hasDivider && i === onsetIdx ? '8px' : undefined,
+                          paddingLeft:  hasDivider && i === offIdx   ? '8px' : undefined,
+                        }}>
+                          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
+                          <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
                 {(kmDur || khDur) && (
                   <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'14px' }}>
                     {kmDur && (
                       <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khôi Minh</p>
+                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khôi Minh</p>
                         <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
                       </div>
                     )}
                     {khDur && (
                       <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khách Hàng</p>
+                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khách Hàng</p>
                         <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
                       </div>
                     )}
@@ -1787,13 +1795,13 @@ export default function EventReport() {
               <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginTop:'10px' }}>
                 {kmDur && (
                   <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khôi Minh</p>
+                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khôi Minh</p>
                     <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
                   </div>
                 )}
                 {khDur && (
                   <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Time Khách Hàng</p>
+                    <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khách Hàng</p>
                     <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
                   </div>
                 )}
