@@ -365,8 +365,8 @@
   /* Equipment 5-col stat grid → giữ 5 cột trên mobile (cells nhỏ, vẫn vừa) */
   .stat-grid-5 { grid-template-columns: repeat(5, 1fr) !important; }
 
-  /* EventReport timeline 4-col → 2 cột trên mobile */
-  .time-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  /* EventReport timeline 4-col → giữ 4 cột trên mobile (1 hàng) */
+  .time-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
 
   /* EventReport form time inputs: giữ 2 cột cho HH:MM compact */
   .time-grid-keep-2 { grid-template-columns: repeat(2, 1fr) !important; }
