@@ -123,8 +123,9 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                   <span style={{ fontSize:'0.78rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
                     {condLabel[it.condition] || it.condition}
                   </span>
-                  <span style={{ fontWeight:800, color:GOLD, fontSize:'0.92rem', whiteSpace:'nowrap', display:'block', fontVariantNumeric:'tabular-nums' }}>
-                    {it.quantity} {it.unit}
+                  <span style={{ display:'block', whiteSpace:'nowrap', fontVariantNumeric:'tabular-nums' }}>
+                    <span style={{ fontWeight:800, color:GOLD, fontSize:'0.92rem' }}>{it.quantity}</span>
+                    <span style={{ fontWeight:400, color:'#7878a0', fontSize:'0.82rem', marginLeft:'4px' }}>{it.unit}</span>
                   </span>
                 </div>
               ))}
@@ -157,8 +158,9 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                     )}
                   </div>
                   <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
-                  <span style={{ fontWeight:800, color:'#93c5fd', fontSize:'0.92rem', whiteSpace:'nowrap', display:'block', fontVariantNumeric:'tabular-nums' }}>
-                    {it.quantity} {it.unit || 'Cái'}
+                  <span style={{ display:'block', whiteSpace:'nowrap', fontVariantNumeric:'tabular-nums' }}>
+                    <span style={{ fontWeight:800, color:'#93c5fd', fontSize:'0.92rem' }}>{it.quantity}</span>
+                    <span style={{ fontWeight:400, color:'#7878a0', fontSize:'0.82rem', marginLeft:'4px' }}>{it.unit || 'Cái'}</span>
                   </span>
                 </div>
               ))}
