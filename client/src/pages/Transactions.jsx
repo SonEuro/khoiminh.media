@@ -123,7 +123,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                   <span style={{ fontSize:'0.78rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
                     {condLabel[it.condition] || it.condition}
                   </span>
-                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.92rem', whiteSpace:'nowrap', textAlign:'right', display:'block', fontVariantNumeric:'tabular-nums' }}>
+                  <span style={{ fontWeight:800, color:'#4ade80', fontSize:'0.92rem', whiteSpace:'nowrap', display:'block', fontVariantNumeric:'tabular-nums' }}>
                     {it.quantity} {it.unit}
                   </span>
                 </div>
@@ -157,7 +157,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                     )}
                   </div>
                   <span style={{ fontSize:'0.78rem', color:'#f87171', fontWeight:700, whiteSpace:'nowrap' }}>Thuê</span>
-                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem', whiteSpace:'nowrap', textAlign:'right', display:'block', fontVariantNumeric:'tabular-nums' }}>
+                  <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem', whiteSpace:'nowrap', display:'block', fontVariantNumeric:'tabular-nums' }}>
                     {it.quantity} {it.unit || 'Cái'}
                   </span>
                 </div>
