@@ -112,6 +112,7 @@ try { db.prepare("ALTER TABLE event_reports ADD COLUMN edit_history TEXT DEFAULT
 try { db.prepare("ALTER TABLE events ADD COLUMN departments TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE transaction_items ADD COLUMN combo TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN is_quan_ly_kho INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN is_giam_doc INTEGER DEFAULT 0").run(); } catch (_) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS ncc_suppliers (

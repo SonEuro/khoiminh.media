@@ -729,7 +729,7 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
       {myObs.length > 0 && <PendingReportsSection obs={myObs} />}
 
       {/* Tổng hợp nhân sự hôm nay / ngày mai — chỉ user phân lịch tất cả */}
-      {((['SUPER_ADMIN','DIRECTOR'].includes(user?.role)) || !!user?.is_phan_lich_all) && <StaffSummarySection />}
+      {((['SUPER_ADMIN','DIRECTOR'].includes(user?.role)) || !!user?.is_phan_lich_all || !!user?.is_giam_doc) && <StaffSummarySection />}
 
       {/* Lịch làm việc cá nhân */}
       {userName && <UpcomingScheduleSection userName={userName} userId={user?.id} />}

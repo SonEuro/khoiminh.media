@@ -21,7 +21,7 @@ function requireAuth(req, res, next) {
   if (!token) return res.status(401).json({ error: 'Chưa đăng nhập' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
-    const dbUser = db.prepare('SELECT is_active, position, is_phan_lich, is_phan_lich_all, is_tra_ncc FROM users WHERE id = ?').get(req.user.id);
+    const dbUser = db.prepare('SELECT is_active, position, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_giam_doc FROM users WHERE id = ?').get(req.user.id);
     if (!dbUser || !dbUser.is_active) {
       return res.status(401).json({ error: 'Tài khoản đã bị vô hiệu hóa' });
     }
@@ -29,6 +29,7 @@ function requireAuth(req, res, next) {
     req.user.is_phan_lich     = !!dbUser.is_phan_lich;
     req.user.is_phan_lich_all = !!dbUser.is_phan_lich_all;
     req.user.is_tra_ncc       = !!dbUser.is_tra_ncc;
+    req.user.is_giam_doc      = !!dbUser.is_giam_doc;
     req.user.deptCats = DEPT_CATS[req.user.role] ?? null;
     next();
   } catch {
