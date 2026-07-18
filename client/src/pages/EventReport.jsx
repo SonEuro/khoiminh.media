@@ -578,7 +578,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             return (
               <>
                 <div className="time-grid-4" style={{
-                  display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(80px, 1fr))', gap:'8px',
+                  display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0,
                   background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'12px', marginBottom: (kmDur || khDur) ? '8px' : '14px',
                 }}>
                   {[
@@ -586,8 +586,13 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                     ['Onset', report.time_onset],
                     ['Off máy', report.time_off],
                     ['Kết thúc', report.time_end],
-                  ].map(([l, v]) => v && v !== '00:00' && (
-                    <div key={l} style={{ textAlign:'center' }}>
+                  ].map(([l, v], i) => v && v !== '00:00' && (
+                    <div key={l} style={{
+                      textAlign:'center',
+                      borderRight: i === 1 ? '1px solid rgba(255,255,255,0.1)' : undefined,
+                      paddingRight: i === 1 ? '8px' : undefined,
+                      paddingLeft: i === 2 ? '8px' : undefined,
+                    }}>
                       <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
                       <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
                     </div>
