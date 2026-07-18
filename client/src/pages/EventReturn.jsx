@@ -59,17 +59,8 @@ export default function EventReturn() {
   const [checked,      setChecked]      = useState(new Set());
   const [loading,      setLoading]      = useState(false);
 
-  // Outstanding NCC/ext items
-  const [outstandingExt,  setOutstandingExt]  = useState([]);
-  const [extQty,          setExtQty]          = useState({});   // `${supplier}|${name}` → qty
-  const [extNotes,        setExtNotes]        = useState({});   // key → notes
-  const [checkedExt,      setCheckedExt]      = useState(new Set());
-  const [showNcc,         setShowNcc]         = useState(false); // toggle NCC panel
-
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
-
-  const extKey = (r) => `${r.supplier}|${r.name}`;
 
   const loadPending = () => {
     setLoadingPending(true);
@@ -82,10 +73,7 @@ export default function EventReturn() {
   useEffect(() => {
     if (!eventId) { setOutstanding([]); setOutstandingExt([]); return; }
     setLoading(true);
-    Promise.all([
-      api.getOutstanding(eventId),
-      api.getOutstandingExt(eventId),
-    ]).then(([rows, extRows]) => {
+    api.getOutstanding(eventId).then(rows => {
       setOutstanding(rows);
       const splits = {}, cn = {}, gs = {};
       rows.forEach(r => {
@@ -99,14 +87,6 @@ export default function EventReturn() {
       setEditCond({});
       setItemNotes({});
       setChecked(new Set(rows.map(r => r.equipment_id)));
-
-      setOutstandingExt(extRows);
-      const eq = {};
-      extRows.forEach(r => { eq[extKey(r)] = r.qty_pending; });
-      setExtQty(eq);
-      setExtNotes({});
-      setCheckedExt(new Set(extRows.map(extKey)));
-      setShowNcc(false);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
 
@@ -157,8 +137,7 @@ export default function EventReturn() {
   const toggleCheck = (id) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const hasKhoItems = visibleItems.some(r => checked.has(r.equipment_id));
-  const hasExtItems = outstandingExt.some(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0);
-  const canSubmit = eventId && person && (hasKhoItems || hasExtItems);
+  const canSubmit = eventId && person && hasKhoItems;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -176,19 +155,9 @@ export default function EventReturn() {
         });
         return result;
       });
-    const external_items = outstandingExt
-      .filter(r => checkedExt.has(extKey(r)) && (extQty[extKey(r)] || 0) > 0)
-      .map(r => ({
-        supplier:    r.supplier,
-        name:        r.name,
-        quantity:    Math.min(Math.max(0, parseInt(extQty[extKey(r)]) || 0), r.qty_pending),
-        unit:        r.unit || 'Cái',
-        rental_days: r.rental_days || 1,
-        notes:       extNotes[extKey(r)] || '',
-      }));
     setSubmitting(true);
     try {
-      const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items, external_items, transaction_date: returnDate });
+      const res = await api.createReturn({ event_id: eventId, responsible_person: person, notes: '', items, transaction_date: returnDate });
       const full = await api.getTransactionById(res.id);
       setDone(full);
       loadPending();
@@ -208,8 +177,7 @@ export default function EventReturn() {
           <h2 style={{ color:'#4ade80', fontSize:'1.2rem', fontWeight:700 }}>Nhập kho thành công!</h2>
           <p style={{ color:'var(--text-muted)', fontSize:'0.875rem' }}>
             Phiếu <strong style={{ color:'var(--gold)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{done.code}</strong> —{' '}
-            <strong style={{ color:'var(--text-primary)' }}>{new Set(done.items?.map(i => i.equipment_id) || []).size + (done.external_items?.length || 0)}</strong> loại thiết bị
-            {done.external_items?.length > 0 ? ` (${done.external_items.length} NCC)` : ''}.
+            <strong style={{ color:'var(--text-primary)' }}>{new Set(done.items?.map(i => i.equipment_id) || []).size}</strong> loại thiết bị.
           </p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => printSlip(done)} className="btn-primary">🖨️ In phiếu</button>
@@ -448,7 +416,7 @@ export default function EventReturn() {
         <div className="card text-center py-8" style={{ color:'var(--text-muted)' }}>Đang tải...</div>
       )}
 
-      {eventId && !loading && outstanding.length === 0 && outstandingExt.length === 0 && (
+      {eventId && !loading && outstanding.length === 0 && (
         <div className="card text-center py-10">
           <p className="text-3xl mb-2">📭</p>
           <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
@@ -771,139 +739,7 @@ export default function EventReturn() {
         </div>
       )}
 
-      {/* ── Nút NCC ──────────────────────────────────────── */}
-      {eventId && !loading && outstandingExt.length > 0 && (
-        <button type="button" onClick={() => setShowNcc(v => !v)}
-          style={{
-            width:'100%', marginBottom:'14px', padding:'13px 18px',
-            display:'flex', alignItems:'center', justifyContent:'space-between',
-            background: showNcc ? 'rgba(96,165,250,0.12)' : 'rgba(96,165,250,0.06)',
-            border:`1.5px solid ${showNcc ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.25)'}`,
-            borderRadius:'12px', cursor:'pointer', transition:'all 0.15s',
-          }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-            <span style={{ fontSize:'1.1rem' }}>🏪</span>
-            <div style={{ textAlign:'left' }}>
-              <p style={{ margin:0, fontWeight:700, color:'#60a5fa', fontSize:'0.92rem' }}>NCC</p>
-              <p style={{ margin:0, fontSize:'0.78rem', color:'#7878a0' }}>{outstandingExt.length} loại thiết bị chưa trả — xuất trả NCC</p>
-            </div>
-          </div>
-          <span style={{ color:'#60a5fa', fontSize:'1rem', fontWeight:700 }}>{showNcc ? '▲' : '▼'}</span>
-        </button>
-      )}
-
-      {/* ── NCC panel (mở khi click nút NCC) ─────────────── */}
-      {eventId && !loading && outstandingExt.length > 0 && showNcc && (
-        <div className="card p-0 overflow-hidden mb-5">
-          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(96,165,250,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontWeight:700, color:'#60a5fa', fontSize:'0.875rem' }}>🏪 Thiết bị NCC chưa trả — {outstandingExt.length} loại</span>
-            <button type="button"
-              onClick={() => {
-                const eq = {};
-                outstandingExt.forEach(r => { eq[extKey(r)] = r.qty_pending; });
-                setExtQty(prev => ({ ...prev, ...eq }));
-                setExtNotes({});
-                setCheckedExt(new Set(outstandingExt.map(extKey)));
-              }}
-              style={{ fontSize:'0.82rem', color:'#60a5fa', background:'none', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', padding:'4px 10px', cursor:'pointer' }}>
-              Chọn tất cả
-            </button>
-          </div>
-          {/* ── Desktop: bảng ── */}
-          <div className="return-table-wrap table-wrap">
-            <table style={{ width:'100%', minWidth:'560px' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign:'left', padding:'10px 14px' }}>Thiết bị / Nhà CC</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px' }}>Còn nợ</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', minWidth:'90px' }}>Số trả</th>
-                  <th style={{ textAlign:'center', padding:'10px 8px', width:'44px' }}>✓</th>
-                  <th style={{ textAlign:'left', padding:'10px 8px', minWidth:'140px' }}>Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody>
-                {outstandingExt.map(r => {
-                  const k = extKey(r);
-                  return (
-                    <tr key={k}>
-                      <td style={{ padding:'10px 14px' }}>
-                        <p style={{ fontWeight:600, color:'#93c5fd' }}>{r.name}</p>
-                        <p style={{ fontSize:'0.84rem', color:'#7878a0' }}>{r.supplier} · {r.rental_days} ngày</p>
-                      </td>
-                      <td style={{ textAlign:'center', padding:'10px 8px' }}>
-                        <span style={{ color:'#fbbf24', fontWeight:700 }}>{r.qty_pending} {r.unit}</span>
-                      </td>
-                      <td style={{ textAlign:'center', padding:'8px' }}>
-                        <input type="number" min="0" max={r.qty_pending}
-                          value={extQty[k] ?? r.qty_pending}
-                          onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}
-                          onBlur={e => setExtQty(prev => ({ ...prev, [k]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                          style={{ width:'70px', padding:'4px 6px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'6px', color:'#60a5fa', fontSize:'1.1rem', fontWeight:700 }}
-                        />
-                      </td>
-                      <td style={{ textAlign:'center', padding:'8px' }}>
-                        <button type="button"
-                          onClick={() => setCheckedExt(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; })}
-                          style={{ width:'70px', padding:'4px 6px', textAlign:'center', background: checkedExt.has(k) ? 'rgba(96,165,250,0.08)' : 'rgba(255,255,255,0.04)', border:`1px solid ${checkedExt.has(k) ? 'rgba(96,165,250,0.5)' : 'rgba(201,168,76,0.3)'}`, borderRadius:'6px', cursor:'pointer', color: checkedExt.has(k) ? '#60a5fa' : '#555570', fontSize:'1.1rem', fontWeight:700, lineHeight:'1.4', display:'block', margin:'0 auto' }}>
-                          {checkedExt.has(k) ? '✓' : ''}
-                        </button>
-                      </td>
-                      <td style={{ padding:'8px' }}>
-                        <input placeholder="Ghi chú..." value={extNotes[k] || ''} onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
-                          style={{ width:'100%', minWidth:'120px', padding:'4px 8px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'6px', color:'var(--text-primary)', fontSize:'0.84rem' }}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Mobile: cards ── */}
-          <div className="return-card-list" style={{ padding:'10px 14px' }}>
-            {outstandingExt.map(r => {
-              const k = extKey(r);
-              return (
-                <div key={k} style={{ background:'rgba(96,165,250,0.04)', border:`1px solid ${checkedExt.has(k) ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.18)'}`, borderRadius:'10px', padding:'12px', transition:'border-color 0.15s' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontWeight:700, color:'#93c5fd', margin:0, fontSize:'0.88rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.name}</p>
-                      <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'2px 0 0' }}>{r.supplier} · {r.rental_days} ngày</p>
-                    </div>
-                    <div style={{ textAlign:'right', flexShrink:0, marginLeft:'10px' }}>
-                      <p style={{ fontSize:'0.72rem', color:'#7878a0', margin:0, textTransform:'uppercase' }}>Còn nợ</p>
-                      <p style={{ fontWeight:800, color:'#fbbf24', margin:'2px 0 0', fontSize:'1rem' }}>{r.qty_pending} {r.unit}</p>
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:'8px', alignItems:'flex-end', marginBottom:'8px' }}>
-                    <div style={{ display:'flex', flexDirection:'column', gap:'3px', flex:1 }}>
-                      <span style={{ fontSize:'0.80rem', color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em' }}>Số trả</span>
-                      <input type="number" min="0" max={r.qty_pending}
-                        value={extQty[k] ?? r.qty_pending}
-                        onChange={e => setExtQty(prev => ({ ...prev, [k]: e.target.value }))}
-                        onBlur={e => setExtQty(prev => ({ ...prev, [k]: Math.min(Math.max(0, parseInt(e.target.value) || 0), r.qty_pending) }))}
-                        style={{ width:'100%', padding:'8px 10px', textAlign:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:'8px', color:'#60a5fa', fontSize:'1.2rem', fontWeight:800, boxSizing:'border-box' }}
-                      />
-                    </div>
-                    <button type="button"
-                      onClick={() => setCheckedExt(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; })}
-                      style={{ flex:1, padding:'8px 0', borderRadius:'8px', cursor:'pointer', background: checkedExt.has(k) ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.04)', border:`2px solid ${checkedExt.has(k) ? '#60a5fa' : 'rgba(201,168,76,0.3)'}`, color: checkedExt.has(k) ? '#60a5fa' : '#555570', fontSize:'1.2rem', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
-                      {checkedExt.has(k) ? '✓' : ''}
-                    </button>
-                  </div>
-                  <input placeholder="Ghi chú..." value={extNotes[k] || ''} onChange={e => setExtNotes(prev => ({ ...prev, [k]: e.target.value }))}
-                    style={{ width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(96,165,250,0.15)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'0.85rem', boxSizing:'border-box' }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      )}
-
-      {eventId && !loading && (visibleItems.length > 0 || outstandingExt.length > 0) && (
+      {eventId && !loading && visibleItems.length > 0 && (
         <div className="flex gap-3">
           <button onClick={submit} disabled={submitting || !canSubmit} className="btn-primary flex-1"
             style={{ fontSize:'1rem', padding:'14px' }}>
