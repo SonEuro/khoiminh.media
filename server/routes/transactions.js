@@ -180,7 +180,7 @@ router.get('/outstanding-ext', (req, res) => {
       ei.unit,
       MAX(ei.rental_days) AS rental_days,
       SUM(CASE WHEN t.type = 'OUT'                       THEN ei.quantity ELSE 0 END) AS qty_out,
-      SUM(CASE WHEN t.type IN ('RETURN', 'TRA_NCC')     THEN ei.quantity ELSE 0 END) AS qty_returned
+      SUM(CASE WHEN t.type = 'TRA_NCC'                  THEN ei.quantity ELSE 0 END) AS qty_returned
     FROM external_items ei
     JOIN transactions t ON t.id = ei.transaction_id
     WHERE t.event_id = ? AND t.status != 'pending'
