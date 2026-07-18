@@ -1726,6 +1726,40 @@ export default function EventReport() {
               </div>
             ))}
           </div>
+          {(() => {
+            function calcDuration(start, end) {
+              if (!start || !end) return null;
+              const [sh, sm] = start.split(':').map(Number);
+              const [eh, em] = end.split(':').map(Number);
+              if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return null;
+              let startMins = sh * 60 + sm;
+              let endMins   = eh * 60 + em;
+              if (endMins < startMins) endMins += 24 * 60;
+              const diff  = endMins - startMins;
+              const hours = Math.floor(diff / 60);
+              const mins  = diff % 60;
+              return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, '0')}`;
+            }
+            const kmDur  = calcDuration(form.time_present, form.time_end);
+            const khDur  = calcDuration(form.time_onset,   form.time_off);
+            if (!kmDur && !khDur) return null;
+            return (
+              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginTop:'10px' }}>
+                {kmDur && (
+                  <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
+                    <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.06em' }}>TIME KHÔI MINH</span>
+                    <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fde68a', fontVariantNumeric:'tabular-nums' }}>{kmDur}</span>
+                  </div>
+                )}
+                {khDur && (
+                  <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.4)', borderRadius:'999px', padding:'5px 14px' }}>
+                    <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#60a5fa', letterSpacing:'0.06em' }}>TIME KHÁCH HÀNG</span>
+                    <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#93c5fd', fontVariantNumeric:'tabular-nums' }}>{khDur}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Đánh giá ── */}
