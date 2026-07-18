@@ -606,7 +606,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                     </div>
                   );
                 })()}
-                {(kmDur || khDur) && !!user?.is_phan_lich_all && (
+                {(kmDur || khDur) && !!currentUser?.is_phan_lich_all && (
                   <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'14px' }}>
                     {kmDur && (
                       <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
