@@ -329,7 +329,7 @@ function StaffSummarySection() {
           <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
             <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
               <span style={{ fontWeight:800, color:'#60a5fa' }}>{today.km}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>KM</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
             </span>
             <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
             <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
@@ -346,7 +346,7 @@ function StaffSummarySection() {
           <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
             <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
               <span style={{ fontWeight:800, color:'#60a5fa' }}>{tomorrow.km}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>KM</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
             </span>
             <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
             <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
