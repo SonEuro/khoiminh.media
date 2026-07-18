@@ -254,25 +254,31 @@ export default function NccAdmin() {
           <div key={sup.id} style={{ borderRadius: '10px', border: `1px solid ${openId === sup.id ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.07)'}`, background: openId === sup.id ? 'rgba(201,168,76,0.03)' : 'rgba(255,255,255,0.02)', overflow: 'hidden', transition: 'border-color 0.15s' }}>
 
             {/* Supplier row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', cursor: 'pointer' }}
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '10px 16px', gap: '6px', cursor: 'pointer' }}
               onClick={() => loadDetail(sup.id)}>
-              <span style={{ flex: 1, fontWeight: 700, fontSize: '0.95rem', color: sup.is_active ? '#e0e0ee' : '#5a5a7a' }}>
-                {sup.name}
-                {!sup.is_active && <span style={{ marginLeft: '6px', fontSize: '0.7rem', color: '#7878a0' }}>(ẩn)</span>}
-              </span>
-              <Badge dept={sup.dept} />
-              <span style={{ fontSize: '0.78rem', color: '#7878a0', minWidth: '70px', textAlign: 'right' }}>
-                {sup.eq_count} thiết bị
-              </span>
-              <button onClick={e => { e.stopPropagation(); setSupModal(sup); }}
-                style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'transparent', color: GOLD, fontSize: '0.78rem', cursor: 'pointer' }}>
-                Sửa
-              </button>
-              <button onClick={e => { e.stopPropagation(); handleDeleteSupplier(sup); }}
-                style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', fontSize: '0.78rem', cursor: 'pointer' }}>
-                Xóa
-              </button>
-              <span style={{ fontSize: '0.75rem', color: '#555570' }}>{openId === sup.id ? '▲' : '▼'}</span>
+              {/* Hàng 1: tên + badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ flex: 1, fontWeight: 700, fontSize: '0.95rem', color: sup.is_active ? '#e0e0ee' : '#5a5a7a' }}>
+                  {sup.name}
+                  {!sup.is_active && <span style={{ marginLeft: '6px', fontSize: '0.7rem', color: '#7878a0' }}>(ẩn)</span>}
+                </span>
+                <Badge dept={sup.dept} />
+              </div>
+              {/* Hàng 2: số thiết bị + nút */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ flex: 1, fontSize: '0.78rem', color: '#7878a0' }}>
+                  {sup.eq_count} thiết bị
+                </span>
+                <button onClick={e => { e.stopPropagation(); setSupModal(sup); }}
+                  style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'transparent', color: GOLD, fontSize: '0.78rem', cursor: 'pointer' }}>
+                  Sửa
+                </button>
+                <button onClick={e => { e.stopPropagation(); handleDeleteSupplier(sup); }}
+                  style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.3)', background: 'transparent', color: '#f87171', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  Xóa
+                </button>
+                <span style={{ fontSize: '0.75rem', color: '#555570' }}>{openId === sup.id ? '▲' : '▼'}</span>
+              </div>
             </div>
 
             {/* Equipment panel */}
