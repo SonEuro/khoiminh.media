@@ -78,6 +78,7 @@ export default function ExportForm() {
   const [nccFocusIdx, setNccFocusIdx] = useState(-1);
   const [nccSupplierFocusIdx, setNccSupplierFocusIdx] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
+  const [submittingPending, setSubmittingPending] = useState(false);
   const [doneSlip, setDoneSlip]     = useState(null);
   const [dateError, setDateError]     = useState('');
   const [eventError, setEventError]   = useState(false);
@@ -235,6 +236,36 @@ export default function ExportForm() {
       alert(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const submitAsPending = async () => {
+    const validItems = items
+      .filter(it => it.mode === 'kho' && it.equipment_id && it.quantity > 0)
+      .map(it => ({ ...it, quantity: Math.max(1, parseInt(it.quantity) || 1) }));
+    const rowExt = items
+      .filter(it => it.mode === 'ext' && it.ext_name.trim())
+      .map(it => {
+        const catalog = nccCatalog[it.ext_supplier] || [];
+        const found = catalog.find(c => c.name === it.ext_name.trim());
+        return { name: it.ext_name.trim(), supplier: it.ext_supplier.trim(), quantity: Math.max(1, parseInt(it.quantity) || 1), notes: it.notes || '', unit: found?.unit || 'Cái', rental_days: Math.max(0.5, parseFloat(it.rental_days) || 1), combo: it.combo || null };
+      });
+    const sectionExt = extOpen ? extItems.filter(i => i.name.trim() && i.supplier.trim()).map(i => ({ ...i, unit: i.unit || 'Cái', quantity: Math.max(1, parseInt(i.quantity) || 1), rental_days: Math.max(0.5, parseFloat(i.rental_days) || 1), combo: i.combo || null })) : [];
+    const validExt = [...rowExt, ...sectionExt];
+    if (!form.event_id) { setEventError(true); return; }
+    setEventError(false);
+    setDateError('');
+    if (validItems.length === 0 && validExt.length === 0) { alert('Chưa chọn thiết bị nào'); return; }
+    savedSnapshot.current = { form, items, searchTerms, deptFilter, extOpen, extSupplier, extCustom, extItems };
+    setSubmittingPending(true);
+    try {
+      const res = await api.createOut({ ...form, items: validItems, external_items: validExt, force_pending: true });
+      const full = await api.getTransactionById(res.id);
+      setDoneSlip({ ...full, _pending: true, _filmingDate: res._filmingDate });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmittingPending(false);
     }
   };
 
@@ -1017,8 +1048,12 @@ export default function ExportForm() {
         </div>
 
         <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="btn-primary flex-1">
+          <button type="submit" disabled={submitting || submittingPending} className="btn-primary flex-1">
             {submitting ? 'Đang xuất...' : '⬆️ Xác nhận xuất kho'}
+          </button>
+          <button type="button" disabled={submitting || submittingPending} onClick={submitAsPending}
+            style={{ padding:'0 18px', borderRadius:'8px', border:'1px solid rgba(251,191,36,0.5)', background:'rgba(251,191,36,0.1)', color:'#fbbf24', fontWeight:700, fontSize:'0.875rem', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}>
+            {submittingPending ? '...' : '🕐 Xuất tạm'}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Hủy</button>
         </div>

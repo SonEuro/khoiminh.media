@@ -258,7 +258,7 @@ router.get('/:id', (req, res) => {
 
 // Xuất kho (OUT)
 router.post('/out', canTransact, (req, res) => {
-  const { event_id, responsible_person, expected_return_date, notes, items, external_items } = req.body;
+  const { event_id, responsible_person, expected_return_date, notes, items, external_items, force_pending } = req.body;
   if (!event_id) return res.status(400).json({ error: 'Phải chọn sự kiện trước khi xuất thiết bị' });
   const evCheck = db.prepare('SELECT id, filming_dates, filming_date, show_date, start_date FROM events WHERE id = ?').get(event_id);
   if (!evCheck) return res.status(400).json({ error: 'Sự kiện không tồn tại. Vui lòng tải lại trang và chọn lại sự kiện.' });
@@ -280,7 +280,7 @@ router.post('/out', canTransact, (req, res) => {
 
   // Dùng localtime từ SQLite tránh lệch múi giờ UTC của Node.js
   const { today } = db.prepare("SELECT date('now','localtime') AS today").get();
-  const isPending = !!(earliestFilming && earliestFilming > today);
+  const isPending = !!force_pending || !!(earliestFilming && earliestFilming > today);
   const txStatus = isPending ? 'pending' : 'completed';
 
   const doOut = db.transaction(() => {
