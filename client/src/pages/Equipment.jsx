@@ -169,7 +169,7 @@ const DEPT_CATS = {
   CSVC:        ['CSVC'],
 };
 
-function EquipmentForm({ categories, initial, onSave, onCancel }) {
+function EquipmentForm({ categories, initial, onSave, onCancel, isSuperAdmin }) {
   const [form, setForm] = useState(
     initial || { code: '', name: '', category_id: '', unit: 'Cái', unit_price: 0, qty_total: 0, notes: '' }
   );
@@ -215,6 +215,17 @@ function EquipmentForm({ categories, initial, onSave, onCancel }) {
         <div>
           <label className="label">Số lượng ban đầu</label>
           <input className="input" type="number" min="0" value={form.qty_total} onChange={e => set('qty_total', +e.target.value)} />
+        </div>
+      )}
+      {initial && isSuperAdmin && (
+        <div>
+          <label className="label">Số lượng tổng</label>
+          <input className="input" type="number" min="0" value={form.qty_total ?? initial.qty_total ?? 0} onChange={e => set('qty_total', +e.target.value)} />
+          <p style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginTop:'4px' }}>
+            Có sẵn hiện tại: <strong style={{ color:'#4ade80' }}>{initial.qty_available}</strong>
+            {' · '}Đang dùng: <strong style={{ color:'#60a5fa' }}>{initial.qty_in_use}</strong>
+            . Thay đổi tổng sẽ điều chỉnh số có sẵn tương ứng.
+          </p>
         </div>
       )}
       <div>
@@ -749,6 +760,7 @@ export default function Equipment() {
             initial={modal === 'edit' ? selected : null}
             onSave={handleSave}
             onCancel={() => setModal(null)}
+            isSuperAdmin={user?.role === 'SUPER_ADMIN'}
           />
         </Modal>
       )}

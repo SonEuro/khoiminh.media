@@ -155,10 +155,22 @@ router.post('/', canEdit, (req, res) => {
 });
 
 router.put('/:id', canEdit, (req, res) => {
-  const { name, category_id, unit, unit_price, notes } = req.body;
+  const { name, category_id, unit, unit_price, notes, qty_total } = req.body;
   db.prepare(`
     UPDATE equipment SET name=?, category_id=?, unit=?, unit_price=?, notes=? WHERE id=?
   `).run(name, category_id, unit, unit_price, notes, req.params.id);
+
+  if (req.user?.role === 'SUPER_ADMIN' && qty_total !== undefined) {
+    const eq = db.prepare('SELECT qty_total, qty_available FROM equipment WHERE id = ?').get(req.params.id);
+    if (eq) {
+      const newTotal = Math.max(0, parseInt(qty_total) || 0);
+      const delta = newTotal - eq.qty_total;
+      const newAvailable = Math.max(0, eq.qty_available + delta);
+      db.prepare('UPDATE equipment SET qty_total = ?, qty_available = ? WHERE id = ?')
+        .run(newTotal, newAvailable, req.params.id);
+    }
+  }
+
   res.json({ ok: true });
 });
 
