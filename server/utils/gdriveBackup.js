@@ -139,7 +139,35 @@ function scheduleAutoBackup(db) {
   // Backup mỗi 12h, giữ 60 bản (30 ngày)
   setTimeout(() => { runDaily(); setInterval(runDaily, 12 * 60 * 60 * 1000); }, 2 * 60 * 1000);
 
-  console.log('[AutoBackup] Lên lịch: backup 5 phút/lần + daily backup mỗi 24h');
+  // Local backup mỗi 6 tiếng vào /var/backups/kho-khoiminh/auto/, giữ 30 ngày
+  const LOCAL_DIR = '/var/backups/kho-khoiminh/auto';
+  const runLocal = () => {
+    let eventCount = 0;
+    try { eventCount = db.prepare('SELECT COUNT(*) as c FROM events').get().c; } catch(_) {}
+    if (eventCount === 0) return;
+    try {
+      fs.mkdirSync(LOCAL_DIR, { recursive: true });
+      const stamp = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Asia/Ho_Chi_Minh', year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+      }).format(new Date()).replace(/[-: ]/g, '').replace('T', '_');
+      const dest = path.join(LOCAL_DIR, `db_${stamp}.sqlite`);
+      db.backup(dest)
+        .then(() => {
+          console.log(`[LocalBackup] ✅ ${dest}`);
+          // Xóa file cũ hơn 30 ngày
+          const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+          for (const f of fs.readdirSync(LOCAL_DIR).filter(n => n.startsWith('db_') && n.endsWith('.sqlite'))) {
+            const fp = path.join(LOCAL_DIR, f);
+            try { if (fs.statSync(fp).mtimeMs < cutoff) fs.unlinkSync(fp); } catch(_) {}
+          }
+        })
+        .catch(e => console.error('[LocalBackup] ❌', e.message));
+    } catch(e) { console.error('[LocalBackup] ❌', e.message); }
+  };
+  setTimeout(() => { runLocal(); setInterval(runLocal, 6 * 60 * 60 * 1000); }, 5 * 60 * 1000);
+
+  console.log('[AutoBackup] Lên lịch: GDrive 5 phút/lần + daily 12h + local 6 tiếng/lần');
 }
 
 async function restoreFromDriveIfNeeded(db) {
