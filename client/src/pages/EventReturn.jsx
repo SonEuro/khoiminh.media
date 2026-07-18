@@ -71,7 +71,7 @@ export default function EventReturn() {
 
   // Load outstanding when event selected
   useEffect(() => {
-    if (!eventId) { setOutstanding([]); setOutstandingExt([]); return; }
+    if (!eventId) { setOutstanding([]); return; }
     setLoading(true);
     api.getOutstanding(eventId).then(rows => {
       setOutstanding(rows);
