@@ -64,6 +64,7 @@ export default function EventReturn() {
   const [extQty,          setExtQty]          = useState({});   // `${supplier}|${name}` → qty
   const [extNotes,        setExtNotes]        = useState({});   // key → notes
   const [checkedExt,      setCheckedExt]      = useState(new Set());
+  const [showNcc,         setShowNcc]         = useState(false); // toggle NCC panel
 
   const [submitting,   setSubmitting]   = useState(false);
   const [done,         setDone]         = useState(null);
@@ -105,6 +106,7 @@ export default function EventReturn() {
       setExtQty(eq);
       setExtNotes({});
       setCheckedExt(new Set(extRows.map(extKey)));
+      setShowNcc(false);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [eventId]);
 
@@ -769,8 +771,29 @@ export default function EventReturn() {
         </div>
       )}
 
-      {/* ── NCC / Thiết bị ngoài ──────────────────────────── */}
+      {/* ── Nút NCC ──────────────────────────────────────── */}
       {eventId && !loading && outstandingExt.length > 0 && (
+        <button type="button" onClick={() => setShowNcc(v => !v)}
+          style={{
+            width:'100%', marginBottom:'14px', padding:'13px 18px',
+            display:'flex', alignItems:'center', justifyContent:'space-between',
+            background: showNcc ? 'rgba(96,165,250,0.12)' : 'rgba(96,165,250,0.06)',
+            border:`1.5px solid ${showNcc ? 'rgba(96,165,250,0.5)' : 'rgba(96,165,250,0.25)'}`,
+            borderRadius:'12px', cursor:'pointer', transition:'all 0.15s',
+          }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <span style={{ fontSize:'1.1rem' }}>🏪</span>
+            <div style={{ textAlign:'left' }}>
+              <p style={{ margin:0, fontWeight:700, color:'#60a5fa', fontSize:'0.92rem' }}>NCC</p>
+              <p style={{ margin:0, fontSize:'0.78rem', color:'#7878a0' }}>{outstandingExt.length} loại thiết bị chưa trả — xuất trả NCC</p>
+            </div>
+          </div>
+          <span style={{ color:'#60a5fa', fontSize:'1rem', fontWeight:700 }}>{showNcc ? '▲' : '▼'}</span>
+        </button>
+      )}
+
+      {/* ── NCC panel (mở khi click nút NCC) ─────────────── */}
+      {eventId && !loading && outstandingExt.length > 0 && showNcc && (
         <div className="card p-0 overflow-hidden mb-5">
           <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(96,165,250,0.2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <span style={{ fontWeight:700, color:'#60a5fa', fontSize:'0.875rem' }}>🏪 Thiết bị NCC chưa trả — {outstandingExt.length} loại</span>
