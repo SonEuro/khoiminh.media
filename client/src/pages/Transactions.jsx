@@ -868,6 +868,8 @@ function TraNccModal({ txId, onClose }) {
   const [items,   setItems]   = useState([]);
   const [sortBy,  setSortBy]  = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  const nccDept = NCC_DEPT_STATIC;
+  const nccList = NCC_LIST_STATIC;
 
   useEffect(() => {
     api.getTransactionById(txId).then(data => {
