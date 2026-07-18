@@ -278,12 +278,13 @@ function EventGroup({ status, events }) {
 // ── Section: Tổng hợp nhân sự hôm nay / ngày mai ─────────────────────────────
 function StaffSummarySection() {
   const [summary, setSummary] = useState(null);
+  const COLOR = '#a78bfa'; const RGB = '167,139,250';
+  const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
   useEffect(() => {
     const todayVN    = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
     const dTmr = new Date(); dTmr.setDate(dTmr.getDate() + 1);
     const tomorrowVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(dTmr);
-    const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
     api.getWorkSchedules({}).then(schedules => {
       const countDay = (targetDate) => {
@@ -293,17 +294,11 @@ function StaffSummarySection() {
           for (const p of PHASES) {
             const dates = s[`${p}_dates`] || (s[`${p}_date`] ? [s[`${p}_date`]] : []);
             if (!dates.includes(targetDate)) continue;
-            // Leads (KM)
-            const lMap = s[`${p}_leads_map`];
-            const lFlat = s[`${p}_leads`] || [];
+            const lMap = s[`${p}_leads_map`]; const lFlat = s[`${p}_leads`] || [];
             (lMap ? (lMap[targetDate] ?? []) : lFlat).forEach(l => kmNames.add(l?.name ?? l));
-            // KM staff
-            const sMap = s[`${p}_km_staff_map`];
-            const sFlat = s[`${p}_km_staff`] || [];
+            const sMap = s[`${p}_km_staff_map`]; const sFlat = s[`${p}_km_staff`] || [];
             (sMap ? (sMap[targetDate] ?? []) : sFlat).forEach(n => kmNames.add(n?.name ?? n));
-            // Freelancers
-            const fMap = s[`${p}_freelancers_map`];
-            const fFlat = s[`${p}_freelancers`] || '';
+            const fMap = s[`${p}_freelancers_map`]; const fFlat = s[`${p}_freelancers`] || '';
             if (fMap && fMap[targetDate]) {
               Object.values(fMap[targetDate]).forEach(v =>
                 (v || '').split(',').forEach(x => { if (x.trim()) freeTotal++; })
@@ -324,39 +319,45 @@ function StaffSummarySection() {
   const { today, tomorrow } = summary;
   if (today.total === 0 && tomorrow.total === 0) return null;
 
-  const Row = ({ label, data }) => (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-      padding:'8px 14px', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
-      <span style={{ fontSize:'0.83rem', color:'#9898b8', fontWeight:600 }}>{label}</span>
-      <div style={{ display:'flex', gap:'16px', alignItems:'center' }}>
-        <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-          <span style={{ fontWeight:800, color:'#60a5fa', fontSize:'0.92rem' }}>{data.km}</span>
-          <span style={{ color:'#7878a0', marginLeft:'3px' }}>KM</span>
-        </span>
-        <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
-        <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-          <span style={{ fontWeight:800, color:'#a78bfa', fontSize:'0.92rem' }}>{data.free}</span>
-          <span style={{ color:'#7878a0', marginLeft:'3px' }}>Freelancer</span>
-        </span>
-        <span style={{ fontSize:'0.72rem', fontWeight:800, background:'rgba(255,255,255,0.06)',
-          borderRadius:'6px', padding:'2px 8px', color:'#c0c0d8' }}>
-          = {data.total}
-        </span>
-      </div>
-    </div>
-  );
+  const totalAll = today.total + tomorrow.total;
 
   return (
-    <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)',
-      borderRadius:'10px', overflow:'hidden' }}>
-      <div style={{ padding:'8px 14px 6px', display:'flex', alignItems:'center', gap:'8px',
-        borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-        <span style={{ fontSize:'0.72rem', fontWeight:800, letterSpacing:'0.08em',
-          color:'#7878a0', textTransform:'uppercase' }}>Tổng hợp nhân sự</span>
-      </div>
-      {today.total > 0    && <Row label="Hôm nay"  data={today} />}
-      {tomorrow.total > 0 && <Row label="Ngày mai" data={tomorrow} />}
-    </div>
+    <AdminSec title="TỔNG HỢP NHÂN SỰ" color={COLOR} rgb={RGB} count={totalAll} linkTo="/work-schedule">
+      {today.total > 0 && (
+        <ARow i={0} rgb={RGB}>
+          <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Hôm nay</span>
+          <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
+            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+              <span style={{ fontWeight:800, color:'#60a5fa' }}>{today.km}</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>KM</span>
+            </span>
+            <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
+            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+              <span style={{ fontWeight:800, color:COLOR }}>{today.free}</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
+            </span>
+            <span style={{ fontSize:'0.78rem', fontWeight:800, color:COLOR }}>= {today.total}</span>
+          </div>
+        </ARow>
+      )}
+      {tomorrow.total > 0 && (
+        <ARow i={today.total > 0 ? 1 : 0} rgb={RGB}>
+          <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Ngày mai</span>
+          <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
+            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+              <span style={{ fontWeight:800, color:'#60a5fa' }}>{tomorrow.km}</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>KM</span>
+            </span>
+            <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
+            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+              <span style={{ fontWeight:800, color:COLOR }}>{tomorrow.free}</span>
+              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
+            </span>
+            <span style={{ fontSize:'0.78rem', fontWeight:800, color:COLOR }}>= {tomorrow.total}</span>
+          </div>
+        </ARow>
+      )}
+    </AdminSec>
   );
 }
 
