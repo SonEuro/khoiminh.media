@@ -1323,7 +1323,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
   );
 }
 
-function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint, outstandingExtMap = {} }) {
+function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint, outstandingExtMap = {}, khoOutstandingMap = {} }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
 
   // Group by event_id (hoặc event_name nếu không có id)
@@ -1347,6 +1347,15 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
             <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(255,255,255,0.15), transparent)' }} />
             <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{gTxs.length} phiếu</span>
           </div>
+          {/* KHO outstanding warning */}
+          {khoOutstandingMap[gTxs[0]?.event_id] && (
+            <div style={{ marginBottom:'4px', marginLeft:'4px', padding:'5px 10px',
+              background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.2)',
+              borderRadius:'6px', fontSize:'0.78rem', color:'#fbbf24',
+              display:'flex', alignItems:'center', gap:'6px' }}>
+              ⚠ Còn {khoOutstandingMap[gTxs[0].event_id].types} loại · {khoOutstandingMap[gTxs[0].event_id].total} cái chưa nhập kho
+            </div>
+          )}
           {/* Transactions */}
           <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
             {gTxs.map(tx => (
@@ -1512,6 +1521,7 @@ export default function Transactions() {
   const [trashLoaded,         setTrashLoaded]         = useState(false);
   const [conflicts,           setConflicts]           = useState([]);
   const [outstandingExtMap,   setOutstandingExtMap]   = useState({});
+  const [khoOutstandingMap,   setKhoOutstandingMap]   = useState({});
   const [traNccTxs,           setTraNccTxs]           = useState([]);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -1546,6 +1556,19 @@ export default function Transactions() {
           .catch(() => {});
       } else {
         setOutstandingExtMap({});
+      }
+      const retEids = [...new Set(ret.filter(t => t.event_id).map(t => t.event_id))];
+      if (retEids.length > 0) {
+        Promise.all(retEids.map(eid => api.getOutstanding(eid).then(rows => {
+          const total = rows.reduce((s, r) => s + (r.qty_pending || 0), 0);
+          return [eid, rows.length > 0 ? { types: rows.length, total } : null];
+        }))).then(results => {
+          const map = {};
+          results.forEach(([eid, val]) => { if (val) map[eid] = val; });
+          setKhoOutstandingMap(map);
+        }).catch(() => {});
+      } else {
+        setKhoOutstandingMap({});
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
@@ -1661,7 +1684,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} />
+            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} khoOutstandingMap={khoOutstandingMap} />
           </Section>
 
           {traNccTxs.length > 0 && (
