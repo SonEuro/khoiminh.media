@@ -278,7 +278,7 @@ function EventGroup({ status, events }) {
 // ── Section: Tổng hợp nhân sự hôm nay / ngày mai ─────────────────────────────
 function StaffSummarySection() {
   const [summary, setSummary] = useState(null);
-  const COLOR = '#a78bfa'; const RGB = '167,139,250';
+  const COLOR = '#fbbf24'; const RGB = '251,191,36';
   const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
   useEffect(() => {
