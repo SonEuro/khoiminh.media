@@ -988,7 +988,7 @@ export default function EventReport() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [isAloneInDept, setIsAloneInDept] = useState(false);
   const [notInSchedule, setNotInSchedule] = useState(false);
-  const [allowedEventIds, setAllowedEventIds] = useState(null); // null = show all (admin), Set = filtered
+  const [allowedEventIds, setAllowedEventIds] = useState(undefined); // undefined=loading, null=admin(all), Set=filtered
   const [dateLocked, setDateLocked] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -1018,8 +1018,9 @@ export default function EventReport() {
       })
       .catch(() => {});
     // Tính allowedEventIds từ lịch làm việc — refresh cùng interval để cập nhật khi lịch thay đổi
+    if (!user?.full_name) return; // user chưa load — giữ nguyên trạng thái (undefined=loading, không hiện gì)
     const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
-    if (isAdmin || !user?.full_name) { setAllowedEventIds(null); return; }
+    if (isAdmin) { setAllowedEventIds(null); return; }
     setAllowedEventIds(new Set()); // rỗng trong lúc chờ API — tránh hiện sự kiện chưa được lọc
     const myName = user.full_name;
     const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
@@ -1049,7 +1050,7 @@ export default function EventReport() {
         if (hasOpenDeadline) ids.add(String(s.event_id));
       }
       setAllowedEventIds(ids);
-    }).catch(() => setAllowedEventIds(null));
+    }).catch(() => {}); // giữ Set rỗng khi API lỗi — không reset về null (không hiện tất cả)
   }, [user?.full_name, user?.id, user?.role, user?.is_phan_lich_all, user?.is_truong_phong]);
 
   useEffect(() => {
@@ -1294,9 +1295,11 @@ export default function EventReport() {
     });
   })();
 
-  const scheduledEvents = allowedEventIds !== null
-    ? events.filter(ev => ev.status !== 'cancelled' && allowedEventIds.has(String(ev.id)))
-    : recentEvents;
+  const scheduledEvents = allowedEventIds === undefined
+    ? [] // đang tải — không hiện sự kiện nào để tránh lộ data
+    : allowedEventIds !== null
+      ? events.filter(ev => ev.status !== 'cancelled' && allowedEventIds.has(String(ev.id)))
+      : recentEvents;
 
   const evSuggestions = showEvDrop
     ? (evSearch.trim()
