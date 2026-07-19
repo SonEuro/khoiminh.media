@@ -368,10 +368,12 @@ export default function EventDetailModal({ eventId, onClose }) {
                       rows.push(
                         <tr key={it.equipment_id} className="border-b last:border-0">
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
-                          <td className="py-1.5" style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
-                            <span>{it.eq_name}</span>
-                            {it.combo && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
-                            {it.qty_transfer_in > 0 && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'1px 5px', border:'1px solid rgba(96,165,250,0.5)', borderRadius:'3px', color:'#60a5fa' }}>+{it.qty_transfer_in} chuyển</span>}
+                          <td className="py-1.5" style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                            <span style={{ flex:1, minWidth:0 }}>{it.eq_name}</span>
+                            <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
+                              {it.qty_transfer_in > 0 && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'1px 5px', border:'1px solid rgba(96,165,250,0.5)', borderRadius:'3px', color:'#60a5fa' }}>+{it.qty_transfer_in} chuyển</span>}
+                              {it.combo && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
+                            </div>
                           </td>
                           <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
                           <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
