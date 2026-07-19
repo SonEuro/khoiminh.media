@@ -319,7 +319,7 @@ export default function Users() {
           <div onClick={() => setShowVanPhong(v => !v)}
             style={{ display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer', marginBottom: showVanPhong ? '10px' : 0 }}>
             <p style={{ color:'#94a3b8', fontWeight:700, fontSize:'0.82rem', letterSpacing:'0.06em', textTransform:'uppercase', margin:0 }}>
-              🏢 Flag văn phòng — không tính rảnh trên Dashboard
+              🏢 Flag văn phòng — không tính Không Lịch trên Dashboard
             </p>
             <span style={{ fontSize:'0.78rem', color:'#7878a0', transition:'transform 0.15s', display:'inline-block', transform: showVanPhong ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
           </div>
