@@ -853,8 +853,8 @@ function DateZone({ date, reports, onDelete, onEdit, onConfirm, canDeleteReport,
 }
 
 // ── Event zone: nhóm tất cả báo cáo cùng sự kiện ────────────────────────────
-function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport, highlightId }) {
-  const [open, setOpen] = useState(true);
+function EventZone({ group, onDelete, onEdit, onConfirm, canDeleteReport, highlightId, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
   const totalImages = group.reports.reduce((sum, r) => sum + (r.image_count ?? r.images?.length ?? 0), 0);
   const allDates    = [...new Set(group.reports.map(r => r.report_date).filter(Boolean))].sort();
 
@@ -1543,9 +1543,9 @@ export default function EventReport() {
                 <span style={{ fontSize:'0.80rem', color:'rgba(74,222,128,0.6)', transition:'transform 0.18s', display:'inline-block', transform: confirmedOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
               </div>
               {confirmedOpen && (
-                <div style={{ background:'#13131d', maxHeight:'585px', overflowY:'auto', padding:'8px 12px' }}>
+                <div style={{ background:'#13131d', maxHeight:'320px', overflowY:'auto', padding:'8px 12px' }}>
                   {order.map(k => (
-                    <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
+                    <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} defaultOpen={false} />
                   ))}
                 </div>
               )}
