@@ -1454,7 +1454,7 @@ export default function EventReport() {
         {/* Tab toggle – only for admins + is_phan_lich_all */}
         {canViewAllDepts && (
           <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
-            {[['event', 'Theo sự kiện'], ['date', 'Theo ngày'], ['dept', 'Theo bộ phận'], ['staff', 'Theo nhân viên']].map(([mode, label]) => (
+            {[['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']].map(([mode, label]) => (
               <button key={mode} type="button" onClick={() => setListMode(mode)}
                 style={{
                   padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
