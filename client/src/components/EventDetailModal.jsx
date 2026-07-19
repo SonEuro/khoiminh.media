@@ -16,7 +16,7 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
       itemRows += `<tr class="cat-row"><td colspan="5" style="padding:8px 0 4px;"><span class="cat-label" style="color:${color};border-color:${color}">${cat}</span></td></tr>`;
       lastCat = cat;
     }
-    const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0);
+    const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0) - (it.qty_transfer_out || 0);
     const transferNote = [
       it.qty_transfer_in  > 0 ? `<span class="xfer xfer-in">+${it.qty_transfer_in} chuyển đến</span>`  : '',
       it.qty_transfer_out > 0 ? `<span class="xfer xfer-out">−${it.qty_transfer_out} chuyển đi</span>` : '',
@@ -182,7 +182,7 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn, Ex
       addRow([cat], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
       lastCat = cat;
     }
-    const net2 = it.qty_out - (it.qty_returned||0) + (it.qty_transfer_in||0);
+    const net2 = it.qty_out - (it.qty_returned||0) + (it.qty_transfer_in||0) - (it.qty_transfer_out||0);
     const xferParts = [
       it.qty_transfer_in  > 0 ? `+${it.qty_transfer_in} chuyển đến`  : '',
       it.qty_transfer_out > 0 ? `−${it.qty_transfer_out} chuyển đi` : '',
@@ -373,7 +373,7 @@ export default function EventDetailModal({ eventId, onClose }) {
                         );
                         lastCat = cat;
                       }
-                      const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0);
+                      const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0) - (it.qty_transfer_out || 0);
                       rows.push(
                         <tr key={it.equipment_id} className="border-b last:border-0">
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
