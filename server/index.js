@@ -38,6 +38,7 @@ app.use('/api/push',         requireAuth, require('./routes/push'));
 app.use('/api/work-schedules', requireAuth, require('./routes/workSchedule'));
 app.use('/api/lead-obligations', requireAuth, require('./routes/leadObligations'));
 app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
+app.use('/api/staff-flags',     requireAuth, require('./routes/staffFlags'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
 app.use('/api/ncc',          requireAuth, require('./routes/ncc'));
 app.use('/api/upload-image', requireAuth, require('./routes/upload'));

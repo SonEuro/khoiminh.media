@@ -463,6 +463,10 @@ db.exec(`
     deleted_by_name TEXT,
     deleted_at      TEXT DEFAULT (datetime('now','localtime'))
   );
+  CREATE TABLE IF NOT EXISTS staff_flags (
+    name      TEXT PRIMARY KEY,
+    van_phong INTEGER NOT NULL DEFAULT 0
+  );
 `);
 
 // Seed staff_groups từ danh sách mặc định nếu chưa có

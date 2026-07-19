@@ -166,6 +166,8 @@ export const api = {
   // Staff groups (danh sách nhân sự theo bộ phận)
   getStaffGroups: (type) => request(`/staff-groups?type=${type}`),
   updateStaffGroups: (type, groups) => request(`/staff-groups/${type}`, { method: 'PUT', body: groups }),
+  getStaffFlags: () => request('/staff-flags'),
+  toggleStaffFlag: (name, vanPhong) => request('/staff-flags/toggle', { method: 'POST', body: { name, vanPhong } }),
 
   // NCC catalog
   getNccCatalog: () => request('/ncc/catalog'),

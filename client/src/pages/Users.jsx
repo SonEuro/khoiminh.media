@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
-import { DEPARTMENTS } from '../constants/staff';
+import { DEPARTMENTS, KM_STAFF_GROUPS } from '../constants/staff';
 
 const FREELANCER_DEPTS = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Quay Phim', 'Sản Xuất'];
 
@@ -62,6 +62,7 @@ export default function Users() {
   const [dismissedList, setDismissedList] = useState([]);
   const [dismissedLoading, setDismissedLoading] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
+  const [vanPhongSet, setVanPhongSet] = useState(new Set());
 
   async function load() {
     try {
@@ -70,6 +71,17 @@ export default function Users() {
     } catch {}
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    api.getStaffFlags().then(d => setVanPhongSet(new Set(d.vanPhong))).catch(() => {});
+  }, []);
+
+  async function toggleVanPhong(name) {
+    const next = !vanPhongSet.has(name);
+    setVanPhongSet(prev => { const s = new Set(prev); next ? s.add(name) : s.delete(name); return s; });
+    await api.toggleStaffFlag(name, next).catch(() => {
+      api.getStaffFlags().then(d => setVanPhongSet(new Set(d.vanPhong))).catch(() => {});
+    });
+  }
   useEffect(() => {
     if (isAdmin && showDeleteLog) {
       api.getReportDeleteLog().then(setDeleteLog).catch(() => {});
@@ -292,7 +304,7 @@ export default function Users() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '14px' }}>
             Cập nhật danh sách nhân sự theo bộ phận — dùng cho lịch làm việc, báo cáo vi phạm.
           </p>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
             <button onClick={() => openStaffModal('km')}
               style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(201,168,76,0.45)', background:'rgba(201,168,76,0.12)', color:'#c9a84c', cursor:'pointer' }}>
               🏢 Nhân sự Khôi Minh
@@ -301,6 +313,34 @@ export default function Users() {
               style={{ padding:'9px 20px', borderRadius:'8px', fontSize:'0.85rem', fontWeight:700, border:'1px solid rgba(96,165,250,0.45)', background:'rgba(96,165,250,0.1)', color:'#60a5fa', cursor:'pointer' }}>
               🎯 Nhân sự Freelancer
             </button>
+          </div>
+
+          <p style={{ color:'#94a3b8', fontWeight:700, fontSize:'0.82rem', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'10px' }}>
+            🏢 Flag văn phòng — không tính rảnh trên Dashboard
+          </p>
+          <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+            {KM_STAFF_GROUPS.map(g => (
+              <div key={g.dept}>
+                <div style={{ fontSize:'0.73rem', fontWeight:700, color:'#7878a0', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'5px' }}>{g.dept}</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                  {g.members.map(name => {
+                    const on = vanPhongSet.has(name);
+                    return (
+                      <button key={name} onClick={() => toggleVanPhong(name)}
+                        style={{
+                          fontSize:'0.78rem', fontWeight: on ? 700 : 500,
+                          padding:'3px 10px', borderRadius:'6px', cursor:'pointer',
+                          border: on ? '1px solid rgba(148,163,184,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                          background: on ? 'rgba(148,163,184,0.15)' : 'rgba(255,255,255,0.04)',
+                          color: on ? '#94a3b8' : '#6b7280',
+                        }}>
+                        {on ? '🏢 ' : ''}{name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
