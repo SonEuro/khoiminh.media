@@ -772,6 +772,8 @@ router.post('/transfer', canTransact, (req, res) => {
 
   const sourceTx = db.prepare('SELECT * FROM transactions WHERE id = ? AND deleted_at IS NULL').get(source_tx_id);
   if (!sourceTx) return res.status(404).json({ error: 'Không tìm thấy phiếu nguồn' });
+  if (sourceTx.status === 'pending')
+    return res.status(400).json({ error: 'Phiếu nguồn chưa được xác nhận xuất kho. Vui lòng xác nhận trước khi chuyển thiết bị.' });
 
   const targetEvent = db.prepare('SELECT * FROM events WHERE id = ?').get(target_event_id);
   if (!targetEvent) return res.status(404).json({ error: 'Không tìm thấy sự kiện đích' });

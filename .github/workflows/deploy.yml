@@ -38,17 +38,17 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            DB=/var/www/kho-khoiminh/server/db.sqlite
-            BAK_DIR=/var/backups/kho-khoiminh
+            DB=/var/www/kho-khoiminh/server/kho.db
+            BAK_DIR=/var/backups/kho-khoiminh/deploy
             mkdir -p "$BAK_DIR"
             if [ -f "$DB" ]; then
-              cp "$DB" "$BAK_DIR/db_$(date +%Y%m%d_%H%M%S).sqlite"
-              echo "✅ Backup OK"
-              # Giữ tối đa 10 bản gần nhất
-              ls -t "$BAK_DIR"/db_*.sqlite | tail -n +11 | xargs rm -f 2>/dev/null || true
+              STAMP=$(date +%Y%m%d_%H%M%S)
+              cp "$DB" "$BAK_DIR/kho_${STAMP}.db"
+              echo "✅ Backup OK: kho_${STAMP}.db ($(du -h "$BAK_DIR/kho_${STAMP}.db" | cut -f1))"
+              ls -t "$BAK_DIR"/kho_*.db | tail -n +11 | xargs rm -f 2>/dev/null || true
               ls -lh "$BAK_DIR"
             else
-              echo "⚠️ DB chưa tồn tại, bỏ qua backup"
+              echo "⚠️ kho.db chưa tồn tại, bỏ qua backup"
             fi
 
       - name: Deploy via rsync
