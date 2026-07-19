@@ -828,11 +828,22 @@ router.post('/transfer', canTransact, (req, res) => {
       `INSERT INTO external_items (transaction_id, supplier, name, quantity, notes, unit, rental_days) VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
 
-    // KM items cho phiếu đích + nguồn
+    // KM items cho phiếu đích + nguồn + cập nhật tồn kho
     for (const item of validItems) {
       const qty = parseInt(item.quantity) || 0;
       insItem.run(targetTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
       insItem.run(sourceTxR.lastInsertRowid, item.equipment_id, qty, item.notes || null, item.combo || null);
+
+      // Hoàn trả kho từ sự kiện nguồn (chỉ khi phiếu nguồn đã xuất thật)
+      if (sourceTx.status === 'completed') {
+        db.prepare(`UPDATE equipment SET qty_in_use = MAX(0, qty_in_use - ?), qty_available = qty_available + MIN(?, qty_in_use) WHERE id = ?`)
+          .run(qty, qty, item.equipment_id);
+      }
+      // Trừ kho cho sự kiện đích (chỉ khi phiếu đích là completed)
+      if (targetStatus === 'completed') {
+        db.prepare(`UPDATE equipment SET qty_available = MAX(0, qty_available - ?), qty_in_use = qty_in_use + ? WHERE id = ?`)
+          .run(qty, qty, item.equipment_id);
+      }
     }
 
     // NCC items cho phiếu đích + nguồn
