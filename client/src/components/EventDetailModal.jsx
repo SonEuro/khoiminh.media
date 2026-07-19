@@ -18,8 +18,8 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
     }
     const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0) - (it.qty_transfer_out || 0);
     const transferNote = [
-      it.qty_transfer_in  > 0 ? `<span class="xfer xfer-in">+${it.qty_transfer_in} chuyển đến</span>`  : '',
-      it.qty_transfer_out > 0 ? `<span class="xfer xfer-out">−${it.qty_transfer_out} chuyển đi</span>` : '',
+      it.qty_transfer_in  > 0 ? `<span class="xfer xfer-in">+${it.qty_transfer_in} C Đến</span>`  : '',
+      it.qty_transfer_out > 0 ? `<span class="xfer xfer-out">−${it.qty_transfer_out} C Đi</span>` : '',
     ].filter(Boolean).join(' ');
     itemRows += `<tr>
       <td class="code">${it.eq_code || ''}</td>
@@ -184,8 +184,8 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn, Ex
     }
     const net2 = it.qty_out - (it.qty_returned||0) + (it.qty_transfer_in||0) - (it.qty_transfer_out||0);
     const xferParts = [
-      it.qty_transfer_in  > 0 ? `+${it.qty_transfer_in} chuyển đến`  : '',
-      it.qty_transfer_out > 0 ? `−${it.qty_transfer_out} chuyển đi` : '',
+      it.qty_transfer_in  > 0 ? `+${it.qty_transfer_in} C Đến`  : '',
+      it.qty_transfer_out > 0 ? `−${it.qty_transfer_out} C Đi` : '',
     ].filter(Boolean).join(', ');
     const nameWithXfer = xferParts ? `${it.eq_name||''} (${xferParts})` : (it.eq_name||'');
     addRow([it.eq_code||'', nameWithXfer, it.qty_out, it.qty_returned||0, net2]);
@@ -380,8 +380,8 @@ export default function EventDetailModal({ eventId, onClose }) {
                           <td className="py-1.5" style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                             <span style={{ flex:1, minWidth:0 }}>{it.eq_name}</span>
                             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
-                              {it.qty_transfer_in  > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>+{it.qty_transfer_in} chuyển đến</span>}
-                              {it.qty_transfer_out > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>−{it.qty_transfer_out} chuyển đi</span>}
+                              {it.qty_transfer_in  > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>+{it.qty_transfer_in} C Đến</span>}
+                              {it.qty_transfer_out > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>−{it.qty_transfer_out} C Đi</span>}
                               {it.combo && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
                             </div>
                           </td>
