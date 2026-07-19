@@ -990,7 +990,6 @@ export default function EventReport() {
   const [notInSchedule, setNotInSchedule] = useState(false);
   const [allowedEventIds, setAllowedEventIds] = useState(undefined); // undefined=loading, null=admin(all), Set=filtered
   const [dateLocked, setDateLocked] = useState(false);
-  const [confirmedOpen, setConfirmedOpen] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -1535,20 +1534,17 @@ export default function EventReport() {
           });
           return (
             <div style={{ marginTop:'8px', borderRadius:'10px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.28)' }}>
-              <div onClick={() => setConfirmedOpen(o => !o)} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(74,222,128,0.14) 0%,rgba(74,222,128,0.03) 100%)', borderLeft:'3px solid #4ade80', borderBottom: confirmedOpen ? '1px solid rgba(74,222,128,0.16)' : 'none', cursor:'pointer', userSelect:'none' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(74,222,128,0.14) 0%,rgba(74,222,128,0.03) 100%)', borderLeft:'3px solid #4ade80', borderBottom:'1px solid rgba(74,222,128,0.16)' }}>
                 <span style={{ fontWeight:700, color:'#4ade80', fontSize:'0.84rem', flex:1, letterSpacing:'0.04em' }}>✅ ĐÃ XÁC NHẬN</span>
                 <span style={{ background:'rgba(74,222,128,0.2)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#4ade80' }}>
                   {confirmedReports.length} báo cáo
                 </span>
-                <span style={{ fontSize:'0.80rem', color:'rgba(74,222,128,0.6)', transition:'transform 0.18s', display:'inline-block', transform: confirmedOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
               </div>
-              {confirmedOpen && (
-                <div style={{ background:'#13131d', maxHeight:'320px', overflowY:'auto', padding:'8px 12px' }}>
-                  {order.map(k => (
-                    <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} defaultOpen={false} />
-                  ))}
-                </div>
-              )}
+              <div style={{ background:'#13131d', maxHeight:'480px', overflowY:'auto', padding:'8px 12px' }}>
+                {order.map(k => (
+                  <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} defaultOpen={false} />
+                ))}
+              </div>
             </div>
           );
         })()}
