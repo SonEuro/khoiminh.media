@@ -16,13 +16,14 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
       itemRows += `<tr class="cat-row"><td colspan="5" style="padding:8px 0 4px;"><span class="cat-label" style="color:${color};border-color:${color}">${cat}</span></td></tr>`;
       lastCat = cat;
     }
-    const rem = it.qty_out - (it.qty_returned || 0);
+    const net = (it.qty_out - (it.qty_returned || 0)) + ((it.qty_transfer_in || 0) - (it.qty_transfer_out || 0));
+    const transferNote = it.qty_transfer_in > 0 ? ` <span class="xfer">+${it.qty_transfer_in}↔</span>` : '';
     itemRows += `<tr>
       <td class="code">${it.eq_code || ''}</td>
-      <td>${it.eq_name || ''}${it.combo ? ` <span class="combo">FREE-${it.combo}</span>` : ''}</td>
+      <td>${it.eq_name || ''}${it.combo ? ` <span class="combo">FREE-${it.combo}</span>` : ''}${transferNote}</td>
       <td class="num red">${it.qty_out}</td>
       <td class="num green">${it.qty_returned || 0}</td>
-      <td class="num ${rem > 0 ? 'orange bold' : 'gray'}">${rem}</td>
+      <td class="num ${net > 0 ? 'orange bold' : 'gray'}">${net}</td>
     </tr>`;
   });
 
@@ -78,6 +79,7 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
   .sup { color:#8a6a00; font-weight:600; }
   .note { color:#888; font-size:11px; }
   .combo { font-size:10px; font-weight:700; border:1px solid #bbb; border-radius:3px; padding:0 4px; color:#777; }
+  .xfer  { font-size:10px; font-weight:700; border:1px solid #2563aa; border-radius:3px; padding:0 4px; color:#2563aa; margin-left:4px; }
   .cat-row td { padding:8px 0 2px; }
   .cat-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; border-top:1px solid; border-bottom:1px solid; padding:1px 8px; }
   .footer { margin-top:20px; display:flex; justify-content:space-around; text-align:center; font-size:11px; color:#444; }
@@ -175,8 +177,9 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn, Ex
       addRow([cat], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
       lastCat = cat;
     }
-    const rem = it.qty_out - (it.qty_returned||0);
-    addRow([it.eq_code||'', it.eq_name||'', it.qty_out, it.qty_returned||0, rem]);
+    const net2 = (it.qty_out - (it.qty_returned||0)) + ((it.qty_transfer_in||0) - (it.qty_transfer_out||0));
+    const nameWithXfer = it.qty_transfer_in > 0 ? `${it.eq_name||''} (+${it.qty_transfer_in} chuyển)` : (it.eq_name||'');
+    addRow([it.eq_code||'', nameWithXfer, it.qty_out, it.qty_returned||0, net2]);
   });
 
   if (ev.external_items?.length > 0) {
@@ -361,17 +364,19 @@ export default function EventDetailModal({ eventId, onClose }) {
                         );
                         lastCat = cat;
                       }
+                      const net = (it.qty_out - (it.qty_returned || 0)) + ((it.qty_transfer_in || 0) - (it.qty_transfer_out || 0));
                       rows.push(
                         <tr key={it.equipment_id} className="border-b last:border-0">
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
-                          <td className="py-1.5" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
+                          <td className="py-1.5" style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' }}>
                             <span>{it.eq_name}</span>
-                            {it.combo && <span style={{ flexShrink:0, fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
+                            {it.combo && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
+                            {it.qty_transfer_in > 0 && <span style={{ fontSize:'0.68rem', fontWeight:700, padding:'1px 5px', border:'1px solid rgba(96,165,250,0.5)', borderRadius:'3px', color:'#60a5fa' }}>+{it.qty_transfer_in} chuyển</span>}
                           </td>
                           <td className="py-1.5 text-right text-red-600 font-medium">{it.qty_out}</td>
                           <td className="py-1.5 text-right text-green-600">{it.qty_returned || 0}</td>
-                          <td className={`py-1.5 text-right font-bold ${(it.qty_out - (it.qty_returned || 0)) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                            {it.qty_out - (it.qty_returned || 0)}
+                          <td className={`py-1.5 text-right font-bold ${net > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                            {net}
                           </td>
                         </tr>
                       );
