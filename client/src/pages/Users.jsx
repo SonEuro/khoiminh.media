@@ -63,6 +63,7 @@ export default function Users() {
   const [dismissedLoading, setDismissedLoading] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
   const [vanPhongSet, setVanPhongSet] = useState(new Set());
+  const [showVanPhong, setShowVanPhong] = useState(false);
 
   async function load() {
     try {
@@ -315,10 +316,14 @@ export default function Users() {
             </button>
           </div>
 
-          <p style={{ color:'#94a3b8', fontWeight:700, fontSize:'0.82rem', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'10px' }}>
-            🏢 Flag văn phòng — không tính rảnh trên Dashboard
-          </p>
-          <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+          <div onClick={() => setShowVanPhong(v => !v)}
+            style={{ display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer', marginBottom: showVanPhong ? '10px' : 0 }}>
+            <p style={{ color:'#94a3b8', fontWeight:700, fontSize:'0.82rem', letterSpacing:'0.06em', textTransform:'uppercase', margin:0 }}>
+              🏢 Flag văn phòng — không tính rảnh trên Dashboard
+            </p>
+            <span style={{ fontSize:'0.78rem', color:'#7878a0', transition:'transform 0.15s', display:'inline-block', transform: showVanPhong ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+          </div>
+          {showVanPhong && <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
             {KM_STAFF_GROUPS.map(g => (
               <div key={g.dept}>
                 <div style={{ fontSize:'0.73rem', fontWeight:700, color:'#7878a0', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'5px' }}>{g.dept}</div>
@@ -341,7 +346,7 @@ export default function Users() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
       )}
 
