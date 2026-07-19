@@ -361,7 +361,7 @@ const freeToday    = buildFree(today.busyKm);
               <span style={{ fontWeight:800, color:COLOR }}>{day === 'Hôm nay' ? today.free : tomorrow.free}</span>
               <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
             </span>
-            {freeCount > 0 && <span style={{ fontSize:'0.72rem', fontWeight:700, color:'rgba(251,191,36,0.6)', marginLeft:'4px' }}>{freeCount} Không Lịch</span>}
+            {freeCount > 0 && <span style={{ fontSize:'0.72rem', fontWeight:700, color:'rgba(251,191,36,0.6)', marginLeft:'4px' }}>{freeCount} Trống</span>}
             <span style={{ fontSize:'0.78rem', color:`rgba(${RGB},0.5)`, transition:'transform 0.15s', display:'inline-block', transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
           </div>
         </ARow>
