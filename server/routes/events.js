@@ -253,7 +253,8 @@ router.get('/:id', (req, res) => {
     SELECT ti.equipment_id, e.code as eq_code, e.name as eq_name, e.unit,
            SUM(CASE WHEN t.type = 'OUT'    AND (t.notes IS NULL OR t.notes NOT LIKE 'Chuyển từ%') THEN ti.quantity ELSE 0 END) as qty_out,
            SUM(CASE WHEN t.type = 'RETURN'                                                          THEN ti.quantity ELSE 0 END) as qty_returned,
-           SUM(CASE WHEN t.type = 'OUT'    AND t.notes LIKE 'Chuyển từ%'            THEN ti.quantity ELSE 0 END) as qty_transfer_in,
+           SUM(CASE WHEN t.type = 'OUT'    AND t.notes LIKE 'Chuyển từ%'                           THEN ti.quantity ELSE 0 END) as qty_transfer_in,
+           SUM(CASE WHEN t.type = 'RETURN' AND t.notes LIKE 'Thiết bị chuyển sang%'               THEN ti.quantity ELSE 0 END) as qty_transfer_out,
            MAX(ti.combo) as combo
     FROM transaction_items ti
     JOIN transactions t ON t.id = ti.transaction_id
