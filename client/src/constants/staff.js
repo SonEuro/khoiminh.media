@@ -10,7 +10,7 @@ export const DEPARTMENTS = [
 export const KM_STAFF_GROUPS = [
   { dept: 'ATAS-LED', members: [
     'Hà Minh Tâm', 'Trần Nhật Duy', 'Lê Trần Hoài Vĩ',
-    'Huỳnh Sự', 'Trương Lê Trung Tín', 'Lê Trọng Đức',
+    'Huỳnh Sự', 'Trương Lê Trung Tín',
   ]},
   { dept: 'Sân Khấu', members: [
     'Trần Duy Hùng', 'Nguyễn Trường Chinh', 'Hứa Khắc Cần',
