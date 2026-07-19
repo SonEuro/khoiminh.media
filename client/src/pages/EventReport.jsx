@@ -974,7 +974,9 @@ export default function EventReport() {
 
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [editingId, setEditingId] = useState(null); // id báo cáo đang edit
-  const [listMode, setListMode] = useState('event'); // 'event' | 'dept'
+  const [listMode, setListMode] = useState('event'); // 'event' | 'date' | 'dept' | 'staff'
+  const [staffDept, setStaffDept] = useState('');
+  const [staffName, setStaffName] = useState('');
   const [reports, setReports] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1452,7 +1454,7 @@ export default function EventReport() {
         {/* Tab toggle – only for admins + is_phan_lich_all */}
         {canViewAllDepts && (
           <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
-            {[['event', 'Theo sự kiện'], ['date', 'Theo ngày'], ['dept', 'Theo bộ phận']].map(([mode, label]) => (
+            {[['event', 'Theo sự kiện'], ['date', 'Theo ngày'], ['dept', 'Theo bộ phận'], ['staff', 'Theo nhân viên']].map(([mode, label]) => (
               <button key={mode} type="button" onClick={() => setListMode(mode)}
                 style={{
                   padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
@@ -1523,8 +1525,50 @@ export default function EventReport() {
               ))
         )}
 
+        {/* Theo nhân viên */}
+        {!loading && listMode === 'staff' && canViewAllDepts && (
+          <div>
+            <div style={{ display:'flex', gap:'10px', marginBottom:'16px', flexWrap:'wrap' }}>
+              <select
+                value={staffDept}
+                onChange={e => { setStaffDept(e.target.value); setStaffName(''); }}
+                style={{ flex:1, minWidth:'140px', background:'#1a1a2e', color: staffDept ? '#e0e0ee' : '#7878a0', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'10px', padding:'8px 12px', fontSize:'0.87rem', outline:'none' }}
+              >
+                <option value="">Chọn bộ phận</option>
+                {KM_STAFF_GROUPS.map(g => <option key={g.dept} value={g.dept}>{g.dept}</option>)}
+              </select>
+              <select
+                value={staffName}
+                onChange={e => setStaffName(e.target.value)}
+                disabled={!staffDept}
+                style={{ flex:1, minWidth:'160px', background:'#1a1a2e', color: staffName ? '#e0e0ee' : '#7878a0', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'10px', padding:'8px 12px', fontSize:'0.87rem', outline:'none', opacity: staffDept ? 1 : 0.45, cursor: staffDept ? 'pointer' : 'not-allowed' }}
+              >
+                <option value="">Chọn nhân viên</option>
+                {(KM_STAFF_GROUPS.find(g => g.dept === staffDept)?.members || []).map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            {staffName && (() => {
+              const staffReports = [...reports].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || '')).filter(r => r.reporter_name === staffName);
+              if (staffReports.length === 0) return (
+                <div className="card text-center py-10" style={{ color:'#7878a0' }}>Không có báo cáo nào của <strong style={{ color:'#e0e0ee' }}>{staffName}</strong></div>
+              );
+              const order = [], map = {};
+              staffReports.forEach(r => {
+                const key = r.event_id ? String(r.event_id) : `_${r.id}`;
+                if (!map[key]) { map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] }; order.push(key); }
+                map[key].reports.push(r);
+              });
+              return order.map(k => (
+                <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
+              ));
+            })()}
+          </div>
+        )}
+
         {/* Đã Xác Nhận – sự kiện đã qua 48h */}
-        {!loading && confirmedReports.length > 0 && (() => {
+        {!loading && listMode !== 'staff' && confirmedReports.length > 0 && (() => {
           const sorted = [...confirmedReports].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
           const order = [], map = {};
           sorted.forEach(r => {
