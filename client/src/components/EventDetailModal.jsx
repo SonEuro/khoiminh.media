@@ -16,8 +16,8 @@ function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
       itemRows += `<tr class="cat-row"><td colspan="5" style="padding:8px 0 4px;"><span class="cat-label" style="color:${color};border-color:${color}">${cat}</span></td></tr>`;
       lastCat = cat;
     }
-    const net = (it.qty_out - (it.qty_returned || 0)) + ((it.qty_transfer_in || 0) - (it.qty_transfer_out || 0));
-    const transferNote = it.qty_transfer_in > 0 ? ` <span class="xfer">+${it.qty_transfer_in}↔</span>` : '';
+    const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0);
+    const transferNote = it.qty_transfer_in > 0 ? ` <span class="xfer">+${it.qty_transfer_in} chuyển đến</span>` : '';
     itemRows += `<tr>
       <td class="code">${it.eq_code || ''}</td>
       <td>${it.eq_name || ''}${it.combo ? ` <span class="combo">FREE-${it.combo}</span>` : ''}${transferNote}</td>
@@ -177,8 +177,8 @@ async function buildExcelWorkbook(ev, parseFilmingDatesFn, parseDatesFieldFn, Ex
       addRow([cat], { bold: true, bgColor: 'FFE8F5E9', color: 'FF1A1A1A' });
       lastCat = cat;
     }
-    const net2 = (it.qty_out - (it.qty_returned||0)) + ((it.qty_transfer_in||0) - (it.qty_transfer_out||0));
-    const nameWithXfer = it.qty_transfer_in > 0 ? `${it.eq_name||''} (+${it.qty_transfer_in} chuyển)` : (it.eq_name||'');
+    const net2 = it.qty_out - (it.qty_returned||0) + (it.qty_transfer_in||0);
+    const nameWithXfer = it.qty_transfer_in > 0 ? `${it.eq_name||''} (+${it.qty_transfer_in} chuyển đến)` : (it.eq_name||'');
     addRow([it.eq_code||'', nameWithXfer, it.qty_out, it.qty_returned||0, net2]);
   });
 
@@ -364,14 +364,14 @@ export default function EventDetailModal({ eventId, onClose }) {
                         );
                         lastCat = cat;
                       }
-                      const net = (it.qty_out - (it.qty_returned || 0)) + ((it.qty_transfer_in || 0) - (it.qty_transfer_out || 0));
+                      const net = it.qty_out - (it.qty_returned || 0) + (it.qty_transfer_in || 0);
                       rows.push(
                         <tr key={it.equipment_id} className="border-b last:border-0">
                           <td className="py-1.5 font-mono text-xs text-gray-500">{it.eq_code}</td>
                           <td className="py-1.5" style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                             <span style={{ flex:1, minWidth:0 }}>{it.eq_name}</span>
                             <div style={{ display:'flex', gap:'4px', flexShrink:0 }}>
-                              {it.qty_transfer_in > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>+{it.qty_transfer_in} chuyển</span>}
+                              {it.qty_transfer_in > 0 && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>+{it.qty_transfer_in} chuyển đến</span>}
                               {it.combo && <span style={{ fontSize:'0.68rem', fontWeight:800, padding:'1px 5px', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'3px', color:'rgba(255,255,255,0.45)', letterSpacing:'0.04em' }}>FREE - {it.combo}</span>}
                             </div>
                           </td>
