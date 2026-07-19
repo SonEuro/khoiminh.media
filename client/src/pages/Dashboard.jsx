@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { KM_STAFF_GROUPS, ALL_KM_STAFF } from '../constants/staff';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
@@ -276,8 +277,35 @@ function EventGroup({ status, events }) {
 }
 
 // ── Section: Tổng hợp nhân sự hôm nay / ngày mai ─────────────────────────────
+const DEPT_COLORS_DASH = {
+  'ATAS-LED': '#a78bfa', 'Sân Khấu': '#fb923c', 'Kỹ Thuật': '#38bdf8',
+  'Cơ Sở Vật Chất': '#4ade80', 'Kế Toán': '#fbbf24', 'Kinh Doanh': '#f472b6',
+};
+
+function FreeStaffList({ freeByDept }) {
+  if (!freeByDept.length) return (
+    <div style={{ padding:'8px 14px 10px', fontSize:'0.78rem', color:'#7878a0' }}>Tất cả đã có lịch</div>
+  );
+  return (
+    <div style={{ padding:'8px 14px 10px', display:'flex', flexDirection:'column', gap:'6px' }}>
+      {freeByDept.map(({ dept, members }) => (
+        <div key={dept}>
+          <div style={{ fontSize:'0.72rem', fontWeight:700, color: DEPT_COLORS_DASH[dept] || '#7878a0', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'3px' }}>{dept}</div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'4px' }}>
+            {members.map(name => (
+              <span key={name} style={{ fontSize:'0.76rem', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'4px', padding:'1px 7px', color:'#b0b0cc' }}>{name}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function StaffSummarySection() {
   const [summary, setSummary] = useState(null);
+  const [expandToday, setExpandToday] = useState(false);
+  const [expandTomorrow, setExpandTomorrow] = useState(false);
   const COLOR = '#fbbf24'; const RGB = '251,191,36';
   const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
@@ -309,7 +337,10 @@ function StaffSummarySection() {
           }
         }
         kmNames.delete(''); kmNames.delete(undefined);
-        return { km: kmNames.size, free: freeTotal, total: kmNames.size + freeTotal };
+        const freeByDept = KM_STAFF_GROUPS
+          .map(g => ({ dept: g.dept, members: g.members.filter(n => !kmNames.has(n)) }))
+          .filter(g => g.members.length > 0);
+        return { km: kmNames.size, free: freeTotal, total: kmNames.size + freeTotal, freeByDept };
       };
       setSummary({ today: countDay(todayVN), tomorrow: countDay(tomorrowVN) });
     }).catch(() => {});
@@ -319,41 +350,52 @@ function StaffSummarySection() {
   const { today, tomorrow } = summary;
   if (today.total === 0 && tomorrow.total === 0) return null;
 
-  const totalAll = today.total + tomorrow.total;
+  const freeCountToday    = today.freeByDept.reduce((s, g) => s + g.members.length, 0);
+  const freeCountTomorrow = tomorrow.freeByDept.reduce((s, g) => s + g.members.length, 0);
 
   return (
     <AdminSec title="TỔNG HỢP NHÂN SỰ" color={COLOR} rgb={RGB}>
       {today.total > 0 && (
-        <ARow i={0} rgb={RGB}>
-          <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Hôm nay</span>
-          <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
-            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-              <span style={{ fontWeight:800, color:'#60a5fa' }}>{today.km}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
-            </span>
-            <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
-            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-              <span style={{ fontWeight:800, color:COLOR }}>{today.free}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
-            </span>
-          </div>
-        </ARow>
+        <>
+          <ARow i={0} rgb={RGB} onClick={() => setExpandToday(o => !o)}>
+            <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Hôm nay</span>
+            <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
+              <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+                <span style={{ fontWeight:800, color:'#60a5fa' }}>{today.km}</span>
+                <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
+              </span>
+              <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
+              <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+                <span style={{ fontWeight:800, color:COLOR }}>{today.free}</span>
+                <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
+              </span>
+              {freeCountToday > 0 && <span style={{ fontSize:'0.72rem', fontWeight:700, color:'rgba(251,191,36,0.6)', marginLeft:'4px' }}>{freeCountToday} rảnh</span>}
+              <span style={{ fontSize:'0.78rem', color:`rgba(${RGB},0.5)`, transition:'transform 0.15s', display:'inline-block', transform: expandToday ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+            </div>
+          </ARow>
+          {expandToday && <FreeStaffList freeByDept={today.freeByDept} />}
+        </>
       )}
       {tomorrow.total > 0 && (
-        <ARow i={today.total > 0 ? 1 : 0} rgb={RGB}>
-          <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Ngày mai</span>
-          <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
-            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-              <span style={{ fontWeight:800, color:'#60a5fa' }}>{tomorrow.km}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
-            </span>
-            <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
-            <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
-              <span style={{ fontWeight:800, color:COLOR }}>{tomorrow.free}</span>
-              <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
-            </span>
-          </div>
-        </ARow>
+        <>
+          <ARow i={today.total > 0 ? 1 : 0} rgb={RGB} onClick={() => setExpandTomorrow(o => !o)}>
+            <span style={{ fontSize:'0.83rem', fontWeight:600, color:'#e0e0ee', flex:1 }}>Ngày mai</span>
+            <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
+              <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+                <span style={{ fontWeight:800, color:'#60a5fa' }}>{tomorrow.km}</span>
+                <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Khôi Minh</span>
+              </span>
+              <span style={{ color:'#444460', fontSize:'0.78rem' }}>+</span>
+              <span style={{ fontSize:'0.83rem', color:'#e0e0ee' }}>
+                <span style={{ fontWeight:800, color:COLOR }}>{tomorrow.free}</span>
+                <span style={{ color:'#7878a0', marginLeft:'3px', fontSize:'0.78rem' }}>Freelancer</span>
+              </span>
+              {freeCountTomorrow > 0 && <span style={{ fontSize:'0.72rem', fontWeight:700, color:'rgba(251,191,36,0.6)', marginLeft:'4px' }}>{freeCountTomorrow} rảnh</span>}
+              <span style={{ fontSize:'0.78rem', color:`rgba(${RGB},0.5)`, transition:'transform 0.15s', display:'inline-block', transform: expandTomorrow ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+            </div>
+          </ARow>
+          {expandTomorrow && <FreeStaffList freeByDept={tomorrow.freeByDept} />}
+        </>
       )}
     </AdminSec>
   );
