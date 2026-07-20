@@ -369,12 +369,6 @@ export default function ExportForm() {
           <h1 className="text-2xl font-bold">Phiếu Xuất Kho</h1>
           <p className="text-gray-500 text-sm">Phải chọn sự kiện trước khi xuất thiết bị</p>
         </div>
-        {!!user?.is_tra_ncc && (
-          <button type="button" onClick={() => { setNccReturnItems([]); setShowTraNcc(true); }}
-            style={{ padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.4)', background:'rgba(74,222,128,0.07)', color:'#4ade80', fontWeight:700, fontSize:'0.85rem', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:'6px' }}>
-            🏪 NCC
-          </button>
-        )}
       </div>
 
       <form onSubmit={submit} className="space-y-6" noValidate
