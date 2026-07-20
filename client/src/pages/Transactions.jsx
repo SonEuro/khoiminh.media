@@ -1357,13 +1357,21 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
               ⚠ Còn {khoOutstandingMap[gTxs[0].event_id].types} loại · {khoOutstandingMap[gTxs[0].event_id].total} cái chưa nhập kho
             </div>
           )}
-          {/* NCC chưa trả badge */}
+          {/* NCC chưa trả badge + nút */}
           {showNccBadge && outstandingExtMap[gTxs[0]?.event_id] > 0 && (
-            <div style={{ marginBottom:'4px', marginLeft:'4px', padding:'4px 10px',
-              background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)',
-              borderRadius:'6px', fontSize:'0.78rem', color:'#fb923c',
-              display:'inline-flex', alignItems:'center', gap:'6px' }}>
-              🏪 Chưa trả NCC
+            <div style={{ marginBottom:'4px', marginLeft:'4px', display:'flex', alignItems:'center', gap:'8px' }}>
+              <div style={{ padding:'4px 10px',
+                background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)',
+                borderRadius:'6px', fontSize:'0.78rem', color:'#fb923c',
+                display:'inline-flex', alignItems:'center', gap:'6px' }}>
+                🏪 Chưa trả NCC
+              </div>
+              {onTraNcc && (
+                <button className="ev-action" style={{ borderColor:'rgba(251,146,60,0.35)', color:'#fb923c' }}
+                  onClick={() => onTraNcc(gTxs[0].id)}>
+                  <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
+                </button>
+              )}
             </div>
           )}
           {/* Transactions */}
