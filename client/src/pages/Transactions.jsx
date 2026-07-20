@@ -1325,7 +1325,7 @@ function TxRows({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint }) {
   );
 }
 
-function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint, outstandingExtMap = {}, khoOutstandingMap = {} }) {
+function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint, outstandingExtMap = {}, khoOutstandingMap = {}, showNccBadge = false }) {
   if (!txs.length) return <Empty text="Chưa có phiếu nào" />;
 
   // Group by event_id (hoặc event_name nếu không có id)
@@ -1355,6 +1355,15 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
               borderRadius:'6px', fontSize:'0.78rem', color:'#fbbf24',
               display:'flex', alignItems:'center', gap:'6px' }}>
               ⚠ Còn {khoOutstandingMap[gTxs[0].event_id].types} loại · {khoOutstandingMap[gTxs[0].event_id].total} cái chưa nhập kho
+            </div>
+          )}
+          {/* NCC chưa trả badge */}
+          {showNccBadge && outstandingExtMap[gTxs[0]?.event_id] > 0 && (
+            <div style={{ marginBottom:'4px', marginLeft:'4px', padding:'4px 10px',
+              background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)',
+              borderRadius:'6px', fontSize:'0.78rem', color:'#fb923c',
+              display:'inline-flex', alignItems:'center', gap:'6px' }}>
+              🏪 Chưa trả NCC
             </div>
           )}
           {/* Transactions */}
@@ -1685,7 +1694,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} khoOutstandingMap={khoOutstandingMap} />
+            <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} khoOutstandingMap={khoOutstandingMap} showNccBadge />
           </Section>
 
           {traNccTxs.length > 0 && (

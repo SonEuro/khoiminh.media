@@ -261,26 +261,15 @@ export default function EventReturn() {
                   <span style={{ fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace", fontSize:'0.76rem', color:'#7878a0' }}>
                     {row.event_code}
                   </span>
-                  <div style={{ display:'flex', gap:'5px', flexShrink:0 }}>
-                    {row.item_types > 0 && (
-                      <span style={{
-                        fontSize:'0.78rem', fontWeight:700,
-                        background:'rgba(248,113,113,0.15)', color:'#f87171',
-                        padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap',
-                      }}>
-                        {row.item_types} KHO · {row.total_pending}
-                      </span>
-                    )}
-                    {row.ncc_types > 0 && (
-                      <span style={{
-                        fontSize:'0.78rem', fontWeight:700,
-                        background:'rgba(251,146,60,0.15)', color:'#fb923c',
-                        padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap',
-                      }}>
-                        chưa trả NCC
-                      </span>
-                    )}
-                  </div>
+                  <span style={{
+                    flexShrink:0, fontSize:'0.78rem', fontWeight:700,
+                    background:'rgba(248,113,113,0.15)', color:'#f87171',
+                    padding:'3px 9px', borderRadius:'9999px', whiteSpace:'nowrap',
+                  }}>
+                    {row.item_types > 0 && <>{row.item_types} KHO · {row.total_pending}</>}
+                    {row.item_types > 0 && row.ncc_types > 0 && ' · '}
+                    {row.ncc_types > 0 && <>{row.ncc_types} NCC</>}
+                  </span>
                 </div>
                 {/* Hàng 3: lưu trữ + ngày */}
                 {(row.archived_at || row.start_date) && (
