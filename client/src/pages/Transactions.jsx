@@ -1348,15 +1348,18 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
             <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#eeeef5', letterSpacing:'0.06em', textTransform:'uppercase', flex:1, minWidth:0 }}>{name}</span>
             <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{gTxs.length} phiếu</span>
           </div>
-          {/* NCC-only: group-level Trả NCC button */}
-          {nccOnlyEventSet && !nccOnlyEventSet.has(gTxs[0]?.event_id) && outstandingExtMap[gTxs[0]?.event_id] > 0 && onTraNcc && (
-            <div style={{ marginBottom:'4px', marginLeft:'4px' }}>
-              <button className="ev-action" style={{ borderColor:'rgba(251,146,60,0.35)', color:'#fb923c' }}
-                onClick={() => onTraNcc(gTxs[0].id)}>
-                <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
-              </button>
-            </div>
-          )}
+          {/* NCC-only: group-level Trả NCC button (chỉ khi tất cả phiếu đều không có KHO) */}
+          {(() => {
+            const isNccOnly = gTxs.every(tx => (tx.item_count || 0) === 0) && outstandingExtMap[gTxs[0]?.event_id] > 0;
+            return isNccOnly && onTraNcc ? (
+              <div style={{ marginBottom:'4px', marginLeft:'4px' }}>
+                <button className="ev-action" style={{ borderColor:'rgba(251,146,60,0.35)', color:'#fb923c' }}
+                  onClick={() => onTraNcc(gTxs[0].id)}>
+                  <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
+                </button>
+              </div>
+            ) : null;
+          })()}
           {/* KHO outstanding warning */}
           {khoOutstandingMap[gTxs[0]?.event_id] && (
             <div style={{ marginBottom:'4px', marginLeft:'4px', padding:'5px 10px',
@@ -1385,7 +1388,7 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
                         <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
                       </button>
                     )}
-                    {onTraNcc && !showNccBadge && tx.ext_count > 0 && (outstandingExtMap[tx.event_id] > 0) && !(nccOnlyEventSet && !nccOnlyEventSet.has(tx.event_id)) && (
+                    {onTraNcc && !showNccBadge && tx.ext_count > 0 && (outstandingExtMap[tx.event_id] > 0) && (tx.item_count || 0) > 0 && (
                       <button className="ev-action" style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                       </button>
@@ -1537,7 +1540,6 @@ export default function Transactions() {
   const [conflicts,           setConflicts]           = useState([]);
   const [outstandingExtMap,   setOutstandingExtMap]   = useState({});
   const [khoOutstandingMap,   setKhoOutstandingMap]   = useState({});
-  const [retEventSet,         setRetEventSet]         = useState(new Set());
   const [traNccTxs,           setTraNccTxs]           = useState([]);
 
   const isSuperAdmin      = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -1563,7 +1565,6 @@ export default function Transactions() {
       setEvents(ev);
       setArchivedEvents(allEv.filter(e => !!e.archived_at));
       setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret); setTraNccTxs(traNcc);
-      setRetEventSet(new Set(ret.filter(t => t.event_id).map(t => t.event_id)));
       setReports(rep); setViolations(vio);
       setConflicts(dash?.conflicts || []);
       const eids = [...new Set([...out, ...ret].filter(t => t.event_id && t.ext_count > 0).map(t => t.event_id))];
@@ -1697,7 +1698,7 @@ export default function Transactions() {
           </Section>
 
           <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
-            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} outstandingExtMap={outstandingExtMap} nccOnlyEventSet={retEventSet} />
+            <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} outstandingExtMap={outstandingExtMap} />
           </Section>
 
           <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
