@@ -1388,7 +1388,7 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
                 <div className="ev-btn-group">
                   <div className="ev-card-row">
                     <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
-                    {onTraNcc && tx.ext_count > 0 && (outstandingExtMap[tx.event_id] > 0) && (
+                    {onTraNcc && !showNccBadge && tx.ext_count > 0 && (outstandingExtMap[tx.event_id] > 0) && (
                       <button className="ev-action" style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
                       </button>
