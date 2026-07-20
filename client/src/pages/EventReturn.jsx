@@ -416,17 +416,25 @@ export default function EventReturn() {
         <div className="card text-center py-8" style={{ color:'var(--text-muted)' }}>Đang tải...</div>
       )}
 
-      {eventId && !loading && outstanding.length === 0 && (
-        <div className="card text-center py-10">
-          <p className="text-3xl mb-2">📭</p>
-          <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
-            Chưa có thiết bị nào được xuất cho sự kiện này.
-          </p>
-          <p style={{ color:'var(--text-muted)', fontSize:'0.84rem' }}>
-            Hãy tạo phiếu xuất kho (ExportForm) trước, sau đó quay lại đây để nhập kho.
-          </p>
-        </div>
-      )}
+      {eventId && !loading && outstanding.length === 0 && (() => {
+        const pendingRow = pendingReturns.find(r => String(r.event_id) === String(eventId));
+        const nccOnly = pendingRow && pendingRow.ncc_types > 0 && !pendingRow.item_types;
+        return (
+          <div className="card text-center py-10">
+            <p className="text-3xl mb-2">{nccOnly ? '🏪' : '📭'}</p>
+            <p style={{ color:'var(--text-muted)', fontWeight:600, marginBottom:'6px' }}>
+              {nccOnly
+                ? 'Sự kiện này chỉ có thiết bị NCC, không có thiết bị kho cần nhập.'
+                : 'Chưa có thiết bị nào được xuất cho sự kiện này.'}
+            </p>
+            <p style={{ color:'var(--text-muted)', fontSize:'0.84rem' }}>
+              {nccOnly
+                ? 'Thiết bị NCC được xử lý qua chức năng Trả NCC trong phiếu xuất.'
+                : 'Hãy tạo phiếu xuất kho (ExportForm) trước, sau đó quay lại đây để nhập kho.'}
+            </p>
+          </div>
+        );
+      })()}
       {eventId && !loading && outstanding.length > 0 && visibleItems.length === 0 && (
         <div className="card text-center py-10">
           <p className="text-3xl mb-2">🔍</p>
