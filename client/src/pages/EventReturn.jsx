@@ -64,7 +64,7 @@ export default function EventReturn() {
 
   const loadPending = () => {
     setLoadingPending(true);
-    api.getPendingReturns().then(setPendingReturns).catch(() => {}).finally(() => setLoadingPending(false));
+    api.getPendingReturns().then(rows => setPendingReturns(rows.filter(r => r.item_types > 0))).catch(() => {}).finally(() => setLoadingPending(false));
   };
 
   useEffect(() => { api.getEvents().then(setEvents); loadPending(); }, []);
