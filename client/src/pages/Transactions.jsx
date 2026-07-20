@@ -1357,26 +1357,9 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
               ⚠ Còn {khoOutstandingMap[gTxs[0].event_id].types} loại · {khoOutstandingMap[gTxs[0].event_id].total} cái chưa nhập kho
             </div>
           )}
-          {/* NCC chưa trả badge + nút */}
-          {showNccBadge && outstandingExtMap[gTxs[0]?.event_id] > 0 && (
-            <div style={{ marginBottom:'4px', marginLeft:'4px', display:'flex', alignItems:'center', gap:'8px' }}>
-              <div style={{ padding:'4px 10px',
-                background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)',
-                borderRadius:'6px', fontSize:'0.78rem', color:'#fb923c',
-                display:'inline-flex', alignItems:'center', gap:'6px' }}>
-                🏪 Chưa trả NCC
-              </div>
-              {onTraNcc && (
-                <button className="ev-action" style={{ borderColor:'rgba(251,146,60,0.35)', color:'#fb923c' }}
-                  onClick={() => onTraNcc(gTxs[0].id)}>
-                  <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
-                </button>
-              )}
-            </div>
-          )}
           {/* Transactions */}
           <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
-            {gTxs.map(tx => (
+            {gTxs.map((tx, txIdx) => (
               <div key={tx.id} id={`tx-card-${tx.id}`} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
                   <p style={{ fontSize:'0.82rem', color:GOLD, fontWeight:700, margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0 }}>{tx.code}</p>
@@ -1388,6 +1371,11 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
                 <div className="ev-btn-group">
                   <div className="ev-card-row">
                     <button className="ev-action" onClick={() => onSelect(tx.id)}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
+                    {onTraNcc && showNccBadge && txIdx === 0 && outstandingExtMap[tx.event_id] > 0 && (
+                      <button className="ev-action" style={{ borderColor:'rgba(251,146,60,0.35)', color:'#fb923c' }} onClick={() => onTraNcc(tx.id)}>
+                        <span className="ev-ico">🏪</span><span className="ev-lbl">Trả NCC</span>
+                      </button>
+                    )}
                     {onTraNcc && !showNccBadge && tx.ext_count > 0 && (outstandingExtMap[tx.event_id] > 0) && (
                       <button className="ev-action" style={{ borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }} onClick={() => onTraNcc(tx.id)}>
                         <span className="ev-ico">🏪</span><span className="ev-lbl">NCC</span>
