@@ -1346,7 +1346,6 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
           <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'5px 4px', marginBottom:'4px' }}>
             <div style={{ height:'1px', width:'10px', background:'rgba(255,255,255,0.2)' }} />
             <span style={{ fontSize:'0.78rem', fontWeight:800, color:'#eeeef5', letterSpacing:'0.06em', textTransform:'uppercase', flex:1, minWidth:0 }}>{name}</span>
-            <div style={{ height:'1px', flex:1, background:'linear-gradient(to right, rgba(255,255,255,0.15), transparent)' }} />
             <span style={{ fontSize:'0.72rem', color:'#555570', flexShrink:0 }}>{gTxs.length} phiếu</span>
           </div>
           {/* KHO outstanding warning */}
