@@ -239,6 +239,47 @@ router.post('/delete-events', requireRole('SUPER_ADMIN'), (req, res) => {
   }
 });
 
+// Reconcile qty_in_use / qty_available từ lịch sử giao dịch
+router.post('/reconcile-stock', requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const doReconcile = db.transaction(() => {
+    // Preview: tìm các thiết bị bị lệch
+    const diffs = db.prepare(`
+      SELECT e.id, e.code, e.name, e.qty_in_use AS old_in_use,
+        MAX(0, COALESCE((
+          SELECT SUM(CASE WHEN t.type='OUT' AND t.status='completed' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+               - SUM(CASE WHEN t.type='RETURN' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+          FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id
+          WHERE ti.equipment_id = e.id
+        ), 0)) AS correct_in_use
+      FROM equipment e
+    `).all().filter(r => r.old_in_use !== r.correct_in_use);
+
+    db.prepare(`
+      UPDATE equipment
+      SET qty_in_use = MAX(0, COALESCE((
+        SELECT SUM(CASE WHEN t.type='OUT' AND t.status='completed' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+             - SUM(CASE WHEN t.type='RETURN' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+        FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id
+        WHERE ti.equipment_id = equipment.id
+      ), 0))
+    `).run();
+
+    db.prepare(`
+      UPDATE equipment
+      SET qty_available = MAX(0, qty_total - qty_in_use - qty_damaged - qty_maintenance - qty_lost)
+    `).run();
+
+    return diffs;
+  });
+
+  try {
+    const diffs = doReconcile();
+    res.json({ success: true, fixed: diffs.length, items: diffs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Danh sách dismissed obligations — SUPER_ADMIN only
 router.get('/dismissed-obligations', requireRole('SUPER_ADMIN'), (req, res) => {
   const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
