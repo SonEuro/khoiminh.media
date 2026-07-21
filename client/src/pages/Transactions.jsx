@@ -1741,15 +1741,16 @@ export default function Transactions() {
   }
 
   async function handleArchiveEvent(ev) {
-    if (!confirm(`Lưu sự kiện "${ev.name}" vào kho?\n\nToàn bộ phiếu xuất/nhập và báo cáo liên quan sẽ được bảo toàn, không bị xoá.`)) return;
+    if (!confirm(`Lưu sự kiện "${ev.name}" vào kho?`)) return;
     try {
-      const res = await api.archiveEvent(ev.id);
-      const lines = [`✅ Đã lưu sự kiện "${ev.name}"`, `• ${res.tx_count} phiếu xuất/nhập`, `• ${res.report_count} báo cáo`, `Tất cả dữ liệu được giữ nguyên trong hệ thống.`];
-      alert(lines.join('\n'));
-      load();
+      await api.archiveEvent(ev.id);
+      const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      setEvents(prev => prev.filter(e => e.id !== ev.id));
+      setArchivedEvents(prev => [{ ...ev, archived_at: now }, ...prev]);
       setTimeout(() => {
         archiveSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 400);
+      }, 50);
+      load();
     } catch (err) { alert(err.message); }
   }
 
