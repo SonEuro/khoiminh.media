@@ -224,7 +224,7 @@ router.get('/', (req, res) => {
     WHERE e.deleted_at IS NULL
   `;
   if (!include_archived) {
-    sql += ` AND (e.archived_at IS NULL OR e.archived_at > datetime('now','localtime','-24 hours'))`;
+    sql += ` AND e.archived_at IS NULL`;
   }
   const params = [];
   if (status) { sql += ' AND e.status = ?'; params.push(status); }
