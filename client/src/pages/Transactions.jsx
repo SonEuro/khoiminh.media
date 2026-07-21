@@ -1682,6 +1682,7 @@ export default function Transactions() {
   }, [load]);
 
   const highlightedIdRef = useRef(null);
+  const archiveSectionRef = useRef(null);
   useEffect(() => {
     if (!highlightId || loading) return;
     if (highlightedIdRef.current === highlightId) return;
@@ -1746,6 +1747,9 @@ export default function Transactions() {
       const lines = [`✅ Đã lưu sự kiện "${ev.name}"`, `• ${res.tx_count} phiếu xuất/nhập`, `• ${res.report_count} báo cáo`, `Tất cả dữ liệu được giữ nguyên trong hệ thống.`];
       alert(lines.join('\n'));
       load();
+      setTimeout(() => {
+        archiveSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 400);
     } catch (err) { alert(err.message); }
   }
 
@@ -1801,15 +1805,17 @@ export default function Transactions() {
             <ViolationRows violations={violations} isSuperAdmin={isSuperAdmin} onDelete={id => api.deleteViolation(id).then(load).catch(e => alert(e.message))} />
           </Section>
 
-          <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
-            <ArchivedEventRows
-              events={archivedEvents}
-              isSuperAdmin={user?.role === 'SUPER_ADMIN'}
-              onUnarchive={handleUnarchiveEvent}
-              onDelete={handleDeleteArchivedEvent}
-              onSelect={setSelectedTx}
-            />
-          </Section>
+          <div ref={archiveSectionRef}>
+            <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
+              <ArchivedEventRows
+                events={archivedEvents}
+                isSuperAdmin={user?.role === 'SUPER_ADMIN'}
+                onUnarchive={handleUnarchiveEvent}
+                onDelete={handleDeleteArchivedEvent}
+                onSelect={setSelectedTx}
+              />
+            </Section>
+          </div>
 
           <Section Icon={TriangleAlert} title="Xung Đột Thiết Bị" color="#fb7185" border="rgba(251,113,133,0.30)" count={conflicts.length}>
             <ConflictRows conflicts={conflicts} />

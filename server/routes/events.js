@@ -140,6 +140,26 @@ function autoUpdateStatuses() {
 autoUpdateStatuses();
 setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
+// Auto-archive: sự kiện hoàn thành quá 72h mà chưa được lưu trữ → tự động lưu trữ
+function autoArchiveCompleted() {
+  const rows = db.prepare(`
+    SELECT id, name FROM events
+    WHERE status = 'completed'
+      AND archived_at IS NULL
+      AND deleted_at IS NULL
+      AND COALESCE(filming_date, end_date, start_date) IS NOT NULL
+      AND datetime(COALESCE(filming_date, end_date, start_date) || ' 23:59:59', '+72 hours') <= datetime('now', 'localtime')
+  `).all();
+  if (!rows.length) return;
+  const stmt = db.prepare(`UPDATE events SET archived_at = datetime('now','localtime') WHERE id = ?`);
+  for (const ev of rows) {
+    stmt.run(ev.id);
+    console.log(`[AutoArchive] Đã lưu trữ tự động: "${ev.name}" (id=${ev.id})`);
+  }
+}
+autoArchiveCompleted();
+setInterval(autoArchiveCompleted, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
+
 // Auto-violation: sự kiện kết thúc + 12h mà người phụ trách chưa nhập kho → vi phạm nội quy
 function checkLateReturns() {
   const lateRows = db.prepare(`
