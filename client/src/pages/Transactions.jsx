@@ -1253,7 +1253,9 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
         const q = search.trim().toLowerCase();
         return (e.name || '').toLowerCase().includes(q)
             || (e.client || '').toLowerCase().includes(q)
-            || (e.location || '').toLowerCase().includes(q);
+            || (e.location || '').toLowerCase().includes(q)
+            || (e.start_date || '').includes(q)
+            || (e.archived_at || '').includes(q);
       })
     : events;
 
