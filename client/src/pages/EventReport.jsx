@@ -1454,22 +1454,20 @@ export default function EventReport() {
           </button>
         </div>
 
-        {/* Tab toggle – only for admins + is_phan_lich_all */}
-        {canViewAllDepts && (
-          <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
-            {[['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']].map(([mode, label]) => (
-              <button key={mode} type="button" onClick={() => setListMode(mode)}
-                style={{
-                  padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
-                  border: listMode === mode ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
-                  background: listMode === mode ? GOLD : 'rgba(255,255,255,0.04)',
-                  color: listMode === mode ? '#08080e' : '#a0a0b8',
-                  transition:'all 0.15s',
-                }}
-              >{label}</button>
-            ))}
-          </div>
-        )}
+        {/* Tab toggle */}
+        <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
+          {[['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']].map(([mode, label]) => (
+            <button key={mode} type="button" onClick={() => setListMode(mode)}
+              style={{
+                padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
+                border: listMode === mode ? `1px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
+                background: listMode === mode ? GOLD : 'rgba(255,255,255,0.04)',
+                color: listMode === mode ? '#08080e' : '#a0a0b8',
+                transition:'all 0.15s',
+              }}
+            >{label}</button>
+          ))}
+        </div>
 
         {loading && <div className="card text-center py-10" style={{ color:'#7878a0' }}>Đang tải...</div>}
 
@@ -1519,7 +1517,7 @@ export default function EventReport() {
         })()}
 
         {/* Theo bộ phận – chỉ hiện khi canViewAllDepts */}
-        {!loading && listMode === 'dept' && canViewAllDepts && (
+        {!loading && listMode === 'dept' && (
           deptGroups.order.length === 0
             ? null
             : deptGroups.order.map(dept => (
@@ -1529,7 +1527,7 @@ export default function EventReport() {
         )}
 
         {/* Theo nhân viên */}
-        {!loading && listMode === 'staff' && canViewAllDepts && (
+        {!loading && listMode === 'staff' && (
           <div>
             <div style={{ display:'flex', gap:'10px', marginBottom:'16px', flexWrap:'wrap' }}>
               <select
