@@ -1045,7 +1045,7 @@ function TraNccModal({ txId, onClose, onSuccess }) {
 }
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
-function Section({ Icon, title, color, border, count, children, maxHeight = '292px' }) {
+function Section({ Icon, title, color, border, count, children, maxHeight = '480px' }) {
   const [open, setOpen] = useState(true);
   const rgb = hexToRgb(color);
   return (
@@ -1791,16 +1791,16 @@ export default function Transactions() {
             <PendingTxRows txs={pendingTxs} onConfirm={canConfirm ? handleConfirmPending : null} onSelect={setSelectedTx} onDelete={handleDeleteTx} canDeleteRow={tx => isSuperAdmin || tx.created_by_id === user?.id} confirming={confirming} />
           </Section>
 
-          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length} maxHeight="585px">
+          <Section Icon={ArrowUpFromLine} title="Xuất thiết bị sự kiện" color="#f87171" border="rgba(248,113,113,0.25)" count={outTxs.length}>
             <TxRowsGrouped txs={outTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} onTransfer={canTransfer ? setTransferTx : null} canPrint={canPrint} outstandingExtMap={outstandingExtMap} />
           </Section>
 
-          <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length} maxHeight="585px">
+          <Section Icon={ArrowDownToLine} title="Nhập thiết bị sự kiện" color="#4ade80" border="rgba(74,222,128,0.25)" count={returnTxs.length}>
             <TxRowsGrouped txs={returnTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} onTraNcc={user?.is_tra_ncc ? setTraNccTx : null} outstandingExtMap={outstandingExtMap} khoOutstandingMap={khoOutstandingMap} showNccBadge />
           </Section>
 
           {traNccTxs.length > 0 && (
-            <Section Icon={ArrowUpFromLine} title="Xuất trả NCC" color="#60a5fa" border="rgba(96,165,250,0.25)" count={traNccTxs.length} maxHeight="585px">
+            <Section Icon={ArrowUpFromLine} title="Xuất trả NCC" color="#60a5fa" border="rgba(96,165,250,0.25)" count={traNccTxs.length}>
               <TxRowsGrouped txs={traNccTxs} onSelect={setSelectedTx} onDelete={isSuperAdmin ? handleDeleteTx : null} canPrint={canPrint} outstandingExtMap={{}} />
             </Section>
           )}
@@ -1814,7 +1814,7 @@ export default function Transactions() {
           </Section>
 
           <div ref={archiveSectionRef}>
-            <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length} maxHeight="600px">
+            <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
               <ArchivedEventRows
                 events={archivedEvents}
                 isSuperAdmin={user?.role === 'SUPER_ADMIN'}
