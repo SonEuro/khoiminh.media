@@ -1249,7 +1249,12 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
   const [expandedId, setExpandedId] = useState(null);
 
   const filtered = search.trim()
-    ? events.filter(e => e.name.toLowerCase().includes(search.trim().toLowerCase()))
+    ? events.filter(e => {
+        const q = search.trim().toLowerCase();
+        return (e.name || '').toLowerCase().includes(q)
+            || (e.client || '').toLowerCase().includes(q)
+            || (e.location || '').toLowerCase().includes(q);
+      })
     : events;
 
   if (!events.length) return <Empty text="Chưa có sự kiện nào được lưu trữ" />;
