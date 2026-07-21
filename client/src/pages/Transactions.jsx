@@ -1263,7 +1263,6 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
         style={{ width:'100%', padding:'7px 10px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.2)', background:'rgba(255,255,255,0.04)', color:'#c0c0d8', fontSize:'0.82rem', outline:'none', boxSizing:'border-box', marginBottom:'4px' }}
       />
       {filtered.length === 0 && <Empty text="Không tìm thấy sự kiện" />}
-      <div style={{ maxHeight:'470px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'5px' }}>
       {filtered.map(ev => {
         const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
         const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
@@ -1306,7 +1305,6 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
           </div>
         );
       })}
-      </div>
     </div>
   );
 }
@@ -1809,7 +1807,7 @@ export default function Transactions() {
           </Section>
 
           <div ref={archiveSectionRef}>
-            <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length}>
+            <Section Icon={Archive} title="Lưu Trữ" color="#94a3b8" border="rgba(148,163,184,0.25)" count={archivedEvents.length} maxHeight="600px">
               <ArchivedEventRows
                 events={archivedEvents}
                 isSuperAdmin={user?.role === 'SUPER_ADMIN'}
