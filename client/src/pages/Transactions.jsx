@@ -1163,18 +1163,18 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
             <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
               {ev.start_date && <span style={{ fontSize:'0.78rem', color:cfg.color }}>{fmtDate(ev.start_date)}</span>}
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
-              {isSuperAdmin && (
+              {isSuperAdmin && ev.status === 'completed' && (
                 <button
                   onClick={() => onArchive(ev)}
                   title="Lưu sự kiện vào kho"
                   style={{
                     padding:'6px 12px', borderRadius:'6px', cursor:'pointer',
-                    border:'1px solid rgba(120,120,160,0.3)', background:'transparent',
-                    color:'#7878a0', fontSize:'0.78rem', fontWeight:700,
+                    border:'1px solid rgba(167,139,250,0.5)', background:'rgba(167,139,250,0.08)',
+                    color:'#a78bfa', fontSize:'0.78rem', fontWeight:700,
                     whiteSpace:'nowrap', transition:'all 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background='rgba(120,120,160,0.15)'; e.currentTarget.style.color='#a0a0c0'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#7878a0'; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(167,139,250,0.18)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='rgba(167,139,250,0.08)'; }}>
                   Lưu
                 </button>
               )}
