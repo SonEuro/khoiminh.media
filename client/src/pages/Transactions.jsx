@@ -1211,7 +1211,7 @@ function ArchivedEventDetail({ ev, onSelect }) {
 
   const subLabel = { fontSize:'0.72rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em', margin:'10px 0 4px', padding:'0 2px' };
   const txRow = (tx) => (
-    <div key={tx.id} onClick={() => onSelect && onSelect(tx)} style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px', cursor: onSelect ? 'pointer' : 'default' }}>
+    <div key={tx.id} onClick={() => onSelect && onSelect(tx.id)} style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px', cursor: onSelect ? 'pointer' : 'default' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
         <span style={{ fontSize:'0.8rem', color:'#c0c0d8', fontWeight:600, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.code}</span>
         <span style={{ fontSize:'0.72rem', color:'#5a5a80', flexShrink:0 }}>{fmtDate(tx.created_at)}</span>
