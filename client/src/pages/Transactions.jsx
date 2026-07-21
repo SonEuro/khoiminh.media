@@ -1186,38 +1186,120 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
   );
 }
 
+function ArchivedEventDetail({ ev }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.getTransactions({ event_id: ev.id, limit: 200 }),
+      api.getEventReports({ event_id: ev.id }),
+    ]).then(([txs, reports]) => {
+      setData({ txs, reports });
+    }).catch(() => setData({ txs: [], reports: [] }))
+      .finally(() => setLoading(false));
+  }, [ev.id]);
+
+  if (loading) return <p style={{ fontSize:'0.78rem', color:'#5a5a80', margin:'8px 0 0', padding:'0 4px' }}>Đang tải...</p>;
+  if (!data) return null;
+
+  const outTxs    = data.txs.filter(t => t.type === 'OUT');
+  const returnTxs = data.txs.filter(t => t.type === 'RETURN');
+  const traNccTxs = data.txs.filter(t => t.type === 'TRA_NCC');
+  const reports   = data.reports;
+
+  const subLabel = { fontSize:'0.72rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.04em', margin:'10px 0 4px', padding:'0 2px' };
+  const txRow = (tx) => (
+    <div key={tx.id} style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+        <span style={{ fontSize:'0.8rem', color:'#c0c0d8', fontWeight:600, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.code}</span>
+        <span style={{ fontSize:'0.72rem', color:'#5a5a80', flexShrink:0 }}>{fmtDate(tx.created_at)}</span>
+      </div>
+      <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'2px 0 0' }}>
+        {tx.responsible_person || '—'} · {(tx.item_count || 0) + (tx.ext_count || 0)} loại
+      </p>
+    </div>
+  );
+  const reportRow = (r) => (
+    <div key={r.id} style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+        <span style={{ fontSize:'0.8rem', color:'#c0c0d8', fontWeight:600, flex:1 }}>{r.reporter_name || '—'}</span>
+        <span style={{ fontSize:'0.72rem', color:'#5a5a80', flexShrink:0 }}>{fmtDate(r.report_date)}</span>
+      </div>
+      {r.content && <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{r.content}</p>}
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop:'8px', borderTop:'1px solid rgba(120,120,160,0.1)', paddingTop:'8px' }}>
+      {outTxs.length > 0 && (<><p style={subLabel}>Phiếu xuất ({outTxs.length})</p>{outTxs.map(txRow)}</>)}
+      {returnTxs.length > 0 && (<><p style={subLabel}>Phiếu nhập ({returnTxs.length})</p>{returnTxs.map(txRow)}</>)}
+      {traNccTxs.length > 0 && (<><p style={subLabel}>Trả NCC ({traNccTxs.length})</p>{traNccTxs.map(txRow)}</>)}
+      {reports.length > 0 && (<><p style={subLabel}>Báo cáo sự kiện ({reports.length})</p>{reports.map(reportRow)}</>)}
+      {outTxs.length === 0 && returnTxs.length === 0 && traNccTxs.length === 0 && reports.length === 0 && (
+        <p style={{ fontSize:'0.78rem', color:'#5a5a80', margin:'4px 0 0', padding:'0 2px' }}>Không có dữ liệu</p>
+      )}
+    </div>
+  );
+}
+
 function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete }) {
+  const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
+
+  const filtered = search.trim()
+    ? events.filter(e => e.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : events;
+
   if (!events.length) return <Empty text="Chưa có sự kiện nào được lưu trữ" />;
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-      {events.map(ev => {
+      {/* Thanh tìm kiếm */}
+      <input
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="Tìm sự kiện..."
+        style={{ width:'100%', padding:'7px 10px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.2)', background:'rgba(255,255,255,0.04)', color:'#c0c0d8', fontSize:'0.82rem', outline:'none', boxSizing:'border-box', marginBottom:'4px' }}
+      />
+      {filtered.length === 0 && <Empty text="Không tìm thấy sự kiện" />}
+      {filtered.map(ev => {
         const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
         const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
+        const daysSinceArchive = archivedDate ? (Date.now() - archivedDate.getTime()) / 86400000 : 999;
+        const canDelete = isSuperAdmin && daysSinceArchive <= 7;
+        const isExpanded = expandedId === ev.id;
+
         return (
           <div key={ev.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
             {/* Hàng 1: tên + badge */}
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px', cursor:'pointer' }} onClick={() => setExpandedId(isExpanded ? null : ev.id)}>
               <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, minWidth:0 }}>{ev.name}</p>
               <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
+              <span style={{ color:'#5a5a80', fontSize:'0.75rem', flexShrink:0 }}>{isExpanded ? '▲' : '▼'}</span>
             </div>
-            {/* Hàng 2: client/location · ngày · phiếu */}
+            {/* Hàng 2: metadata */}
             <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
               {[ev.client, ev.location].filter(Boolean).join(' · ')}
               {ev.start_date && <span> · {fmtDate(ev.start_date)}</span>}
               {ev.tx_count > 0 && <span> · {ev.tx_count} phiếu</span>}
               {archivedDate && <span style={{ color:'#5a5a80' }}> · Lưu {fmtDate(ev.archived_at)}</span>}
             </p>
-            {/* Hàng 3: nút (chỉ SUPER_ADMIN) */}
+            {/* Nội dung mở rộng */}
+            {isExpanded && <ArchivedEventDetail ev={ev} />}
+            {/* Hàng nút */}
             {isSuperAdmin && (
-              <div style={{ display:'flex', gap:'6px' }}>
+              <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
                 <button onClick={() => onUnarchive(ev)}
                   style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.78rem', fontWeight:700 }}>
                   Bỏ lưu trữ
                 </button>
-                <button onClick={() => onDelete(ev)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.78rem', fontWeight:700 }}>
-                  Xoá vĩnh viễn
-                </button>
+                {canDelete && (
+                  <button onClick={() => onDelete(ev)}
+                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.78rem', fontWeight:700 }}>
+                    Xoá vĩnh viễn
+                  </button>
+                )}
               </div>
             )}
           </div>
