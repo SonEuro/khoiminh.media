@@ -160,6 +160,33 @@ function autoArchiveCompleted() {
 autoArchiveCompleted();
 setInterval(autoArchiveCompleted, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
+// Auto-reconcile: sửa qty_in_use stale mỗi ngày lúc 3 giờ sáng
+function autoReconcileStock() {
+  try {
+    db.prepare(`
+      UPDATE equipment
+      SET qty_in_use = MAX(0, COALESCE((
+        SELECT SUM(CASE WHEN t.type='OUT' AND t.status='completed' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+             - SUM(CASE WHEN t.type='RETURN' AND t.deleted_at IS NULL THEN ti.quantity ELSE 0 END)
+        FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id
+        WHERE ti.equipment_id = equipment.id
+      ), 0))
+    `).run();
+    db.prepare(`
+      UPDATE equipment
+      SET qty_available = MAX(0, qty_total - qty_in_use - qty_damaged - qty_maintenance - qty_lost)
+    `).run();
+    console.log('[AutoReconcile] qty_in_use đã được đồng bộ lại');
+  } catch (e) {
+    console.error('[AutoReconcile] Lỗi:', e.message);
+  }
+}
+autoReconcileStock(); // chạy ngay khi khởi động
+setInterval(() => {
+  const h = new Date(Date.now() + 7 * 3600 * 1000).getUTCHours();
+  if (h === 3) autoReconcileStock();
+}, 60 * 60 * 1000); // kiểm tra mỗi giờ, chạy thật lúc 3h sáng
+
 // Auto-violation: sự kiện kết thúc + 12h mà người phụ trách chưa nhập kho → vi phạm nội quy
 function checkLateReturns() {
   const lateRows = db.prepare(`
