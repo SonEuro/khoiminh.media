@@ -221,10 +221,7 @@ function StaffScheduleModal({ event, onClose }) {
         return (
           <div key={s.id} style={{ marginBottom:'16px', paddingBottom:'16px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
             <p style={{ fontSize:'0.84rem', color:'#7878a0', marginBottom:'8px' }}>
-              👤 Người phân lịch: <strong style={{ color:GOLD }}>{s.scheduler_name}</strong> ·{' '}
-              <span style={{ color: s.status === 'confirmed' ? '#4ade80' : '#fbbf24' }}>
-                {s.status === 'confirmed' ? '✓ Đã xác nhận' : '📝 Nháp'}
-              </span>
+              👤 Người phân lịch: <strong style={{ color:GOLD }}>{s.scheduler_name}</strong>
             </p>
             {allEntries.length === 0
               ? <p style={{ color:'#7878a0', fontSize:'0.85rem', textAlign:'center', padding:'10px 0' }}>Không có dữ liệu nhân sự</p>

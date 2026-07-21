@@ -25,20 +25,13 @@ function isPastSchedule(sched) {
 
 function canEditSchedule(sched, user) {
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
-  if (isPastSchedule(sched)) return false; // chỉ SA/Director mới sửa lịch đã qua
+  if (isPastSchedule(sched)) return false;
   if (!!user.is_phan_lich_all) return true;
   if (!!user.is_truong_phong) return true;
-  if (sched.status === 'draft') return !!user.is_phan_lich;
-  // confirmed: người tạo có 24h từ lúc xác nhận để sửa
-  if (sched.scheduler_user_id === user.id && sched.confirmed_at) {
-    const confirmedMs = new Date(sched.confirmed_at.replace(' ', 'T') + '+07:00').getTime();
-    return Date.now() - confirmedMs < 24 * 60 * 60 * 1000;
-  }
-  return false;
+  return !!user.is_phan_lich;
 }
 
 function canDeleteSchedule(sched, user) {
-  if (sched.status !== 'draft') return ['SUPER_ADMIN', 'DIRECTOR'].includes(user.role);
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(user.role)) return true;
   if (!!user.is_phan_lich_all) return true;
   if (!!user.is_truong_phong) return !isPastSchedule(sched);
@@ -187,7 +180,7 @@ router.post('/', canPhanLich, (req, res) => {
 router.put('/:id', (req, res) => {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
-  if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Lịch đã xác nhận, không có quyền sửa' });
+  if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền sửa lịch này' });
 
   const b = req.body;
   const cols = ['event_id', 'event_name', 'client', 'location', 'setup_date', 'teardown_date', 'rehearsal_date', 'filming_date'];
@@ -237,7 +230,7 @@ router.get('/:id/history', (req, res) => {
 router.delete('/:id', (req, res) => {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!sched) return res.status(404).json({ error: 'Không tìm thấy lịch làm việc' });
-  if (!canDeleteSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch đã xác nhận' });
+  if (!canDeleteSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền xóa lịch này' });
   db.prepare("UPDATE work_schedules SET deleted_at = datetime('now','localtime') WHERE id = ?").run(req.params.id);
   res.json({ ok: true });
 });

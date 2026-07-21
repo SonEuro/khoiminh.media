@@ -987,7 +987,7 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
 
         <div className="flex gap-3 pt-2">
           <button onClick={submit} disabled={saving} className="btn-primary flex-1">
-            {saving ? 'Đang lưu...' : '💾 Lưu lịch (nháp)'}
+            {saving ? 'Đang lưu...' : '💾 Lưu lịch'}
           </button>
           <button onClick={onClose} className="btn-secondary">Hủy</button>
         </div>
@@ -1246,22 +1246,14 @@ export default function WorkSchedule() {
     if (isPastSchedule(s)) return false; // chỉ SA/Director mới sửa lịch đã qua
     if (!!user?.is_phan_lich_all) return true;
     if (!!user?.is_truong_phong) return true;
-    if (s.status === 'draft') return !!user?.is_phan_lich;
-    return s.scheduler_user_id === user?.id;
+    return !!user?.is_phan_lich;
   }
 
   function canDelete(s) {
-    if (s.status !== 'draft') return user?.role === 'SUPER_ADMIN';
     if (['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role)) return true;
     if (!!user?.is_phan_lich_all) return true;
     if (!!user?.is_truong_phong) return !isPastSchedule(s);
     return !!user?.is_phan_lich || s.scheduler_user_id === user?.id;
-  }
-
-  async function handleConfirm(s) {
-    if (!confirm(`Xác nhận lên lịch cho "${s.event_name}"? Sau khi xác nhận chỉ admin/người tạo mới sửa được.`)) return;
-    try { await api.confirmWorkSchedule(s.id); load(); }
-    catch (e) { alert(e.message); }
   }
 
   async function handleDelete(s) {
@@ -1496,7 +1488,6 @@ export default function WorkSchedule() {
                 <button className="ev-action" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
                 {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
                 {canDelete(s) && <button className="ev-action ev-action-danger" onClick={() => handleDelete(s)}><span className="ev-ico">🗑</span></button>}
-                {s.status === 'draft' && canPhanLich && <button className="ev-action ev-action-edit" onClick={() => handleConfirm(s)}><span className="ev-ico">✓</span><span className="ev-lbl">Xác nhận lên lịch</span></button>}
               </div>
             </div>
           );
