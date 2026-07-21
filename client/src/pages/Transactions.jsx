@@ -1637,7 +1637,7 @@ export default function Transactions() {
     if (!user) return;
     Promise.all([
       api.getEvents({ limit: 200 }),
-      api.getEvents({ include_archived: 'true', limit: 500 }),
+      api.getEvents({ include_archived: 'true' }),
       api.getTransactions({ type: 'OUT', status: 'pending',   limit: 50,  hide_archived: 'true' }),
       api.getTransactions({ type: 'OUT', status: 'completed', limit: 100, hide_archived: 'true' }),
       api.getTransactions({ type: 'RETURN',                   limit: 100, hide_archived: 'true' }),
