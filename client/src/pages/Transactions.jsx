@@ -1645,7 +1645,7 @@ export default function Transactions() {
       api.getDashboard(),
     ]).then(([ev, allEv, pending, out, ret, traNcc, rep, vio, dash]) => {
       setEvents(ev);
-      setArchivedEvents(allEv.filter(e => !!e.archived_at));
+      setArchivedEvents(allEv.filter(e => !!e.archived_at).sort((a, b) => b.archived_at.localeCompare(a.archived_at)));
       setPendingTxs(pending); setOutTxs(out); setReturnTxs(ret); setTraNccTxs(traNcc);
       setReports(rep); setViolations(vio);
       setConflicts(dash?.conflicts || []);
