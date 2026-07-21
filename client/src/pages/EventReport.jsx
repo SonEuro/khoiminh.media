@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
-import { KM_STAFF_GROUPS } from '../constants/staff';
 import FreelancerPicker from '../components/FreelancerPicker';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 
 const GOLD = '#c9a84c';
 
@@ -41,8 +41,8 @@ const ROLE_TO_KM_DEPT = {
   PRODUCTION: 'Kinh Doanh',
 };
 
-function getUserKmDept(user) {
-  return KM_STAFF_GROUPS.find(g => g.members.includes(user?.full_name || ''))?.dept
+function getUserKmDept(user, kmGroups) {
+  return kmGroups.find(g => g.members.includes(user?.full_name || ''))?.dept
     || ROLE_TO_KM_DEPT[user?.role]
     || '—';
 }
@@ -115,6 +115,7 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
 
 // ── Staff dropdown ────────────────────────────────────────────────────────────
 function StaffSelect({ selected, onChange }) {
+  const { kmGroups } = useStaffGroups();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -176,8 +177,8 @@ function StaffSelect({ selected, onChange }) {
           borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.7)',
           maxHeight:'300px', overflowY:'auto',
         }}>
-          {KM_STAFF_GROUPS.map((g, gi) => (
-            <div key={g.dept} style={{ borderBottom: gi < KM_STAFF_GROUPS.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
+          {kmGroups.map((g, gi) => (
+            <div key={g.dept} style={{ borderBottom: gi < kmGroups.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
               <div style={{
                 padding:'6px 14px', fontSize:'0.80rem', fontWeight:800, letterSpacing:'0.1em',
                 color: GOLD, background:'rgba(201,168,76,0.04)',
@@ -333,7 +334,8 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 
   const detail = fullData || report;
 
-  const reporterDept = KM_STAFF_GROUPS.find(g => g.members.includes(report.reporter_name))?.dept;
+  const { kmGroups } = useStaffGroups();
+  const reporterDept = kmGroups.find(g => g.members.includes(report.reporter_name))?.dept;
   const lateness = getReportLateness(report.report_date, report.created_at, report.obligation_deadline);
   const canViewAllDepts = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all;
 
@@ -959,6 +961,7 @@ const makeEmptyForm = () => ({
 
 export default function EventReport() {
   const { user } = useAuth();
+  const { kmGroups } = useStaffGroups();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('id');
@@ -1010,8 +1013,8 @@ export default function EventReport() {
         } else {
           const myName = user?.full_name || '';
           if (user?.is_truong_phong) {
-            const dept = getUserKmDept(user);
-            const deptMembers = new Set(KM_STAFF_GROUPS.find(g => g.dept === dept)?.members || []);
+            const dept = getUserKmDept(user, kmGroups);
+            const deptMembers = new Set(kmGroups.find(g => g.dept === dept)?.members || []);
             setLockedObs(locked.filter(o => deptMembers.has(o.lead_name) || o.lead_name === myName || o.user_id === user?.id));
           } else {
             setLockedObs(locked.filter(o => o.lead_name === myName || o.user_id === user?.id));
@@ -1132,8 +1135,8 @@ export default function EventReport() {
     if (!form.event_id || !form.report_date) return;
     if (user?.is_truong_phong) return;
     const myName = user?.full_name || '';
-    const userKmDept = getUserKmDept(user);
-    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userKmDept);
+    const userKmDept = getUserKmDept(user, kmGroups);
+    const userGroup = kmGroups.find(g => g.dept === userKmDept);
     const deptFilter = userGroup ? new Set(userGroup.members) : null;
     api.getWorkSchedules({ event_id: form.event_id }).then(scheds => {
       const phaseKeys = ['setup', 'teardown', 'rehearsal', 'filming'];
@@ -1193,8 +1196,8 @@ export default function EventReport() {
   // + kiểm tra user có phải nhân viên duy nhất trong dept hôm đó không
   useEffect(() => {
     if (!form.report_date) return;
-    const userDept = getUserKmDept(user);
-    const userGroup = KM_STAFF_GROUPS.find(g => g.dept === userDept);
+    const userDept = getUserKmDept(user, kmGroups);
+    const userGroup = kmGroups.find(g => g.dept === userDept);
     if (!userGroup) { setIsAloneInDept(false); return; }
     const deptMembers = new Set(userGroup.members);
     const myName = user?.full_name || '';
@@ -1432,7 +1435,7 @@ export default function EventReport() {
       const order = [];
       const map = {};
       recentReports.forEach(r => {
-        const dept = KM_STAFF_GROUPS.find(g => g.members.includes(r.reporter_name))?.dept || 'Khác';
+        const dept = kmGroups.find(g => g.members.includes(r.reporter_name))?.dept || 'Khác';
         if (!map[dept]) { map[dept] = []; order.push(dept); }
         map[dept].push(r);
       });
@@ -1535,7 +1538,7 @@ export default function EventReport() {
                 style={{ flex:1, minWidth:'140px', background:'#1a1a2e', color: staffDept ? '#e0e0ee' : '#7878a0', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'10px', padding:'8px 12px', fontSize:'0.87rem', outline:'none' }}
               >
                 <option value="">Chọn bộ phận</option>
-                {KM_STAFF_GROUPS.map(g => <option key={g.dept} value={g.dept}>{g.dept}</option>)}
+                {kmGroups.map(g => <option key={g.dept} value={g.dept}>{g.dept}</option>)}
               </select>
               <select
                 value={staffName}
@@ -1544,7 +1547,7 @@ export default function EventReport() {
                 style={{ flex:1, minWidth:'160px', background:'#1a1a2e', color: staffName ? '#e0e0ee' : '#7878a0', border:'1px solid rgba(201,168,76,0.3)', borderRadius:'10px', padding:'8px 12px', fontSize:'0.87rem', outline:'none', opacity: staffDept ? 1 : 0.45, cursor: staffDept ? 'pointer' : 'not-allowed' }}
               >
                 <option value="">Chọn nhân viên</option>
-                {(KM_STAFF_GROUPS.find(g => g.dept === staffDept)?.members || []).map(m => (
+                {(kmGroups.find(g => g.dept === staffDept)?.members || []).map(m => (
                   <option key={m} value={m}>{m}</option>
                 ))}
               </select>
@@ -1627,7 +1630,7 @@ export default function EventReport() {
                         </span>
                       </div>
                       {grp.items.map((ob, i) => {
-                        const obDept = KM_STAFF_GROUPS.find(g => g.members.includes(ob.lead_name))?.dept;
+                        const obDept = kmGroups.find(g => g.members.includes(ob.lead_name))?.dept;
                         const deptC = obDept ? getDeptColor(obDept) : null;
                         const canDismiss = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
                         return (
@@ -1804,7 +1807,7 @@ export default function EventReport() {
           <div>
             <label style={labelStyle}>Nhân sự Freelancer</label>
             <FreelancerPicker value={form.freelancer_staff} onChange={v => setField('freelancer_staff', v)}
-              priorityDepts={KM_STAFF_GROUPS.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept)} />
+              priorityDepts={kmGroups.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept)} />
           </div>
         </div>
 
