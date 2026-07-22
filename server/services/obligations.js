@@ -157,9 +157,12 @@ function checkAndCreateViolations() {
       const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
       const submittedAt = reportRow?.created_at?.slice(0, 16);
 
-      const safeEventId = ob.event_id
-        ? (db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id) ? ob.event_id : null)
-        : null;
+      // Nếu event đã bị xóa vĩnh viễn → bỏ qua obligation này
+      if (ob.event_id && !db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id)) {
+        db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
+        continue;
+      }
+      const safeEventId = ob.event_id || null;
 
       const existingViol = db.prepare(`
         SELECT id, violation_type FROM violations

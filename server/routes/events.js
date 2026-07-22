@@ -94,6 +94,18 @@ try {
   if (r.changes > 0) console.log(`[Cleanup] Xóa ${r.changes} obligations mồ côi`);
 } catch (_) {}
 
+// Dọn violations mồ côi do hệ thống tạo cho event đã xóa vĩnh viễn
+try {
+  const r2 = db.prepare(`
+    DELETE FROM violations
+    WHERE reporter_name = 'Hệ thống'
+      AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ', 'Không hoàn thành nhiệm vụ đúng hạn')
+      AND event_id IS NOT NULL
+      AND event_id NOT IN (SELECT id FROM events)
+  `).run();
+  if (r2.changes > 0) console.log(`[Cleanup] Xóa ${r2.changes} violations mồ côi`);
+} catch (_) {}
+
 // Auto-update: sự kiện 'planned' đã đến ngày bắt đầu → chuyển sang 'active'
 function autoUpdateStatuses() {
   // planned + start_date đến hôm nay → active
