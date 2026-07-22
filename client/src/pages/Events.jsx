@@ -1068,11 +1068,6 @@ export default function Events() {
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
                         <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
-                      {isSuperAdmin && (
-                        <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}>
-                          <span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span>
-                        </button>
-                      )}
                     </div>
                     {/* Hàng 2: hành động quản lý */}
                     {hasActions && (
