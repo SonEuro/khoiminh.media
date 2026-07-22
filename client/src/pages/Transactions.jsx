@@ -1186,7 +1186,7 @@ function EventRows({ events, isSuperAdmin, onArchive }) {
   );
 }
 
-function ArchivedEventDetail({ ev, onSelect }) {
+function ArchivedEventDetail({ ev, onSelect, onSelectReport }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -1222,12 +1222,15 @@ function ArchivedEventDetail({ ev, onSelect }) {
     </div>
   );
   const reportRow = (r) => (
-    <div key={r.id} style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px' }}>
+    <div key={r.id} onClick={() => onSelectReport && onSelectReport(r.id)}
+      style={{ padding:'6px 10px', borderRadius:'6px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(120,120,160,0.1)', marginBottom:'3px', cursor:'pointer', transition:'background 0.15s' }}
+      onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.06)'}
+      onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.03)'}>
       <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
         <span style={{ fontSize:'0.8rem', color:'#c0c0d8', fontWeight:600, flex:1 }}>{r.reporter_name || '—'}</span>
         <span style={{ fontSize:'0.72rem', color:'#5a5a80', flexShrink:0 }}>{fmtDate(r.report_date)}</span>
       </div>
-      {r.content && <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'2px 0 0', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{r.content}</p>}
+      {r.service_quality && <p style={{ fontSize:'0.75rem', color:'#c9a84c', fontWeight:600, margin:'2px 0 0' }}>{r.service_quality}</p>}
     </div>
   );
 
@@ -1244,7 +1247,7 @@ function ArchivedEventDetail({ ev, onSelect }) {
   );
 }
 
-function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSelect }) {
+function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSelect, onSelectReport }) {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
@@ -1293,7 +1296,7 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
               {archivedDate && <span style={{ color:'#5a5a80' }}> · Lưu {fmtDate(ev.archived_at)}</span>}
             </p>
             {/* Nội dung mở rộng */}
-            {isExpanded && <ArchivedEventDetail ev={ev} onSelect={onSelect} />}
+            {isExpanded && <ArchivedEventDetail ev={ev} onSelect={onSelect} onSelectReport={onSelectReport} />}
             {/* Hàng nút */}
             {isSuperAdmin && (
               <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
@@ -1985,6 +1988,7 @@ export default function Transactions() {
                 onUnarchive={handleUnarchiveEvent}
                 onDelete={handleDeleteArchivedEvent}
                 onSelect={setSelectedTx}
+                onSelectReport={setSelectedReport}
               />
             </Section>
           </div>
