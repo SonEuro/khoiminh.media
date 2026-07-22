@@ -981,10 +981,10 @@ export default function Events() {
                   evDepts.includes(userDept) || evDepts.length === 0
                 );
                 // is_phan_lich_all → luôn được; is_phan_lich → chỉ khi không phải TP (TP bị filter theo dept)
-                const canSuaLich = canFullEdit || !!user?.is_phan_lich_all
-                  || isTruongPhongOfDept
-                  || (!!user?.is_phan_lich && !isTp);
-                const showEdit = canFullEdit || isTruongPhongOfDept;
+                const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+                const canSuaLich = ev.archived_at ? isSuperAdmin
+                  : (canFullEdit || !!user?.is_phan_lich_all || isTruongPhongOfDept || (!!user?.is_phan_lich && !isTp));
+                const showEdit = ev.archived_at ? isSuperAdmin : (canFullEdit || isTruongPhongOfDept);
                 const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                 const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
@@ -1106,7 +1106,9 @@ export default function Events() {
                   const isTruongPhongOfDeptPast = isTpPast && userDept && (
                     pastEvDepts.includes(userDept) || pastEvDepts.length === 0
                   );
-                  const showEdit   = ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast) : (canFullEdit || isTruongPhongOfDeptPast);
+                  const showEdit   = ev.archived_at ? user?.role === 'SUPER_ADMIN'
+                    : ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast)
+                    : (canFullEdit || isTruongPhongOfDeptPast);
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
