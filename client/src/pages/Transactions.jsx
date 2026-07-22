@@ -1512,7 +1512,159 @@ function TxRowsGrouped({ txs, onSelect, onDelete, onTraNcc, onTransfer, canPrint
   );
 }
 
-function ReportRows({ reports }) {
+function ReportDetailModal({ reportId, onClose }) {
+  const [report, setReport] = useState(null);
+  const [imgIdx, setImgIdx] = useState(null);
+
+  useEffect(() => {
+    api.getEventReport(reportId).then(setReport).catch(() => {});
+  }, [reportId]);
+
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  function calcDuration(start, end) {
+    if (!start || !end) return null;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    if (isNaN(sh) || isNaN(eh)) return null;
+    let diff = (eh * 60 + em) - (sh * 60 + sm);
+    if (diff < 0) diff += 24 * 60;
+    return diff % 60 === 0 ? `${Math.floor(diff/60)}h` : `${Math.floor(diff/60)}h${String(diff%60).padStart(2,'0')}`;
+  }
+
+  function imgUrl(src) { return (src && typeof src === 'object') ? src.url : src; }
+  function imgThumb(src) { return (src && typeof src === 'object') ? src.thumb : src; }
+
+  const overlay = { position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' };
+  const box = { background:'#12121e', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'14px', width:'100%', maxWidth:'560px', maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column' };
+  const labelStyle = { fontSize:'0.72rem', fontWeight:700, color:'#7878a0', textTransform:'uppercase', letterSpacing:'0.05em', margin:0 };
+
+  return (
+    <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={box}>
+        {/* Header */}
+        <div style={{ padding:'16px 18px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px', position:'sticky', top:0, background:'#12121e', zIndex:1, borderRadius:'14px 14px 0 0' }}>
+          <div>
+            <p style={{ fontWeight:700, color:GOLD, margin:'0 0 2px', fontSize:'0.95rem' }}>{report?.event_label || '—'}</p>
+            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0, display:'flex', alignItems:'center', gap:'10px' }}>
+              {report?.location && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {report.location}</span>}
+              {report?.reporter_name && <span style={{ display:'inline-flex', alignItems:'center', gap:'3px' }}><User size={11} /> {report.reporter_name}</span>}
+              {report?.report_date && <span>{fmtDate(report.report_date)}</span>}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'#7878a0', cursor:'pointer', fontSize:'1.2rem', lineHeight:1, padding:'2px 4px', flexShrink:0 }}>✕</button>
+        </div>
+
+        {!report ? (
+          <div style={{ textAlign:'center', padding:'32px', color:'#7878a0', fontSize:'0.85rem' }}>Đang tải...</div>
+        ) : (
+          <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:'14px' }}>
+            {/* Time grid */}
+            {(report.time_present || report.time_onset || report.time_off || report.time_end) && (() => {
+              const cells = [
+                ['Có mặt', report.time_present],
+                ['Onset', report.time_onset],
+                ['Off máy', report.time_off],
+                ['Kết thúc', report.time_end],
+              ].filter(([, v]) => v && v !== '00:00');
+              return (
+                <div style={{ display:'grid', gridTemplateColumns:`repeat(${cells.length}, 1fr)`, gap:0, background:'rgba(255,255,255,0.03)', borderRadius:'8px', padding:'12px' }}>
+                  {cells.map(([l, v]) => (
+                    <div key={l} style={{ textAlign:'center' }}>
+                      <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>{l}</p>
+                      <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{v}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* Duration */}
+            {(() => {
+              const kmDur = calcDuration(report.time_present, report.time_end);
+              const khDur = calcDuration(report.time_onset, report.time_off);
+              if (!kmDur && !khDur) return null;
+              return (
+                <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px' }}>
+                  {kmDur && <div style={{ textAlign:'center', background:'rgba(255,255,255,0.03)', borderRadius:'8px', padding:'10px 12px' }}>
+                    <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khôi Minh</p>
+                    <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{kmDur}</p>
+                  </div>}
+                  {khDur && <div style={{ textAlign:'center', background:'rgba(255,255,255,0.03)', borderRadius:'8px', padding:'10px 12px' }}>
+                    <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khách Hàng</p>
+                    <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0 }}>{khDur}</p>
+                  </div>}
+                </div>
+              );
+            })()}
+
+            {/* KM Staff */}
+            {report.km_staff?.length > 0 && (
+              <div>
+                <p style={{ ...labelStyle, marginBottom:'6px' }}>Nhân sự Khôi Minh</p>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>
+                  {report.km_staff.map(s => (
+                    <span key={s} style={{ padding:'3px 9px', borderRadius:'9999px', background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.3)', color:GOLD, fontSize:'0.82rem', fontWeight:600 }}>{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Freelancer */}
+            {report.freelancer_staff && (
+              <div>
+                <p style={{ ...labelStyle, marginBottom:'4px' }}>Nhân sự Freelancer</p>
+                <p style={{ color:'#c0c0d4', fontSize:'0.85rem', margin:0 }}>{report.freelancer_staff}</p>
+              </div>
+            )}
+
+            {/* Text fields */}
+            {[
+              ['Nội dung công việc', report.job_content],
+              ['Tiến độ công việc', report.progress],
+              ['Công việc hoàn thành', report.completed_work],
+              ['Chất lượng dịch vụ', report.service_quality],
+              ['Chưa hoàn thành', report.incomplete],
+              ['Sự cố phát sinh', report.incidents],
+            ].filter(([, v]) => v).map(([l, v]) => (
+              <div key={l}>
+                <p style={{ ...labelStyle, marginBottom:'3px' }}>{l}</p>
+                <p style={{ color:'#c0c0d4', fontSize:'0.85rem', margin:0, whiteSpace:'pre-wrap' }}>{v}</p>
+              </div>
+            ))}
+
+            {/* Images */}
+            {report.images?.length > 0 && (
+              <div>
+                <p style={{ ...labelStyle, marginBottom:'8px' }}>Hình ảnh ({report.images.length})</p>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+                  {report.images.map((src, i) => (
+                    <img key={i} src={imgThumb(src)} alt="" loading="lazy" onClick={() => setImgIdx(i)}
+                      style={{ width:'80px', height:'80px', objectFit:'cover', borderRadius:'6px', border:'1px solid rgba(201,168,76,0.3)', cursor:'pointer' }} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Lightbox */}
+      {imgIdx !== null && report?.images?.length > 0 && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', zIndex:9100, display:'flex', alignItems:'center', justifyContent:'center' }}
+          onClick={() => setImgIdx(null)}>
+          <img src={imgUrl(report.images[imgIdx])} alt="" style={{ maxWidth:'92vw', maxHeight:'92vh', objectFit:'contain', borderRadius:'8px' }} onClick={e => e.stopPropagation()} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReportRows({ reports, onSelect }) {
   if (!reports.length) return <Empty text="Chưa có báo cáo nào" />;
 
   const groups = [];
@@ -1536,7 +1688,10 @@ function ReportRows({ reports }) {
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:'4px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
             {items.map(r => (
-              <div key={r.id} style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px', display:'flex', alignItems:'center', gap:'12px' }}>
+              <div key={r.id} onClick={() => onSelect?.(r.id)}
+                style={{ padding:'8px 10px', background:'rgba(255,255,255,0.02)', borderRadius:'7px', display:'flex', alignItems:'center', gap:'12px', cursor:'pointer', transition:'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:0 }}>
                     {r.location && <span style={{ marginRight:'8px', display:'inline-flex', alignItems:'center', gap:'3px' }}><MapPin size={11} /> {r.location}</span>}
@@ -1618,6 +1773,7 @@ export default function Transactions() {
   const [violations,     setViolations]     = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [selectedTx,          setSelectedTx]          = useState(null);
+  const [selectedReport,      setSelectedReport]      = useState(null);
   const [editingTx,           setEditingTx]           = useState(null);
   const [editingCompletedTx,  setEditingCompletedTx]  = useState(null);
   const [deletingCompletedTx, setDeletingCompletedTx] = useState(null);
@@ -1806,7 +1962,7 @@ export default function Transactions() {
           )}
 
           <Section Icon={ClipboardList} title="Báo cáo sự kiện" color={GOLD} border="rgba(201,168,76,0.25)" count={reports.length}>
-            <ReportRows reports={reports} />
+            <ReportRows reports={reports} onSelect={setSelectedReport} />
           </Section>
 
           <Section Icon={ShieldAlert} title="Vi phạm nội quy" color="#f87171" border="rgba(248,113,113,0.25)" count={violations.length}>
@@ -1873,6 +2029,10 @@ export default function Transactions() {
             </Section>
           )}
         </>
+      )}
+
+      {selectedReport && (
+        <ReportDetailModal reportId={selectedReport} onClose={() => setSelectedReport(null)} />
       )}
 
       {selectedTx && (
