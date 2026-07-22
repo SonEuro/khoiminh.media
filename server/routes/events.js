@@ -69,6 +69,7 @@ function cleanupTrash() {
         }
         try { db.prepare('DELETE FROM violations WHERE event_id = ?').run(id); } catch (_) {}
         try { db.prepare('DELETE FROM event_reports WHERE event_id = ?').run(id); } catch (_) {}
+        try { db.prepare('DELETE FROM lead_report_obligations WHERE event_id = ?').run(id); } catch (_) {}
         try { db.prepare('UPDATE work_schedules SET event_id = NULL WHERE event_id = ?').run(id); } catch (_) {}
         db.prepare('DELETE FROM transaction_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id);
         try { db.prepare('DELETE FROM external_items WHERE transaction_id IN (SELECT id FROM transactions WHERE event_id = ?)').run(id); } catch (_) {}
@@ -84,6 +85,14 @@ function cleanupTrash() {
 }
 cleanupTrash();
 setInterval(cleanupTrash, 24 * 60 * 60 * 1000);
+
+// Dọn obligations mồ côi (event đã xóa vĩnh viễn nhưng obligation vẫn còn)
+try {
+  const r = db.prepare(
+    `DELETE FROM lead_report_obligations WHERE event_id IS NOT NULL AND event_id NOT IN (SELECT id FROM events)`
+  ).run();
+  if (r.changes > 0) console.log(`[Cleanup] Xóa ${r.changes} obligations mồ côi`);
+} catch (_) {}
 
 // Auto-update: sự kiện 'planned' đã đến ngày bắt đầu → chuyển sang 'active'
 function autoUpdateStatuses() {
