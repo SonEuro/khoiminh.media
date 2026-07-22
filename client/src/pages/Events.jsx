@@ -1177,6 +1177,7 @@ export default function Events() {
                   const showEdit   = ev.archived_at ? user?.role === 'SUPER_ADMIN'
                     : ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast)
                     : (canFullEdit || isTruongPhongOfDeptPast);
+                  const showSuaLich = user?.role === 'SUPER_ADMIN';
                   const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
@@ -1246,9 +1247,25 @@ export default function Events() {
                               <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}><span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span></button>
                             )}
                           </div>
-                          {(showEdit || showArchive || showUnarch || showCancel || showDelete) && (
+                          {(showEdit || showSuaLich || showArchive || showUnarch || showCancel || showDelete) && (
                             <div className="ev-card-row">
-                              {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                              {showEdit    && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(ev); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa Show</span></button>}
+                              {showSuaLich && <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }}
+                                onClick={() => {
+                                  const existing = schedules.find(s => s.event_id === ev.id);
+                                  setSelected(ev);
+                                  setScheduleFormInitial(existing || {
+                                    event_id:        ev.id,
+                                    event_name:      ev.name,
+                                    client:          ev.client   || '',
+                                    location:        ev.location || '',
+                                    setup_dates:     parseDatesField(ev, 'start_dates',   'start_date'),
+                                    teardown_dates:  parseDatesField(ev, 'end_dates',     'end_date'),
+                                    rehearsal_dates: parseDatesField(ev, 'show_dates',    'show_date'),
+                                    filming_dates:   parseFilmingDates(ev),
+                                  });
+                                  setModal('schedule-form');
+                                }}><span className="ev-ico">📅</span><span className="ev-lbl">Sửa Lịch</span></button>}
                               {showArchive && <button className="ev-action ev-action-edit"   onClick={() => handleArchive(ev)}><span className="ev-ico">💾</span><span className="ev-lbl">Lưu trữ</span></button>}
                               {showUnarch  && <button className="ev-action"                  onClick={() => handleUnarchive(ev)}><span className="ev-ico">↩</span><span className="ev-lbl">Bỏ lưu</span></button>}
                               {showCancel  && <button className="ev-action ev-action-danger" onClick={() => handleCancel(ev)}><span className="ev-ico">🚫</span><span className="ev-lbl">Hủy</span></button>}
