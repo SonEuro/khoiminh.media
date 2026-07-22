@@ -633,6 +633,73 @@ function _EventDetailModalLEGACY_DO_NOT_USE({ eventId, onClose }) {
   );
 }
 
+function EventReportListModal({ ev, onClose }) {
+  const navigate = useNavigate();
+  const [reports, setReports] = useState(null);
+
+  useEffect(() => {
+    api.getEventReports({ event_id: ev.id }).then(setReports).catch(() => setReports([]));
+  }, [ev.id]);
+
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const QUALITY_COLOR = { 'Xuất sắc': '#4ade80', 'Đạt yêu cầu': GOLD, 'Cần cải thiện': '#f87171' };
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background:'#12121e', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'14px', width:'100%', maxWidth:'520px', maxHeight:'82vh', display:'flex', flexDirection:'column' }}>
+        {/* Header */}
+        <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px', flexShrink:0 }}>
+          <div>
+            <p style={{ fontWeight:700, color:GOLD, margin:'0 0 2px', fontSize:'0.95rem' }}>{ev.name}</p>
+            <p style={{ fontSize:'0.75rem', color:'#7878a0', margin:0 }}>Báo cáo sự kiện · {reports?.length ?? '…'} báo cáo</p>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'#7878a0', cursor:'pointer', fontSize:'1.2rem', padding:'2px 6px', flexShrink:0 }}>✕</button>
+        </div>
+        {/* Body */}
+        <div style={{ overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:'6px' }}>
+          {reports === null && <p style={{ textAlign:'center', color:'#7878a0', padding:'24px 0', fontSize:'0.85rem' }}>Đang tải…</p>}
+          {reports?.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'24px 0', fontSize:'0.85rem' }}>Chưa có báo cáo nào</p>}
+          {reports?.map(r => (
+            <button key={r.id}
+              onClick={() => { navigate(`/event-report?id=${r.id}`); onClose(); }}
+              style={{ width:'100%', textAlign:'left', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'8px', padding:'10px 12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', transition:'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,0.07)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.03)'}>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ margin:'0 0 3px', fontSize:'0.85rem', color:'#c0c0d4', fontWeight:600 }}>
+                  {r.report_date ? fmtD(r.report_date) : '—'}
+                  {r.location && <span style={{ fontWeight:400, color:'#7878a0', marginLeft:'8px' }}>📍 {r.location}</span>}
+                </p>
+                <p style={{ margin:0, fontSize:'0.78rem', color:'#7878a0' }}>
+                  {r.reporter_name && <span>👤 {r.reporter_name}</span>}
+                  {r.image_count > 0 && <span style={{ marginLeft:'8px' }}>🖼 {r.image_count} ảnh</span>}
+                </p>
+              </div>
+              {r.service_quality && (
+                <span style={{ fontSize:'0.75rem', fontWeight:700, color: QUALITY_COLOR[r.service_quality] || GOLD, flexShrink:0 }}>{r.service_quality}</span>
+              )}
+              <span style={{ color:'#7878a0', fontSize:'0.8rem', flexShrink:0 }}>›</span>
+            </button>
+          ))}
+        </div>
+        {/* Footer */}
+        <div style={{ padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.06)', flexShrink:0 }}>
+          <button onClick={() => { navigate('/event-report'); onClose(); }}
+            style={{ width:'100%', padding:'9px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(201,168,76,0.07)', color:GOLD, fontWeight:700, fontSize:'0.83rem', cursor:'pointer' }}>
+            Vào trang Báo Cáo Sự Kiện →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TrashView({ onClose, canPermanentDelete, user }) {
   const [trash, setTrash] = useState([]);
   const load = () => api.getTrashEvents().then(setTrash);
@@ -785,6 +852,7 @@ export default function Events() {
   const [showTrash, setShowTrash] = useState(false);
   const [schedules, setSchedules] = useState([]);
   const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
+  const [reportListEvent, setReportListEvent] = useState(null);
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -1000,6 +1068,11 @@ export default function Events() {
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
                         <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
+                      {isSuperAdmin && (
+                        <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}>
+                          <span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span>
+                        </button>
+                      )}
                     </div>
                     {/* Hàng 2: hành động quản lý */}
                     {hasActions && (
@@ -1174,6 +1247,9 @@ export default function Events() {
                           <div className="ev-card-row">
                             <button className="ev-action" onClick={() => { setSelected(ev); setModal('detail'); }}><span className="ev-ico">📋</span><span className="ev-lbl">Thiết Bị</span></button>
                             <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span></button>
+                            {user?.role === 'SUPER_ADMIN' && (
+                              <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}><span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span></button>
+                            )}
                           </div>
                           {(showEdit || showArchive || showUnarch || showCancel || showDelete) && (
                             <div className="ev-card-row">
@@ -1226,6 +1302,9 @@ export default function Events() {
           onClose={() => setModal(null)}
           onSwitchToEdit={(existing) => setScheduleFormInitial(existing)}
         />
+      )}
+      {reportListEvent && (
+        <EventReportListModal ev={reportListEvent} onClose={() => setReportListEvent(null)} />
       )}
     </div>
   );
