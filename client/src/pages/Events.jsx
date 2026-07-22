@@ -1085,6 +1085,12 @@ export default function Events() {
                   ĐÃ QUA / HỦY ({pastZone.length})
                 </span>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
+                <button
+                  onClick={() => navigate('/transactions#archive')}
+                  title="Xem toàn bộ sự kiện đã lưu trữ"
+                  style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:'5px', padding:'3px 10px', borderRadius:'6px', border:'1px solid rgba(148,163,184,0.3)', background:'rgba(148,163,184,0.08)', color:'#94a3b8', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', letterSpacing:'0.04em', whiteSpace:'nowrap' }}>
+                  🗂 Lưu Trữ →
+                </button>
               </div>
               <div style={{ maxHeight:'585px', overflowY:'auto', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px' }}>
                 {pastZone.map(ev => {

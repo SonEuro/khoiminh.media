@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
@@ -1846,6 +1846,14 @@ export default function Transactions() {
 
   const highlightedIdRef = useRef(null);
   const archiveSectionRef = useRef(null);
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash === '#archive' && !loading) {
+      const t = setTimeout(() => archiveSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+      return () => clearTimeout(t);
+    }
+  }, [location.hash, loading]);
+
   useEffect(() => {
     if (!highlightId || loading) return;
     if (highlightedIdRef.current === highlightId) return;
