@@ -853,6 +853,7 @@ export default function Events() {
   const [schedules, setSchedules] = useState([]);
   const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
   const [reportListEvent, setReportListEvent] = useState(null);
+  const [pastSearch, setPastSearch] = useState('');
   const handledNavId = useRef(null);
 
   const load = useCallback(() => {
@@ -1131,6 +1132,15 @@ export default function Events() {
         const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled' && !isEventOnDate(ev, tomorrowStr); });
         const pastZone     = sorted.filter(ev => nearestUpcomingEvent(ev) === null || ev.status === 'cancelled' || ev.status === 'completed');
 
+        const pastFiltered = pastSearch.trim()
+          ? pastZone.filter(ev => {
+              const q = pastSearch.trim().toLowerCase();
+              return (ev.name     || '').toLowerCase().includes(q)
+                  || (ev.client   || '').toLowerCase().includes(q)
+                  || (ev.location || '').toLowerCase().includes(q);
+            })
+          : pastZone;
+
         return (
           <div className="grid gap-4">
             {todayZone.length > 0 && <>
@@ -1150,7 +1160,7 @@ export default function Events() {
               <div style={{ margin:'10px 0 6px', display:'flex', alignItems:'center', gap:'10px' }}>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(90deg,rgba(120,120,160,0.35),transparent)' }} />
                 <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'0.1em', color:'#7878a0', whiteSpace:'nowrap' }}>
-                  ĐÃ QUA / HỦY ({pastZone.length})
+                  ĐÃ QUA / HỦY ({pastFiltered.length}{pastSearch.trim() ? `/${pastZone.length}` : ''})
                 </span>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
                 <button
@@ -1160,8 +1170,17 @@ export default function Events() {
                   🗂 Lưu Trữ →
                 </button>
               </div>
+              <div style={{ marginBottom:'8px' }}>
+                <input
+                  value={pastSearch}
+                  onChange={e => setPastSearch(e.target.value)}
+                  placeholder="Tìm theo tên, khách hàng, địa điểm…"
+                  style={{ width:'100%', boxSizing:'border-box', padding:'8px 12px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.25)', background:'rgba(120,120,160,0.08)', color:'#c0c0d4', fontSize:'0.83rem', outline:'none' }}
+                />
+              </div>
               <div style={{ maxHeight:'585px', overflowY:'auto', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px' }}>
-                {pastZone.map(ev => {
+                {pastFiltered.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px 0', fontSize:'0.83rem' }}>Không tìm thấy kết quả</p>}
+                {pastFiltered.map(ev => {
                   const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
                   const isCancelled = ev.status === 'cancelled';
                   const accent    = isCancelled ? '#f87171' : '#7878a0';
