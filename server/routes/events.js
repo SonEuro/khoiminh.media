@@ -141,7 +141,9 @@ autoUpdateStatuses();
 setInterval(autoUpdateStatuses, 60 * 60 * 1000); // kiểm tra mỗi 1 giờ
 
 // Auto-archive: sự kiện hoàn thành quá 72h mà chưa được lưu trữ → tự động lưu trữ
+// Bỏ qua nếu còn lịch làm việc có ngày trong tương lai
 function autoArchiveCompleted() {
+  const today = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
   const rows = db.prepare(`
     SELECT id, name FROM events
     WHERE status = 'completed'
@@ -151,8 +153,32 @@ function autoArchiveCompleted() {
       AND datetime(COALESCE(filming_date, end_date, start_date) || ' 23:59:59', '+72 hours') <= datetime('now', 'localtime')
   `).all();
   if (!rows.length) return;
+
+  const getSchedules = db.prepare(
+    `SELECT filming_date, setup_date, rehearsal_date, teardown_date
+     FROM work_schedules WHERE event_id = ? AND deleted_at IS NULL`
+  );
+
+  function hasUpcomingSchedule(eventId) {
+    const scheds = getSchedules.all(eventId);
+    return scheds.some(s =>
+      ['filming_date', 'setup_date', 'rehearsal_date', 'teardown_date'].some(col => {
+        const val = s[col];
+        if (!val) return false;
+        if (val.startsWith('[')) {
+          try { return JSON.parse(val).some(d => d >= today); } catch { return false; }
+        }
+        return val >= today;
+      })
+    );
+  }
+
   const stmt = db.prepare(`UPDATE events SET archived_at = datetime('now','localtime') WHERE id = ?`);
   for (const ev of rows) {
+    if (hasUpcomingSchedule(ev.id)) {
+      console.log(`[AutoArchive] Bỏ qua "${ev.name}" — còn lịch làm việc sắp tới`);
+      continue;
+    }
     stmt.run(ev.id);
     console.log(`[AutoArchive] Đã lưu trữ tự động: "${ev.name}" (id=${ev.id})`);
   }
