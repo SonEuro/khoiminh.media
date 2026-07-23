@@ -1200,9 +1200,9 @@ export default function Events() {
                   return _pg.map(({ key: _gk, label: _gl, evs: _gevs }) => (
                     <div key={_gk}>
                       <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'8px 4px 5px' }}>
-                        <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#7878a0', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{_gl.toUpperCase()}</span>
-                        <span style={{ fontSize:'0.7rem', color:'#5a5a80' }}>· {_gevs.length} sự kiện</span>
-                        <div style={{ flex:1, height:'1px', background:'rgba(120,120,160,0.18)' }} />
+                        <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{_gl.toUpperCase()}</span>
+                        <span style={{ fontSize:'0.7rem', color:'#a08040' }}>· {_gevs.length} sự kiện</span>
+                        <div style={{ flex:1, height:'1px', background:'rgba(201,168,76,0.2)' }} />
                       </div>
                       {_gevs.map(ev => {
                   const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };

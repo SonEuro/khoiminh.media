@@ -1328,9 +1328,9 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
       {monthGroups.map(({ key, label, evs }) => (
         <div key={key}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'8px 0 5px' }}>
-            <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#7878a0', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{label.toUpperCase()}</span>
-            <span style={{ fontSize:'0.7rem', color:'#5a5a80' }}>· {evs.length} sự kiện</span>
-            <div style={{ flex:1, height:'1px', background:'rgba(120,120,160,0.18)' }} />
+            <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{label.toUpperCase()}</span>
+            <span style={{ fontSize:'0.7rem', color:'#a08040' }}>· {evs.length} sự kiện</span>
+            <div style={{ flex:1, height:'1px', background:'rgba(201,168,76,0.2)' }} />
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
             {evs.map(renderRow)}
