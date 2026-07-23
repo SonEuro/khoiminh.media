@@ -40,7 +40,9 @@ function groupByMonth(events) {
     }
     map[key].evs.push(ev);
   }
-  return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
+  return Object.values(map)
+    .sort((a, b) => b.key.localeCompare(a.key))
+    .map(g => ({ ...g, evs: g.evs.sort((a, b) => (b.start_date || '').localeCompare(a.start_date || '') || b.event_id - a.event_id) }));
 }
 
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
