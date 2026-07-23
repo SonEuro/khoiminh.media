@@ -42,7 +42,6 @@ function groupByMonth(events) {
   }
   return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
 }
-}
 
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
 function KhoiMinhTab() {
