@@ -32,10 +32,11 @@ function applyBorders(ws) {
 }
 
 function groupByMonth(events) {
+  const tryKey = s => { const k = (s || '').slice(0, 7); return /^\d{4}-\d{2}$/.test(k) ? k : null; };
+  const tryJsonKey = s => { try { const v = JSON.parse(s || '[]'); return Array.isArray(v) && v.length ? tryKey(v[0]) : null; } catch { return null; } };
   const map = {};
   for (const ev of events) {
-    const raw = (ev.group_date || ev.start_date || '').slice(0, 7);
-    const key = /^\d{4}-\d{2}$/.test(raw) ? raw : '0000-00';
+    const key = tryKey(ev.group_date) || tryKey(ev.start_date) || tryKey(ev.filming_date) || tryJsonKey(ev.filming_dates) || tryJsonKey(ev.start_dates) || '0000-00';
     if (!map[key]) {
       const [y, m] = key.split('-');
       map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };
