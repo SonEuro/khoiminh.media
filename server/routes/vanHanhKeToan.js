@@ -14,6 +14,13 @@ router.get('/khoi-minh', (req, res) => {
       e.filming_dates,
       e.show_date,
       e.show_dates,
+      COALESCE(
+        CASE WHEN e.start_date   GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.start_date   ELSE NULL END,
+        CASE WHEN e.filming_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.filming_date ELSE NULL END,
+        json_extract(e.filming_dates, '$[0]'),
+        json_extract(e.start_dates,   '$[0]'),
+        e.created_at
+      ) AS group_date,
       eq.id           AS equipment_id,
       eq.name       AS equipment_name,
       eq.unit,
@@ -41,6 +48,13 @@ router.get('/ncc', (req, res) => {
       e.code      AS event_code,
       e.client,
       e.start_date,
+      COALESCE(
+        CASE WHEN e.start_date   GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.start_date   ELSE NULL END,
+        CASE WHEN e.filming_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.filming_date ELSE NULL END,
+        json_extract(e.filming_dates, '$[0]'),
+        json_extract(e.start_dates,   '$[0]'),
+        e.created_at
+      ) AS group_date,
       ei.supplier,
       ei.name     AS item_name,
       ei.quantity,

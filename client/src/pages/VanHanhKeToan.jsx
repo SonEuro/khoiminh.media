@@ -34,7 +34,8 @@ function applyBorders(ws) {
 function groupByMonth(events) {
   const map = {};
   for (const ev of events) {
-    const key = ev.start_date ? ev.start_date.slice(0, 7) : '0000-00';
+    const raw = (ev.group_date || ev.start_date || '').slice(0, 7);
+    const key = /^\d{4}-\d{2}$/.test(raw) ? raw : '0000-00';
     if (!map[key]) {
       const [y, m] = key.split('-');
       map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };
@@ -43,7 +44,7 @@ function groupByMonth(events) {
   }
   return Object.values(map)
     .sort((a, b) => b.key.localeCompare(a.key))
-    .map(g => ({ ...g, evs: g.evs.sort((a, b) => (b.start_date || '').localeCompare(a.start_date || '') || b.event_id - a.event_id) }));
+    .map(g => ({ ...g, evs: g.evs.sort((a, b) => (b.group_date || b.start_date || '').localeCompare(a.group_date || a.start_date || '') || b.event_id - a.event_id) }));
 }
 
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
