@@ -213,7 +213,8 @@ ${printScript}
 }
 
 export function printSlip(tx) {
-  const html = buildSlipHTML(tx, false);
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const html = buildSlipHTML(tx, isMobile);
   const win  = window.open('', '_blank', 'width=820,height=700');
   if (!win) { alert('Vui lòng cho phép popup để in phiếu'); return; }
   win.document.write(html);
