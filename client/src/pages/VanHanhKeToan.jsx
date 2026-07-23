@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Calculator, Package, Truck, FileDown, Search, ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { Calculator, Package, Truck, Search, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { api } from '../api';
 
 const GOLD = '#c9a84c';
@@ -91,16 +91,10 @@ function KhoiMinhTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, position: 'relative', minWidth: '180px' }}>
-          <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#7878a0' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện, khách hàng..."
-            style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
-        </div>
-        <button onClick={() => exportExcel(search.trim() ? filtered : events, 'Chi Phí Nghiệm Thu.xlsx')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, flexShrink: 0 }}>
-          <FileDown size={14} /> Xuất Excel
-        </button>
+      <div style={{ position: 'relative', marginBottom: '14px' }}>
+        <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#7878a0' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện, khách hàng..."
+          style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
       </div>
       <p style={{ fontSize: '0.79rem', color: '#5a5a80', marginBottom: '10px' }}>
         {filtered.length} sự kiện{search.trim() ? ` / ${events.length}` : ''}
@@ -245,10 +239,6 @@ function NccTab() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện..."
             style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <button onClick={() => exportExcel(search.trim() ? filtered : events, `Chi Phí Nghiệm Thu NCC${selectedNcc ? ' - ' + selectedNcc : ''}.xlsx`)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, flexShrink: 0 }}>
-          <FileDown size={14} /> Xuất Excel
-        </button>
       </div>
 
       {!events.length
