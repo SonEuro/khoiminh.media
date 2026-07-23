@@ -299,7 +299,6 @@ router.get('/', (req, res) => {
         CASE WHEN e.filming_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.filming_date ELSE NULL END,
         json_extract(e.filming_dates, '$[0]'),
         json_extract(e.start_dates, '$[0]'),
-        CASE WHEN e.setup_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.setup_date ELSE NULL END,
         e.created_at
       ) AS group_date
     FROM events e
