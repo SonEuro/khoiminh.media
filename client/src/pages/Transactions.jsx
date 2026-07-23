@@ -1266,7 +1266,7 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
   const monthGroups = (() => {
     const map = {};
     for (const ev of filtered) {
-      const key = ev.archived_at ? ev.archived_at.slice(0, 7) : '0000-00';
+      const key = (ev.archived_at || ev.start_date || '').slice(0, 7) || '0000-00';
       if (!map[key]) {
         const [y, m] = key.split('-');
         map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };
