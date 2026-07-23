@@ -1189,7 +1189,22 @@ export default function Events() {
               </div>
               <div style={{ maxHeight:'585px', overflowY:'auto', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px' }}>
                 {pastFiltered.length === 0 && <p style={{ textAlign:'center', color:'#7878a0', padding:'20px 0', fontSize:'0.83rem' }}>Không tìm thấy kết quả</p>}
-                {pastFiltered.map(ev => {
+                {(() => {
+                  const _pg = []; const _pm = {};
+                  for (const _e of pastFiltered) {
+                    const _k = (_e.start_date || '').slice(0, 7) || '0000-00';
+                    if (!_pm[_k]) { const [_y, _m] = _k.split('-'); _pm[_k] = { key: _k, label: _k === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(_m)}/${_y}`, evs: [] }; _pg.push(_pm[_k]); }
+                    _pm[_k].evs.push(_e);
+                  }
+                  _pg.sort((a, b) => b.key.localeCompare(a.key));
+                  return _pg.map(({ key: _gk, label: _gl, evs: _gevs }) => (
+                    <div key={_gk}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'8px 4px 5px' }}>
+                        <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#7878a0', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{_gl.toUpperCase()}</span>
+                        <span style={{ fontSize:'0.7rem', color:'#5a5a80' }}>· {_gevs.length} sự kiện</span>
+                        <div style={{ flex:1, height:'1px', background:'rgba(120,120,160,0.18)' }} />
+                      </div>
+                      {_gevs.map(ev => {
                   const s = STATUS_MAP[ev.status] || { label: ev.status, cls: '' };
                   const isCancelled = ev.status === 'cancelled';
                   const accent    = isCancelled ? '#f87171' : '#7878a0';
@@ -1304,7 +1319,10 @@ export default function Events() {
                       </div>
                     </div>
                   );
-                })}
+                      })}
+                    </div>
+                  ));
+                })()}
               </div>
             </>}
           </div>
