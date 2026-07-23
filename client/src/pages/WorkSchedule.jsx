@@ -965,13 +965,13 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
               </div>
             );
           }
-          const isSADirSchedule = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+          const canToggleExempt = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
           const exemptDates = form.exempt_dates || [];
           function toggleExemptDate(d) {
             const cur = form.exempt_dates || [];
             setForm(f => ({ ...f, exempt_dates: cur.includes(d) ? cur.filter(x => x !== d) : [...cur, d] }));
           }
-          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} exemptDates={isSADirSchedule ? exemptDates : []} onToggleExempt={isSADirSchedule ? toggleExemptDate : null} />;
+          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} exemptDates={canToggleExempt ? exemptDates : []} onToggleExempt={canToggleExempt ? toggleExemptDate : null} />;
           return (
             <>
               {zones.today.length > 0 && <>
