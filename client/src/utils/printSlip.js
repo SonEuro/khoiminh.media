@@ -1,4 +1,4 @@
-function buildSlipHTML(tx, preview = false, returnUrl = null) {
+export function buildSlipHTML(tx, preview = false, returnUrl = null, embedMode = false) {
   const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
   const slipLabel = tx.type === 'OUT' ? 'Số phiếu xuất' : tx.type === 'RETURN' ? 'Số phiếu nhập' : 'Số phiếu';
   const isReturn  = tx.type === 'RETURN';
@@ -120,7 +120,7 @@ function buildSlipHTML(tx, preview = false, returnUrl = null) {
     ? `window.location.replace(${JSON.stringify(returnUrl)})`
     : `window.close() || history.back()`;
 
-  const previewBar = preview ? `
+  const previewBar = embedMode ? '' : preview ? `
   <div class="top-bar">
     <span>👁 Xem trước — <strong>${tx.code}</strong></span>
     <div style="display:flex;gap:8px">
@@ -140,7 +140,7 @@ function buildSlipHTML(tx, preview = false, returnUrl = null) {
   .content { margin-top:52px; }
   @media print { .top-bar { display:none!important; } .content { margin-top:0!important; } }`;
 
-  const printScript = preview ? '' : `
+  const printScript = (embedMode || preview) ? '' : `
 <script>
   window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
 </script>`;
@@ -219,10 +219,7 @@ ${printScript}
 export function printSlip(tx) {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
-    const returnUrl = window.location.href;
-    const html = buildSlipHTML(tx, true, returnUrl);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    window.location.href = URL.createObjectURL(blob);
+    window.dispatchEvent(new CustomEvent('print-slip-mobile', { detail: tx }));
     return;
   }
   const html = buildSlipHTML(tx, false);

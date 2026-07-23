@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { StaffGroupsProvider } from './contexts/StaffGroupsContext';
 import { subscribePush } from './utils/pushSubscribe';
+import { buildSlipHTML } from './utils/printSlip';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -51,12 +52,47 @@ function AppRoutes() {
   );
 }
 
+function MobilePrintOverlay() {
+  const [tx, setTx] = useState(null);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const handler = e => setTx(e.detail);
+    window.addEventListener('print-slip-mobile', handler);
+    return () => window.removeEventListener('print-slip-mobile', handler);
+  }, []);
+
+  if (!tx) return null;
+
+  const GOLD = '#e8c97a';
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: '#1a1a2e', borderBottom: '2px solid #c9a84c', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <span style={{ color: GOLD, fontWeight: 700, fontSize: '14px', fontFamily: 'sans-serif' }}>Phiếu {tx.code}</span>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => iframeRef.current?.contentWindow?.print()}
+            style={{ padding: '7px 14px', borderRadius: '6px', border: 'none', background: 'linear-gradient(135deg,#b8922e,#e8c97a)', color: '#000', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'sans-serif' }}>
+            🖨️ In phiếu
+          </button>
+          <button onClick={() => setTx(null)}
+            style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer', fontFamily: 'sans-serif' }}>
+            ✕ Đóng
+          </button>
+        </div>
+      </div>
+      <iframe ref={iframeRef} srcDoc={buildSlipHTML(tx, false, null, true)}
+        style={{ flex: 1, border: 'none', width: '100%', background: '#fff' }} title="Phiếu in" />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <StaffGroupsProvider>
         <BrowserRouter>
           <AppRoutes />
+          <MobilePrintOverlay />
         </BrowserRouter>
       </StaffGroupsProvider>
     </AuthProvider>
