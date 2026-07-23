@@ -3,6 +3,7 @@ import { Calculator, Package, Truck, Search, ChevronDown, ChevronRight, Download
 import { api } from '../api';
 
 const GOLD = '#c9a84c';
+const safeName = s => (s || '').replace(/[/\\:*?"<>|]/g, '-').trim();
 
 function fmtDate(d) {
   if (!d) return '';
@@ -113,41 +114,43 @@ function KhoiMinhTab() {
   const byMonth = useMemo(() => groupByMonth(filtered), [filtered]);
 
   const exportExcel = async (evList, filename) => {
-    const { default: ExcelJS } = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Chi Phí Nghiệm Thu');
-    ws.columns = [
-      { header: 'STT',          key: 'stt',            width: 6  },
-      { header: 'Thiết Bị',     key: 'equipment_name', width: 36 },
-      { header: 'ĐVT',          key: 'unit',           width: 8  },
-      { header: 'SL Xuất',      key: 'qty_total',      width: 10 },
-      { header: 'FREE',         key: 'qty_free',       width: 8  },
-      { header: 'SL Tính Tiền', key: 'qty_billed',     width: 13 },
-      { header: 'Số Ngày',      key: 'ngay_count',     width: 10 },
-    ];
-    let stt = 0;
-    for (const ev of evList) {
-      for (const it of ev.items) {
-        stt++;
-        ws.addRow({ stt, equipment_name: it.name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
-      }
-    }
-    ws.eachRow((row, n) => {
-      row.eachCell({ includeEmpty: true }, cell => {
-        cell.border = BORDER_THIN;
-        if (n === 1) {
-          cell.font = { bold: true };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        } else {
-          cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Chi Phí Nghiệm Thu');
+      ws.columns = [
+        { header: 'STT',          key: 'stt',            width: 6  },
+        { header: 'Thiết Bị',     key: 'equipment_name', width: 36 },
+        { header: 'ĐVT',          key: 'unit',           width: 8  },
+        { header: 'SL Xuất',      key: 'qty_total',      width: 10 },
+        { header: 'FREE',         key: 'qty_free',       width: 8  },
+        { header: 'SL Tính Tiền', key: 'qty_billed',     width: 13 },
+        { header: 'Số Ngày',      key: 'ngay_count',     width: 10 },
+      ];
+      let stt = 0;
+      for (const ev of evList) {
+        for (const it of ev.items) {
+          stt++;
+          ws.addRow({ stt, equipment_name: it.name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
         }
+      }
+      ws.eachRow((row, n) => {
+        row.eachCell({ includeEmpty: true }, cell => {
+          cell.border = BORDER_THIN;
+          if (n === 1) {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
+          }
+        });
       });
-    });
-    const buf  = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url  = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
+      const buf  = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('Lỗi xuất Excel: ' + e.message); }
   };
 
   if (loading) return <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</p>;
@@ -186,7 +189,7 @@ function KhoiMinhTab() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                     <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '56px', textAlign: 'right' }}>{ev.items.length} thiết bị</span>
-                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${ev.event_name}.xlsx`); }}
+                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${safeName(ev.event_name)}.xlsx`); }}
                       title="Xuất Excel sự kiện này"
                       style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
                       <Download size={12} />
@@ -277,50 +280,52 @@ function NccTab() {
 
   const buildFilename = () => {
     const parts = ['Nghiệm Thu'];
-    if (selectedNcc) parts.push(selectedNcc);
+    if (selectedNcc) parts.push(safeName(selectedNcc));
     if (selectedEventId) {
       const ev = allEvents.find(e => e.event_id === Number(selectedEventId));
-      if (ev) parts.push(ev.event_name);
+      if (ev) parts.push(safeName(ev.event_name));
     }
     return parts.join(' - ') + '.xlsx';
   };
 
   const exportExcel = async (evList, filename) => {
-    const { default: ExcelJS } = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Chi Phí NCC');
-    ws.columns = [
-      { header: 'STT',          key: 'stt',         width: 6  },
-      { header: 'Thiết Bị',     key: 'item_name',   width: 36 },
-      { header: 'ĐVT',          key: 'unit',        width: 8  },
-      { header: 'SL Xuất',      key: 'quantity',    width: 10 },
-      { header: 'FREE',         key: 'free',        width: 8  },
-      { header: 'SL Tính Tiền', key: 'billed',      width: 13 },
-      { header: 'Số Ngày',      key: 'rental_days', width: 10 },
-    ];
-    let stt = 0;
-    for (const ev of evList) {
-      for (const it of ev.items) {
-        stt++;
-        ws.addRow({ stt, item_name: it.item_name, unit: it.unit || 'Cái', quantity: it.quantity, free: '', billed: it.quantity, rental_days: it.rental_days || 1 });
-      }
-    }
-    ws.eachRow((row, n) => {
-      row.eachCell({ includeEmpty: true }, cell => {
-        cell.border = BORDER_THIN;
-        if (n === 1) {
-          cell.font = { bold: true };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        } else {
-          cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Chi Phí NCC');
+      ws.columns = [
+        { header: 'STT',          key: 'stt',         width: 6  },
+        { header: 'Thiết Bị',     key: 'item_name',   width: 36 },
+        { header: 'ĐVT',          key: 'unit',        width: 8  },
+        { header: 'SL Xuất',      key: 'quantity',    width: 10 },
+        { header: 'FREE',         key: 'free',        width: 8  },
+        { header: 'SL Tính Tiền', key: 'billed',      width: 13 },
+        { header: 'Số Ngày',      key: 'rental_days', width: 10 },
+      ];
+      let stt = 0;
+      for (const ev of evList) {
+        for (const it of ev.items) {
+          stt++;
+          ws.addRow({ stt, item_name: it.item_name, unit: it.unit || 'Cái', quantity: it.quantity, free: '', billed: it.quantity, rental_days: it.rental_days || 1 });
         }
+      }
+      ws.eachRow((row, n) => {
+        row.eachCell({ includeEmpty: true }, cell => {
+          cell.border = BORDER_THIN;
+          if (n === 1) {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
+          }
+        });
       });
-    });
-    const buf  = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url  = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
+      const buf  = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('Lỗi xuất Excel: ' + e.message); }
   };
 
   if (loading) return <p style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</p>;
@@ -376,7 +381,7 @@ function NccTab() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                           <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '44px', textAlign: 'right' }}>{ev.items.length} mục</span>
-                          <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Nghiệm Thu${selectedNcc ? ` - ${selectedNcc}` : ''} - ${ev.event_name}.xlsx`); }}
+                          <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Nghiệm Thu${selectedNcc ? ` - ${safeName(selectedNcc)}` : ''} - ${safeName(ev.event_name)}.xlsx`); }}
                             title="Xuất Excel sự kiện này"
                             style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
                             <Download size={12} />
