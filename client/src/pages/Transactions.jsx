@@ -1262,13 +1262,11 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
       })
     : events;
 
-  // Group by month (newest first), fallback qua nhiều trường ngày
+  // Group by month (newest first), dùng group_date từ server
   const monthGroups = (() => {
-    const tryKey = s => { const k = (s || '').slice(0, 7); return /^\d{4}-\d{2}$/.test(k) ? k : null; };
-    const tryJsonKey = s => { try { const v = JSON.parse(s || '[]'); return Array.isArray(v) && v.length ? tryKey(v[0]) : null; } catch { return null; } };
     const map = {};
     for (const ev of filtered) {
-      const key = tryKey(ev.archived_at) || tryKey(ev.start_date) || tryKey(ev.filming_date) || tryJsonKey(ev.filming_dates) || tryJsonKey(ev.start_dates) || tryKey(ev.setup_date) || tryKey(ev.created_at) || '0000-00';
+      const key = (ev.group_date || '').slice(0, 7).replace(/[^0-9-]/g, '') || '0000-00';
       if (!map[key]) {
         const [y, m] = key.split('-');
         map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };

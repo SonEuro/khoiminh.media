@@ -292,7 +292,16 @@ router.get('/', (req, res) => {
   let sql = `
     SELECT e.*,
       u.role AS created_by_role,
-      (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) as tx_count
+      (SELECT COUNT(*) FROM transactions t WHERE t.event_id = e.id) as tx_count,
+      COALESCE(
+        CASE WHEN e.archived_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.archived_at ELSE NULL END,
+        CASE WHEN e.start_date  GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.start_date  ELSE NULL END,
+        CASE WHEN e.filming_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.filming_date ELSE NULL END,
+        json_extract(e.filming_dates, '$[0]'),
+        json_extract(e.start_dates, '$[0]'),
+        CASE WHEN e.setup_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]*' THEN e.setup_date ELSE NULL END,
+        e.created_at
+      ) AS group_date
     FROM events e
     LEFT JOIN users u ON u.id = e.created_by_id
     WHERE e.deleted_at IS NULL
