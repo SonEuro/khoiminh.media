@@ -109,14 +109,10 @@ function KhoiMinhTab() {
       }
     }
     ws.eachRow((row, n) => {
-      const fill = n === 1
-        ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
-        : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
       row.eachCell({ includeEmpty: true }, cell => {
-        cell.fill = fill;
         cell.border = BORDER_THIN;
         if (n === 1) {
-          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.font = { bold: true };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
           cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
@@ -268,14 +264,10 @@ function NccTab() {
       }
     }
     ws.eachRow((row, n) => {
-      const fill = n === 1
-        ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
-        : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
       row.eachCell({ includeEmpty: true }, cell => {
-        cell.fill = fill;
         cell.border = BORDER_THIN;
         if (n === 1) {
-          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.font = { bold: true };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
           cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
