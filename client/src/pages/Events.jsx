@@ -1197,7 +1197,7 @@ export default function Events() {
                     : ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast)
                     : (canFullEdit || isTruongPhongOfDeptPast);
                   const showSuaLich = user?.role === 'SUPER_ADMIN';
-                  const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                  const showCancel  = !ev.archived_at && canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                   const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
