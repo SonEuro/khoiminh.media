@@ -204,20 +204,33 @@ function KhoiMinhTab() {
 
 // ── Tab Chi Phí NCC ───────────────────────────────────────
 function NccTab() {
-  const [rows, setRows]             = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [selectedNcc, setSelectedNcc] = useState('');
-  const [search, setSearch]         = useState('');
-  const [expandedId, setExpandedId] = useState(null);
+  const [rows, setRows]                   = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  const [selectedNcc, setSelectedNcc]     = useState('');
+  const [expandedId, setExpandedId]       = useState(null);
 
   useEffect(() => {
     api.getKeToanNcc().then(setRows).finally(() => setLoading(false));
   }, []);
 
-  const suppliers = useMemo(() => [...new Set(rows.map(r => r.supplier).filter(Boolean))].sort(), [rows]);
+  const allEvents = useMemo(() => {
+    const map = {};
+    for (const r of rows) {
+      if (!map[r.event_id]) map[r.event_id] = { event_id: r.event_id, event_name: r.event_name };
+    }
+    return Object.values(map).sort((a, b) => b.event_id - a.event_id);
+  }, [rows]);
+
+  const suppliers = useMemo(() => {
+    const relevant = selectedEventId ? rows.filter(r => r.event_id === Number(selectedEventId)) : rows;
+    return [...new Set(relevant.map(r => r.supplier).filter(Boolean))].sort();
+  }, [rows, selectedEventId]);
 
   const events = useMemo(() => {
-    const relevant = selectedNcc ? rows.filter(r => r.supplier === selectedNcc) : rows;
+    let relevant = rows;
+    if (selectedEventId) relevant = relevant.filter(r => r.event_id === Number(selectedEventId));
+    if (selectedNcc) relevant = relevant.filter(r => r.supplier === selectedNcc);
     const map = {};
     for (const row of relevant) {
       if (!map[row.event_id]) {
@@ -233,34 +246,38 @@ function NccTab() {
       ...ev,
       items: Object.values(ev.items).sort((a, b) => a.supplier.localeCompare(b.supplier) || a.item_name.localeCompare(b.item_name)),
     }));
-  }, [rows, selectedNcc]);
+  }, [rows, selectedEventId, selectedNcc]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return events;
-    const q = search.toLowerCase();
-    return events.filter(ev => ev.event_name.toLowerCase().includes(q) || (ev.client || '').toLowerCase().includes(q));
-  }, [events, search]);
+  const byMonth = useMemo(() => groupByMonth(events), [events]);
 
-  const byMonth = useMemo(() => groupByMonth(filtered), [filtered]);
+  const buildFilename = () => {
+    const parts = ['Chi Phí Nghiệm Thu NCC'];
+    if (selectedEventId) {
+      const ev = allEvents.find(e => e.event_id === Number(selectedEventId));
+      if (ev) parts.push(ev.event_name);
+    }
+    if (selectedNcc) parts.push(selectedNcc);
+    return parts.join(' - ') + '.xlsx';
+  };
 
   const exportExcel = async (evList, filename) => {
     const { default: ExcelJS } = await import('exceljs');
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Chi Phí NCC');
     ws.columns = [
-      { header: 'Sự Kiện',      key: 'event_name', width: 32 },
-      { header: 'Khách Hàng',   key: 'client',     width: 20 },
-      { header: 'Ngày',         key: 'start_date', width: 12 },
-      { header: 'NCC',          key: 'supplier',   width: 22 },
-      { header: 'Tên Thiết Bị', key: 'item_name',  width: 32 },
-      { header: 'Số Lượng',     key: 'quantity',   width: 10 },
-      { header: 'ĐVT',          key: 'unit',       width: 8  },
-      { header: 'Số Ngày',      key: 'rental_days',width: 10 },
-      { header: 'Ghi Chú',      key: 'notes',      width: 25 },
+      { header: 'STT',          key: 'stt',         width: 6  },
+      { header: 'Thiết Bị',     key: 'item_name',   width: 36 },
+      { header: 'ĐVT',          key: 'unit',        width: 8  },
+      { header: 'SL Xuất',      key: 'quantity',    width: 10 },
+      { header: 'FREE',         key: 'free',        width: 8  },
+      { header: 'SL Tính Tiền', key: 'billed',      width: 13 },
+      { header: 'Số Ngày',      key: 'rental_days', width: 10 },
     ];
+    let stt = 0;
     for (const ev of evList) {
       for (const it of ev.items) {
-        ws.addRow({ event_name: ev.event_name, client: ev.client || '', start_date: fmtDate(ev.start_date), supplier: it.supplier, item_name: it.item_name, quantity: it.quantity, unit: it.unit || 'Cái', rental_days: it.rental_days, notes: it.notes || '' });
+        stt++;
+        ws.addRow({ stt, item_name: it.item_name, unit: it.unit || 'Cái', quantity: it.quantity, free: '', billed: it.quantity, rental_days: it.rental_days || 1 });
       }
     }
     ws.eachRow((row, n) => {
@@ -286,16 +303,22 @@ function NccTab() {
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+        <select value={selectedEventId} onChange={e => { setSelectedEventId(e.target.value); setSelectedNcc(''); setExpandedId(null); }}
+          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(20,20,35,0.9)', color: selectedEventId ? '#c0c0d8' : '#7878a0', fontSize: '0.83rem', outline: 'none', minWidth: '200px', cursor: 'pointer' }}>
+          <option value="">— Tất cả sự kiện —</option>
+          {allEvents.map(e => <option key={e.event_id} value={e.event_id}>{e.event_name}</option>)}
+        </select>
         <select value={selectedNcc} onChange={e => { setSelectedNcc(e.target.value); setExpandedId(null); }}
           style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(20,20,35,0.9)', color: selectedNcc ? '#c0c0d8' : '#7878a0', fontSize: '0.83rem', outline: 'none', minWidth: '170px', cursor: 'pointer' }}>
           <option value="">— Tất cả NCC —</option>
           {suppliers.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <div style={{ flex: 1, position: 'relative', minWidth: '160px' }}>
-          <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#7878a0' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện..."
-            style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
-        </div>
+        {(selectedEventId || selectedNcc) && events.length > 0 && (
+          <button onClick={() => exportExcel(events, buildFilename())}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700 }}>
+            <Download size={13} /> Xuất Excel
+          </button>
+        )}
       </div>
 
       {!events.length
@@ -303,7 +326,7 @@ function NccTab() {
         : (
           <>
             <p style={{ fontSize: '0.79rem', color: '#5a5a80', marginBottom: '10px' }}>
-              {filtered.length} sự kiện{search.trim() ? ` / ${events.length}` : ''}
+              {events.length} sự kiện
               {selectedNcc && <> · NCC: <span style={{ color: '#60a5fa', fontWeight: 700 }}>{selectedNcc}</span></>}
             </p>
             {byMonth.map(({ label, evs: monthEvs }) => (
