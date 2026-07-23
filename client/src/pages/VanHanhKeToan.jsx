@@ -46,35 +46,57 @@ function groupByMonth(events) {
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
 function KhoiMinhTab() {
   const [rows, setRows]           = useState([]);
+  const [nccRows, setNccRows]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
-    api.getKeToanKhoiMinh().then(setRows).finally(() => setLoading(false));
+    Promise.all([api.getKeToanKhoiMinh(), api.getKeToanNcc()])
+      .then(([km, ncc]) => { setRows(km); setNccRows(ncc); })
+      .finally(() => setLoading(false));
   }, []);
 
   const events = useMemo(() => {
-    const map = {};
+    const evMap = {};
+
+    // Phase 1: KhoiMinh items grouped by equipment_id
     for (const row of rows) {
-      if (!map[row.event_id]) {
-        map[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, ngay_count: calcNgay(row), items: {} };
+      if (!evMap[row.event_id]) {
+        evMap[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, ngay_count: calcNgay(row), byId: {} };
       }
-      const key = row.equipment_id;
-      if (!map[row.event_id].items[key]) {
-        map[row.event_id].items[key] = { equipment_id: row.equipment_id, equipment_name: row.equipment_name, category_name: row.category_name, unit: row.unit, qty_total: 0, qty_free: 0 };
+      const { byId } = evMap[row.event_id];
+      if (!byId[row.equipment_id]) {
+        byId[row.equipment_id] = { name: row.equipment_name, unit: row.unit, qty_total: 0, qty_free: 0 };
       }
-      map[row.event_id].items[key].qty_total += row.quantity;
-      map[row.event_id].items[key].qty_free  += row.qty_free;
+      byId[row.equipment_id].qty_total += row.quantity;
+      byId[row.equipment_id].qty_free  += row.qty_free;
     }
-    return Object.values(map).map(ev => ({
-      ...ev,
-      items: Object.values(ev.items)
+
+    // Phase 2: merge NCC items by name
+    for (const row of nccRows) {
+      if (!evMap[row.event_id]) continue;
+      const { byId } = evMap[row.event_id];
+      const key = `ncc__${row.item_name}`;
+      if (!byId[key]) byId[key] = { name: row.item_name, unit: row.unit || 'Cái', qty_total: 0, qty_free: 0 };
+      byId[key].qty_total += row.quantity;
+    }
+
+    // Phase 3: collapse by name, then build final list
+    return Object.values(evMap).map(ev => {
+      const byName = {};
+      for (const it of Object.values(ev.byId)) {
+        if (!byName[it.name]) byName[it.name] = { name: it.name, unit: it.unit, qty_total: 0, qty_free: 0 };
+        byName[it.name].qty_total += it.qty_total;
+        byName[it.name].qty_free  += it.qty_free;
+      }
+      const items = Object.values(byName)
         .map(it => ({ ...it, qty_billed: it.qty_total - it.qty_free }))
         .filter(it => it.qty_billed > 0)
-        .sort((a, b) => (a.category_name || '').localeCompare(b.category_name || '') || a.equipment_name.localeCompare(b.equipment_name)),
-    })).filter(ev => ev.items.length > 0);
-  }, [rows]);
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return { event_id: ev.event_id, event_name: ev.event_name, client: ev.client, start_date: ev.start_date, ngay_count: ev.ngay_count, items };
+    }).filter(ev => ev.items.length > 0);
+  }, [rows, nccRows]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return events;
@@ -105,7 +127,7 @@ function KhoiMinhTab() {
     for (const ev of evList) {
       for (const it of ev.items) {
         stt++;
-        ws.addRow({ stt, equipment_name: it.equipment_name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
+        ws.addRow({ stt, equipment_name: it.name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
       }
     }
     ws.eachRow((row, n) => {
@@ -172,17 +194,16 @@ function KhoiMinhTab() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                       <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
-                          {['STT','Danh Mục','Thiết Bị','ĐVT','SL Xuất','FREE','SL Tính Tiền'].map(h => (
+                          {['STT','Thiết Bị','ĐVT','SL Xuất','FREE','SL Tính Tiền'].map(h => (
                             <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL Xuất','FREE','SL Tính Tiền'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {ev.items.map((it, idx) => (
-                          <tr key={it.equipment_id} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                          <tr key={it.name} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
                             <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
-                            <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.category_name || '—'}</td>
-                            <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.equipment_name}</td>
+                            <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.name}</td>
                             <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.qty_total}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'center', color: it.qty_free > 0 ? '#a78bfa' : '#3a3a50' }}>{it.qty_free > 0 ? it.qty_free : '—'}</td>
