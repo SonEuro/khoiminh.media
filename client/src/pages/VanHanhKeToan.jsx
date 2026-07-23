@@ -10,6 +10,26 @@ function fmtDate(d) {
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
 }
 
+function parseDatesArr(multi, single) {
+  if (multi) {
+    try { const v = JSON.parse(multi); if (Array.isArray(v)) return v.filter(Boolean); } catch {}
+  }
+  if (single && single.trim()) return [single.trim()];
+  return [];
+}
+
+function calcNgay(row) {
+  const film = parseDatesArr(row.filming_dates, row.filming_date);
+  const show = parseDatesArr(row.show_dates, row.show_date);
+  return film.length * 1 + show.length * 0.5;
+}
+
+const BORDER_THIN = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+
+function applyBorders(ws) {
+  ws.eachRow(row => row.eachCell(cell => { cell.border = BORDER_THIN; }));
+}
+
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
 function KhoiMinhTab() {
   const [rows, setRows]           = useState([]);
@@ -25,7 +45,7 @@ function KhoiMinhTab() {
     const map = {};
     for (const row of rows) {
       if (!map[row.event_id]) {
-        map[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, items: {} };
+        map[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, ngay_count: calcNgay(row), items: {} };
       }
       const key = row.equipment_id;
       if (!map[row.event_id].items[key]) {
@@ -60,25 +80,26 @@ function KhoiMinhTab() {
     ws.columns = [
       { header: 'Sự Kiện',      key: 'event_name',     width: 32 },
       { header: 'Khách Hàng',   key: 'client',         width: 20 },
-      { header: 'Ngày',         key: 'start_date',     width: 12 },
       { header: 'Danh Mục',     key: 'category_name',  width: 18 },
       { header: 'Thiết Bị',     key: 'equipment_name', width: 32 },
       { header: 'ĐVT',          key: 'unit',           width: 8  },
       { header: 'SL Xuất',      key: 'qty_total',      width: 10 },
       { header: 'FREE',         key: 'qty_free',       width: 8  },
       { header: 'SL Tính Tiền', key: 'qty_billed',     width: 13 },
+      { header: 'Số Ngày',      key: 'ngay_count',     width: 10 },
     ];
     ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } };
     ws.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
     for (const ev of evList) {
       for (const it of ev.items) {
-        ws.addRow({ event_name: ev.event_name, client: ev.client || '', start_date: fmtDate(ev.start_date), category_name: it.category_name || '', equipment_name: it.equipment_name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed });
+        ws.addRow({ event_name: ev.event_name, client: ev.client || '', category_name: it.category_name || '', equipment_name: it.equipment_name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
       }
     }
     ws.eachRow((row, n) => {
       if (n > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
     });
+    applyBorders(ws);
     const buf  = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url  = URL.createObjectURL(blob);
@@ -217,6 +238,7 @@ function NccTab() {
     ws.eachRow((row, n) => {
       if (n > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
     });
+    applyBorders(ws);
     const buf  = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url  = URL.createObjectURL(blob);

@@ -5,12 +5,16 @@ const db = require('../database');
 router.get('/khoi-minh', (req, res) => {
   const rows = db.prepare(`
     SELECT
-      e.id          AS event_id,
-      e.name        AS event_name,
-      e.code        AS event_code,
+      e.id            AS event_id,
+      e.name          AS event_name,
+      e.code          AS event_code,
       e.client,
       e.start_date,
-      eq.id         AS equipment_id,
+      e.filming_date,
+      e.filming_dates,
+      e.show_date,
+      e.show_dates,
+      eq.id           AS equipment_id,
       eq.name       AS equipment_name,
       eq.unit,
       c.name        AS category_name,
