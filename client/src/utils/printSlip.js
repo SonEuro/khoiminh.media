@@ -121,7 +121,7 @@ function buildSlipHTML(tx, preview = false) {
     <span>👁 Xem trước — <strong>${tx.code}</strong></span>
     <div style="display:flex;gap:8px">
       <button class="btn-print" onclick="window.print()">🖨️ In phiếu</button>
-      <button class="btn-close" onclick="window.close()">✕ Đóng</button>
+      <button class="btn-close" onclick="window.close() || history.back()">✕ Đóng</button>
     </div>
   </div>` : `
   <div class="top-bar">
@@ -215,7 +215,14 @@ ${printScript}
 export function printSlip(tx) {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const html = buildSlipHTML(tx, isMobile);
-  const win  = window.open('', '_blank', 'width=820,height=700');
+  if (isMobile) {
+    // Mở trong cùng tab để nút Đóng (history.back) hoạt động trên iOS
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    window.location.href = url;
+    return;
+  }
+  const win = window.open('', '_blank', 'width=820,height=700');
   if (!win) { alert('Vui lòng cho phép popup để in phiếu'); return; }
   win.document.write(html);
   win.document.close();
