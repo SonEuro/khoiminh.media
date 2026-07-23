@@ -935,6 +935,15 @@ export default function Events() {
     catch (e) { alert(e.message); }
   };
 
+  const handleToggleExempt = async (ev) => {
+    const msg = ev.is_exempt
+      ? `Bỏ "Không vi phạm" cho sự kiện "${ev.name}"?`
+      : `Đánh dấu sự kiện "${ev.name}" là Không vi phạm?\n(Không cần báo cáo, không cần xuất phiếu đúng hạn)`;
+    if (!confirm(msg)) return;
+    try { await api.toggleEventExempt(ev.id); load(); }
+    catch (e) { alert(e.message); }
+  };
+
   return (
     <div className="p-6">
       {showTrash && <TrashView onClose={() => { setShowTrash(false); load(); }} canPermanentDelete={user?.role === 'SUPER_ADMIN'} user={user} />}
@@ -1037,7 +1046,19 @@ export default function Events() {
                   </span>
                 )}
                 {filmDates.length > 0 && (
-                  <span style={{ color:'#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+                    <span style={{ color: ev.is_exempt ? '#86efac' : '#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
+                    {user?.role === 'SUPER_ADMIN' && (
+                      <button onClick={() => handleToggleExempt(ev)} style={{
+                        fontSize:'0.72rem', fontWeight:700, padding:'2px 8px', borderRadius:'4px', cursor:'pointer', lineHeight:'1.4',
+                        border: ev.is_exempt ? '1px solid rgba(134,239,172,0.5)' : '1px solid rgba(251,146,60,0.35)',
+                        background: ev.is_exempt ? 'rgba(134,239,172,0.12)' : 'rgba(251,146,60,0.08)',
+                        color: ev.is_exempt ? '#86efac' : '#fb923c',
+                      }}>
+                        {ev.is_exempt ? '✓ Không vi phạm' : 'Không vi phạm'}
+                      </button>
+                    )}
+                  </span>
                 )}
               </div>
               {/* Hàng 5: buttons */}

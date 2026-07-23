@@ -606,4 +606,15 @@ router.post('/:id/unarchive', requireRole('SUPER_ADMIN'), (req, res) => {
   res.json({ ok: true });
 });
 
+router.post('/:id/exempt', requireRole('SUPER_ADMIN'), (req, res) => {
+  const ev = db.prepare('SELECT id, is_exempt FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  const newVal = ev.is_exempt ? 0 : 1;
+  db.prepare('UPDATE events SET is_exempt = ? WHERE id = ?').run(newVal, req.params.id);
+  if (newVal === 1) {
+    db.prepare(`UPDATE lead_report_obligations SET dismissed = 1 WHERE event_id = ? AND violation_created = 0`).run(req.params.id);
+  }
+  res.json({ ok: true, is_exempt: newVal });
+});
+
 module.exports = router;

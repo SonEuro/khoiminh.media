@@ -143,6 +143,7 @@ export const api = {
   archiveEvent:          (id) => request(`/events/${id}/archive`,           { method: 'POST' }),
   unarchiveEvent:        (id) => request(`/events/${id}/unarchive`,         { method: 'POST' }),
   deleteArchivedEvent:   (id) => request(`/events/${id}/archive-permanent`, { method: 'DELETE' }),
+  toggleEventExempt:     (id) => request(`/events/${id}/exempt`,            { method: 'POST' }),
 
   // Work Schedules (Lịch làm việc)
   getWorkSchedules: (params = {}) => {

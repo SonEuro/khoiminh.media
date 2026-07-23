@@ -25,6 +25,7 @@ function getEventsKyThuatNoOut() {
         e.filming_date = ?
         OR (e.filming_dates IS NOT NULL AND e.filming_dates LIKE '%"' || ? || '"%')
       )
+      AND (e.is_exempt IS NULL OR e.is_exempt = 0)
       AND NOT EXISTS (
         SELECT 1 FROM transactions t
         WHERE t.event_id = e.id

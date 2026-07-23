@@ -157,10 +157,13 @@ function checkAndCreateViolations() {
       const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
       const submittedAt = reportRow?.created_at?.slice(0, 16);
 
-      // Nếu event đã bị xóa vĩnh viễn → bỏ qua obligation này
-      if (ob.event_id && !db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id)) {
-        db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
-        continue;
+      // Nếu event đã bị xóa vĩnh viễn hoặc được miễn vi phạm → bỏ qua
+      if (ob.event_id) {
+        const evRow = db.prepare('SELECT id, is_exempt FROM events WHERE id = ?').get(ob.event_id);
+        if (!evRow || evRow.is_exempt) {
+          db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
+          continue;
+        }
       }
       const safeEventId = ob.event_id || null;
 
