@@ -185,12 +185,12 @@ function KhoiMinhTab() {
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '56px', textAlign: 'right' }}>{ev.items.length} thiết bị</span>
                     <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${ev.event_name}.xlsx`); }}
                       title="Xuất Excel sự kiện này"
                       style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
                       <Download size={12} />
                     </button>
-                    <span style={{ fontSize: '0.74rem', color: '#5a5a80' }}>{ev.items.length} thiết bị</span>
                   </div>
                 </div>
                 {isExp && (
