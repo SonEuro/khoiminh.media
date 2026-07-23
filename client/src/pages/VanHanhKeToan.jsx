@@ -56,7 +56,7 @@ function KhoiMinhTab() {
   const exportExcel = async (evList, filename) => {
     const { default: ExcelJS } = await import('exceljs');
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Chi Phí Nhiệm Thu');
+    const ws = wb.addWorksheet('Chi Phí Nghiệm Thu');
     ws.columns = [
       { header: 'Sự Kiện',      key: 'event_name',     width: 32 },
       { header: 'Khách Hàng',   key: 'client',         width: 20 },
@@ -97,7 +97,7 @@ function KhoiMinhTab() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện, khách hàng..."
             style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <button onClick={() => exportExcel(search.trim() ? filtered : events, 'Chi Phí Nhiệm Thu.xlsx')}
+        <button onClick={() => exportExcel(search.trim() ? filtered : events, 'Chi Phí Nghiệm Thu.xlsx')}
           style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, flexShrink: 0 }}>
           <FileDown size={14} /> Xuất Excel
         </button>
@@ -118,7 +118,7 @@ function KhoiMinhTab() {
                   {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
                 </p>
               </div>
-              <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nhiệm Thu - ${ev.event_name}.xlsx`); }}
+              <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${ev.event_name}.xlsx`); }}
                 title="Xuất Excel sự kiện này"
                 style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, fontSize: '0.72rem', gap: '4px' }}>
                 <Download size={12} />
@@ -245,7 +245,7 @@ function NccTab() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm sự kiện..."
             style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '8px', border: '1px solid rgba(120,120,160,0.2)', background: 'rgba(255,255,255,0.04)', color: '#c0c0d8', fontSize: '0.83rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <button onClick={() => exportExcel(search.trim() ? filtered : events, `Chi Phí Nhiệm Thu NCC${selectedNcc ? ' - ' + selectedNcc : ''}.xlsx`)}
+        <button onClick={() => exportExcel(search.trim() ? filtered : events, `Chi Phí Nghiệm Thu NCC${selectedNcc ? ' - ' + selectedNcc : ''}.xlsx`)}
           style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 700, flexShrink: 0 }}>
           <FileDown size={14} /> Xuất Excel
         </button>
@@ -272,7 +272,7 @@ function NccTab() {
                         {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
                       </p>
                     </div>
-                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nhiệm Thu NCC - ${ev.event_name}.xlsx`); }}
+                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu NCC - ${ev.event_name}.xlsx`); }}
                       title="Xuất Excel sự kiện này"
                       style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, gap: '4px' }}>
                       <Download size={12} />
