@@ -112,7 +112,7 @@ function KhoiMinhTab() {
       const fill = n === 1
         ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
         : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
-      row.eachCell(cell => {
+      row.eachCell({ includeEmpty: true }, cell => {
         cell.fill = fill;
         cell.border = BORDER_THIN;
         if (n === 1) {
@@ -271,7 +271,7 @@ function NccTab() {
       const fill = n === 1
         ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
         : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
-      row.eachCell(cell => {
+      row.eachCell({ includeEmpty: true }, cell => {
         cell.fill = fill;
         cell.border = BORDER_THIN;
         if (n === 1) {
