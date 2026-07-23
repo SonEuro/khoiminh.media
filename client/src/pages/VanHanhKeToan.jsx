@@ -93,28 +93,34 @@ function KhoiMinhTab() {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Chi Phí Nghiệm Thu');
     ws.columns = [
-      { header: 'Sự Kiện',      key: 'event_name',     width: 32 },
-      { header: 'Khách Hàng',   key: 'client',         width: 20 },
-      { header: 'Danh Mục',     key: 'category_name',  width: 18 },
-      { header: 'Thiết Bị',     key: 'equipment_name', width: 32 },
+      { header: 'STT',          key: 'stt',            width: 6  },
+      { header: 'Thiết Bị',     key: 'equipment_name', width: 36 },
       { header: 'ĐVT',          key: 'unit',           width: 8  },
       { header: 'SL Xuất',      key: 'qty_total',      width: 10 },
       { header: 'FREE',         key: 'qty_free',       width: 8  },
       { header: 'SL Tính Tiền', key: 'qty_billed',     width: 13 },
       { header: 'Số Ngày',      key: 'ngay_count',     width: 10 },
     ];
-    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } };
-    ws.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    let stt = 0;
     for (const ev of evList) {
       for (const it of ev.items) {
-        ws.addRow({ event_name: ev.event_name, client: ev.client || '', category_name: it.category_name || '', equipment_name: it.equipment_name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
+        stt++;
+        ws.addRow({ stt, equipment_name: it.equipment_name, unit: it.unit, qty_total: it.qty_total, qty_free: it.qty_free || '', qty_billed: it.qty_billed, ngay_count: ev.ngay_count || '' });
       }
     }
     ws.eachRow((row, n) => {
-      if (n > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
+      const fill = n === 1
+        ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
+        : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
+      row.eachCell(cell => {
+        cell.fill = fill;
+        cell.border = BORDER_THIN;
+        if (n === 1) {
+          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
     });
-    applyBorders(ws);
     const buf  = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url  = URL.createObjectURL(blob);
@@ -254,18 +260,24 @@ function NccTab() {
       { header: 'Số Ngày',      key: 'rental_days',width: 10 },
       { header: 'Ghi Chú',      key: 'notes',      width: 25 },
     ];
-    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } };
-    ws.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
     for (const ev of evList) {
       for (const it of ev.items) {
         ws.addRow({ event_name: ev.event_name, client: ev.client || '', start_date: fmtDate(ev.start_date), supplier: it.supplier, item_name: it.item_name, quantity: it.quantity, unit: it.unit || 'Cái', rental_days: it.rental_days, notes: it.notes || '' });
       }
     }
     ws.eachRow((row, n) => {
-      if (n > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
+      const fill = n === 1
+        ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1a1a2e' } }
+        : { type: 'pattern', pattern: 'solid', fgColor: { argb: n % 2 === 0 ? 'FFF0F0F0' : 'FFFFFFFF' } };
+      row.eachCell(cell => {
+        cell.fill = fill;
+        cell.border = BORDER_THIN;
+        if (n === 1) {
+          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
     });
-    applyBorders(ws);
     const buf  = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url  = URL.createObjectURL(blob);
