@@ -118,6 +118,8 @@ function KhoiMinhTab() {
         if (n === 1) {
           cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else {
+          cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
         }
       });
     });
@@ -275,6 +277,8 @@ function NccTab() {
         if (n === 1) {
           cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else {
+          cell.alignment = { horizontal: cell.col === 2 ? 'left' : 'center', vertical: 'middle' };
         }
       });
     });
