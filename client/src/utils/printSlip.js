@@ -1,4 +1,4 @@
-function buildSlipHTML(tx, preview = false) {
+function buildSlipHTML(tx, preview = false, returnUrl = null) {
   const typeLabel = tx.type === 'OUT' ? 'XUẤT KHO' : tx.type === 'RETURN' ? 'NHẬP KHO' : 'SỬA CHỮA';
   const slipLabel = tx.type === 'OUT' ? 'Số phiếu xuất' : tx.type === 'RETURN' ? 'Số phiếu nhập' : 'Số phiếu';
   const isReturn  = tx.type === 'RETURN';
@@ -116,17 +116,21 @@ function buildSlipHTML(tx, preview = false) {
 </table>${isFirst ? '' : '</div>'}`;
   }).join('\n');
 
+  const closeAction = returnUrl
+    ? `window.location.replace(${JSON.stringify(returnUrl)})`
+    : `window.close() || history.back()`;
+
   const previewBar = preview ? `
   <div class="top-bar">
     <span>👁 Xem trước — <strong>${tx.code}</strong></span>
     <div style="display:flex;gap:8px">
       <button class="btn-print" onclick="window.print()">🖨️ In phiếu</button>
-      <button class="btn-close" onclick="window.close() || history.back()">✕ Đóng</button>
+      <button class="btn-close" onclick="${closeAction}">✕ Đóng</button>
     </div>
   </div>` : `
   <div class="top-bar">
     <span>Phiếu <strong>${tx.code}</strong></span>
-    <button class="btn-close" onclick="window.close() || window.history.back()">✕ Đóng</button>
+    <button class="btn-close" onclick="${closeAction}">✕ Đóng</button>
   </div>`;
 
   const previewStyle = `
@@ -214,14 +218,14 @@ ${printScript}
 
 export function printSlip(tx) {
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const html = buildSlipHTML(tx, isMobile);
   if (isMobile) {
-    // Mở trong cùng tab để nút Đóng (history.back) hoạt động trên iOS
+    const returnUrl = window.location.href;
+    const html = buildSlipHTML(tx, true, returnUrl);
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-    window.location.href = url;
+    window.location.href = URL.createObjectURL(blob);
     return;
   }
+  const html = buildSlipHTML(tx, false);
   const win = window.open('', '_blank', 'width=820,height=700');
   if (!win) { alert('Vui lòng cho phép popup để in phiếu'); return; }
   win.document.write(html);
