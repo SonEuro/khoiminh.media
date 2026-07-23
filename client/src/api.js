@@ -169,6 +169,10 @@ export const api = {
   getStaffFlags: () => request('/staff-flags'),
   toggleStaffFlag: (name, vanPhong) => request('/staff-flags/toggle', { method: 'POST', body: { name, vanPhong } }),
 
+  // Vận Hành Kế Toán
+  getKeToanKhoiMinh: () => request('/van-hanh-ke-toan/khoi-minh'),
+  getKeToanNcc: () => request('/van-hanh-ke-toan/ncc'),
+
   // NCC catalog
   getNccCatalog: () => request('/ncc/catalog'),
   getNccSuppliers: () => request('/ncc'),
