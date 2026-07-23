@@ -954,7 +954,7 @@ export default function Events() {
           onClick={() => { setShowArchived(false); setStatusFilter(''); }}>
           Tất cả
         </button>
-        {user?.role === 'SUPER_ADMIN' ? (
+        {(user?.role === 'SUPER_ADMIN' || user?.position === 'Trưởng phòng') ? (
           <button
             className={`btn btn-sm ev-btn-filter ${showArchived ? 'btn-primary' : 'btn-secondary'}`}
             style={showArchived ? { background:'#7c3aed', borderColor:'#7c3aed' } : { borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa' }}
