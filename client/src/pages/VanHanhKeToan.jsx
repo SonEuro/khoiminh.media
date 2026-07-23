@@ -30,6 +30,20 @@ function applyBorders(ws) {
   ws.eachRow(row => row.eachCell(cell => { cell.border = BORDER_THIN; }));
 }
 
+function groupByMonth(events) {
+  const map = {};
+  for (const ev of events) {
+    const key = ev.start_date ? ev.start_date.slice(0, 7) : '0000-00';
+    if (!map[key]) {
+      const [y, m] = key.split('-');
+      map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };
+    }
+    map[key].evs.push(ev);
+  }
+  return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
+}
+}
+
 // ── Tab Chi Phí Khôi Minh ─────────────────────────────────
 function KhoiMinhTab() {
   const [rows, setRows]           = useState([]);
@@ -72,6 +86,8 @@ function KhoiMinhTab() {
       (ev.event_code || '').toLowerCase().includes(q)
     );
   }, [events, search]);
+
+  const byMonth = useMemo(() => groupByMonth(filtered), [filtered]);
 
   const exportExcel = async (evList, filename) => {
     const { default: ExcelJS } = await import('exceljs');
@@ -120,55 +136,65 @@ function KhoiMinhTab() {
       <p style={{ fontSize: '0.79rem', color: '#5a5a80', marginBottom: '10px' }}>
         {filtered.length} sự kiện{search.trim() ? ` / ${events.length}` : ''}
       </p>
-      {filtered.map(ev => {
-        const isExp = expandedId === ev.event_id;
-        return (
-          <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
-            <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
-              {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
-                <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
-                  {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
-                </p>
-              </div>
-              <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${ev.event_name}.xlsx`); }}
-                title="Xuất Excel sự kiện này"
-                style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, fontSize: '0.72rem', gap: '4px' }}>
-                <Download size={12} />
-              </button>
-              <span style={{ fontSize: '0.74rem', color: '#5a5a80', flexShrink: 0 }}>{ev.items.length} thiết bị</span>
-            </div>
-            {isExp && (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
-                      {['STT', 'Danh Mục', 'Thiết Bị', 'ĐVT', 'SL Xuất', 'FREE', 'SL Tính Tiền'].map(h => (
-                        <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL Xuất','FREE','SL Tính Tiền'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ev.items.map((it, idx) => (
-                      <tr key={it.equipment_id} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                        <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
-                        <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.category_name || '—'}</td>
-                        <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.equipment_name}</td>
-                        <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit}</td>
-                        <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.qty_total}</td>
-                        <td style={{ padding: '6px 10px', textAlign: 'center', color: it.qty_free > 0 ? '#a78bfa' : '#3a3a50' }}>{it.qty_free > 0 ? it.qty_free : '—'}</td>
-                        <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.qty_billed}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+      {byMonth.map(({ label, evs: monthEvs }) => (
+        <div key={label} style={{ marginBottom: '24px' }}>
+          {/* Month header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+            <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
           </div>
-        );
-      })}
+          {monthEvs.map(ev => {
+            const isExp = expandedId === ev.event_id;
+            return (
+              <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
+                <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
+                  {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
+                      {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${ev.event_name}.xlsx`); }}
+                    title="Xuất Excel sự kiện này"
+                    style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, gap: '4px' }}>
+                    <Download size={12} />
+                  </button>
+                  <span style={{ fontSize: '0.74rem', color: '#5a5a80', flexShrink: 0 }}>{ev.items.length} thiết bị</span>
+                </div>
+                {isExp && (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                      <thead>
+                        <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
+                          {['STT','Danh Mục','Thiết Bị','ĐVT','SL Xuất','FREE','SL Tính Tiền'].map(h => (
+                            <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL Xuất','FREE','SL Tính Tiền'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ev.items.map((it, idx) => (
+                          <tr key={it.equipment_id} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                            <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
+                            <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.category_name || '—'}</td>
+                            <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.equipment_name}</td>
+                            <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.qty_total}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'center', color: it.qty_free > 0 ? '#a78bfa' : '#3a3a50' }}>{it.qty_free > 0 ? it.qty_free : '—'}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.qty_billed}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
@@ -211,6 +237,8 @@ function NccTab() {
     const q = search.toLowerCase();
     return events.filter(ev => ev.event_name.toLowerCase().includes(q) || (ev.client || '').toLowerCase().includes(q));
   }, [events, search]);
+
+  const byMonth = useMemo(() => groupByMonth(filtered), [filtered]);
 
   const exportExcel = async (evList, filename) => {
     const { default: ExcelJS } = await import('exceljs');
@@ -271,55 +299,64 @@ function NccTab() {
               {filtered.length} sự kiện{search.trim() ? ` / ${events.length}` : ''}
               {selectedNcc && <> · NCC: <span style={{ color: '#60a5fa', fontWeight: 700 }}>{selectedNcc}</span></>}
             </p>
-            {filtered.map(ev => {
-              const isExp = expandedId === ev.event_id;
-              return (
-                <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
-                  <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
-                    {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
-                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
-                        {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
-                      </p>
-                    </div>
-                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu NCC - ${ev.event_name}.xlsx`); }}
-                      title="Xuất Excel sự kiện này"
-                      style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, gap: '4px' }}>
-                      <Download size={12} />
-                    </button>
-                    <span style={{ fontSize: '0.74rem', color: '#5a5a80', flexShrink: 0 }}>{ev.items.length} mục</span>
-                  </div>
-                  {isExp && (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                        <thead>
-                          <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
-                            {['STT','NCC','Tên Thiết Bị','SL','ĐVT','Số Ngày','Ghi Chú'].map(h => (
-                              <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL','Số Ngày'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {ev.items.map((it, idx) => (
-                            <tr key={idx} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                              <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
-                              <td style={{ padding: '6px 10px', color: '#60a5fa', fontWeight: 600, whiteSpace: 'nowrap' }}>{it.supplier}</td>
-                              <td style={{ padding: '6px 10px', color: '#c0c0d8' }}>{it.item_name}</td>
-                              <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.quantity}</td>
-                              <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit || 'Cái'}</td>
-                              <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.rental_days || 1}</td>
-                              <td style={{ padding: '6px 10px', color: '#7878a0', fontSize: '0.78rem' }}>{it.notes || ''}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+            {byMonth.map(({ label, evs: monthEvs }) => (
+              <div key={label} style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
                 </div>
-              );
-            })}
+                {monthEvs.map(ev => {
+                  const isExp = expandedId === ev.event_id;
+                  return (
+                    <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
+                      <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
+                        {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
+                          <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
+                            {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
+                          </p>
+                        </div>
+                        <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu NCC - ${ev.event_name}.xlsx`); }}
+                          title="Xuất Excel sự kiện này"
+                          style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', flexShrink: 0, gap: '4px' }}>
+                          <Download size={12} />
+                        </button>
+                        <span style={{ fontSize: '0.74rem', color: '#5a5a80', flexShrink: 0 }}>{ev.items.length} mục</span>
+                      </div>
+                      {isExp && (
+                        <div style={{ overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                            <thead>
+                              <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
+                                {['STT','NCC','Tên Thiết Bị','SL','ĐVT','Số Ngày','Ghi Chú'].map(h => (
+                                  <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL','Số Ngày'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {ev.items.map((it, idx) => (
+                                <tr key={idx} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
+                                  <td style={{ padding: '6px 10px', color: '#60a5fa', fontWeight: 600, whiteSpace: 'nowrap' }}>{it.supplier}</td>
+                                  <td style={{ padding: '6px 10px', color: '#c0c0d8' }}>{it.item_name}</td>
+                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.quantity}</td>
+                                  <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit || 'Cái'}</td>
+                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.rental_days || 1}</td>
+                                  <td style={{ padding: '6px 10px', color: '#7878a0', fontSize: '0.78rem' }}>{it.notes || ''}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </>
         )
       }
