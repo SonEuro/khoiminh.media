@@ -1262,10 +1262,62 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
       })
     : events;
 
+  // Group by archived_at month (newest first)
+  const monthGroups = (() => {
+    const map = {};
+    for (const ev of filtered) {
+      const key = ev.archived_at ? ev.archived_at.slice(0, 7) : '0000-00';
+      if (!map[key]) {
+        const [y, m] = key.split('-');
+        map[key] = { key, label: key === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(m)}/${y}`, evs: [] };
+      }
+      map[key].evs.push(ev);
+    }
+    return Object.values(map).sort((a, b) => b.key.localeCompare(a.key));
+  })();
+
   if (!events.length) return <Empty text="Chưa có sự kiện nào được lưu trữ" />;
+
+  const renderRow = ev => {
+    const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
+    const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
+    const daysSinceArchive = archivedDate ? (Date.now() - archivedDate.getTime()) / 86400000 : 999;
+    const canDelete = isSuperAdmin && daysSinceArchive <= 7;
+    const isExpanded = expandedId === ev.id;
+    return (
+      <div key={ev.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px', cursor:'pointer' }} onClick={() => setExpandedId(isExpanded ? null : ev.id)}>
+          <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, minWidth:0 }}>{ev.name}</p>
+          <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
+          <span style={{ color:'#5a5a80', fontSize:'0.75rem', flexShrink:0 }}>{isExpanded ? '▲' : '▼'}</span>
+        </div>
+        <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          {[ev.client, ev.location].filter(Boolean).join(' · ')}
+          {ev.start_date && <span> · {fmtDate(ev.start_date)}</span>}
+          {ev.tx_count > 0 && <span> · {ev.tx_count} phiếu</span>}
+          {archivedDate && <span style={{ color:'#5a5a80' }}> · Lưu {fmtDate(ev.archived_at)}</span>}
+        </p>
+        {isExpanded && <ArchivedEventDetail ev={ev} onSelect={onSelect} onSelectReport={onSelectReport} />}
+        {isSuperAdmin && (
+          <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
+            <button onClick={() => onUnarchive(ev)}
+              style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.78rem', fontWeight:700 }}>
+              Bỏ lưu trữ
+            </button>
+            {canDelete && (
+              <button onClick={() => onDelete(ev)}
+                style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.78rem', fontWeight:700 }}>
+                Xoá vĩnh viễn
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-      {/* Thanh tìm kiếm */}
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
@@ -1273,48 +1325,18 @@ function ArchivedEventRows({ events, isSuperAdmin, onUnarchive, onDelete, onSele
         style={{ width:'100%', padding:'7px 10px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.2)', background:'rgba(255,255,255,0.04)', color:'#c0c0d8', fontSize:'0.82rem', outline:'none', boxSizing:'border-box', marginBottom:'4px' }}
       />
       {filtered.length === 0 && <Empty text="Không tìm thấy sự kiện" />}
-      {filtered.map(ev => {
-        const cfg = STATUS_CFG[ev.status] || STATUS_CFG.completed;
-        const archivedDate = ev.archived_at ? new Date(ev.archived_at.replace(' ','T')) : null;
-        const daysSinceArchive = archivedDate ? (Date.now() - archivedDate.getTime()) / 86400000 : 999;
-        const canDelete = isSuperAdmin && daysSinceArchive <= 7;
-        const isExpanded = expandedId === ev.id;
-
-        return (
-          <div key={ev.id} style={{ padding:'9px 12px', background:'rgba(255,255,255,0.02)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.12)' }}>
-            {/* Hàng 1: tên + badge */}
-            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px', cursor:'pointer' }} onClick={() => setExpandedId(isExpanded ? null : ev.id)}>
-              <p style={{ fontWeight:600, color:'#c0c0d8', margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1, minWidth:0 }}>{ev.name}</p>
-              <Badge color={cfg.color} bg={cfg.bg} label={cfg.label} />
-              <span style={{ color:'#5a5a80', fontSize:'0.75rem', flexShrink:0 }}>{isExpanded ? '▲' : '▼'}</span>
-            </div>
-            {/* Hàng 2: metadata */}
-            <p style={{ fontSize:'0.78rem', color:'#7878a0', margin:'0 0 7px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {[ev.client, ev.location].filter(Boolean).join(' · ')}
-              {ev.start_date && <span> · {fmtDate(ev.start_date)}</span>}
-              {ev.tx_count > 0 && <span> · {ev.tx_count} phiếu</span>}
-              {archivedDate && <span style={{ color:'#5a5a80' }}> · Lưu {fmtDate(ev.archived_at)}</span>}
-            </p>
-            {/* Nội dung mở rộng */}
-            {isExpanded && <ArchivedEventDetail ev={ev} onSelect={onSelect} onSelectReport={onSelectReport} />}
-            {/* Hàng nút */}
-            {isSuperAdmin && (
-              <div style={{ display:'flex', gap:'6px', marginTop:'8px' }}>
-                <button onClick={() => onUnarchive(ev)}
-                  style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(96,165,250,0.35)', background:'transparent', color:'#60a5fa', fontSize:'0.78rem', fontWeight:700 }}>
-                  Bỏ lưu trữ
-                </button>
-                {canDelete && (
-                  <button onClick={() => onDelete(ev)}
-                    style={{ padding:'5px 10px', borderRadius:'6px', cursor:'pointer', border:'1px solid rgba(248,113,113,0.35)', background:'transparent', color:'#f87171', fontSize:'0.78rem', fontWeight:700 }}>
-                    Xoá vĩnh viễn
-                  </button>
-                )}
-              </div>
-            )}
+      {monthGroups.map(({ key, label, evs }) => (
+        <div key={key}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', margin:'8px 0 5px' }}>
+            <span style={{ fontSize:'0.72rem', fontWeight:800, color:'#7878a0', letterSpacing:'0.08em', whiteSpace:'nowrap' }}>{label.toUpperCase()}</span>
+            <span style={{ fontSize:'0.7rem', color:'#5a5a80' }}>· {evs.length} sự kiện</span>
+            <div style={{ flex:1, height:'1px', background:'rgba(120,120,160,0.18)' }} />
           </div>
-        );
-      })}
+          <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+            {evs.map(renderRow)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
