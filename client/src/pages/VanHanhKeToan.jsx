@@ -68,7 +68,7 @@ function KhoiMinhTab() {
     // Phase 1: KhoiMinh items grouped by equipment_id
     for (const row of rows) {
       if (!evMap[row.event_id]) {
-        evMap[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, ngay_count: calcNgay(row), byId: {} };
+        evMap[row.event_id] = { event_id: row.event_id, event_name: row.event_name, event_code: row.event_code, client: row.client, start_date: row.start_date, group_date: row.group_date, filming_date: row.filming_date, filming_dates: row.filming_dates, ngay_count: calcNgay(row), byId: {} };
       }
       const { byId } = evMap[row.event_id];
       if (!byId[row.equipment_id]) {
@@ -99,7 +99,7 @@ function KhoiMinhTab() {
         .map(it => ({ ...it, qty_billed: it.qty_total - it.qty_free }))
         .filter(it => it.qty_billed > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
-      return { event_id: ev.event_id, event_name: ev.event_name, client: ev.client, start_date: ev.start_date, ngay_count: ev.ngay_count, items };
+      return { event_id: ev.event_id, event_name: ev.event_name, client: ev.client, start_date: ev.start_date, group_date: ev.group_date, ngay_count: ev.ngay_count, items };
     }).filter(ev => ev.items.length > 0);
   }, [rows, nccRows]);
 
@@ -264,7 +264,7 @@ function NccTab() {
     const map = {};
     for (const row of relevant) {
       if (!map[row.event_id]) {
-        map[row.event_id] = { event_id: row.event_id, event_name: row.event_name, client: row.client, start_date: row.start_date, items: {} };
+        map[row.event_id] = { event_id: row.event_id, event_name: row.event_name, client: row.client, start_date: row.start_date, group_date: row.group_date, items: {} };
       }
       const key = `${row.supplier}||${row.item_name}`;
       if (!map[row.event_id].items[key]) {
