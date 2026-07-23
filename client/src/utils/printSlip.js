@@ -121,7 +121,10 @@ function buildSlipHTML(tx, preview = false) {
     <span>👁 Xem trước phiếu — <strong>${tx.code}</strong></span>
     <button class="btn-print" onclick="window.print()">🖨️ In phiếu</button>
     <button class="btn-close" onclick="window.close()">✕ Đóng</button>
-  </div>` : '';
+  </div>` : `
+  <div class="back-bar">
+    <button class="btn-close" onclick="window.close() || window.history.back()">✕ Đóng</button>
+  </div>`;
 
   const previewStyle = preview ? `
   .preview-bar { position:fixed; top:0; left:0; right:0; background:#1a1a2e; color:#e8c97a; padding:10px 20px; display:flex; align-items:center; gap:12px; font-family:sans-serif; font-size:13px; z-index:999; border-bottom:2px solid #c9a84c; }
@@ -129,7 +132,11 @@ function buildSlipHTML(tx, preview = false) {
   .btn-print { background:linear-gradient(135deg,#b8922e,#e8c97a); color:#000; }
   .btn-close { background:rgba(255,255,255,0.1); color:#e8e8f0; border:1px solid rgba(255,255,255,0.2)!important; }
   .content { margin-top:52px; }
-  @media print { .preview-bar { display:none!important; } .content { margin-top:0!important; } }` : '';
+  @media print { .preview-bar { display:none!important; } .content { margin-top:0!important; } }` : `
+  .back-bar { position:fixed; top:0; right:0; padding:8px 12px; z-index:999; }
+  .btn-close { padding:6px 14px; border-radius:6px; border:1px solid rgba(0,0,0,0.2); background:rgba(0,0,0,0.07); color:#333; cursor:pointer; font-size:13px; font-weight:700; font-family:sans-serif; }
+  .content { margin-top:40px; }
+  @media print { .back-bar { display:none!important; } .content { margin-top:0!important; } }`;
 
   const printScript = preview ? '' : `
 <script>
