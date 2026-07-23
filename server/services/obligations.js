@@ -62,6 +62,15 @@ function syncObligations(scheduleId) {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(scheduleId);
   if (!sched) return;
 
+  // Dismiss obligations for dates marked exempt
+  let exemptArr = [];
+  try { exemptArr = JSON.parse(sched.exempt_dates || '[]'); } catch {}
+  if (exemptArr.length > 0) {
+    for (const d of exemptArr) {
+      db.prepare(`UPDATE lead_report_obligations SET dismissed = 1 WHERE schedule_id = ? AND assigned_date = ? AND violation_created = 0`).run(scheduleId, d);
+    }
+  }
+
   const currentKeys = new Set();
 
   for (const phase of PHASES) {
@@ -157,12 +166,21 @@ function checkAndCreateViolations() {
       const phaseLabel = PHASE_LABEL[ob.phase] || ob.phase;
       const submittedAt = reportRow?.created_at?.slice(0, 16);
 
-      // Nếu event đã bị xóa vĩnh viễn hoặc được miễn vi phạm → bỏ qua
-      if (ob.event_id) {
-        const evRow = db.prepare('SELECT id, is_exempt FROM events WHERE id = ?').get(ob.event_id);
-        if (!evRow || evRow.is_exempt) {
-          db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
-          continue;
+      // Nếu event đã bị xóa vĩnh viễn → bỏ qua
+      if (ob.event_id && !db.prepare('SELECT id FROM events WHERE id = ?').get(ob.event_id)) {
+        db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
+        continue;
+      }
+      // Nếu ngày này được đánh dấu "Không vi phạm" trong lịch → bỏ qua
+      if (ob.schedule_id) {
+        const sched = db.prepare('SELECT exempt_dates FROM work_schedules WHERE id = ?').get(ob.schedule_id);
+        if (sched) {
+          let exemptArr = [];
+          try { exemptArr = JSON.parse(sched.exempt_dates || '[]'); } catch {}
+          if (Array.isArray(exemptArr) && exemptArr.includes(ob.assigned_date)) {
+            db.prepare('UPDATE lead_report_obligations SET dismissed = 1 WHERE id = ?').run(ob.id);
+            continue;
+          }
         }
       }
       const safeEventId = ob.event_id || null;

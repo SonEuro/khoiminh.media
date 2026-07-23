@@ -94,6 +94,7 @@ const EMPTY_FORM = {
   event_id: null, event_name: '', manualEvent: false,
   client: '', location: '',
   setup_date: [], teardown_date: [], rehearsal_date: [], filming_date: [],
+  exempt_dates: [],
   setup_leads: {}, setup_km_staff: {}, setup_freelancers: {}, setup_notes: {}, setup_start_times: {}, setup_km_support: {},
   teardown_leads: {}, teardown_km_staff: {}, teardown_freelancers: {}, teardown_notes: {}, teardown_start_times: {}, teardown_km_support: {},
   rehearsal_leads: {}, rehearsal_km_staff: {}, rehearsal_freelancers: {}, rehearsal_notes: {}, rehearsal_start_times: {}, rehearsal_km_support: {},
@@ -376,7 +377,7 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
 }
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
-function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false }) {
+function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false, exemptDates = [], onToggleExempt }) {
   const { user } = useAuth();
   const { kmGroups, freelancerGroups } = useStaffGroups();
   const isSADir  = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -697,9 +698,19 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
             const isPastLocked = d < todayStr && !isSADir;
             return (
               <div key={d} style={{ padding: '10px 12px', borderRadius: '8px', background: isPastLocked ? 'rgba(120,120,160,0.04)' : 'rgba(251,191,36,0.04)', border: `1px solid ${isPastLocked ? 'rgba(120,120,160,0.15)' : 'rgba(251,191,36,0.12)'}` }}>
-                <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isPastLocked ? '#7878a0' : '#fbbf24', marginBottom: '10px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   📅 {fmtD(d)}
                   {isPastLocked && <span style={{ fontSize: '0.80rem', color: '#555570' }}>🔒 Ngày đã qua</span>}
+                  {onToggleExempt && (
+                    <button type="button" onClick={() => onToggleExempt(d)} style={{
+                      marginLeft: '4px', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', lineHeight: '1.4',
+                      border: exemptDates.includes(d) ? '1px solid rgba(134,239,172,0.5)' : '1px solid rgba(120,120,160,0.3)',
+                      background: exemptDates.includes(d) ? 'rgba(134,239,172,0.12)' : 'rgba(120,120,160,0.07)',
+                      color: exemptDates.includes(d) ? '#86efac' : '#7878a0',
+                    }}>
+                      {exemptDates.includes(d) ? '✓ Không vi phạm' : 'Không vi phạm'}
+                    </button>
+                  )}
                 </div>
                 <div style={isPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
                   {renderDateSection(d)}
@@ -710,11 +721,24 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
         </div>
       ) : (() => {
         const singleIsPastLocked = dates.length === 1 && dates[0] < todayStr && !isSADir;
+        const singleD = dates[0];
         return (
           <>
-            {singleIsPastLocked && (
-              <div style={{ fontSize: '0.80rem', color: '#555570', marginBottom: '8px' }}>🔒 Ngày đã qua – chỉ Super Admin / Giám đốc mới chỉnh được</div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              {singleIsPastLocked && (
+                <span style={{ fontSize: '0.80rem', color: '#555570' }}>🔒 Ngày đã qua – chỉ Super Admin / Giám đốc mới chỉnh được</span>
+              )}
+              {onToggleExempt && singleD && (
+                <button type="button" onClick={() => onToggleExempt(singleD)} style={{
+                  fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', lineHeight: '1.4',
+                  border: exemptDates.includes(singleD) ? '1px solid rgba(134,239,172,0.5)' : '1px solid rgba(120,120,160,0.3)',
+                  background: exemptDates.includes(singleD) ? 'rgba(134,239,172,0.12)' : 'rgba(120,120,160,0.07)',
+                  color: exemptDates.includes(singleD) ? '#86efac' : '#7878a0',
+                }}>
+                  {exemptDates.includes(singleD) ? '✓ Không vi phạm' : 'Không vi phạm'}
+                </button>
+              )}
+            </div>
             <div style={singleIsPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
               {renderStartTimes(singleKey)}
               <div style={{ marginBottom: '10px' }}>
@@ -744,6 +768,7 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
     teardown_date: initial.teardown_dates || [],
     rehearsal_date:initial.rehearsal_dates|| [],
     filming_date:  initial.filming_dates  || [],
+    exempt_dates:  (() => { try { return JSON.parse(initial.exempt_dates || '[]'); } catch { return []; } })(),
     manualEvent: !initial.event_id,
     ...Object.fromEntries(PHASES.flatMap(p => [
       [`${p.key}_km_staff`,    initPerDateMap(initial[`${p.key}_km_staff_map`],    initial[`${p.key}_km_staff`],    initial[`${p.key}_dates`] || [], false)],
@@ -940,7 +965,13 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
               </div>
             );
           }
-          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} />;
+          const isSADirSchedule = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+          const exemptDates = form.exempt_dates || [];
+          function toggleExemptDate(d) {
+            const cur = form.exempt_dates || [];
+            setForm(f => ({ ...f, exempt_dates: cur.includes(d) ? cur.filter(x => x !== d) : [...cur, d] }));
+          }
+          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} exemptDates={isSADirSchedule ? exemptDates : []} onToggleExempt={isSADirSchedule ? toggleExemptDate : null} />;
           return (
             <>
               {zones.today.length > 0 && <>

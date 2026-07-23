@@ -158,12 +158,13 @@ router.post('/', canPhanLich, (req, res) => {
   if (!b.event_name?.trim()) return res.status(400).json({ error: 'Tên sự kiện là bắt buộc' });
 
   const cols = ['event_id', 'event_name', 'scheduler_user_id', 'scheduler_name', 'client', 'location',
-    'setup_date', 'teardown_date', 'rehearsal_date', 'filming_date'];
+    'setup_date', 'teardown_date', 'rehearsal_date', 'filming_date', 'exempt_dates'];
   const vals = [
     b.event_id || null, b.event_name.trim(), req.user.id, req.user.full_name,
     b.client || null, b.location || null,
     serializeDate(b.setup_date), serializeDate(b.teardown_date),
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
+    JSON.stringify(Array.isArray(b.exempt_dates) ? b.exempt_dates : []),
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`, `${p}_km_support`);
@@ -183,12 +184,13 @@ router.put('/:id', (req, res) => {
   if (!canEditSchedule(sched, req.user)) return res.status(403).json({ error: 'Không có quyền sửa lịch này' });
 
   const b = req.body;
-  const cols = ['event_id', 'event_name', 'client', 'location', 'setup_date', 'teardown_date', 'rehearsal_date', 'filming_date'];
+  const cols = ['event_id', 'event_name', 'client', 'location', 'setup_date', 'teardown_date', 'rehearsal_date', 'filming_date', 'exempt_dates'];
   const vals = [
     b.event_id || null, b.event_name?.trim() || sched.event_name,
     b.client || null, b.location || null,
     serializeDate(b.setup_date), serializeDate(b.teardown_date),
     serializeDate(b.rehearsal_date), serializeDate(b.filming_date),
+    JSON.stringify(Array.isArray(b.exempt_dates) ? b.exempt_dates : []),
   ];
   for (const p of PHASES) {
     cols.push(`${p}_leads`, `${p}_km_staff`, `${p}_freelancers`, `${p}_notes`, `${p}_start_times`, `${p}_km_support`);
