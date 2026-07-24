@@ -562,7 +562,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           )}
           {/* Timeline row */}
           {(report.time_present || report.time_onset || report.time_off || report.time_end) && (() => {
-            function calcDuration(start, end) {
+            function calcDuration(start, end, forceNextDay = false) {
               if (!start || !end) return null;
               const [sh, sm] = start.split(':').map(Number);
               const [eh, em] = end.split(':').map(Number);
@@ -570,12 +570,16 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
               let startMins = sh * 60 + sm;
               let endMins   = eh * 60 + em;
               if (endMins < startMins) endMins += 24 * 60;
+              else if (forceNextDay) endMins += 24 * 60;
               const diff  = endMins - startMins;
               const hours = Math.floor(diff / 60);
               const mins  = diff % 60;
               return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, '0')}`;
             }
-            const kmDur = calcDuration(report.time_present, report.time_end);
+            const toM = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return isNaN(h) ? null : h * 60 + m; };
+            const onsetM = toM(report.time_onset), offM = toM(report.time_off);
+            const crossNight = onsetM !== null && offM !== null && offM < onsetM;
+            const kmDur = calcDuration(report.time_present, report.time_end, crossNight);
             const khDur = calcDuration(report.time_onset,   report.time_off);
             return (
               <>
@@ -1829,7 +1833,7 @@ export default function EventReport() {
             ))}
           </div>
           {(() => {
-            function calcDuration(start, end) {
+            function calcDuration(start, end, forceNextDay = false) {
               if (!start || !end) return null;
               const [sh, sm] = start.split(':').map(Number);
               const [eh, em] = end.split(':').map(Number);
@@ -1837,12 +1841,16 @@ export default function EventReport() {
               let startMins = sh * 60 + sm;
               let endMins   = eh * 60 + em;
               if (endMins < startMins) endMins += 24 * 60;
+              else if (forceNextDay) endMins += 24 * 60;
               const diff  = endMins - startMins;
               const hours = Math.floor(diff / 60);
               const mins  = diff % 60;
               return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, '0')}`;
             }
-            const kmDur  = calcDuration(form.time_present, form.time_end);
+            const toM = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return isNaN(h) ? null : h * 60 + m; };
+            const onsetM = toM(form.time_onset), offM = toM(form.time_off);
+            const crossNight = onsetM !== null && offM !== null && offM < onsetM;
+            const kmDur  = calcDuration(form.time_present, form.time_end, crossNight);
             const khDur  = calcDuration(form.time_onset,   form.time_off);
             if (!kmDur && !khDur || !user?.is_phan_lich_all) return null;
             return (
