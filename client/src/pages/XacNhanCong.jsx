@@ -143,6 +143,7 @@ export default function XacNhanCong() {
 
   const [month, setMonth]           = useState(todayMonth);
   const [reports, setReports]       = useState([]);
+  const [supportByDate, setSupportByDate] = useState({});
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [filterName, setFilter]     = useState('');
@@ -161,7 +162,11 @@ export default function XacNhanCong() {
 
   const load = useCallback(async (m) => {
     setLoading(true); setError('');
-    try { setReports(await api.getXacNhanCong(m)); }
+    try {
+      const data = await api.getXacNhanCong(m);
+      setReports(data.reports || []);
+      setSupportByDate(data.supportByDate || {});
+    }
     catch (e) { setError(e.message || 'Lỗi tải dữ liệu'); }
     finally { setLoading(false); }
   }, []);
@@ -610,7 +615,11 @@ export default function XacNhanCong() {
             byDate[d].push(report);
           }
           for (const [date, reps] of Object.entries(byDate)) {
-            if (reps.length > 1) overlaps.push({ name, date, reps });
+            if (reps.length > 1) {
+              // Bỏ qua nếu người này được gắn nhãn hỗ trợ (km_support) ngày đó
+              if ((supportByDate[date] || []).includes(name)) continue;
+              overlaps.push({ name, date, reps });
+            }
           }
         }
         if (!overlaps.length) return null;

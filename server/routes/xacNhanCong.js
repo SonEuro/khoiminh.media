@@ -8,6 +8,8 @@ function canEditAccess(req, res, next) {
   return res.status(403).json({ error: 'Không có quyền' });
 }
 
+const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
+
 // GET /api/xac-nhan-cong?month=YYYY-MM  (tất cả user đã đăng nhập)
 router.get('/', requireAuth, (req, res) => {
   const { month } = req.query;
@@ -26,10 +28,31 @@ router.get('/', requireAuth, (req, res) => {
     ORDER BY report_date ASC, id ASC
   `).all(`${month}%`);
 
-  res.json(rows.map(r => ({
-    ...r,
-    km_staff: JSON.parse(r.km_staff || '[]'),
-  })));
+  // Build supportByDate: { 'YYYY-MM-DD': [name, ...] }
+  // Dựa trên km_support trong work_schedules — người hỗ trợ bộ phận khác
+  const supportByDate = {};
+  const schedRows = db.prepare(`SELECT ${PHASES.map(p => `${p}_km_support`).join(', ')} FROM work_schedules WHERE deleted_at IS NULL`).all();
+  for (const s of schedRows) {
+    for (const p of PHASES) {
+      const raw = s[`${p}_km_support`];
+      if (!raw) continue;
+      try {
+        const map = JSON.parse(raw); // { date: { name: forDept } }
+        for (const [date, persons] of Object.entries(map)) {
+          if (!date.startsWith(month)) continue;
+          for (const name of Object.keys(persons)) {
+            if (!supportByDate[date]) supportByDate[date] = [];
+            if (!supportByDate[date].includes(name)) supportByDate[date].push(name);
+          }
+        }
+      } catch {}
+    }
+  }
+
+  res.json({
+    reports: rows.map(r => ({ ...r, km_staff: JSON.parse(r.km_staff || '[]') })),
+    supportByDate,
+  });
 });
 
 // PATCH /api/xac-nhan-cong/:id/holiday
