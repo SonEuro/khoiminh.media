@@ -1771,9 +1771,9 @@ export default function EventReport() {
               <input type="date" className="input" value={form.report_date}
                 min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 2 * 86400000))}
                 max={todayVN()}
-                readOnly={dateLocked}
-                onChange={dateLocked ? undefined : e => setField('report_date', e.target.value)}
-                style={dateLocked ? { opacity: 0.7, cursor: 'not-allowed', color: '#fb923c', fontWeight: 600 } : {}}
+                readOnly={dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')}
+                onChange={(dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')) ? undefined : e => setField('report_date', e.target.value)}
+                style={(dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')) ? { opacity: 0.7, cursor: 'not-allowed', color: '#fb923c', fontWeight: 600 } : {}}
                 required />
             </div>
           </div>
