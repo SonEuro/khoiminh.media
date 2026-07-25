@@ -981,10 +981,14 @@ export default function EventReport() {
   const highlightId = searchParams.get('id');
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canViewAllDepts = isFullAdmin || !!user?.is_phan_lich_all;
-  // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng
+  // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng, trong vòng 72 giờ
   const canDeleteReport = (report) => {
     if (isFullAdmin) return true;
     if (!user?.is_truong_phong) return false;
+    if (report.created_at) {
+      const age = Date.now() - new Date(report.created_at).getTime();
+      if (age > 72 * 3600 * 1000) return false;
+    }
     if (!report.reporter_role) return true; // báo cáo cũ chưa có reporter_user_id
     return report.reporter_role === user?.role;
   };

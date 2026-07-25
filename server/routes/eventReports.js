@@ -161,16 +161,22 @@ router.delete('/:id', canManage, (req, res) => {
 
   const report = db.prepare(`
     SELECT er.id, er.event_label, er.report_date, er.reporter_name, er.reporter_user_id,
-           er.job_content, er.deleted_at
+           er.job_content, er.deleted_at, er.created_at
     FROM event_reports er WHERE er.id = ?
   `).get(req.params.id);
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
   if (report.deleted_at) return res.status(410).json({ error: 'Báo cáo đã bị xóa trước đó' });
 
-  if (!isFullAdmin && is_truong_phong && report.reporter_user_id) {
-    const reporter = db.prepare('SELECT role FROM users WHERE id = ?').get(report.reporter_user_id);
-    if (reporter && reporter.role !== role) {
-      return res.status(403).json({ error: 'Chỉ được xóa báo cáo của nhân viên trong phòng' });
+  if (!isFullAdmin && is_truong_phong) {
+    if (report.created_at) {
+      const ageMs = Date.now() - new Date(report.created_at).getTime();
+      if (ageMs > 72 * 3600 * 1000)
+        return res.status(403).json({ error: 'Đã quá 72 giờ, trưởng phòng không thể xóa báo cáo này' });
+    }
+    if (report.reporter_user_id) {
+      const reporter = db.prepare('SELECT role FROM users WHERE id = ?').get(report.reporter_user_id);
+      if (reporter && reporter.role !== role)
+        return res.status(403).json({ error: 'Chỉ được xóa báo cáo của nhân viên trong phòng' });
     }
   }
 
