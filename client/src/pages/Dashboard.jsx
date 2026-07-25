@@ -965,23 +965,71 @@ function CongDashWidget({ user, kmStaffGroups }) {
   const [mm, yy] = currentMonth.split('-');
   const label = `Tháng ${parseInt(mm, 10)}/${yy}`;
 
+  // Build per-person summary for table
+  const personSummary = {};
+  for (const r of data) {
+    const staff = Array.isArray(r.km_staff) ? r.km_staff : [];
+    const res = calcCongDash(r);
+    if (!res) continue;
+    for (const name of staff) {
+      const belongsToMe = isTruong
+        ? (myDept && (kmStaffGroups?.find(g => g.dept === myDept)?.members || []).includes(name))
+        : name === myName;
+      if (!belongsToMe) continue;
+      if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0 };
+      personSummary[name].cong += res.congRate;
+      personSummary[name].ot  += res.otHours;
+      personSummary[name].buoi++;
+    }
+  }
+  const personRows = Object.entries(personSummary).sort((a, b) => b[1].cong - a[1].cong);
+
+  const thS = { padding: '6px 10px', fontSize: '0.70rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap', textAlign: 'center' };
+  const tdS = { padding: '7px 10px', fontSize: '0.82rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
+
   return (
-    <div
-      onClick={() => navigate('/xac-nhan-cong')}
-      style={{ borderRadius: '10px', border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.04)', cursor: 'pointer', overflow: 'hidden' }}
-    >
+    <div style={{ borderRadius: '10px', border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.04)', overflow: 'hidden' }}>
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', background: 'linear-gradient(135deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.02) 100%)', borderLeft: '3px solid #c9a84c', borderBottom: '1px solid rgba(201,168,76,0.14)' }}>
         <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>
           {isTruong ? `CÔNG BỘ PHẬN — ${label}` : `CÔNG CỦA TÔI — ${label}`}
         </span>
-        <span style={{ fontSize: '0.82rem', color: '#7878a0', flexShrink: 0 }}>Xem chi tiết →</span>
+        {isTruong && <span style={{ fontSize: '0.76rem', color: '#7878a0' }}>{memberSet.size} người · {fmtNumD(totalCong)} công{totalOT > 0 ? ` · +${fmtNumD(totalOT)}h OT` : ''}</span>}
+        <span onClick={() => navigate('/xac-nhan-cong')} style={{ fontSize: '0.82rem', color: '#7878a0', cursor: 'pointer', flexShrink: 0 }}>Xem chi tiết →</span>
       </div>
-      <div style={{ padding: '12px 14px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {isTruong && <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nhân sự</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#eeeef5' }}>{memberSet.size} người</div></div>}
-        <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ngày công</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: GOLD }}>{fmtNumD(totalCong)}</div></div>
-        {totalOT > 0 && <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OT</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#60a5fa' }}>+{fmtNumD(totalOT)}h</div></div>}
-        {totalCong === 0 && <div style={{ fontSize: '0.82rem', color: '#7878a0' }}>Chưa có dữ liệu tháng này</div>}
-      </div>
+
+      {personRows.length === 0 ? (
+        <div style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#7878a0' }}>Chưa có dữ liệu tháng này</div>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col />
+            <col style={{ width: '100px' }} />
+            <col style={{ width: '90px' }} />
+            <col style={{ width: '70px' }} />
+          </colgroup>
+          <thead>
+            <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
+              <th style={{ ...thS, textAlign: 'left' }}>Tên Nhân Viên</th>
+              <th style={thS}>Ngày Công</th>
+              <th style={thS}>OT (giờ)</th>
+              <th style={thS}>Chi Tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            {personRows.map(([name, { cong, ot, buoi }]) => (
+              <tr key={name} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <td style={{ ...tdS, fontWeight: 600, color: '#eeeef5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</td>
+                <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNumD(cong)}</td>
+                <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
+                <td style={{ ...tdS, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>{buoi} buổi</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

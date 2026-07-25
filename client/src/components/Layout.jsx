@@ -258,9 +258,9 @@ export default function Layout() {
     { to: '/export',        Icon: ArrowUpFromLine, label: 'Xuất TB Sự Kiện',  show: can('exportEvent') },
     { to: '/event-return',  Icon: ArrowDownToLine, label: 'Nhập TB Sự Kiện',  show: can('returnEvent') },
     { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('viewIntakePage') },
+    { to: '/xac-nhan-cong',   Icon: ClipboardCheck, label: 'Xác Nhận Công',           show: can('viewXacNhanCong') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
     { to: '/van-hanh-ke-toan', Icon: Calculator,     label: 'Vận Hành Kế Toán',        show: can('viewKeToan') },
-    { to: '/xac-nhan-cong',   Icon: ClipboardCheck, label: 'Xác Nhận Công',           show: can('viewXacNhanCong') },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 
