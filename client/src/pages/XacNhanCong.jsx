@@ -171,32 +171,30 @@ export default function XacNhanCong() {
       </div>
 
       {/* Controls */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
-        {/* Month nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '2px' }}>
-          <button onClick={() => setMonth(m => shiftMonth(m, -1))}
-            style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>‹</button>
-          <span style={{ padding: '6px 10px', color: GOLD, fontWeight: 700, fontSize: '0.88rem', minWidth: '120px', textAlign: 'center' }}>{fmtMonth(month)}</span>
-          <button onClick={() => setMonth(m => shiftMonth(m, 1))}
-            style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+        {/* Row 1: month nav + search */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '2px' }}>
+            <button onClick={() => setMonth(m => shiftMonth(m, -1))}
+              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>‹</button>
+            <span style={{ padding: '6px 10px', color: GOLD, fontWeight: 700, fontSize: '0.88rem', minWidth: '120px', textAlign: 'center' }}>{fmtMonth(month)}</span>
+            <button onClick={() => setMonth(m => shiftMonth(m, 1))}
+              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
+          </div>
+          <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
+          {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
+          {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
         </div>
-
-        {/* Search */}
-        <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
-          style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', width: '180px', outline: 'none' }} />
-
-        {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳ Đang tải...</span>}
-        {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
-
-        {/* Grand totals */}
-        {!loading && (
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-            <div style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '6px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.68rem', color: '#a08040', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng Công</p>
+        {/* Row 2: grand totals — full width on mobile */}
+        {!loading && grandCong > 0 && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ flex: 1, background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.66rem', color: '#a08040', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng Công</p>
               <p style={{ fontSize: '1rem', fontWeight: 800, color: GOLD, margin: 0 }}>{fmtNum(grandCong)}</p>
             </div>
-            <div style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '8px', padding: '6px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.68rem', color: '#4a7fcb', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng OT</p>
+            <div style={{ flex: 1, background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.66rem', color: '#4a7fcb', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng OT</p>
               <p style={{ fontSize: '1rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{fmtNum(grandOT)}h</p>
             </div>
           </div>
@@ -234,10 +232,10 @@ export default function XacNhanCong() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
-                  <th style={{ ...thBase, width: '40%' }}>Tên Nhân Viên</th>
-                  <th style={{ ...thBase, textAlign: 'center' }}>Ngày Công</th>
-                  <th style={{ ...thBase, textAlign: 'center' }}>OT (giờ)</th>
-                  <th style={{ ...thBase, textAlign: 'center', width: '60px' }}>Chi Tiết</th>
+                  <th style={{ ...thBase }}>Tên Nhân Viên</th>
+                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap' }}>Ngày Công</th>
+                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap' }}>OT (giờ)</th>
+                  {!isMobile && <th style={{ ...thBase, textAlign: 'center', width: '70px' }}>Chi Tiết</th>}
                 </tr>
               </thead>
               <tbody>
@@ -253,12 +251,15 @@ export default function XacNhanCong() {
                       <tr key={name}
                         onClick={() => hasData && toggleExpand(name)}
                         style={{ cursor: hasData ? 'pointer' : 'default', background: isExp ? 'rgba(201,168,76,0.04)' : undefined, transition: 'background 0.15s' }}>
-                        <td style={tdBase}>
+                        <td style={{ ...tdBase, maxWidth: isMobile ? '160px' : '260px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {hasData
-                              ? (isExp ? <ChevronDown size={13} color={GOLD} /> : <ChevronRight size={13} color="#7878a0" />)
-                              : <span style={{ width: 13 }} />}
-                            <span style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0' }}>{name}</span>
+                              ? (isExp ? <ChevronDown size={13} color={GOLD} style={{ flexShrink: 0 }} /> : <ChevronRight size={13} color="#7878a0" style={{ flexShrink: 0 }} />)
+                              : <span style={{ width: 13, flexShrink: 0 }} />}
+                            <div>
+                              <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobile ? '130px' : '220px' }}>{name}</div>
+                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{entries.length} buổi</div>}
+                            </div>
                           </div>
                         </td>
                         <td style={{ ...tdBase, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: cong > 0 ? GOLD : '#7878a0' }}>
@@ -267,15 +268,17 @@ export default function XacNhanCong() {
                         <td style={{ ...tdBase, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: ot > 0 ? '#60a5fa' : '#7878a0' }}>
                           {ot > 0 ? fmtNum(ot) + 'h' : '—'}
                         </td>
-                        <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
-                          {hasData ? `${entries.length} buổi` : '—'}
-                        </td>
+                        {!isMobile && (
+                          <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
+                            {hasData ? `${entries.length} buổi` : '—'}
+                          </td>
+                        )}
                       </tr>
 
                       {/* Expanded detail */}
                       {isExp && (
                         <tr key={`${name}-detail`}>
-                          <td colSpan={4} style={{ padding: 0, background: 'rgba(255,255,255,0.012)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
+                          <td colSpan={isMobile ? 3 : 4} style={{ padding: 0, background: 'rgba(255,255,255,0.012)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
                             {isMobile ? (
                               /* ── Mobile: card layout ── */
                               <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
