@@ -1,6 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0a0a14', color:'#c9a84c', gap:'16px', padding:'20px', textAlign:'center' }}>
+        <img src="/logo.png" alt="Khôi Minh" style={{ width:'120px', opacity:0.8 }} />
+        <p style={{ color:'#fff', fontSize:'0.9rem', margin:0 }}>Đã xảy ra lỗi. Vui lòng tải lại trang.</p>
+        <button onClick={() => window.location.reload()} style={{ padding:'10px 24px', borderRadius:'8px', border:'none', background:'#c9a84c', color:'#000', fontWeight:700, fontSize:'0.9rem', cursor:'pointer' }}>Tải lại</button>
+        <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'0.7rem', margin:0 }}>{this.state.error?.message}</p>
+      </div>
+    );
+  }
+}
 import { StaffGroupsProvider } from './contexts/StaffGroupsContext';
 import { subscribePush } from './utils/pushSubscribe';
 import { buildSlipHTML } from './utils/printSlip';
@@ -32,6 +48,7 @@ function AppRoutes() {
   const { user, can } = useAuth();
   useEffect(() => { if (user) subscribePush(); }, [user]);
   return (
+    <ErrorBoundary>
     <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'#c9a84c', fontSize:'0.9rem' }}>Đang tải...</div>}>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
@@ -54,6 +71,7 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   );
 }
 
