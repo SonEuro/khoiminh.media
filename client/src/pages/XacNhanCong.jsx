@@ -29,6 +29,7 @@ function calcKmMins(r) {
 }
 
 function calcCong(r) {
+  if (!r.confirmed_at) return null; // chưa xác nhận → không tính công
   const kmMins = calcKmMins(r);
   if (kmMins === null) return null;
   const startM = toM(r.time_present);
@@ -46,8 +47,9 @@ function calcCong(r) {
     otThresholdMins = 8 * 60;
   }
   const effectiveHours = Math.max(0, effectiveMins) / 60;
-  const otHours = Math.max(0, effectiveMins - otThresholdMins) / 60;
-  return { kmMins, effectiveMins, effectiveHours, congRate, otHours, isSunday, isHoliday, isAfternoon };
+  const otMins = Math.max(0, effectiveMins - otThresholdMins);
+  const otHours = otMins / 60;
+  return { kmMins, effectiveMins, effectiveHours, congRate, otHours, otMins, isSunday, isHoliday, isAfternoon };
 }
 
 function fmtMins(mins) {
@@ -354,7 +356,7 @@ export default function XacNhanCong() {
                           {cong > 0 ? fmtNum(cong) : '—'}
                         </td>
                         <td style={{ ...tdBase, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: ot > 0 ? '#60a5fa' : '#7878a0' }}>
-                          {ot > 0 ? fmtNum(ot) + 'h' : '—'}
+                          {ot > 0 ? fmtMins(Math.round(ot * 60)) : '—'}
                         </td>
                         {!isMobile && (
                           <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
@@ -418,7 +420,7 @@ export default function XacNhanCong() {
                                           {preview && (
                                             <div style={{ fontSize: '0.76rem', color: '#a0a0c0', marginBottom: '8px' }}>
                                               Xem trước: <span style={{ color: GOLD, fontWeight: 700 }}>{fmtNum(preview.congRate)} công</span>
-                                              {preview.otHours > 0 && <span style={{ color: '#60a5fa' }}> +{fmtNum(preview.otHours)}h OT</span>}
+                                              {preview.otMins > 0 && <span style={{ color: '#60a5fa' }}> +{fmtMins(preview.otMins)} OT</span>}
                                             </div>
                                           )}
                                           <div style={{ display: 'flex', gap: '8px' }}>
@@ -450,11 +452,14 @@ export default function XacNhanCong() {
                                           </div>
                                           {/* Row 4: công + OT + Lễ (độc lập) + Sửa Công */}
                                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                            {!r.confirmed_at && (
+                                              <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#7878a0', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '1px 7px' }}>Chưa xác nhận</span>
+                                            )}
                                             <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                               {result ? fmtNum(result.congRate) + ' công' : '—'}
                                             </span>
-                                            {result?.otHours > 0 && (
-                                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
+                                            {result?.otMins > 0 && (
+                                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtMins(result.otMins)} OT</span>
                                             )}
                                             {canToggleLe && (
                                               <button disabled={togBusy} onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
@@ -478,7 +483,7 @@ export default function XacNhanCong() {
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '6px 4px', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
                                   <span style={{ fontSize: '0.75rem', color: '#a08040' }}>{entries.length} Ngày</span>
                                   <span style={{ fontSize: '0.82rem', fontWeight: 800, color: GOLD }}>{fmtNum(cong)} công</span>
-                                  {ot > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(ot)}h OT</span>}
+                                  {ot > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtMins(Math.round(ot * 60))} OT</span>}
                                 </div>
                               </div>
                             ) : (
@@ -550,7 +555,7 @@ export default function XacNhanCong() {
                                             {(isEditing ? preview : result) ? fmtNum((isEditing ? preview : result).congRate) : '—'}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: (isEditing ? preview : result)?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>
-                                            {(isEditing ? preview : result)?.otHours > 0 ? fmtNum((isEditing ? preview : result).otHours) + 'h' : '—'}
+                                            {(isEditing ? preview : result)?.otMins > 0 ? fmtMins((isEditing ? preview : result).otMins) : '—'}
                                           </td>
                                           {canSuaCong && (
                                             <td style={{ ...dtd, textAlign: 'center', whiteSpace: 'nowrap' }}>
@@ -572,7 +577,7 @@ export default function XacNhanCong() {
                                     <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
                                       <td colSpan={canSuaCong ? 10 : 9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} Ngày</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{fmtNum(cong)}</td>
-                                      <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
+                                      <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtMins(Math.round(ot * 60)) : '—'}</td>
                                     </tr>
                                   </tfoot>
                                 </table>
