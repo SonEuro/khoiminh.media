@@ -2,14 +2,14 @@ const router = require('express').Router();
 const db = require('../database');
 const { requireAuth } = require('../middleware/auth');
 
-function canAccess(req, res, next) {
+function canEditAccess(req, res, next) {
   const { role, is_phan_lich_all } = req.user || {};
   if (['SUPER_ADMIN', 'DIRECTOR'].includes(role) || is_phan_lich_all) return next();
   return res.status(403).json({ error: 'Không có quyền' });
 }
 
-// GET /api/xac-nhan-cong?month=YYYY-MM
-router.get('/', requireAuth, canAccess, (req, res) => {
+// GET /api/xac-nhan-cong?month=YYYY-MM  (tất cả user đã đăng nhập)
+router.get('/', requireAuth, (req, res) => {
   const { month } = req.query;
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     return res.status(400).json({ error: 'Thiếu tham số month (YYYY-MM)' });
@@ -33,7 +33,7 @@ router.get('/', requireAuth, canAccess, (req, res) => {
 });
 
 // PATCH /api/xac-nhan-cong/:id/holiday
-router.patch('/:id/holiday', requireAuth, canAccess, (req, res) => {
+router.patch('/:id/holiday', requireAuth, canEditAccess, (req, res) => {
   const { is_holiday } = req.body;
   const report = db.prepare('SELECT id FROM event_reports WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });

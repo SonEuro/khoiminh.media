@@ -6,6 +6,11 @@ import { useStaffGroups } from '../contexts/StaffGroupsContext';
 
 const GOLD = '#c9a84c';
 
+const ROLE_TO_KM_DEPT = {
+  ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật',
+  CSVC: 'Cơ Sở Vật Chất', ACCOUNTING: 'Kế Toán', PRODUCTION: 'Kinh Doanh',
+};
+
 function toM(t) {
   if (!t) return null;
   const [h, m] = t.split(':').map(Number);
@@ -111,9 +116,28 @@ function personTotals(entries) {
 export default function XacNhanCong() {
   const { user } = useAuth();
   const { kmGroups } = useStaffGroups();
-  const canEdit = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
+  const canViewAll  = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
+  const canEdit     = canViewAll;
   const canToggleLe = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
   const canSuaCong  = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
+  const isTruongPhong = !!user?.is_truong_phong && !canViewAll;
+
+  // Tính bộ phận của user (cho truong_phong và nhân viên thường)
+  const userDept = !canViewAll
+    ? (kmGroups.find(g => g.members.includes(user?.full_name || ''))?.dept || ROLE_TO_KM_DEPT[user?.role] || null)
+    : null;
+
+  // Visible groups: admin = tất cả, truong_phong = chỉ bộ phận mình, nhân viên = chỉ tên mình
+  const visibleGroups = canViewAll
+    ? kmGroups
+    : isTruongPhong
+      ? kmGroups.filter(g => g.dept === userDept)
+      : (() => {
+          const myName = user?.full_name || '';
+          if (!myName) return [];
+          const myDept = kmGroups.find(g => g.members.includes(myName))?.dept || 'Của Tôi';
+          return [{ dept: myDept, members: [myName] }];
+        })();
 
   const [month, setMonth]           = useState(todayMonth);
   const [reports, setReports]       = useState([]);
@@ -259,7 +283,7 @@ export default function XacNhanCong() {
       </div>
 
       {/* Department sections */}
-      {kmGroups.map(({ dept, members }) => {
+      {visibleGroups.map(({ dept, members }) => {
         // Filter by search (dept matches OR any member matches)
         const filteredMembers = lowerFilter
           ? members.filter(n => n.toLowerCase().includes(lowerFilter))

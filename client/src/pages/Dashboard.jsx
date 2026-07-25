@@ -906,6 +906,86 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
 
+const ROLE_TO_KM_DEPT_DASH = {
+  ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật',
+  CSVC: 'Cơ Sở Vật Chất', ACCOUNTING: 'Kế Toán', PRODUCTION: 'Kinh Doanh',
+};
+
+function toMD(t) { if (!t) return null; const [h, m] = t.split(':').map(Number); return isNaN(h) ? null : h * 60 + m; }
+function calcCongDash(r) {
+  const s = toMD(r.time_present), e = toMD(r.time_end);
+  if (s === null || e === null) return null;
+  let diff = e - s; if (diff < 0) diff += 1440;
+  const isAft = s >= 720;
+  const isSun = new Date(r.report_date + 'T00:00:00').getDay() === 0;
+  const isHol = !!r.is_holiday;
+  const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60);
+  const thresh = isAft ? 240 : 480;
+  const congRate = isAft ? 0.5 : isHol ? 2 : isSun ? 1.5 : 1;
+  return { congRate, otHours: Math.max(0, effMins - thresh) / 60 };
+}
+function fmtNumD(n) { return n % 1 === 0 ? String(n) : parseFloat(n.toFixed(2)).toString(); }
+
+function CongDashWidget({ user, kmStaffGroups }) {
+  const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+
+  useEffect(() => {
+    api.getXacNhanCong(currentMonth).then(rows => setData(rows)).catch(() => {});
+  }, [currentMonth]);
+
+  if (!data) return null;
+
+  const canViewAll = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
+  if (canViewAll) return null; // admin đã có trang riêng đầy đủ
+
+  const myName = user?.full_name || '';
+  const myDept = kmStaffGroups?.find(g => g.members?.includes(myName))?.dept || ROLE_TO_KM_DEPT_DASH[user?.role];
+
+  // Compute summaries
+  const isTruong = !!user?.is_truong_phong;
+  let totalCong = 0, totalOT = 0, memberSet = new Set();
+
+  for (const r of data) {
+    const staff = Array.isArray(r.km_staff) ? r.km_staff : [];
+    const res = calcCongDash(r);
+    if (!res) continue;
+    for (const name of staff) {
+      const belongsToMe = isTruong
+        ? (myDept && (kmStaffGroups?.find(g => g.dept === myDept)?.members || []).includes(name))
+        : name === myName;
+      if (!belongsToMe) continue;
+      memberSet.add(name);
+      totalCong += res.congRate;
+      totalOT += res.otHours;
+    }
+  }
+
+  const [mm, yy] = currentMonth.split('-');
+  const label = `Tháng ${parseInt(mm, 10)}/${yy}`;
+
+  return (
+    <div
+      onClick={() => navigate('/xac-nhan-cong')}
+      style={{ borderRadius: '10px', border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.04)', cursor: 'pointer', overflow: 'hidden' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', background: 'linear-gradient(135deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.02) 100%)', borderLeft: '3px solid #c9a84c', borderBottom: '1px solid rgba(201,168,76,0.14)' }}>
+        <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>
+          {isTruong ? `CÔNG BỘ PHẬN — ${label}` : `CÔNG CỦA TÔI — ${label}`}
+        </span>
+        <span style={{ fontSize: '0.82rem', color: '#7878a0', flexShrink: 0 }}>Xem chi tiết →</span>
+      </div>
+      <div style={{ padding: '12px 14px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        {isTruong && <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nhân sự</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#eeeef5' }}>{memberSet.size} người</div></div>}
+        <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ngày công</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: GOLD }}>{fmtNumD(totalCong)}</div></div>
+        {totalOT > 0 && <div><div style={{ fontSize: '0.68rem', color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OT</div><div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#60a5fa' }}>+{fmtNumD(totalOT)}h</div></div>}
+        {totalCong === 0 && <div style={{ fontSize: '0.82rem', color: '#7878a0' }}>Chưa có dữ liệu tháng này</div>}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [dash, setDash]       = useState(null);
@@ -956,6 +1036,7 @@ export default function Dashboard() {
       ) : (
         <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} myObs={myObs} onConfirmed={load} userName={user?.full_name || ''} user={user} />
       )}
+      <CongDashWidget user={user} kmStaffGroups={KM_STAFF_GROUPS} />
     </div>
   );
 }
