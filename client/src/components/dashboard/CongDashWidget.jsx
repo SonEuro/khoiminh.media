@@ -11,13 +11,14 @@ const ROLE_TO_KM_DEPT_DASH = {
 function toMD(t) { if (!t) return null; const [h, m] = t.split(':').map(Number); return isNaN(h) ? null : h * 60 + m; }
 
 function calcCongDash(r) {
+  if (!r.confirmed_at) return null;
   const s = toMD(r.time_present), e = toMD(r.time_end);
   if (s === null || e === null) return null;
   let diff = e - s; if (diff < 0) diff += 1440;
   const isAft = s >= 720;
   const isSun = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHol = !!r.is_holiday;
-  const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60);
+  const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60) - (r.no_afternoon_break ? 0 : 60);
   const thresh = isAft ? 240 : 480;
   const congRate = isAft ? 0.5 : isHol ? 2 : isSun ? 1.5 : 1;
   return { congRate, otHours: Math.max(0, effMins - thresh) / 60 };

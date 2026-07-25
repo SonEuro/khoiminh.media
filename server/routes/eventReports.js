@@ -180,7 +180,7 @@ router.delete('/:id', canManage, (req, res) => {
     }
   }
 
-  const now = db.prepare("SELECT datetime('now','localtime') AS t").get().t;
+  const now = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
   db.prepare('UPDATE event_reports SET deleted_at = ?, deleted_by_id = ? WHERE id = ?')
     .run(now, userId, report.id);
   db.prepare(`

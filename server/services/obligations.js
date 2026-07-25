@@ -246,8 +246,10 @@ function checkAndCreateViolations() {
       const existingViol = db.prepare(`
         SELECT id, violation_type FROM violations
         WHERE violator = ? AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
-          AND description LIKE ? LIMIT 1
-      `).get(ob.lead_name, `%ngày ${ob.assigned_date}% (${PHASE_LABEL[ob.phase] || ob.phase}%`);
+          AND description LIKE ?
+          AND (event_id IS ? OR event_id = ?)
+        LIMIT 1
+      `).get(ob.lead_name, `%ngày ${ob.assigned_date}% (${PHASE_LABEL[ob.phase] || ob.phase}%`, safeEventId, safeEventId);
 
       if (!reportRow) {
         // Chưa nộp — tạo vi phạm ngay khi qua deadline 12:00

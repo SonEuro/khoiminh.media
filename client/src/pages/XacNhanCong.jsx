@@ -20,11 +20,8 @@ function toM(t) {
 function calcKmMins(r) {
   const startM = toM(r.time_present), endM = toM(r.time_end);
   if (startM === null || endM === null) return null;
-  const onsetM = toM(r.time_onset), offM = toM(r.time_off);
-  const crossNight = onsetM !== null && offM !== null && offM < onsetM;
   let diff = endM - startM;
   if (diff < 0) diff += 24 * 60;
-  else if (crossNight) diff += 24 * 60;
   return diff;
 }
 
