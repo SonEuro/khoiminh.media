@@ -256,7 +256,7 @@ export default function XacNhanCong() {
                   const { cong, ot } = personTotals(entries);
                   const isExp = expanded.has(name);
                   const hasData = entries.length > 0;
-                  const sortedEntries = [...entries].sort((a, b) => a.report.report_date.localeCompare(b.report.report_date));
+                  const sortedEntries = [...entries].sort((a, b) => b.report.report_date.localeCompare(a.report.report_date));
 
                   return (
                     <>
