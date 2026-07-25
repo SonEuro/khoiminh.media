@@ -1859,17 +1859,20 @@ export default function WorkSchedule() {
               for (const phase of PHASES) {
                 const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).filter(d => d < todayStr);
                 for (const date of dates) {
-                  const leadsMap = selected[`${phase.key}_leads_map`];
-                  const leads = (leadsMap ? (leadsMap[date] || []) : (selected[`${phase.key}_leads`] || [])).map(l => l.name || l);
-                  const staffMap = selected[`${phase.key}_km_staff_map`];
-                  const staff = staffMap ? (staffMap[date] || []) : (selected[`${phase.key}_km_staff`] || []);
-                  const freeMap = selected[`${phase.key}_freelancers_map`];
-                  const freeFlat = (selected[`${phase.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
-                  const free = freeMap && freeMap[date] ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
-                  const hasLeads = leads.length > 0;
-                  const isResponsible = hasLeads
-                    ? leads.includes(myName)
-                    : staff.length > 0 ? staff[0] === myName : free[0] === myName;
+                  const userDept = getUserDept(myName);
+                  if (!userDept) continue; // không phải nhân sự KM → không nộp
+                  const leadsAll = (selected[`${phase.key}_leads_map`]
+                    ? (selected[`${phase.key}_leads_map`][date] || [])
+                    : (selected[`${phase.key}_leads`] || []));
+                  const staffAll = (selected[`${phase.key}_km_staff_map`]
+                    ? (selected[`${phase.key}_km_staff_map`][date] || [])
+                    : (selected[`${phase.key}_km_staff`] || []));
+                  const deptLeads = leadsAll.filter(l => l.department === userDept).map(l => l.name || l);
+                  const deptStaff = staffAll.filter(n => KM_STAFF_GROUPS_DEFAULT.find(g => g.dept === userDept && g.members.includes(n)));
+                  if (deptLeads.length === 0 && deptStaff.length === 0) continue; // không có KM trong bộ phận này
+                  const isResponsible = deptLeads.length > 0
+                    ? deptLeads.includes(myName)
+                    : deptStaff[0] === myName;
                   if (isResponsible) {
                     pastDates.push({ phase, date });
                   }

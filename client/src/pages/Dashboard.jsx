@@ -630,17 +630,20 @@ setUpcoming(found);
             for (const p of phases) {
               const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d < todayVN);
               for (const date of dates) {
-                const leadsMap = detailSched[`${p}_leads_map`];
-                const leads = (leadsMap ? (leadsMap[date] || []) : (detailSched[`${p}_leads`] || [])).map(l => l.name || l);
-                const staffMap = detailSched[`${p}_km_staff_map`];
-                const staff = staffMap ? (staffMap[date] || []) : (detailSched[`${p}_km_staff`] || []);
-                const freeMap = detailSched[`${p}_freelancers_map`];
-                const freeFlat = (detailSched[`${p}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
-                const free = freeMap && freeMap[date] ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
-                const hasLeads = leads.length > 0;
-                const isResponsible = hasLeads
-                  ? leads.includes(myName)
-                  : staff.length > 0 ? staff[0] === myName : free[0] === myName;
+                const userDept = KM_STAFF_GROUPS.find(g => g.members.includes(myName))?.dept;
+                if (!userDept) continue; // không phải nhân sự KM → không nộp
+                const leadsAll = detailSched[`${p}_leads_map`]
+                  ? (detailSched[`${p}_leads_map`][date] || [])
+                  : (detailSched[`${p}_leads`] || []);
+                const staffAll = detailSched[`${p}_km_staff_map`]
+                  ? (detailSched[`${p}_km_staff_map`][date] || [])
+                  : (detailSched[`${p}_km_staff`] || []);
+                const deptLeads = leadsAll.filter(l => l.department === userDept).map(l => l.name || l);
+                const deptStaff = staffAll.filter(n => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(n)));
+                if (deptLeads.length === 0 && deptStaff.length === 0) continue;
+                const isResponsible = deptLeads.length > 0
+                  ? deptLeads.includes(myName)
+                  : deptStaff[0] === myName;
                 if (isResponsible) {
                   pastDates.push({ p, date, label: PHASE_LABEL_MAP[p] });
                 }
