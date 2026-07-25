@@ -346,7 +346,7 @@ export default function XacNhanCong() {
                               : <span style={{ width: 13, flexShrink: 0 }} />}
                             <div style={{ minWidth: 0 }}>
                               <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{name}</div>
-                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{entries.length} buổi</div>}
+                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{entries.length} Ngày</div>}
                             </div>
                           </div>
                         </td>
@@ -358,7 +358,7 @@ export default function XacNhanCong() {
                         </td>
                         {!isMobile && (
                           <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
-                            {hasData ? `${entries.length} buổi` : '—'}
+                            {hasData ? `${entries.length} Ngày` : '—'}
                           </td>
                         )}
                       </tr>
@@ -473,7 +473,7 @@ export default function XacNhanCong() {
                                 })}
                                 {/* Mobile footer total */}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', padding: '6px 4px', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
-                                  <span style={{ fontSize: '0.75rem', color: '#a08040' }}>{entries.length} buổi</span>
+                                  <span style={{ fontSize: '0.75rem', color: '#a08040' }}>{entries.length} Ngày</span>
                                   <span style={{ fontSize: '0.82rem', fontWeight: 800, color: GOLD }}>{fmtNum(cong)} công</span>
                                   {ot > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(ot)}h OT</span>}
                                 </div>
@@ -567,7 +567,7 @@ export default function XacNhanCong() {
                                   </tbody>
                                   <tfoot>
                                     <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
-                                      <td colSpan={canSuaCong ? 10 : 9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} buổi</td>
+                                      <td colSpan={canSuaCong ? 10 : 9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} Ngày</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{fmtNum(cong)}</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
                                     </tr>

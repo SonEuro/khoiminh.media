@@ -1019,7 +1019,7 @@ function CongDashWidget({ user, kmStaffGroups }) {
                 <td style={{ ...tdS, fontWeight: 600, color: '#eeeef5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</td>
                 <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNumD(cong)}</td>
                 <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
-                <td style={{ ...tdS, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>{buoi} buổi</td>
+                <td style={{ ...tdS, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>{buoi} Ngày</td>
               </tr>
             ))}
           </tbody>
