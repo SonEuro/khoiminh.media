@@ -69,29 +69,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd /var/www/kho-khoiminh
-
             echo "━━━ npm install ━━━"
             cd /var/www/kho-khoiminh/server
             npm install --omit=dev
-            npm install web-push --omit=dev
 
-            echo "━━━ Reload PM2 ━━━"
+            echo "━━━ Reload PM2 (graceful, 0 downtime) ━━━"
             cd /var/www/kho-khoiminh
-            fuser -k 3001/tcp 2>/dev/null || true
-            pm2 delete kho-khoiminh 2>/dev/null || true
-            pm2 start /var/www/kho-khoiminh/ecosystem.config.cjs
+            pm2 reload ecosystem.config.cjs --update-env
             pm2 save
 
-            echo ""
-            echo "━━━ PM2 log rotation ━━━"
-            pm2 install pm2-logrotate 2>/dev/null || true
-            pm2 set pm2-logrotate:max_size 50M
-            pm2 set pm2-logrotate:retain 30
-            pm2 set pm2-logrotate:compress true
-            pm2 set pm2-logrotate:dateFormat YYYY-MM-DD
-            pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
-
-            echo ""
             echo "✅ Deploy thành công!"
             pm2 list
