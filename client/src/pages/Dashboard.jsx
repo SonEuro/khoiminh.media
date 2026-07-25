@@ -893,13 +893,8 @@ function AdminDashboard({ dash, events, violations, lockedObs, myObs, onConfirme
       </AdminSec>}
 
 
-      {/* Xuất kho + quá hạn trả (vẫn cần cho admin) */}
-      {(dash?.need_confirm?.length > 0 || dash?.overdue?.length > 0) && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {dash.need_confirm.length > 0 && <ConfirmSection items={dash.need_confirm} onConfirmed={onConfirmed} />}
-          {dash.overdue.length > 0 && <OverdueSection items={dash.overdue} />}
-        </div>
-      )}
+      {/* Quá hạn trả (vẫn cần cho admin) */}
+      {dash?.overdue?.length > 0 && <OverdueSection items={dash.overdue} />}
     </div>
   );
 }
