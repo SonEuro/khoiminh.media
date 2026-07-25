@@ -1001,7 +1001,7 @@ function CongDashWidget({ user, kmStaffGroups }) {
             <col />
             <col style={{ width: '100px' }} />
             <col style={{ width: '90px' }} />
-            <col style={{ width: '70px' }} />
+            <col style={{ width: '85px' }} />
           </colgroup>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
