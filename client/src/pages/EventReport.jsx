@@ -114,7 +114,7 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
 }
 
 // ── Staff dropdown ────────────────────────────────────────────────────────────
-function StaffSelect({ selected, onChange, visibleDepts }) {
+function StaffSelect({ selected, onChange, visibleDepts, displayOnly }) {
   const { kmGroups } = useStaffGroups();
   const visibleGroups = visibleDepts ? kmGroups.filter(g => visibleDepts.includes(g.dept)) : kmGroups;
   const [open, setOpen] = useState(false);
@@ -128,6 +128,27 @@ function StaffSelect({ selected, onChange, visibleDepts }) {
 
   function toggle(name) {
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
+  }
+
+  // displayOnly: chỉ hiển thị danh sách, không cho thêm/bỏ
+  if (displayOnly) {
+    return (
+      <div>
+        <label style={labelStyle}>Nhân Sự Khôi Minh</label>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'4px' }}>
+          {selected.length === 0
+            ? <span style={{ color:'#7878a0', fontSize:'0.84rem' }}>—</span>
+            : selected.map(s => (
+              <span key={s} style={{
+                display:'inline-flex', alignItems:'center',
+                padding:'3px 10px', borderRadius:'9999px',
+                background:'rgba(201,168,76,0.10)', border:'1px solid rgba(201,168,76,0.25)',
+                color: GOLD, fontSize:'0.84rem', fontWeight:600,
+              }}>{s}</span>
+            ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -1820,17 +1841,11 @@ export default function EventReport() {
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)}
-              visibleDepts={(() => {
-                if (editingId) {
-                  // Khi edit: chỉ hiện các dept đã có nhân sự trong báo cáo đó
-                  const depts = kmGroups.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept);
-                  return depts.length > 0 ? depts : null;
-                }
-                // Khi tạo mới: admin thấy tất cả, user thường thấy dept mình
-                if (canViewAllDepts) return null;
+              displayOnly={!!editingId && canViewAllDepts}
+              visibleDepts={(!editingId && !canViewAllDepts) ? (() => {
                 const d = getUserKmDept(user, kmGroups);
                 return d && d !== '—' ? [d] : null;
-              })()} />
+              })() : null} />
             {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
