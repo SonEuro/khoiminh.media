@@ -73,9 +73,13 @@ jobs:
             cd /var/www/kho-khoiminh/server
             npm install --omit=dev
 
-            echo "━━━ Reload PM2 (graceful, 0 downtime) ━━━"
+            echo "━━━ Restart PM2 ━━━"
             cd /var/www/kho-khoiminh
-            pm2 reload ecosystem.config.cjs --update-env
+            fuser -k 3001/tcp 2>/dev/null || true
+            sleep 1
+            pm2 delete kho-khoiminh 2>/dev/null || true
+            sleep 1
+            pm2 start ecosystem.config.cjs
             pm2 save
 
             echo "✅ Deploy thành công!"
