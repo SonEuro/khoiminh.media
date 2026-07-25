@@ -1859,7 +1859,7 @@ export default function WorkSchedule() {
               for (const phase of PHASES) {
                 const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).filter(d => d <= todayStr);
                 for (const date of dates) {
-                  const userDept = getUserDept(myName);
+                  const userDept = getUserDept(myName, kmGroups);
                   if (!userDept) continue; // không phải nhân sự KM → không nộp
                   const supportMapPhase = selected[`${phase.key}_km_support`] || {};
                   if (Object.prototype.hasOwnProperty.call(supportMapPhase[date] || {}, myName)) continue; // đang hỗ trợ bộ phận khác
@@ -1870,7 +1870,7 @@ export default function WorkSchedule() {
                     ? (selected[`${phase.key}_km_staff_map`][date] || [])
                     : (selected[`${phase.key}_km_staff`] || []));
                   const deptLeads = leadsAll.filter(l => l.department === userDept).map(l => l.name || l);
-                  const deptStaff = staffAll.filter(n => KM_STAFF_GROUPS_DEFAULT.find(g => g.dept === userDept && g.members.includes(n)));
+                  const deptStaff = staffAll.filter(n => kmGroups.find(g => g.dept === userDept && g.members.includes(n)));
                   if (deptLeads.length === 0 && deptStaff.length === 0) continue; // không có KM trong bộ phận này
                   const isResponsible = deptLeads.length > 0
                     ? deptLeads.includes(myName)

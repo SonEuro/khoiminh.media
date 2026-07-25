@@ -5,6 +5,7 @@ import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 
 const GOLD = '#c9a84c';
@@ -630,7 +631,7 @@ setUpcoming(found);
             for (const p of phases) {
               const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d <= todayVN);
               for (const date of dates) {
-                const userDept = KM_STAFF_GROUPS.find(g => g.members.includes(myName))?.dept;
+                const userDept = liveKmGroups.find(g => g.members.includes(myName))?.dept;
                 if (!userDept) continue; // không phải nhân sự KM → không nộp
                 const supportMapPhase = detailSched[`${p}_km_support`] || {};
                 if (Object.prototype.hasOwnProperty.call(supportMapPhase[date] || {}, myName)) continue; // đang hỗ trợ bộ phận khác
@@ -641,7 +642,7 @@ setUpcoming(found);
                   ? (detailSched[`${p}_km_staff_map`][date] || [])
                   : (detailSched[`${p}_km_staff`] || []);
                 const deptLeads = leadsAll.filter(l => l.department === userDept).map(l => l.name || l);
-                const deptStaff = staffAll.filter(n => KM_STAFF_GROUPS.find(g => g.dept === userDept && g.members.includes(n)));
+                const deptStaff = staffAll.filter(n => liveKmGroups.find(g => g.dept === userDept && g.members.includes(n)));
                 if (deptLeads.length === 0 && deptStaff.length === 0) continue;
                 const isResponsible = deptLeads.length > 0
                   ? deptLeads.includes(myName)
@@ -1164,6 +1165,7 @@ function CongDashWidget({ user, kmStaffGroups }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { kmGroups: liveKmGroups } = useStaffGroups();
   const [dash, setDash]       = useState(null);
   const [events, setEvents]   = useState([]);
   const [violations, setViolations] = useState([]);

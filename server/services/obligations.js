@@ -116,7 +116,8 @@ function syncObligations(scheduleId) {
               WHERE violator = ? AND reporter_name = 'Hệ thống'
                 AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
                 AND description LIKE ?
-            `).run(supportName, `%ngày ${date}%`);
+                AND event_id IS ?
+            `).run(supportName, `%ngày ${date}%`, sched.event_id || null);
           }
           db.prepare('DELETE FROM lead_report_obligations WHERE id = ?').run(ob.id);
         }
@@ -197,9 +198,6 @@ function checkAndCreateViolations() {
 
   for (const ob of overdue) {
     try {
-      const hardDeadline = computeHardDeadline(ob.assigned_date);
-      const hardPassed = now >= hardDeadline;
-
       const nextDay = (() => {
         const [y, m, d] = ob.assigned_date.split('-').map(Number);
         const dt = new Date(Date.UTC(y, m - 1, d + 1));
