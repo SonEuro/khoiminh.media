@@ -286,13 +286,19 @@ export default function XacNhanCong() {
             </div>
 
             {/* Summary table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col />
+                <col style={{ width: isMobile ? '76px' : '100px' }} />
+                <col style={{ width: isMobile ? '76px' : '100px' }} />
+                {!isMobile && <col style={{ width: '70px' }} />}
+              </colgroup>
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
                   <th style={{ ...thBase }}>Tên Nhân Viên</th>
-                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap', width: isMobile ? '72px' : '100px' }}>Ngày Công</th>
-                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap', width: isMobile ? '72px' : '100px' }}>OT (giờ)</th>
-                  {!isMobile && <th style={{ ...thBase, textAlign: 'center', width: '70px' }}>Chi Tiết</th>}
+                  <th style={{ ...thBase, textAlign: 'center' }}>Ngày Công</th>
+                  <th style={{ ...thBase, textAlign: 'center' }}>OT (giờ)</th>
+                  {!isMobile && <th style={{ ...thBase, textAlign: 'center' }}>Chi Tiết</th>}
                 </tr>
               </thead>
               <tbody>
@@ -309,12 +315,12 @@ export default function XacNhanCong() {
                       <tr key={name}
                         onClick={() => hasData && toggleExpand(name)}
                         style={{ cursor: hasData ? 'pointer' : 'default', background: isExp ? 'rgba(201,168,76,0.04)' : undefined, transition: 'background 0.15s' }}>
-                        <td style={{ ...tdBase }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <td style={{ ...tdBase, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                             {hasData
                               ? (isExp ? <ChevronDown size={13} color={GOLD} style={{ flexShrink: 0 }} /> : <ChevronRight size={13} color="#7878a0" style={{ flexShrink: 0 }} />)
                               : <span style={{ width: 13, flexShrink: 0 }} />}
-                            <div>
+                            <div style={{ minWidth: 0 }}>
                               <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{name}</div>
                               {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{entries.length} buổi</div>}
                             </div>
@@ -415,19 +421,13 @@ export default function XacNhanCong() {
                                             <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Trưa: {r.no_lunch_break ? '✕' : '✓'}</span>
                                             <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}</span>
                                           </div>
-                                          {/* Row 3: công + OT + Lễ + Sửa Công */}
+                                          {/* Row 3: công + OT + Sửa Công */}
                                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                               {result ? fmtNum(result.congRate) + ' công' : '—'}
                                             </span>
                                             {result?.otHours > 0 && (
                                               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
-                                            )}
-                                            {canToggleLe && (
-                                              <button disabled={togBusy} onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                                style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0', flexShrink: 0 }}>
-                                                Lễ: {isHol ? 'Có' : 'Không'}
-                                              </button>
                                             )}
                                             {canSuaCong && (
                                               <button onClick={e => { e.stopPropagation(); startEditRow(r); }}
