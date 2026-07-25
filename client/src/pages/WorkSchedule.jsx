@@ -1857,7 +1857,7 @@ export default function WorkSchedule() {
               const myName = user.full_name;
               const pastDates = [];
               for (const phase of PHASES) {
-                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).filter(d => d < todayStr);
+                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).filter(d => d <= todayStr);
                 for (const date of dates) {
                   const userDept = getUserDept(myName);
                   if (!userDept) continue; // không phải nhân sự KM → không nộp

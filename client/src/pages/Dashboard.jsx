@@ -628,7 +628,7 @@ setUpcoming(found);
             const pastDates = [];
             const phases = ['setup','rehearsal','filming','teardown'];
             for (const p of phases) {
-              const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d < todayVN);
+              const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d <= todayVN);
               for (const date of dates) {
                 const userDept = KM_STAFF_GROUPS.find(g => g.members.includes(myName))?.dept;
                 if (!userDept) continue; // không phải nhân sự KM → không nộp
