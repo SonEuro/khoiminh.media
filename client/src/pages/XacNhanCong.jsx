@@ -325,8 +325,8 @@ export default function XacNhanCong() {
                                           N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}
                                         </span>
                                       </div>
-                                      {/* Row 3: công + OT + Lễ toggle (canEdit only) */}
-                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                      {/* Row 3: công + OT + Lễ toggle (canToggleLe only) */}
+                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                         <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                           {result ? fmtNum(result.congRate) + ' công' : '—'}
                                         </span>
@@ -336,7 +336,7 @@ export default function XacNhanCong() {
                                         {canToggleLe && (
                                           <button disabled={togBusy}
                                             onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                            style={{ marginLeft: 'auto', padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0' }}>
+                                            style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0', flexShrink: 0 }}>
                                             Lễ: {isHol ? 'Có' : 'Không'}
                                           </button>
                                         )}
