@@ -265,58 +265,86 @@ export default function XacNhanCong() {
                         </td>
                       </tr>
 
-                      {/* Expanded detail rows */}
-                      {isExp && entries.map(({ report: r, result }) => {
-                        const isHol = !!r.is_holiday;
-                        const isSun = result?.isSunday;
-                        const togBusy = toggling.has(r.id);
-                        const dayTag = dayLabel(r.report_date);
-                        return (
-                          <tr key={`${name}-${r.id}`} style={{ background: isHol ? 'rgba(248,113,113,0.03)' : isSun ? 'rgba(96,165,250,0.03)' : 'rgba(255,255,255,0.015)' }}>
-                            <td style={{ ...tdBase, paddingLeft: '36px' }}>
-                              <span style={{ fontVariantNumeric: 'tabular-nums', color: '#c8c8e0', fontSize: '0.8rem' }}>{fmtDate(r.report_date)}</span>
-                              <span style={{
-                                marginLeft: '5px', fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px',
-                                background: isSun ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.05)',
-                                color: isSun ? '#60a5fa' : '#7878a0',
-                              }}>{dayTag}</span>
-                              <span style={{ marginLeft: '8px', fontSize: '0.78rem', color: '#7878a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px', display: 'inline-block', verticalAlign: 'middle' }}>
-                                {r.event_label || '—'}
-                              </span>
-                            </td>
-                            <td style={{ ...tdBase, textAlign: 'center' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                <span style={{ fontSize: '0.8rem', color: GOLD, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                                  {result ? fmtNum(result.congRate) : '—'}
-                                </span>
-                                <span style={{ fontSize: '0.68rem', color: '#7878a0' }}>
-                                  {result ? fmtMins(result.kmMins) : ''}
-                                  {r.no_lunch_break ? ' · KN Trưa' : ''}
-                                </span>
-                              </div>
-                            </td>
-                            <td style={{ ...tdBase, textAlign: 'center', fontSize: '0.8rem', color: result?.otHours > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>
-                              {result?.otHours > 0 ? fmtNum(result.otHours) + 'h' : '—'}
-                            </td>
-                            <td style={{ ...tdBase, textAlign: 'center' }}>
-                              {canEdit ? (
-                                <button disabled={togBusy}
-                                  onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                  style={{
-                                    padding: '2px 9px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer',
-                                    fontSize: '0.72rem', fontWeight: 700,
-                                    background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)',
-                                    color: isHol ? '#f87171' : '#7878a0',
-                                  }}>
-                                  {isHol ? 'Lễ ✕' : 'Lễ'}
-                                </button>
-                              ) : (
-                                <span style={{ fontSize: '0.72rem', color: isHol ? '#f87171' : '#7878a0' }}>{isHol ? 'Lễ' : '—'}</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {/* Expanded detail — nested full table */}
+                      {isExp && (
+                        <tr key={`${name}-detail`}>
+                          <td colSpan={4} style={{ padding: 0, background: 'rgba(255,255,255,0.012)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
+                            <div style={{ overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                    {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','Nghỉ Trưa','Nghỉ Chiều','Ngày Lễ','Giờ Thực','Công','OT'].map(h => (
+                                      <th key={h} style={{ padding: '6px 10px', fontSize: '0.68rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','Nghỉ Trưa','Nghỉ Chiều','Ngày Lễ','Giờ Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {entries.map(({ report: r, result }) => {
+                                    const isHol = !!r.is_holiday;
+                                    const isSun = result?.isSunday;
+                                    const togBusy = toggling.has(r.id);
+                                    const dayTag = dayLabel(r.report_date);
+                                    const dtd = { padding: '7px 10px', fontSize: '0.80rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
+                                    return (
+                                      <tr key={r.id} style={{ background: isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
+                                        {/* Ngày */}
+                                        <td style={dtd}>
+                                          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtDate(r.report_date)}</span>
+                                          <span style={{ marginLeft: '4px', fontSize: '0.68rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', background: isSun ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.05)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
+                                        </td>
+                                        {/* Sự Kiện */}
+                                        <td style={{ ...dtd, maxWidth: '180px' }}>
+                                          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
+                                        </td>
+                                        {/* Có Mặt */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.time_present || '—'}</td>
+                                        {/* Kết Thúc */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.time_end || '—'}</td>
+                                        {/* Giờ KM */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{result ? fmtMins(result.kmMins) : '—'}</td>
+                                        {/* Nghỉ Trưa */}
+                                        <td style={{ ...dtd, textAlign: 'center' }}>
+                                          {r.no_lunch_break ? <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.8rem' }}>✕</span> : <span style={{ color: '#4ade80', fontSize: '0.8rem' }}>✓</span>}
+                                        </td>
+                                        {/* Nghỉ Chiều */}
+                                        <td style={{ ...dtd, textAlign: 'center' }}>
+                                          {r.no_afternoon_break ? <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.8rem' }}>✕</span> : <span style={{ color: '#4ade80', fontSize: '0.8rem' }}>✓</span>}
+                                        </td>
+                                        {/* Ngày Lễ toggle */}
+                                        <td style={{ ...dtd, textAlign: 'center' }}>
+                                          {canEdit ? (
+                                            <button disabled={togBusy}
+                                              onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
+                                              style={{ padding: '2px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)', color: isHol ? '#f87171' : '#7878a0' }}>
+                                              {isHol ? 'Có' : 'Không'}
+                                            </button>
+                                          ) : (
+                                            <span style={{ fontSize: '0.75rem', color: isHol ? '#f87171' : '#7878a0' }}>{isHol ? 'Có' : '—'}</span>
+                                          )}
+                                        </td>
+                                        {/* Giờ Thực */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</td>
+                                        {/* Công */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isHol ? '#f87171' : isSun ? '#60a5fa' : GOLD }}>{result ? fmtNum(result.congRate) : '—'}</td>
+                                        {/* OT */}
+                                        <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: result?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>{result?.otHours > 0 ? fmtNum(result.otHours) + 'h' : '—'}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                                {/* Person total footer */}
+                                <tfoot>
+                                  <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
+                                    <td colSpan={9} style={{ padding: '6px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tổng · {entries.length} buổi</td>
+                                    <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNum(cong)}</td>
+                                    <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </>
                   );
                 })}
