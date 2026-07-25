@@ -613,20 +613,28 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
                   );
                 })()}
                 {(kmDur || khDur) && !!currentUser?.is_phan_lich_all && (
-                  <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'14px' }}>
-                    {kmDur && (
-                      <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khôi Minh</p>
-                        <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
+                  <>
+                    <div style={{ display:'grid', gridTemplateColumns:`repeat(${[kmDur,khDur].filter(Boolean).length}, 1fr)`, gap:'8px', marginBottom:'6px' }}>
+                      {kmDur && (
+                        <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khôi Minh</p>
+                          <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{kmDur}</p>
+                        </div>
+                      )}
+                      {khDur && (
+                        <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
+                          <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khách Hàng</p>
+                          <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
+                        </div>
+                      )}
+                    </div>
+                    {(report.no_lunch_break || report.no_afternoon_break) && (
+                      <div style={{ display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap' }}>
+                        {!!report.no_lunch_break && <span style={{ fontSize:'0.72rem', padding:'2px 8px', borderRadius:'10px', background:'rgba(201,168,76,0.15)', color:'#c9a84c', fontWeight:600 }}>Không Nghỉ Trưa</span>}
+                        {!!report.no_afternoon_break && <span style={{ fontSize:'0.72rem', padding:'2px 8px', borderRadius:'10px', background:'rgba(201,168,76,0.15)', color:'#c9a84c', fontWeight:600 }}>Không Nghỉ Chiều</span>}
                       </div>
                     )}
-                    {khDur && (
-                      <div style={{ textAlign:'center', background:'rgba(255,255,255,0.02)', borderRadius:'8px', padding:'10px 12px' }}>
-                        <p style={{ fontSize:'0.80rem', color:'#7878a0', margin:'0 0 3px', textTransform:'uppercase' }}>Khách Hàng</p>
-                        <p style={{ fontSize:'0.92rem', fontWeight:700, color:GOLD, margin:0, fontVariantNumeric:'tabular-nums' }}>{khDur}</p>
-                      </div>
-                    )}
-                  </div>
+                  </>
                 )}
               </>
             );
@@ -957,6 +965,7 @@ const makeEmptyForm = () => ({
   km_staff: [], freelancer_staff: '',
   job_content: '',
   time_present: '', time_onset: '', time_off: '', time_end: '',
+  no_lunch_break: 0, no_afternoon_break: 0,
   timeline: [],
   incomplete: '', incidents: '',
   progress: '', completed_work: '', service_quality: '',
@@ -1360,6 +1369,8 @@ export default function EventReport() {
       time_onset:      report.time_onset   || '',
       time_off:        report.time_off     || '',
       time_end:        report.time_end     || '',
+      no_lunch_break:     report.no_lunch_break     || 0,
+      no_afternoon_break: report.no_afternoon_break || 0,
       incomplete:      report.incomplete   || '',
       incidents:       report.incidents    || '',
       progress:        report.progress     || '',
@@ -1830,6 +1841,16 @@ export default function EventReport() {
                 <TimeInput value={form[key]} onChange={v => setField(key, v)} hasError={!!errors[key]} />
                 {errors[key] && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'3px' }}>⚠ {errors[key]}</p>}
               </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:'20px', marginTop:'10px', flexWrap:'wrap' }}>
+            {[['no_lunch_break', 'Không Nghỉ Trưa'], ['no_afternoon_break', 'Không Nghỉ Chiều']].map(([key, label]) => (
+              <label key={key} style={{ display:'flex', alignItems:'center', gap:'7px', cursor:'pointer', userSelect:'none', color:'#c8c8e0', fontSize:'0.83rem' }}>
+                <input type="checkbox" checked={!!form[key]}
+                  onChange={e => setField(key, e.target.checked ? 1 : 0)}
+                  style={{ width:'15px', height:'15px', accentColor: GOLD, cursor:'pointer' }} />
+                {label}
+              </label>
             ))}
           </div>
           {(() => {

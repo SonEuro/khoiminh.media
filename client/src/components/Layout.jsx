@@ -7,7 +7,7 @@ import {
   CalendarDays, ArrowUpFromLine, ArrowDownToLine,
   ClipboardList, ShieldAlert, History, CalendarCog,
   Warehouse, PackagePlus, Users, LogOut, ChevronUp, ChevronDown, Menu, KeyRound, Bell, BellOff,
-  Calculator,
+  Calculator, ClipboardCheck,
 } from 'lucide-react';
 
 const GOLD         = '#c9a84c';
@@ -259,7 +259,8 @@ export default function Layout() {
     { to: '/event-return',  Icon: ArrowDownToLine, label: 'Nhập TB Sự Kiện',  show: can('returnEvent') },
     { to: '/return',        Icon: PackagePlus,     label: 'Nhập Kho Thiết Bị',       show: can('viewIntakePage') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
-    { to: '/van-hanh-ke-toan', Icon: Calculator,  label: 'Vận Hành Kế Toán',        show: can('viewKeToan') },
+    { to: '/van-hanh-ke-toan', Icon: Calculator,     label: 'Vận Hành Kế Toán',        show: can('viewKeToan') },
+    { to: '/xac-nhan-cong',   Icon: ClipboardCheck, label: 'Xác Nhận Công',           show: can('viewXacNhanCong') },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 

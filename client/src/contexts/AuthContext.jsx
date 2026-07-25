@@ -77,6 +77,7 @@ export function AuthProvider({ children }) {
       case 'deleteEvent':    return ['DIRECTOR', 'SUPER_ADMIN'].includes(role);
       case 'exportReport':   return ['DIRECTOR', 'SUPER_ADMIN', 'ACCOUNTING'].includes(role);
       case 'viewKeToan':     return !!user.is_van_hanh_ke_toan || role === 'SUPER_ADMIN';
+      case 'viewXacNhanCong': return ['DIRECTOR', 'SUPER_ADMIN'].includes(role) || !!user.is_phan_lich_all;
       default: return true;
     }
   }

@@ -137,6 +137,8 @@ export const api = {
   updateEventReport: (id, data) => request(`/event-reports/${id}`, { method: 'PUT', body: data }),
   confirmEventReport: (id) => request(`/event-reports/${id}/confirm`, { method: 'PATCH' }),
   getReportDeleteLog: () => request('/event-reports/admin/delete-log'),
+  getXacNhanCong: (month) => request(`/xac-nhan-cong?month=${month}`),
+  setReportHoliday: (id, is_holiday) => request(`/xac-nhan-cong/${id}/holiday`, { method: 'PATCH', body: { is_holiday } }),
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),
   permanentDeleteEvent: (id) => request(`/events/${id}/permanent`, { method: 'DELETE' }),

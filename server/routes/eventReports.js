@@ -18,7 +18,7 @@ router.get('/', (req, res) => {
            er.reporter_name, er.reporter_user_id, er.created_at, er.confirmed_at, er.confirmed_by_id,
            er.job_content, er.freelancer_staff, er.incomplete, er.incidents, er.progress,
            er.completed_work, er.service_quality, er.time_present, er.time_onset, er.time_off, er.time_end,
-           er.km_staff,
+           er.km_staff, er.no_lunch_break, er.no_afternoon_break, er.is_holiday,
            json_array_length(er.images) AS image_count,
            u.role AS reporter_role,
            (SELECT deadline FROM lead_report_obligations
@@ -58,6 +58,7 @@ router.post('/', requireAuth, (req, res) => {
     event_id, event_label, location, report_date,
     km_staff, freelancer_staff,
     time_present, time_onset, time_off, time_end,
+    no_lunch_break, no_afternoon_break,
     incomplete, incidents, progress, completed_work, service_quality,
     images, reporter_name, job_content, timeline,
   } = req.body;
@@ -66,13 +67,15 @@ router.post('/', requireAuth, (req, res) => {
     INSERT INTO event_reports
       (event_id, event_label, location, report_date, km_staff, freelancer_staff,
        time_present, time_onset, time_off, time_end,
+       no_lunch_break, no_afternoon_break,
        incomplete, incidents, progress, completed_work, service_quality,
        images, reporter_name, reporter_user_id, job_content, timeline)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     event_id || null, event_label || '', location || '', report_date || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
     time_present || '', time_onset || '', time_off || '', time_end || '',
+    no_lunch_break ? 1 : 0, no_afternoon_break ? 1 : 0,
     incomplete || '', incidents || '', progress || '', completed_work || '', service_quality || '',
     JSON.stringify(images || []), reporter_name || '',
     req.user?.id || null,
@@ -106,6 +109,7 @@ router.put('/:id', requireAuth, (req, res) => {
     location,
     km_staff, freelancer_staff,
     time_present, time_onset, time_off, time_end,
+    no_lunch_break, no_afternoon_break,
     incomplete, incidents, progress, completed_work, service_quality,
     images, job_content, timeline,
   } = req.body;
@@ -120,6 +124,7 @@ router.put('/:id', requireAuth, (req, res) => {
       location=?,
       km_staff=?, freelancer_staff=?,
       time_present=?, time_onset=?, time_off=?, time_end=?,
+      no_lunch_break=?, no_afternoon_break=?,
       incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
       images=?, job_content=?, timeline=?, edit_history=?
     WHERE id=?
@@ -127,6 +132,7 @@ router.put('/:id', requireAuth, (req, res) => {
     location || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
     time_present || '', time_onset || '', time_off || '', time_end || '',
+    no_lunch_break ? 1 : 0, no_afternoon_break ? 1 : 0,
     incomplete || '', incidents || '', progress || '', completed_work || '', service_quality || '',
     JSON.stringify(images || []),
     job_content || '',

@@ -277,6 +277,23 @@ if (!erCols.includes('timeline')) {
   console.log('[DB] Migration: thêm cột timeline vào event_reports');
 }
 
+// Migration: thêm no_lunch_break, no_afternoon_break, is_holiday vào event_reports
+{
+  const erCols2 = db.pragma('table_info(event_reports)').map(c => c.name);
+  if (!erCols2.includes('no_lunch_break')) {
+    db.exec('ALTER TABLE event_reports ADD COLUMN no_lunch_break INTEGER DEFAULT 0');
+    console.log('[DB] Migration: thêm cột no_lunch_break vào event_reports');
+  }
+  if (!erCols2.includes('no_afternoon_break')) {
+    db.exec('ALTER TABLE event_reports ADD COLUMN no_afternoon_break INTEGER DEFAULT 0');
+    console.log('[DB] Migration: thêm cột no_afternoon_break vào event_reports');
+  }
+  if (!erCols2.includes('is_holiday')) {
+    db.exec('ALTER TABLE event_reports ADD COLUMN is_holiday INTEGER DEFAULT 0');
+    console.log('[DB] Migration: thêm cột is_holiday vào event_reports');
+  }
+}
+
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có
 const eventCols = db.pragma('table_info(events)').map(c => c.name);
 if (!eventCols.includes('filming_dates')) {
