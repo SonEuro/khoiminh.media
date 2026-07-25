@@ -44,7 +44,7 @@ function AppRoutes() {
         <Route path="reports"    element={<Reports />} />
         <Route path="violations"    element={<ViolationReport />} />
         <Route path="event-report" element={<EventReport />} />
-        <Route path="work-schedule" element={<WorkSchedule />} />
+        <Route path="work-schedule" element={can('viewWorkSchedule') ? <WorkSchedule /> : <Navigate to="/" replace />} />
         <Route path="van-hanh-ke-toan" element={can('viewKeToan') ? <VanHanhKeToan /> : <Navigate to="/" replace />} />
         <Route path="xac-nhan-cong" element={can('viewXacNhanCong') ? <XacNhanCong /> : <Navigate to="/" replace />} />
         <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
