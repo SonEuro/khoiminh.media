@@ -1851,6 +1851,48 @@ export default function WorkSchedule() {
                 </div>
               );
             })()}
+            {/* Section nộp báo cáo cho các ngày đã qua mà user được phân công */}
+            {(() => {
+              if (!user?.full_name) return null;
+              const myName = user.full_name;
+              const pastDates = [];
+              for (const phase of PHASES) {
+                const dates = (selected[`${phase.key}_dates`] || (selected[`${phase.key}_date`] ? [selected[`${phase.key}_date`]] : [])).filter(d => d < todayStr);
+                for (const date of dates) {
+                  const leadsMap = selected[`${phase.key}_leads_map`];
+                  const leads = (leadsMap ? (leadsMap[date] || []) : (selected[`${phase.key}_leads`] || [])).map(l => l.name || l);
+                  const staffMap = selected[`${phase.key}_km_staff_map`];
+                  const staff = staffMap ? (staffMap[date] || []) : (selected[`${phase.key}_km_staff`] || []);
+                  const freeMap = selected[`${phase.key}_freelancers_map`];
+                  const freeFlat = (selected[`${phase.key}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+                  const free = freeMap && freeMap[date] ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
+                  const hasLeads = leads.length > 0;
+                  const isResponsible = hasLeads
+                    ? leads.includes(myName)
+                    : staff.length > 0 ? staff[0] === myName : free[0] === myName;
+                  if (isResponsible) {
+                    pastDates.push({ phase, date });
+                  }
+                }
+              }
+              if (!pastDates.length) return null;
+              return (
+                <div style={{ marginTop: '8px', padding: '12px 14px', background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '10px' }}>
+                  <p style={{ margin: '0 0 8px', fontSize: '0.80rem', fontWeight: 800, color: GOLD, letterSpacing: '0.06em', textTransform: 'uppercase' }}>📋 Nộp Báo Cáo</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {pastDates.map(({ phase, date }) => (
+                      <button key={`${phase.key}-${date}`}
+                        onClick={() => { setModal(null); navigate('/event-report', { state: { prefill: { event_id: selected.event_id, event_label: selected.event_name, report_date: date } } }); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 12px', borderRadius: '7px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.08)', color: GOLD, cursor: 'pointer', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}>
+                        <span>{phase.label}</span>
+                        <span style={{ color: '#c8c8e0' }}>{fmtD(date)}</span>
+                        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#7878a0' }}>Nộp →</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             {scheduleHistory.length > 0 && (
               <div style={{ marginTop: '4px', padding: '10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
                 <p style={{ fontSize: '0.84rem', fontWeight: 800, color: '#7878a0', letterSpacing: '0.08em', margin: '0 0 6px', textTransform: 'uppercase' }}>📋 Lịch sử chỉnh sửa</p>

@@ -621,6 +621,49 @@ setUpcoming(found);
               </div>
             ))
           }
+          {/* Section nộp báo cáo cho ngày đã qua mà user được phân công */}
+          {(() => {
+            const myName = userName;
+            if (!myName) return null;
+            const pastDates = [];
+            const phases = ['setup','rehearsal','filming','teardown'];
+            for (const p of phases) {
+              const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d < todayVN);
+              for (const date of dates) {
+                const leadsMap = detailSched[`${p}_leads_map`];
+                const leads = (leadsMap ? (leadsMap[date] || []) : (detailSched[`${p}_leads`] || [])).map(l => l.name || l);
+                const staffMap = detailSched[`${p}_km_staff_map`];
+                const staff = staffMap ? (staffMap[date] || []) : (detailSched[`${p}_km_staff`] || []);
+                const freeMap = detailSched[`${p}_freelancers_map`];
+                const freeFlat = (detailSched[`${p}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+                const free = freeMap && freeMap[date] ? Object.values(freeMap[date]).join(',').split(',').map(x => x.trim()).filter(Boolean) : freeFlat;
+                const hasLeads = leads.length > 0;
+                const isResponsible = hasLeads
+                  ? leads.includes(myName)
+                  : staff.length > 0 ? staff[0] === myName : free[0] === myName;
+                if (isResponsible) {
+                  pastDates.push({ p, date, label: PHASE_LABEL_MAP[p] });
+                }
+              }
+            }
+            if (!pastDates.length) return null;
+            return (
+              <div style={{ marginTop:'12px', padding:'12px 14px', background:'rgba(201,168,76,0.06)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:'10px' }}>
+                <p style={{ margin:'0 0 8px', fontSize:'0.80rem', fontWeight:800, color: GOLD, letterSpacing:'0.06em', textTransform:'uppercase' }}>📋 Nộp Báo Cáo</p>
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                  {pastDates.map(({ p, date, label }) => (
+                    <button key={`${p}-${date}`}
+                      onClick={() => { setDetailSched(null); navigate('/event-report', { state: { prefill: { event_id: detailSched.event_id, event_label: detailSched.event_name, report_date: date } } }); }}
+                      style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 12px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(201,168,76,0.08)', color: GOLD, cursor:'pointer', fontSize:'0.83rem', fontWeight:600, textAlign:'left' }}>
+                      <span>{label}</span>
+                      <span style={{ color:'#c8c8e0' }}>{fmtD(date)}</span>
+                      <span style={{ marginLeft:'auto', fontSize:'0.75rem', color:'#7878a0' }}>Nộp →</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {can('viewWorkSchedule') && (
             <button onClick={() => { setDetailSched(null); navigate('/work-schedule', { state: { schedId: detailSched.id } }); }}
               style={{ marginTop:'12px', padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.4)', background:'rgba(201,168,76,0.1)', color: GOLD, cursor:'pointer', fontSize:'0.85rem', fontWeight:600 }}>
