@@ -264,13 +264,13 @@ export default function XacNhanCong() {
                       <tr key={name}
                         onClick={() => hasData && toggleExpand(name)}
                         style={{ cursor: hasData ? 'pointer' : 'default', background: isExp ? 'rgba(201,168,76,0.04)' : undefined, transition: 'background 0.15s' }}>
-                        <td style={{ ...tdBase, maxWidth: isMobile ? '160px' : '260px' }}>
+                        <td style={{ ...tdBase }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {hasData
                               ? (isExp ? <ChevronDown size={13} color={GOLD} style={{ flexShrink: 0 }} /> : <ChevronRight size={13} color="#7878a0" style={{ flexShrink: 0 }} />)
                               : <span style={{ width: 13, flexShrink: 0 }} />}
                             <div>
-                              <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobile ? '130px' : '220px' }}>{name}</div>
+                              <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{name}</div>
                               {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{entries.length} buổi</div>}
                             </div>
                           </div>
