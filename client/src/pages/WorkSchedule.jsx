@@ -1861,6 +1861,8 @@ export default function WorkSchedule() {
                 for (const date of dates) {
                   const userDept = getUserDept(myName);
                   if (!userDept) continue; // không phải nhân sự KM → không nộp
+                  const supportMapPhase = selected[`${phase.key}_km_support`] || {};
+                  if (Object.prototype.hasOwnProperty.call(supportMapPhase[date] || {}, myName)) continue; // đang hỗ trợ bộ phận khác
                   const leadsAll = (selected[`${phase.key}_leads_map`]
                     ? (selected[`${phase.key}_leads_map`][date] || [])
                     : (selected[`${phase.key}_leads`] || []));

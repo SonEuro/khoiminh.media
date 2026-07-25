@@ -93,12 +93,37 @@ function syncObligations(scheduleId) {
     const dates = parseDates(rawDates);
     if (!dates.length) continue;
 
-    const rawLeads   = sched[`${phase}_leads`];
-    const rawKmStaff = sched[`${phase}_km_staff`];
+    const rawLeads     = sched[`${phase}_leads`];
+    const rawKmStaff   = sched[`${phase}_km_staff`];
+    const rawKmSupport = sched[`${phase}_km_support`];
+    let kmSupportMap = {};
+    try { if (rawKmSupport) kmSupportMap = JSON.parse(rawKmSupport); } catch {}
 
     for (const date of dates) {
       const allLeads   = parseLeads(rawLeads, date).filter(l => l?.name);
-      const allKmStaff = parseKmStaff(rawKmStaff, date);
+      const supportOnDate = kmSupportMap[date] || {};
+
+      // Dismiss/xóa obligation+violation sai cho support staff (nếu đã tạo từ trước)
+      for (const supportName of Object.keys(supportOnDate)) {
+        const ob = db.prepare(`
+          SELECT id, violation_created FROM lead_report_obligations
+          WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ?
+        `).get(scheduleId, supportName, phase, date);
+        if (ob) {
+          if (ob.violation_created) {
+            db.prepare(`
+              DELETE FROM violations
+              WHERE violator = ? AND reporter_name = 'Hệ thống'
+                AND violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
+                AND description LIKE ?
+            `).run(supportName, `%ngày ${date}%`);
+          }
+          db.prepare('DELETE FROM lead_report_obligations WHERE id = ?').run(ob.id);
+        }
+      }
+
+      // Loại support staff ra — ngày đó họ thuộc bộ phận được hỗ trợ, không phải bộ phận gốc
+      const allKmStaff = parseKmStaff(rawKmStaff, date).filter(n => !Object.prototype.hasOwnProperty.call(supportOnDate, n));
 
       // Tập hợp bộ phận xuất hiện trong ngày (từ leads có dept + km_staff có dept trong kmGroups)
       const deptsPresent = new Set();

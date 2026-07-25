@@ -632,6 +632,8 @@ setUpcoming(found);
               for (const date of dates) {
                 const userDept = KM_STAFF_GROUPS.find(g => g.members.includes(myName))?.dept;
                 if (!userDept) continue; // không phải nhân sự KM → không nộp
+                const supportMapPhase = detailSched[`${p}_km_support`] || {};
+                if (Object.prototype.hasOwnProperty.call(supportMapPhase[date] || {}, myName)) continue; // đang hỗ trợ bộ phận khác
                 const leadsAll = detailSched[`${p}_leads_map`]
                   ? (detailSched[`${p}_leads_map`][date] || [])
                   : (detailSched[`${p}_leads`] || []);
