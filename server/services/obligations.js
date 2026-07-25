@@ -58,9 +58,24 @@ function parseKmStaff(raw, date) {
   return [];
 }
 
+// Load KM groups từ DB (per-dept)
+function getKmGroups() {
+  const rows = db.prepare("SELECT dept, members FROM staff_groups WHERE type='km'").all();
+  return rows.map(r => {
+    try { return { dept: r.dept, members: JSON.parse(r.members) }; }
+    catch { return { dept: r.dept, members: [] }; }
+  });
+}
+
+function getPersonDept(name, kmGroups) {
+  return kmGroups.find(g => g.members.includes(name))?.dept || null;
+}
+
 function syncObligations(scheduleId) {
   const sched = db.prepare('SELECT * FROM work_schedules WHERE id = ?').get(scheduleId);
   if (!sched) return;
+
+  const kmGroups = getKmGroups();
 
   // Dismiss obligations for dates marked exempt
   let exemptArr = [];
@@ -78,33 +93,53 @@ function syncObligations(scheduleId) {
     const dates = parseDates(rawDates);
     if (!dates.length) continue;
 
-    const rawLeads = sched[`${phase}_leads`];
+    const rawLeads   = sched[`${phase}_leads`];
+    const rawKmStaff = sched[`${phase}_km_staff`];
 
     for (const date of dates) {
-      const leads = parseLeads(rawLeads, date).filter(l => l?.name);
+      const allLeads   = parseLeads(rawLeads, date).filter(l => l?.name);
+      const allKmStaff = parseKmStaff(rawKmStaff, date);
 
-      // Nếu không có leads → km_staff đầu tiên chịu trách nhiệm báo cáo
-      let obligated = leads;
-      if (obligated.length === 0) {
-        const kmNames = parseKmStaff(sched[`${phase}_km_staff`], date);
-        if (kmNames.length > 0) obligated = [{ name: kmNames[0] }];
+      // Tập hợp bộ phận xuất hiện trong ngày (từ leads có dept + km_staff có dept trong kmGroups)
+      const deptsPresent = new Set();
+      for (const l of allLeads) {
+        const dept = l.department || getPersonDept(l.name, kmGroups);
+        if (dept) deptsPresent.add(dept);
+      }
+      for (const name of allKmStaff) {
+        const dept = getPersonDept(name, kmGroups);
+        if (dept) deptsPresent.add(dept);
       }
 
-      for (const lead of obligated) {
-        if (!lead?.name) continue;
-        currentKeys.add(`${lead.name}|${phase}|${date}`);
+      // Với mỗi bộ phận: lead của bộ phận đó nộp; nếu không có lead → km_staff đầu tiên nộp
+      const obligated = [];
+      for (const dept of deptsPresent) {
+        const deptLeads  = allLeads.filter(l => (l.department || getPersonDept(l.name, kmGroups)) === dept);
+        const deptKmStaff = allKmStaff.filter(n => getPersonDept(n, kmGroups) === dept);
+
+        if (deptLeads.length > 0) {
+          for (const l of deptLeads) obligated.push({ name: l.name });
+        } else if (deptKmStaff.length > 0) {
+          obligated.push({ name: deptKmStaff[0] });
+        }
+        // Chỉ có freelancer (không có KM) → không cần nộp
+      }
+
+      for (const ob of obligated) {
+        if (!ob?.name) continue;
+        currentKeys.add(`${ob.name}|${phase}|${date}`);
         const deadline = computeDeadline(date);
-        const user = db.prepare('SELECT id FROM users WHERE full_name = ? AND is_active = 1 LIMIT 1').get(lead.name);
+        const user = db.prepare('SELECT id FROM users WHERE full_name = ? AND is_active = 1 LIMIT 1').get(ob.name);
         db.prepare(`
           INSERT OR IGNORE INTO lead_report_obligations
             (schedule_id, event_id, event_name, lead_name, user_id, phase, assigned_date, deadline)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(scheduleId, sched.event_id || null, sched.event_name || '', lead.name, user?.id || null, phase, date, deadline);
+        `).run(scheduleId, sched.event_id || null, sched.event_name || '', ob.name, user?.id || null, phase, date, deadline);
         db.prepare(`
           UPDATE lead_report_obligations
           SET event_id = ?, event_name = ?, user_id = COALESCE(?, user_id)
           WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ?
-        `).run(sched.event_id || null, sched.event_name || '', user?.id || null, scheduleId, lead.name, phase, date);
+        `).run(sched.event_id || null, sched.event_name || '', user?.id || null, scheduleId, ob.name, phase, date);
       }
     }
   }
