@@ -406,6 +406,7 @@ function UpcomingScheduleSection({ userName, userId }) {
   const [detailSched, setDetailSched] = useState(null);
   const navigate = useNavigate();
   const { can } = useAuth();
+  const { kmGroups: liveKmGroups } = useStaffGroups();
   const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowVN = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
 
