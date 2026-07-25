@@ -41,7 +41,7 @@ function calcCong(r) {
     congRate = 0.5;
     otThresholdMins = 4 * 60;
   } else {
-    effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60);
+    effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60) - (r.no_afternoon_break ? 0 : 60);
     congRate = isHoliday ? 2 : isSunday ? 1.5 : 1;
     otThresholdMins = 8 * 60;
   }
@@ -313,15 +313,15 @@ export default function XacNhanCong() {
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <colgroup>
                 <col />
-                <col style={{ width: isMobile ? '76px' : '100px' }} />
-                <col style={{ width: isMobile ? '76px' : '100px' }} />
-                {!isMobile && <col style={{ width: '70px' }} />}
+                <col style={{ width: isMobile ? '76px' : '88px' }} />
+                <col style={{ width: isMobile ? '76px' : '96px' }} />
+                {!isMobile && <col style={{ width: '85px' }} />}
               </colgroup>
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
                   <th style={{ ...thBase }}>Tên Nhân Viên</th>
-                  <th style={{ ...thBase, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>{isMobile ? 'Công' : 'Ngày Công'}</th>
-                  <th style={{ ...thBase, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis' }}>{isMobile ? 'OT' : 'OT (giờ)'}</th>
+                  <th style={{ ...thBase, textAlign: 'center' }}>Công</th>
+                  <th style={{ ...thBase, textAlign: 'center' }}>{isMobile ? 'OT' : 'OT (giờ)'}</th>
                   {!isMobile && <th style={{ ...thBase, textAlign: 'center' }}>Chi Tiết</th>}
                 </tr>
               </thead>
@@ -434,18 +434,21 @@ export default function XacNhanCong() {
                                         </>
                                       ) : (
                                         <>
-                                          {/* Row 2: times + Làm Việc + N.Trưa + N.Chiều */}
+                                          {/* Row 2: times + N.Trưa + N.Chiều */}
                                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '0.78rem', color: '#c8c8e0', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                                               {r.time_present || '—'} → {r.time_end || '—'}
                                             </span>
-                                            <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0 }}>
-                                              Làm Việc: <span style={{ color: GOLD, fontWeight: 700 }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
-                                            </span>
                                             <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Trưa: {r.no_lunch_break ? '✕' : '✓'}</span>
                                             <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}</span>
                                           </div>
-                                          {/* Row 3: công + OT + Lễ (độc lập) + Sửa Công */}
+                                          {/* Row 3: tổng giờ làm việc */}
+                                          <div style={{ marginBottom: '6px' }}>
+                                            <span style={{ fontSize: '0.75rem', color: '#7878a0' }}>
+                                              Tổng giờ làm việc: <span style={{ color: GOLD, fontWeight: 700 }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
+                                            </span>
+                                          </div>
+                                          {/* Row 4: công + OT + Lễ (độc lập) + Sửa Công */}
                                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                               {result ? fmtNum(result.congRate) + ' công' : '—'}

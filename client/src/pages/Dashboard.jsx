@@ -5,6 +5,7 @@ import { api } from '../api';
 import { fmtD } from '../utils/fmt';
 import { Zap, CalendarDays, CircleCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
 
 const GOLD = '#c9a84c';
 
@@ -401,7 +402,9 @@ const PHASE_LABELS = { filming: '🎬 Ghi hình', setup: '🏗 Setup', rehearsal
 
 function UpcomingScheduleSection({ userName, userId }) {
   const [upcoming, setUpcoming] = useState([]);
+  const [detailSched, setDetailSched] = useState(null);
   const navigate = useNavigate();
+  const { can } = useAuth();
   const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const tomorrowVN = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d); })();
 
@@ -496,7 +499,7 @@ setUpcoming(found);
     const nameColor   = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : '#c9a84c';
     return (
       <div className="ev-card-flat"
-        onClick={() => navigate('/work-schedule', { state: { schedId: group.schedId } })}
+        onClick={() => api.getWorkScheduleById(group.schedId).then(setDetailSched).catch(() => {})}
         style={{ border:`1px solid rgba(255,255,255,0.07)`, borderLeft:`3px solid ${accentColor}`, borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.12)'}
         onMouseLeave={e => e.currentTarget.style.filter = ''}
@@ -528,7 +531,11 @@ setUpcoming(found);
     );
   }
 
+  const PHASES_ORDER = ['setup', 'rehearsal', 'filming', 'teardown'];
+  const PHASE_LABEL_MAP = { filming: '🎬 Ghi hình', setup: '🏗 Setup', rehearsal: '🎤 Rehearsal', teardown: '📦 Tháo dỡ' };
+
   return (
+    <>
     <div style={{ borderRadius:'12px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.35)', marginBottom:'10px' }}>
       <SectionHeader title="Lịch làm việc của bạn" color="#4ade80" colorRgb="74,222,128" count={totalFuture} />
       <div style={{ background:'#13131d', padding:'10px 12px', display:'flex', flexDirection:'column', gap:'6px' }}>
@@ -546,6 +553,84 @@ setUpcoming(found);
         </>}
       </div>
     </div>
+
+    {detailSched && (() => {
+      const DEPT_COLORS = { 'Sân Khấu':'#a78bfa', 'ATAS-LED':'#60a5fa', 'Cơ Sở Vật Chất':'#4ade80', 'Kỹ Thuật':'#fb923c', 'Kinh Doanh':'#f472b6', 'Kế Toán':'#facc15' };
+      const getDeptColor = d => DEPT_COLORS[d] || '#a0a0b8';
+      // Chỉ lấy entries của hôm nay
+      const todayEntries = [];
+      for (const p of PHASES_ORDER) {
+        const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d === todayVN);
+        for (const date of dates) {
+          const leadsMap = detailSched[`${p}_leads_map`];
+          const leads = leadsMap ? (leadsMap[date] || []) : (detailSched[`${p}_leads`] || []);
+          const staffMap = detailSched[`${p}_km_staff_map`];
+          const staff = staffMap ? (staffMap[date] || []) : (detailSched[`${p}_km_staff`] || []);
+          // group staff by dept
+          const byDept = {};
+          for (const n of staff) {
+            const dept = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+            (byDept[dept] = byDept[dept] || []).push(n);
+          }
+          const freeMap = detailSched[`${p}_freelancers_map`];
+          const freeFlat = (detailSched[`${p}_freelancers`] || '').split(',').map(x => x.trim()).filter(Boolean);
+          const freeDepts = freeMap && freeMap[date]
+            ? Object.entries(freeMap[date]).filter(([, v]) => v?.trim()).map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)]).filter(([, ns]) => ns.length)
+            : freeFlat.length ? [['', freeFlat]] : [];
+          if (!leads.length && !staff.length && !freeDepts.length) continue;
+          todayEntries.push({ p, date, leads, byDept, freeDepts });
+        }
+      }
+      return (
+        <Modal title={`Nhân Sự — ${detailSched.event_name}`} onClose={() => setDetailSched(null)} size="xl">
+          <p style={{ fontSize:'0.85rem', color:'#a0a0b8', marginBottom:'12px' }}>
+            👤 Người phân lịch: <strong style={{ color: GOLD }}>{detailSched.scheduler_name}</strong>
+          </p>
+          {todayEntries.length === 0
+            ? <p style={{ color:'#7878a0', fontSize:'0.85rem' }}>Không có lịch hôm nay.</p>
+            : todayEntries.map(({ p, date, leads, byDept, freeDepts }) => (
+              <div key={`${p}-${date}`}>
+                <div style={{ fontSize:'0.87rem', fontWeight:700, color: GOLD, marginBottom:'6px' }}>{PHASE_LABEL_MAP[p]} <span style={{ color:'#f87171' }}>{fmtD(date)}</span></div>
+                {leads.map(l => (
+                  <div key={l.name||l} style={{ fontSize:'0.92rem', color:'#a0a0b8', padding:'2px 0 2px 10px' }}>
+                    👑 {l.name||l}{l.department ? <span style={{ color:'#fbbf24', marginLeft:'6px', fontSize:'0.82rem' }}>({l.department})</span> : null}
+                  </div>
+                ))}
+                {Object.keys(byDept).length > 0 && (
+                  <div style={{ marginTop:'6px' }}>
+                    <div style={{ fontSize:'0.75rem', fontWeight:800, color:'#c9a84c', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px' }}>Nhân Sự Khôi Minh</div>
+                    {Object.entries(byDept).map(([dept, members]) => (
+                      <div key={dept} style={{ marginBottom:'4px' }}>
+                        <div style={{ fontSize:'0.80rem', fontWeight:700, color: getDeptColor(dept), paddingLeft:'8px' }}>{dept}</div>
+                        {members.map(n => <div key={n} style={{ fontSize:'0.92rem', color:'#eeeef5', padding:'1px 0 1px 18px' }}>• {n}</div>)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {freeDepts.length > 0 && (
+                  <div style={{ marginTop:'6px' }}>
+                    <div style={{ fontSize:'0.75rem', fontWeight:800, color:'#f87171', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px' }}>Freelancer</div>
+                    {freeDepts.map(([dept, names]) => (
+                      <div key={dept} style={{ marginBottom:'4px' }}>
+                        {dept && <div style={{ fontSize:'0.80rem', fontWeight:700, color: getDeptColor(dept), paddingLeft:'8px' }}>{dept}</div>}
+                        {names.map(n => <div key={n} style={{ fontSize:'0.92rem', color:'#fca5a5', padding:'1px 0 1px 18px' }}>• {n}</div>)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          }
+          {can('viewWorkSchedule') && (
+            <button onClick={() => { setDetailSched(null); navigate('/work-schedule', { state: { schedId: detailSched.id } }); }}
+              style={{ marginTop:'12px', padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.4)', background:'rgba(201,168,76,0.1)', color: GOLD, cursor:'pointer', fontSize:'0.85rem', fontWeight:600 }}>
+              Xem đầy đủ trên trang Lịch làm việc →
+            </button>
+          )}
+        </Modal>
+      );
+    })()}
+    </>
   );
 }
 
