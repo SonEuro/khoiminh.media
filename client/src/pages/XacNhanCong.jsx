@@ -598,6 +598,63 @@ export default function XacNhanCong() {
       {kmGroups.length === 0 && !loading && (
         <p style={{ color: '#7878a0', textAlign: 'center', padding: '40px 0' }}>Không có dữ liệu nhân sự.</p>
       )}
+
+      {/* Kiểm Tra Ngày Công — chỉ SUPER_ADMIN và phân lịch all */}
+      {canViewAll && !loading && (() => {
+        const overlaps = [];
+        for (const [name, entries] of Object.entries(personMap)) {
+          const byDate = {};
+          for (const { report } of entries) {
+            const d = report.report_date;
+            if (!byDate[d]) byDate[d] = [];
+            byDate[d].push(report);
+          }
+          for (const [date, reps] of Object.entries(byDate)) {
+            if (reps.length > 1) overlaps.push({ name, date, reps });
+          }
+        }
+        if (!overlaps.length) return null;
+        overlaps.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+        return (
+          <div style={{ marginTop: '24px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(251,146,60,0.3)' }}>
+            <div style={{ padding: '10px 14px', background: 'rgba(251,146,60,0.08)', borderBottom: '1px solid rgba(251,146,60,0.2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fb923c', letterSpacing: '0.07em', textTransform: 'uppercase' }}>⚠ Kiểm Tra Ngày Công</span>
+              <span style={{ fontSize: '0.75rem', color: '#fb923c', background: 'rgba(251,146,60,0.15)', borderRadius: '10px', padding: '1px 8px', fontWeight: 700 }}>{overlaps.length} trùng</span>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <th style={{ padding: '7px 12px', textAlign: 'left', color: '#7878a0', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' }}>Nhân viên</th>
+                    <th style={{ padding: '7px 12px', textAlign: 'left', color: '#7878a0', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' }}>Ngày</th>
+                    <th style={{ padding: '7px 12px', textAlign: 'left', color: '#7878a0', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Sự kiện trùng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overlaps.map(({ name, date, reps }, i) => (
+                    <tr key={`${name}-${date}`} style={{ borderBottom: i < overlaps.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                      <td style={{ padding: '8px 12px', color: '#eeeef5', fontWeight: 600, whiteSpace: 'nowrap' }}>{name}</td>
+                      <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: '#fb923c', fontWeight: 700 }}>{fmtDate(date)}</span>
+                        <span style={{ color: '#7878a0', fontSize: '0.75rem', marginLeft: '4px' }}>{dayLabel(date)}</span>
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                          {reps.map(r => (
+                            <span key={r.id} style={{ padding: '2px 8px', borderRadius: '5px', background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)', color: '#fdba74', fontSize: '0.78rem', fontWeight: 600 }}>
+                              {r.event_label || '—'}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
