@@ -26,15 +26,23 @@ function calcKmMins(r) {
 function calcCong(r) {
   const kmMins = calcKmMins(r);
   if (kmMins === null) return null;
-  const effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60);
-  const effectiveHours = Math.max(0, effectiveMins) / 60;
+  const startM = toM(r.time_present);
+  const isAfternoon = startM !== null && startM >= 12 * 60; // bắt đầu từ 12:00 trở đi
   const isSunday = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHoliday = !!r.is_holiday;
-  let congRate = 1;
-  if (isHoliday) congRate = 2;
-  else if (isSunday) congRate = 1.5;
-  const otHours = Math.max(0, effectiveHours - 8);
-  return { kmMins, effectiveMins, effectiveHours, congRate, otHours, isSunday, isHoliday };
+  let effectiveMins, congRate, otThresholdMins;
+  if (isAfternoon) {
+    effectiveMins = kmMins; // không trừ nghỉ trưa (đã qua trưa)
+    congRate = 0.5;
+    otThresholdMins = 4 * 60;
+  } else {
+    effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60);
+    congRate = isHoliday ? 2 : isSunday ? 1.5 : 1;
+    otThresholdMins = 8 * 60;
+  }
+  const effectiveHours = Math.max(0, effectiveMins) / 60;
+  const otHours = Math.max(0, effectiveMins - otThresholdMins) / 60;
+  return { kmMins, effectiveMins, effectiveHours, congRate, otHours, isSunday, isHoliday, isAfternoon };
 }
 
 function fmtMins(mins) {
@@ -80,7 +88,8 @@ function shiftMonth(ym, delta) {
 function buildPersonMap(reports) {
   const map = {};
   for (const r of reports) {
-    const staff = Array.isArray(r.km_staff) ? r.km_staff : [];
+    const raw = Array.isArray(r.km_staff) ? r.km_staff : [];
+    const staff = [...new Set(raw)]; // dedupe names within same report
     const result = calcCong(r);
     for (const name of staff) {
       if (!map[name]) map[name] = [];
@@ -90,7 +99,7 @@ function buildPersonMap(reports) {
   return map;
 }
 
-// Aggregate totals for a person
+// Aggregate totals for a person (each session counted independently)
 function personTotals(entries) {
   let cong = 0, ot = 0;
   for (const { result } of entries) {
@@ -154,8 +163,11 @@ export default function XacNhanCong() {
   const lowerFilter = filterName.trim().toLowerCase();
 
   // Department totals for the month
-  const grandCong = Object.values(personMap).flat().reduce((s, { result }) => s + (result?.congRate || 0), 0);
-  const grandOT   = Object.values(personMap).flat().reduce((s, { result }) => s + (result?.otHours || 0), 0);
+  let grandCong = 0, grandOT = 0;
+  for (const es of Object.values(personMap)) {
+    const t = personTotals(es);
+    grandCong += t.cong; grandOT += t.ot;
+  }
 
   const thBase = { padding: isMobile ? '6px 8px' : '7px 12px', fontSize: isMobile ? '0.67rem' : '0.72rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' };
   const tdBase = { padding: isMobile ? '7px 8px' : '8px 12px', fontSize: isMobile ? '0.80rem' : '0.83rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
@@ -244,6 +256,7 @@ export default function XacNhanCong() {
                   const { cong, ot } = personTotals(entries);
                   const isExp = expanded.has(name);
                   const hasData = entries.length > 0;
+                  const sortedEntries = [...entries].sort((a, b) => a.report.report_date.localeCompare(b.report.report_date));
 
                   return (
                     <>
@@ -282,9 +295,10 @@ export default function XacNhanCong() {
                             {isMobile ? (
                               /* ── Mobile: card layout ── */
                               <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {entries.map(({ report: r, result }) => {
+                                {sortedEntries.map(({ report: r, result }) => {
                                   const isHol = !!r.is_holiday;
                                   const isSun = result?.isSunday;
+                                  const isAft = result?.isAfternoon;
                                   const togBusy = toggling.has(r.id);
                                   const dayTag = dayLabel(r.report_date);
                                   return (
@@ -322,8 +336,8 @@ export default function XacNhanCong() {
                                           <span style={{ fontSize: '0.72rem', color: '#f87171', fontWeight: 700 }}>Ngày Lễ</span>
                                         ) : null}
                                         {/* Công + OT */}
-                                        <span style={{ marginLeft: 'auto', fontSize: '0.80rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : GOLD }}>
-                                          {result ? fmtNum(result.congRate) : '—'} công
+                                        <span style={{ marginLeft: 'auto', fontSize: '0.80rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
+                                          {result ? fmtNum(result.congRate) + ' công' : '—'}
                                         </span>
                                         {result?.otHours > 0 && (
                                           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
@@ -351,9 +365,10 @@ export default function XacNhanCong() {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {entries.map(({ report: r, result }) => {
+                                    {sortedEntries.map(({ report: r, result }) => {
                                       const isHol = !!r.is_holiday;
                                       const isSun = result?.isSunday;
+                                      const isAft = result?.isAfternoon;
                                       const togBusy = toggling.has(r.id);
                                       const dayTag = dayLabel(r.report_date);
                                       const dtd = { padding: '5px 7px', fontSize: '0.75rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
@@ -387,8 +402,12 @@ export default function XacNhanCong() {
                                             )}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isHol ? '#f87171' : isSun ? '#60a5fa' : GOLD }}>{result ? fmtNum(result.congRate) : '—'}</td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: result?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>{result?.otHours > 0 ? fmtNum(result.otHours) + 'h' : '—'}</td>
+                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
+                                            {result ? fmtNum(result.congRate) : '—'}
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: result?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>
+                                            {result?.otHours > 0 ? fmtNum(result.otHours) + 'h' : '—'}
+                                          </td>
                                         </tr>
                                       );
                                     })}
