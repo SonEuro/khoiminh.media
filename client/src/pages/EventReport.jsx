@@ -130,23 +130,54 @@ function StaffSelect({ selected, onChange, visibleDepts, displayOnly }) {
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
   }
 
-  // displayOnly: chỉ hiển thị danh sách, không cho thêm/bỏ
+  // lockedToSelected: dropdown chỉ liệt kê đúng những người đang có trong báo cáo
   if (displayOnly) {
     return (
-      <div>
+      <div ref={ref} style={{ position:'relative' }}>
         <label style={labelStyle}>Nhân Sự Khôi Minh</label>
-        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'4px' }}>
-          {selected.length === 0
-            ? <span style={{ color:'#7878a0', fontSize:'0.84rem' }}>—</span>
-            : selected.map(s => (
+        <button type="button" onClick={() => setOpen(v => !v)}
+          style={{
+            width:'100%', textAlign:'left', padding:'9px 12px',
+            background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)',
+            borderRadius:'8px', fontSize:'0.875rem', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'space-between',
+            color: selected.length ? '#e8c97a' : '#7878a0',
+          }}>
+          <span>{selected.length === 0 ? '—' : `${selected.length} nhân sự trong báo cáo`}</span>
+          <span style={{ color: GOLD, fontSize:'0.82rem' }}>{open ? '▲' : '▼'}</span>
+        </button>
+        {selected.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'6px' }}>
+            {selected.map(s => (
               <span key={s} style={{
-                display:'inline-flex', alignItems:'center',
-                padding:'3px 10px', borderRadius:'9999px',
-                background:'rgba(201,168,76,0.10)', border:'1px solid rgba(201,168,76,0.25)',
+                display:'inline-flex', alignItems:'center', gap:'4px',
+                padding:'3px 8px', borderRadius:'9999px',
+                background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.35)',
                 color: GOLD, fontSize:'0.84rem', fontWeight:600,
-              }}>{s}</span>
+              }}>
+                {s}
+                <button type="button" onClick={() => toggle(s)}
+                  style={{ background:'none', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.84rem', lineHeight:1, padding:0 }}>×</button>
+              </span>
             ))}
-        </div>
+          </div>
+        )}
+        {open && selected.length > 0 && (
+          <div style={{
+            position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:300,
+            background:'#13131d', border:'1px solid rgba(201,168,76,0.3)',
+            borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.7)',
+            maxHeight:'260px', overflowY:'auto', padding:'6px 0',
+          }}>
+            {selected.map(s => (
+              <div key={s} onClick={() => toggle(s)}
+                style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 14px', cursor:'pointer', background:'rgba(201,168,76,0.06)' }}>
+                <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.80rem' }}>✓</span>
+                <span style={{ color:'#eeeef5', fontSize:'0.875rem' }}>{s}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
