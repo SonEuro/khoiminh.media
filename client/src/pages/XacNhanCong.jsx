@@ -421,13 +421,19 @@ export default function XacNhanCong() {
                                             <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Trưa: {r.no_lunch_break ? '✕' : '✓'}</span>
                                             <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}</span>
                                           </div>
-                                          {/* Row 3: công + OT + Sửa Công */}
+                                          {/* Row 3: công + OT + Lễ (độc lập) + Sửa Công */}
                                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                               {result ? fmtNum(result.congRate) + ' công' : '—'}
                                             </span>
                                             {result?.otHours > 0 && (
                                               <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
+                                            )}
+                                            {canToggleLe && (
+                                              <button disabled={togBusy} onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
+                                                style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0', flexShrink: 0 }}>
+                                                Lễ: {isHol ? 'Có' : 'Không'}
+                                              </button>
                                             )}
                                             {canSuaCong && (
                                               <button onClick={e => { e.stopPropagation(); startEditRow(r); }}
