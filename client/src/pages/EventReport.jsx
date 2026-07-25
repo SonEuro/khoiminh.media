@@ -981,6 +981,11 @@ export default function EventReport() {
   const highlightId = searchParams.get('id');
   const isFullAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
   const canViewAllDepts = isFullAdmin || !!user?.is_phan_lich_all;
+  // Dept của báo cáo đang edit (dùng để filter StaffSelect khi admin sửa báo cáo bộ phận khác)
+  const editingReport = editingId ? reports.find(r => r.id === editingId) : null;
+  const editingReporterDept = editingReport
+    ? (kmGroups.find(g => g.members.includes(editingReport.reporter_name))?.dept || ROLE_TO_KM_DEPT[editingReport.reporter_role])
+    : null;
   // TRUONG_PHONG chỉ xóa báo cáo của nhân viên cùng phòng, trong vòng 72 giờ
   const canDeleteReport = (report) => {
     if (isFullAdmin) return true;
@@ -1820,7 +1825,7 @@ export default function EventReport() {
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)}
-              filterDept={canViewAllDepts ? undefined : getUserKmDept(user, kmGroups)} />
+              filterDept={editingId ? (editingReporterDept || undefined) : (canViewAllDepts ? undefined : getUserKmDept(user, kmGroups))} />
             {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
