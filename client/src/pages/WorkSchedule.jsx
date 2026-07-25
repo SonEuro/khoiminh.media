@@ -1482,13 +1482,13 @@ export default function WorkSchedule() {
           const isTomorrow = zone === 'tomorrow';
           const isPast     = zone === 'past';
           return (
-            <div key={s.id} id={`ws-card-${s.id}`} className="ev-card-flat" style={{
+            <div key={s.id} id={`ws-card-${s.id}`} className="ev-card-flat" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }} style={{
               background: isToday ? 'rgba(248,113,113,0.04)' : isTomorrow ? 'rgba(74,222,128,0.03)' : 'var(--bg-card)',
               border: isToday ? '1px solid rgba(248,113,113,0.35)' : isTomorrow ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(201,168,76,0.15)',
               borderLeft: `3px solid ${isToday ? '#f87171' : isTomorrow ? '#4ade80' : '#c9a84c'}`,
               borderRadius: '12px', overflow: 'hidden',
               boxShadow: isToday ? '0 0 18px rgba(248,113,113,0.08)' : isTomorrow ? '0 0 14px rgba(74,222,128,0.06)' : 'none',
-              opacity: isPast ? 0.5 : 1,
+              opacity: isPast ? 0.5 : 1, cursor: 'pointer',
             }}>
               {/* Hàng 1: tên sự kiện — band nổi bật */}
               <div style={{ padding:'12px 16px 10px', background:'rgba(255,255,255,0.06)', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
@@ -1515,10 +1515,10 @@ export default function WorkSchedule() {
                   .map(([key, dates]) => renderDates(key, dates))}
               </div>
               {/* Hàng 5: buttons */}
-              <div className="ev-card-row" style={{ padding:'0 16px 14px' }}>
+              <div className="ev-card-row" style={{ padding:'0 16px 14px' }} onClick={e => e.stopPropagation()}>
                 <button className="ev-action" onClick={() => { setSelected(s); setModal('detail'); setScheduleHistory([]); api.getWorkScheduleHistory(s.id).then(setScheduleHistory).catch(() => {}); }}><span className="ev-ico">📋</span><span className="ev-lbl">Chi tiết</span></button>
-                {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={() => { setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
-                {canDelete(s) && <button className="ev-action ev-action-danger" onClick={() => handleDelete(s)}><span className="ev-ico">🗑</span></button>}
+                {canEdit(s)   && <button className="ev-action ev-action-edit"   onClick={e => { e.stopPropagation(); setSelected(s); setModal('form'); }}><span className="ev-ico">✏️</span><span className="ev-lbl">Sửa</span></button>}
+                {canDelete(s) && <button className="ev-action ev-action-danger" onClick={e => { e.stopPropagation(); handleDelete(s); }}><span className="ev-ico">🗑</span></button>}
               </div>
             </div>
           );
