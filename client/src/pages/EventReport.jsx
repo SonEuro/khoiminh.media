@@ -114,8 +114,9 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
 }
 
 // ── Staff dropdown ────────────────────────────────────────────────────────────
-function StaffSelect({ selected, onChange }) {
+function StaffSelect({ selected, onChange, filterDept }) {
   const { kmGroups } = useStaffGroups();
+  const visibleGroups = filterDept ? kmGroups.filter(g => g.dept === filterDept) : kmGroups;
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -177,8 +178,8 @@ function StaffSelect({ selected, onChange }) {
           borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.7)',
           maxHeight:'300px', overflowY:'auto',
         }}>
-          {kmGroups.map((g, gi) => (
-            <div key={g.dept} style={{ borderBottom: gi < kmGroups.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
+          {visibleGroups.map((g, gi) => (
+            <div key={g.dept} style={{ borderBottom: gi < visibleGroups.length - 1 ? '1px solid rgba(201,168,76,0.08)' : 'none' }}>
               <div style={{
                 padding:'6px 14px', fontSize:'0.80rem', fontWeight:800, letterSpacing:'0.1em',
                 color: GOLD, background:'rgba(201,168,76,0.04)',
@@ -1814,7 +1815,8 @@ export default function EventReport() {
             Nhân Sự Tham Gia
           </h3>
           <div style={{ marginBottom:'14px' }}>
-            <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)} />
+            <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)}
+              filterDept={canViewAllDepts ? undefined : getUserKmDept(user, kmGroups)} />
             {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
