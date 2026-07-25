@@ -245,8 +245,8 @@ export default function XacNhanCong() {
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
                   <th style={{ ...thBase }}>Tên Nhân Viên</th>
-                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap' }}>Ngày Công</th>
-                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap' }}>OT (giờ)</th>
+                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap', width: isMobile ? '72px' : '100px' }}>Ngày Công</th>
+                  <th style={{ ...thBase, textAlign: 'center', whiteSpace: 'nowrap', width: isMobile ? '72px' : '100px' }}>OT (giờ)</th>
                   {!isMobile && <th style={{ ...thBase, textAlign: 'center', width: '70px' }}>Chi Tiết</th>}
                 </tr>
               </thead>
