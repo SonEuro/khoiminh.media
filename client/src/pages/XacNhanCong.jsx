@@ -113,15 +113,19 @@ export default function XacNhanCong() {
   const { kmGroups } = useStaffGroups();
   const canEdit = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
   const canToggleLe = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
+  const canSuaCong  = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
 
-  const [month, setMonth]       = useState(todayMonth);
-  const [reports, setReports]   = useState([]);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const [filterName, setFilter] = useState('');
-  const [expanded, setExpanded] = useState(new Set());
-  const [toggling, setToggling] = useState(new Set());
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [month, setMonth]           = useState(todayMonth);
+  const [reports, setReports]       = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState('');
+  const [filterName, setFilter]     = useState('');
+  const [expanded, setExpanded]     = useState(new Set());
+  const [toggling, setToggling]     = useState(new Set());
+  const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editRowData, setEditRowData]   = useState({});
+  const [savingRow, setSavingRow]       = useState(false);
 
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 768);
@@ -156,6 +160,46 @@ export default function XacNhanCong() {
       alert('Lỗi: ' + (e.message || 'Không thể cập nhật'));
     } finally {
       setToggling(prev => { const s = new Set(prev); s.delete(reportId); return s; });
+    }
+  }
+
+  function startEditRow(r) {
+    setEditingRowId(r.id);
+    setEditRowData({
+      time_present: r.time_present || '',
+      time_end: r.time_end || '',
+      time_onset: r.time_onset || '',
+      no_lunch_break: !!r.no_lunch_break,
+      no_afternoon_break: !!r.no_afternoon_break,
+      is_holiday: !!r.is_holiday,
+    });
+  }
+
+  async function saveEditRow(r) {
+    setSavingRow(true);
+    try {
+      const payload = {
+        ...r,
+        km_staff: Array.isArray(r.km_staff) ? r.km_staff : [],
+        images: Array.isArray(r.images) ? r.images : [],
+        timeline: Array.isArray(r.timeline) ? r.timeline : [],
+        time_present: editRowData.time_present,
+        time_end: editRowData.time_end,
+        time_onset: editRowData.time_onset,
+        no_lunch_break: editRowData.no_lunch_break ? 1 : 0,
+        no_afternoon_break: editRowData.no_afternoon_break ? 1 : 0,
+        is_holiday: editRowData.is_holiday ? 1 : 0,
+      };
+      await api.updateEventReport(r.id, payload);
+      setReports(prev => prev.map(rep => rep.id === r.id
+        ? { ...rep, ...payload }
+        : rep
+      ));
+      setEditingRowId(null);
+    } catch (e) {
+      alert('Lỗi lưu: ' + (e.message || 'Không thể cập nhật'));
+    } finally {
+      setSavingRow(false);
     }
   }
 
@@ -302,45 +346,98 @@ export default function XacNhanCong() {
                                   const isAft = result?.isAfternoon;
                                   const togBusy = toggling.has(r.id);
                                   const dayTag = dayLabel(r.report_date);
+                                  const isEditing = editingRowId === r.id;
+                                  const ed = editRowData;
+                                  const preview = isEditing ? calcCong({ ...r, ...ed, no_lunch_break: ed.no_lunch_break ? 1 : 0, no_afternoon_break: ed.no_afternoon_break ? 1 : 0, is_holiday: ed.is_holiday ? 1 : 0 }) : null;
+                                  const inpStyle = { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: '5px', color: '#eeeef5', padding: '3px 6px', fontSize: '0.80rem', width: '108px', outline: 'none' };
                                   return (
-                                    <div key={r.id} style={{ borderRadius: '8px', padding: '10px 12px', background: isHol ? 'rgba(248,113,113,0.06)' : isSun ? 'rgba(96,165,250,0.06)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                                    <div key={r.id} style={{ borderRadius: '8px', padding: '10px 12px', background: isHol ? 'rgba(248,113,113,0.06)' : isSun ? 'rgba(96,165,250,0.06)' : 'rgba(255,255,255,0.03)', border: isEditing ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(255,255,255,0.07)' }}>
                                       {/* Row 1: date + day + event */}
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                                         <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem', flexShrink: 0 }}>{fmtDate(r.report_date)}</span>
                                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
                                       </div>
-                                      {/* Row 2: times + Làm Việc + N.Trưa + N.Chiều */}
-                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.78rem', color: '#c8c8e0', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                                          {r.time_present || '—'} → {r.time_end || '—'}
-                                        </span>
-                                        <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0 }}>
-                                          Làm Việc: <span style={{ color: GOLD, fontWeight: 700 }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
-                                        </span>
-                                        <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>
-                                          N.Trưa: {r.no_lunch_break ? '✕' : '✓'}
-                                        </span>
-                                        <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>
-                                          N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}
-                                        </span>
-                                      </div>
-                                      {/* Row 3: công + OT + Lễ toggle (canToggleLe only) */}
-                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
-                                          {result ? fmtNum(result.congRate) + ' công' : '—'}
-                                        </span>
-                                        {result?.otHours > 0 && (
-                                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
-                                        )}
-                                        {canToggleLe && (
-                                          <button disabled={togBusy}
-                                            onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                            style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0', flexShrink: 0 }}>
-                                            Lễ: {isHol ? 'Có' : 'Không'}
-                                          </button>
-                                        )}
-                                      </div>
+
+                                      {isEditing ? (
+                                        <>
+                                          {/* Edit fields */}
+                                          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                              <span style={{ fontSize: '0.65rem', color: '#7878a0' }}>Có Mặt</span>
+                                              <input type="time" value={ed.time_present} onChange={e => setEditRowData(d => ({ ...d, time_present: e.target.value }))} style={inpStyle} />
+                                            </div>
+                                            <span style={{ color: '#7878a0', paddingBottom: '4px' }}>→</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                              <span style={{ fontSize: '0.65rem', color: '#7878a0' }}>Kết Thúc</span>
+                                              <input type="time" value={ed.time_end} onChange={e => setEditRowData(d => ({ ...d, time_end: e.target.value }))} style={inpStyle} />
+                                            </div>
+                                          </div>
+                                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                            {[
+                                              { key: 'no_lunch_break', label: 'N.Trưa' },
+                                              { key: 'no_afternoon_break', label: 'N.Chiều' },
+                                              ...(canToggleLe ? [{ key: 'is_holiday', label: 'Lễ' }] : []),
+                                            ].map(({ key, label }) => (
+                                              <button key={key} onClick={() => setEditRowData(d => ({ ...d, [key]: !d[key] }))}
+                                                style={{ padding: '2px 10px', borderRadius: '5px', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: ed[key] ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.1)', color: ed[key] ? '#f87171' : '#4ade80' }}>
+                                                {label}: {ed[key] ? '✕' : '✓'}
+                                              </button>
+                                            ))}
+                                          </div>
+                                          {preview && (
+                                            <div style={{ fontSize: '0.76rem', color: '#a0a0c0', marginBottom: '8px' }}>
+                                              Xem trước: <span style={{ color: GOLD, fontWeight: 700 }}>{fmtNum(preview.congRate)} công</span>
+                                              {preview.otHours > 0 && <span style={{ color: '#60a5fa' }}> +{fmtNum(preview.otHours)}h OT</span>}
+                                            </div>
+                                          )}
+                                          <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button disabled={savingRow} onClick={() => saveEditRow(r)}
+                                              style={{ padding: '4px 16px', borderRadius: '6px', border: 'none', cursor: savingRow ? 'wait' : 'pointer', fontSize: '0.78rem', fontWeight: 700, background: 'rgba(201,168,76,0.25)', color: GOLD }}>
+                                              {savingRow ? 'Đang lưu...' : 'Lưu'}
+                                            </button>
+                                            <button disabled={savingRow} onClick={() => setEditingRowId(null)}
+                                              style={{ padding: '4px 16px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', fontSize: '0.78rem', background: 'transparent', color: '#7878a0' }}>
+                                              Hủy
+                                            </button>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          {/* Row 2: times + Làm Việc + N.Trưa + N.Chiều */}
+                                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '0.78rem', color: '#c8c8e0', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                                              {r.time_present || '—'} → {r.time_end || '—'}
+                                            </span>
+                                            <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0 }}>
+                                              Làm Việc: <span style={{ color: GOLD, fontWeight: 700 }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
+                                            </span>
+                                            <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Trưa: {r.no_lunch_break ? '✕' : '✓'}</span>
+                                            <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}</span>
+                                          </div>
+                                          {/* Row 3: công + OT + Lễ + Sửa Công */}
+                                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
+                                              {result ? fmtNum(result.congRate) + ' công' : '—'}
+                                            </span>
+                                            {result?.otHours > 0 && (
+                                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
+                                            )}
+                                            {canToggleLe && (
+                                              <button disabled={togBusy} onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
+                                                style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0', flexShrink: 0 }}>
+                                                Lễ: {isHol ? 'Có' : 'Không'}
+                                              </button>
+                                            )}
+                                            {canSuaCong && (
+                                              <button onClick={e => { e.stopPropagation(); startEditRow(r); }}
+                                                style={{ marginLeft: 'auto', padding: '1px 10px', borderRadius: '5px', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer', fontSize: '0.70rem', fontWeight: 700, background: 'rgba(201,168,76,0.08)', color: GOLD, flexShrink: 0 }}>
+                                                Sửa Công
+                                              </button>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
                                     </div>
                                   );
                                 })}
@@ -357,8 +454,8 @@ export default function XacNhanCong() {
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                   <thead>
                                     <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                      {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].map(h => (
-                                        <th key={h} style={{ padding: '4px 7px', fontSize: '0.60rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                                      {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT', ...(canSuaCong ? [''] : [])].map((h, i) => (
+                                        <th key={i} style={{ padding: '4px 7px', fontSize: '0.60rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
                                       ))}
                                     </tr>
                                   </thead>
@@ -369,9 +466,13 @@ export default function XacNhanCong() {
                                       const isAft = result?.isAfternoon;
                                       const togBusy = toggling.has(r.id);
                                       const dayTag = dayLabel(r.report_date);
+                                      const isEditing = editingRowId === r.id;
+                                      const ed = editRowData;
+                                      const preview = isEditing ? calcCong({ ...r, ...ed, no_lunch_break: ed.no_lunch_break ? 1 : 0, no_afternoon_break: ed.no_afternoon_break ? 1 : 0, is_holiday: ed.is_holiday ? 1 : 0 }) : null;
                                       const dtd = { padding: '5px 7px', fontSize: '0.75rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
+                                      const dtInp = { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: '4px', color: '#eeeef5', padding: '2px 4px', fontSize: '0.73rem', width: '90px', outline: 'none' };
                                       return (
-                                        <tr key={r.id} style={{ background: isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
+                                        <tr key={r.id} style={{ background: isEditing ? 'rgba(201,168,76,0.04)' : isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
                                           <td style={dtd}>
                                             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtDate(r.report_date)}</span>
                                             <span style={{ marginLeft: '4px', fontSize: '0.68rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', background: isSun ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.05)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
@@ -379,40 +480,64 @@ export default function XacNhanCong() {
                                           <td style={{ ...dtd, maxWidth: '180px' }}>
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
                                           </td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.time_present || '—'}</td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.time_end || '—'}</td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{result ? fmtMins(result.kmMins) : '—'}</td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
-                                            {r.no_lunch_break ? <span style={{ color: '#f87171', fontWeight: 700 }}>✕</span> : <span style={{ color: '#4ade80' }}>✓</span>}
-                                          </td>
-                                          <td style={{ ...dtd, textAlign: 'center' }}>
-                                            {r.no_afternoon_break ? <span style={{ color: '#f87171', fontWeight: 700 }}>✕</span> : <span style={{ color: '#4ade80' }}>✓</span>}
+                                            {isEditing
+                                              ? <input type="time" value={ed.time_present} onChange={e => setEditRowData(d => ({ ...d, time_present: e.target.value }))} style={dtInp} />
+                                              : <span style={{ fontVariantNumeric: 'tabular-nums' }}>{r.time_present || '—'}</span>}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
-                                            {canToggleLe ? (
-                                              <button disabled={togBusy}
-                                                onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                                style={{ padding: '2px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)', color: isHol ? '#f87171' : '#7878a0' }}>
-                                                {isHol ? 'Có' : 'Không'}
-                                              </button>
-                                            ) : (
-                                              <span style={{ fontSize: '0.75rem', color: isHol ? '#f87171' : '#7878a0' }}>{isHol ? 'Có' : '—'}</span>
-                                            )}
+                                            {isEditing
+                                              ? <input type="time" value={ed.time_end} onChange={e => setEditRowData(d => ({ ...d, time_end: e.target.value }))} style={dtInp} />
+                                              : <span style={{ fontVariantNumeric: 'tabular-nums' }}>{r.time_end || '—'}</span>}
                                           </td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
-                                            {result ? fmtNum(result.congRate) : '—'}
+                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>
+                                            {(isEditing ? preview : result) ? fmtMins((isEditing ? preview : result).kmMins) : '—'}
                                           </td>
-                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: result?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>
-                                            {result?.otHours > 0 ? fmtNum(result.otHours) + 'h' : '—'}
+                                          <td style={{ ...dtd, textAlign: 'center' }}>
+                                            {isEditing
+                                              ? <button onClick={() => setEditRowData(d => ({ ...d, no_lunch_break: !d.no_lunch_break }))} style={{ padding: '1px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: ed.no_lunch_break ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.1)', color: ed.no_lunch_break ? '#f87171' : '#4ade80' }}>{ed.no_lunch_break ? '✕' : '✓'}</button>
+                                              : r.no_lunch_break ? <span style={{ color: '#f87171', fontWeight: 700 }}>✕</span> : <span style={{ color: '#4ade80' }}>✓</span>}
                                           </td>
+                                          <td style={{ ...dtd, textAlign: 'center' }}>
+                                            {isEditing
+                                              ? <button onClick={() => setEditRowData(d => ({ ...d, no_afternoon_break: !d.no_afternoon_break }))} style={{ padding: '1px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: ed.no_afternoon_break ? 'rgba(248,113,113,0.2)' : 'rgba(74,222,128,0.1)', color: ed.no_afternoon_break ? '#f87171' : '#4ade80' }}>{ed.no_afternoon_break ? '✕' : '✓'}</button>
+                                              : r.no_afternoon_break ? <span style={{ color: '#f87171', fontWeight: 700 }}>✕</span> : <span style={{ color: '#4ade80' }}>✓</span>}
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center' }}>
+                                            {isEditing && canToggleLe
+                                              ? <button onClick={() => setEditRowData(d => ({ ...d, is_holiday: !d.is_holiday }))} style={{ padding: '1px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: ed.is_holiday ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)', color: ed.is_holiday ? '#f87171' : '#7878a0' }}>{ed.is_holiday ? 'Có' : 'Không'}</button>
+                                              : canToggleLe && !isEditing
+                                                ? <button disabled={togBusy} onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }} style={{ padding: '2px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)', color: isHol ? '#f87171' : '#7878a0' }}>{isHol ? 'Có' : 'Không'}</button>
+                                                : <span style={{ fontSize: '0.75rem', color: isHol ? '#f87171' : '#7878a0' }}>{isHol ? 'Có' : '—'}</span>}
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
+                                            {(isEditing ? preview : result) ? fmtMins(Math.max(0, (isEditing ? preview : result).effectiveMins)) : '—'}
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: (isEditing ? preview?.isHoliday : isHol) ? '#f87171' : (isEditing ? preview?.isSunday : isSun) ? '#60a5fa' : (isEditing ? preview?.isAfternoon : isAft) ? '#9898b8' : GOLD }}>
+                                            {(isEditing ? preview : result) ? fmtNum((isEditing ? preview : result).congRate) : '—'}
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: (isEditing ? preview : result)?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>
+                                            {(isEditing ? preview : result)?.otHours > 0 ? fmtNum((isEditing ? preview : result).otHours) + 'h' : '—'}
+                                          </td>
+                                          {canSuaCong && (
+                                            <td style={{ ...dtd, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                              {isEditing ? (
+                                                <div style={{ display: 'flex', gap: '4px' }}>
+                                                  <button disabled={savingRow} onClick={() => saveEditRow(r)} style={{ padding: '2px 10px', borderRadius: '4px', border: 'none', cursor: savingRow ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.25)', color: GOLD }}>{savingRow ? '...' : 'Lưu'}</button>
+                                                  <button disabled={savingRow} onClick={() => setEditingRowId(null)} style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontSize: '0.72rem', background: 'transparent', color: '#7878a0' }}>Hủy</button>
+                                                </div>
+                                              ) : (
+                                                <button onClick={() => startEditRow(r)} style={{ padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.08)', color: GOLD }}>Sửa</button>
+                                              )}
+                                            </td>
+                                          )}
                                         </tr>
                                       );
                                     })}
                                   </tbody>
                                   <tfoot>
                                     <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
-                                      <td colSpan={9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} buổi</td>
+                                      <td colSpan={canSuaCong ? 10 : 9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} buổi</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{fmtNum(cong)}</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
                                     </tr>
