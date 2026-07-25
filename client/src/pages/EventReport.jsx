@@ -114,7 +114,7 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
 }
 
 // ── Staff dropdown ────────────────────────────────────────────────────────────
-function StaffSelect({ selected, onChange, visibleDepts, displayOnly }) {
+function StaffSelect({ selected, onChange, visibleDepts }) {
   const { kmGroups } = useStaffGroups();
   const visibleGroups = visibleDepts ? kmGroups.filter(g => visibleDepts.includes(g.dept)) : kmGroups;
   const [open, setOpen] = useState(false);
@@ -128,58 +128,6 @@ function StaffSelect({ selected, onChange, visibleDepts, displayOnly }) {
 
   function toggle(name) {
     onChange(selected.includes(name) ? selected.filter(s => s !== name) : [...selected, name]);
-  }
-
-  // lockedToSelected: dropdown chỉ liệt kê đúng những người đang có trong báo cáo
-  if (displayOnly) {
-    return (
-      <div ref={ref} style={{ position:'relative' }}>
-        <label style={labelStyle}>Nhân Sự Khôi Minh</label>
-        <button type="button" onClick={() => setOpen(v => !v)}
-          style={{
-            width:'100%', textAlign:'left', padding:'9px 12px',
-            background:'rgba(255,255,255,0.04)', border:'1px solid rgba(201,168,76,0.3)',
-            borderRadius:'8px', fontSize:'0.875rem', cursor:'pointer',
-            display:'flex', alignItems:'center', justifyContent:'space-between',
-            color: selected.length ? '#e8c97a' : '#7878a0',
-          }}>
-          <span>{selected.length === 0 ? '—' : `${selected.length} nhân sự trong báo cáo`}</span>
-          <span style={{ color: GOLD, fontSize:'0.82rem' }}>{open ? '▲' : '▼'}</span>
-        </button>
-        {selected.length > 0 && (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'6px' }}>
-            {selected.map(s => (
-              <span key={s} style={{
-                display:'inline-flex', alignItems:'center', gap:'4px',
-                padding:'3px 8px', borderRadius:'9999px',
-                background:'rgba(201,168,76,0.12)', border:'1px solid rgba(201,168,76,0.35)',
-                color: GOLD, fontSize:'0.84rem', fontWeight:600,
-              }}>
-                {s}
-                <button type="button" onClick={() => toggle(s)}
-                  style={{ background:'none', border:'none', cursor:'pointer', color:'#f87171', fontSize:'0.84rem', lineHeight:1, padding:0 }}>×</button>
-              </span>
-            ))}
-          </div>
-        )}
-        {open && selected.length > 0 && (
-          <div style={{
-            position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:300,
-            background:'#13131d', border:'1px solid rgba(201,168,76,0.3)',
-            borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.7)',
-            maxHeight:'260px', overflowY:'auto', padding:'6px 0',
-          }}>
-            {selected.map(s => (
-              <div key={s} onClick={() => toggle(s)}
-                style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 14px', cursor:'pointer', background:'rgba(201,168,76,0.06)' }}>
-                <span style={{ color:'#f87171', fontWeight:700, fontSize:'0.80rem' }}>✓</span>
-                <span style={{ color:'#eeeef5', fontSize:'0.875rem' }}>{s}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
   }
 
   return (
@@ -1872,11 +1820,18 @@ export default function EventReport() {
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)}
-              displayOnly={!!editingId && canViewAllDepts}
-              visibleDepts={(!editingId && !canViewAllDepts) ? (() => {
-                const d = getUserKmDept(user, kmGroups);
-                return d && d !== '—' ? [d] : null;
-              })() : null} />
+              visibleDepts={(() => {
+                if (editingId && canViewAllDepts) {
+                  // Khi admin edit: chỉ hiện dept đã có trong báo cáo
+                  const depts = kmGroups.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept);
+                  return depts.length > 0 ? depts : null;
+                }
+                if (!canViewAllDepts) {
+                  const d = getUserKmDept(user, kmGroups);
+                  return d && d !== '—' ? [d] : null;
+                }
+                return null; // admin tạo mới: thấy tất cả
+              })()} />
             {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
