@@ -154,7 +154,7 @@ export default function XacNhanCong() {
   const tdBase = { padding: '8px 12px', fontSize: '0.83rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
 
   return (
-    <div style={{ padding: '16px', maxWidth: '960px', margin: '0 auto' }}>
+    <div style={{ padding: '16px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Title */}
       <div style={{ marginBottom: '18px' }}>
         <h1 style={{ color: GOLD, fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 3px' }}>
@@ -273,8 +273,8 @@ export default function XacNhanCong() {
                               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
                                   <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                    {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','Nghỉ Trưa','Nghỉ Chiều','Ngày Lễ','Giờ Thực','Công','OT'].map(h => (
-                                      <th key={h} style={{ padding: '6px 10px', fontSize: '0.68rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','Nghỉ Trưa','Nghỉ Chiều','Ngày Lễ','Giờ Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                                    {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].map(h => (
+                                      <th key={h} style={{ padding: '4px 7px', fontSize: '0.60rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
                                     ))}
                                   </tr>
                                 </thead>
@@ -284,7 +284,7 @@ export default function XacNhanCong() {
                                     const isSun = result?.isSunday;
                                     const togBusy = toggling.has(r.id);
                                     const dayTag = dayLabel(r.report_date);
-                                    const dtd = { padding: '7px 10px', fontSize: '0.80rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
+                                    const dtd = { padding: '5px 7px', fontSize: '0.75rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
                                     return (
                                       <tr key={r.id} style={{ background: isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
                                         {/* Ngày */}
@@ -335,9 +335,9 @@ export default function XacNhanCong() {
                                 {/* Person total footer */}
                                 <tfoot>
                                   <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
-                                    <td colSpan={9} style={{ padding: '6px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tổng · {entries.length} buổi</td>
-                                    <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNum(cong)}</td>
-                                    <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
+                                    <td colSpan={9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {entries.length} buổi</td>
+                                    <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{fmtNum(cong)}</td>
+                                    <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtNum(ot) + 'h' : '—'}</td>
                                   </tr>
                                 </tfoot>
                               </table>
