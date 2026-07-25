@@ -98,12 +98,12 @@ router.put('/:id', requireAuth, (req, res) => {
   const report = db.prepare('SELECT * FROM event_reports WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
 
-  const { role } = req.user;
-  const isDirector = role === 'DIRECTOR';
+  const { role, is_phan_lich_all } = req.user;
+  const canEditAny = ['DIRECTOR', 'SUPER_ADMIN'].includes(role) || !!is_phan_lich_all;
   const isOwner = report.reporter_user_id === req.user.id;
 
-  if (!isDirector && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
-  if (!isDirector && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 21:00 hôm sau)' });
+  if (!canEditAny && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
+  if (!canEditAny && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 21:00 hôm sau)' });
 
   const {
     location,

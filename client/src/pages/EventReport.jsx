@@ -707,7 +707,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 
           <div style={{ display:'flex', gap:'8px', marginTop:'6px', flexWrap:'wrap' }}>
             {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
-            {(currentUser?.role === 'DIRECTOR' ||
+            {(['DIRECTOR','SUPER_ADMIN'].includes(currentUser?.role) || !!currentUser?.is_phan_lich_all ||
               (currentUser?.id === report.reporter_user_id && withinEditDeadline(report.report_date))) && (
               <button type="button" onClick={() => onEdit(detail)}
                 style={{
