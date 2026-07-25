@@ -114,9 +114,9 @@ function ChipInput({ label, value, onChange, chips, placeholder }) {
 }
 
 // ── Staff dropdown ────────────────────────────────────────────────────────────
-function StaffSelect({ selected, onChange, filterDept }) {
+function StaffSelect({ selected, onChange, visibleDepts }) {
   const { kmGroups } = useStaffGroups();
-  const visibleGroups = filterDept ? kmGroups.filter(g => g.dept === filterDept) : kmGroups;
+  const visibleGroups = visibleDepts ? kmGroups.filter(g => visibleDepts.includes(g.dept)) : kmGroups;
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -1820,7 +1820,17 @@ export default function EventReport() {
           </h3>
           <div style={{ marginBottom:'14px' }}>
             <StaffSelect selected={form.km_staff} onChange={v => setField('km_staff', v)}
-              filterDept={canViewAllDepts ? undefined : getUserKmDept(user, kmGroups)} />
+              visibleDepts={(() => {
+                if (editingId) {
+                  // Khi edit: chỉ hiện các dept đã có nhân sự trong báo cáo đó
+                  const depts = kmGroups.filter(g => g.members.some(m => form.km_staff.includes(m))).map(g => g.dept);
+                  return depts.length > 0 ? depts : null;
+                }
+                // Khi tạo mới: admin thấy tất cả, user thường thấy dept mình
+                if (canViewAllDepts) return null;
+                const d = getUserKmDept(user, kmGroups);
+                return d && d !== '—' ? [d] : null;
+              })()} />
             {errors.km_staff && <p style={{ color:'#f87171', fontSize:'0.80rem', marginTop:'4px' }}>⚠ {errors.km_staff}</p>}
           </div>
           <div>
