@@ -1,25 +1,26 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { StaffGroupsProvider } from './contexts/StaffGroupsContext';
 import { subscribePush } from './utils/pushSubscribe';
 import { buildSlipHTML } from './utils/printSlip';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Equipment from './pages/Equipment';
-import ExportForm from './pages/ExportForm';
-import ReturnForm from './pages/ReturnForm';
-import EventReturn from './pages/EventReturn';
-import Events from './pages/Events';
-import Transactions from './pages/Transactions';
-import Reports from './pages/Reports';
-import Users from './pages/Users';
-import ViolationReport from './pages/ViolationReport';
-import EventReport from './pages/EventReport';
-import WorkSchedule from './pages/WorkSchedule';
-import VanHanhKeToan from './pages/VanHanhKeToan';
-import XacNhanCong from './pages/XacNhanCong';
+
+const Dashboard      = lazy(() => import('./pages/Dashboard'));
+const Equipment      = lazy(() => import('./pages/Equipment'));
+const ExportForm     = lazy(() => import('./pages/ExportForm'));
+const ReturnForm     = lazy(() => import('./pages/ReturnForm'));
+const EventReturn    = lazy(() => import('./pages/EventReturn'));
+const Events         = lazy(() => import('./pages/Events'));
+const Transactions   = lazy(() => import('./pages/Transactions'));
+const Reports        = lazy(() => import('./pages/Reports'));
+const Users          = lazy(() => import('./pages/Users'));
+const ViolationReport = lazy(() => import('./pages/ViolationReport'));
+const EventReport    = lazy(() => import('./pages/EventReport'));
+const WorkSchedule   = lazy(() => import('./pages/WorkSchedule'));
+const VanHanhKeToan  = lazy(() => import('./pages/VanHanhKeToan'));
+const XacNhanCong    = lazy(() => import('./pages/XacNhanCong'));
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -31,26 +32,28 @@ function AppRoutes() {
   const { user, can } = useAuth();
   useEffect(() => { if (user) subscribePush(); }, [user]);
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Dashboard />} />
-        <Route path="equipment" element={<Equipment />} />
-        <Route path="export"   element={can('exportEvent') ? <ExportForm /> : <Navigate to="/" replace />} />
-        <Route path="return"        element={can('intake') || can('confirmFix') ? <ReturnForm /> : <Navigate to="/" replace />} />
-        <Route path="event-return"  element={can('returnEvent') ? <EventReturn /> : <Navigate to="/" replace />} />
-        <Route path="events"   element={<Events />} />
-        <Route path="transactions" element={<Transactions />} />
-        <Route path="reports"    element={<Reports />} />
-        <Route path="violations"    element={<ViolationReport />} />
-        <Route path="event-report" element={<EventReport />} />
-        <Route path="work-schedule" element={can('viewWorkSchedule') ? <WorkSchedule /> : <Navigate to="/" replace />} />
-        <Route path="van-hanh-ke-toan" element={can('viewKeToan') ? <VanHanhKeToan /> : <Navigate to="/" replace />} />
-        <Route path="xac-nhan-cong" element={can('viewXacNhanCong') ? <XacNhanCong /> : <Navigate to="/" replace />} />
-        <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'#c9a84c', fontSize:'0.9rem' }}>Đang tải...</div>}>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="equipment" element={<Equipment />} />
+          <Route path="export"   element={can('exportEvent') ? <ExportForm /> : <Navigate to="/" replace />} />
+          <Route path="return"        element={can('intake') || can('confirmFix') ? <ReturnForm /> : <Navigate to="/" replace />} />
+          <Route path="event-return"  element={can('returnEvent') ? <EventReturn /> : <Navigate to="/" replace />} />
+          <Route path="events"   element={<Events />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="reports"    element={<Reports />} />
+          <Route path="violations"    element={<ViolationReport />} />
+          <Route path="event-report" element={<EventReport />} />
+          <Route path="work-schedule" element={can('viewWorkSchedule') ? <WorkSchedule /> : <Navigate to="/" replace />} />
+          <Route path="van-hanh-ke-toan" element={can('viewKeToan') ? <VanHanhKeToan /> : <Navigate to="/" replace />} />
+          <Route path="xac-nhan-cong" element={can('viewXacNhanCong') ? <XacNhanCong /> : <Navigate to="/" replace />} />
+          <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
 
