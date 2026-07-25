@@ -99,11 +99,11 @@ router.put('/:id', requireAuth, (req, res) => {
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
 
   const { role } = req.user;
-  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(role);
+  const isDirector = role === 'DIRECTOR';
   const isOwner = report.reporter_user_id === req.user.id;
 
-  if (!isAdmin && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
-  if (!isAdmin && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 21:00 hôm sau)' });
+  if (!isDirector && !isOwner) return res.status(403).json({ error: 'Không có quyền chỉnh sửa báo cáo này' });
+  if (!isDirector && !withinEditDeadline(report.report_date)) return res.status(403).json({ error: 'Đã quá hạn chỉnh sửa (hạn: ngày làm việc + 21:00 hôm sau)' });
 
   const {
     location,

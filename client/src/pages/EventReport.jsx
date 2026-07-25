@@ -706,7 +706,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
 
           <div style={{ display:'flex', gap:'8px', marginTop:'6px', flexWrap:'wrap' }}>
             {/* Nút Sửa — chỉ hiện cho chủ báo cáo hoặc admin, trong deadline */}
-            {(['SUPER_ADMIN','DIRECTOR'].includes(currentUser?.role) ||
+            {(currentUser?.role === 'DIRECTOR' ||
               (currentUser?.id === report.reporter_user_id && withinEditDeadline(report.report_date))) && (
               <button type="button" onClick={() => onEdit(detail)}
                 style={{
@@ -1771,9 +1771,9 @@ export default function EventReport() {
               <input type="date" className="input" value={form.report_date}
                 min={new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(Date.now() - 2 * 86400000))}
                 max={todayVN()}
-                readOnly={dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')}
-                onChange={(dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')) ? undefined : e => setField('report_date', e.target.value)}
-                style={(dateLocked || (!!editingId && user?.role === 'SUPER_ADMIN')) ? { opacity: 0.7, cursor: 'not-allowed', color: '#fb923c', fontWeight: 600 } : {}}
+                readOnly={dateLocked}
+                onChange={dateLocked ? undefined : e => setField('report_date', e.target.value)}
+                style={dateLocked ? { opacity: 0.7, cursor: 'not-allowed', color: '#fb923c', fontWeight: 600 } : {}}
                 required />
             </div>
           </div>
