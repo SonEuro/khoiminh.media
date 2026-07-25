@@ -112,6 +112,7 @@ export default function XacNhanCong() {
   const { user } = useAuth();
   const { kmGroups } = useStaffGroups();
   const canEdit = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
+  const canToggleLe = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
 
   const [month, setMonth]       = useState(todayMonth);
   const [reports, setReports]   = useState([]);
@@ -332,7 +333,7 @@ export default function XacNhanCong() {
                                         {result?.otHours > 0 && (
                                           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
                                         )}
-                                        {canEdit && (
+                                        {canToggleLe && (
                                           <button disabled={togBusy}
                                             onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
                                             style={{ marginLeft: 'auto', padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0' }}>
@@ -388,7 +389,7 @@ export default function XacNhanCong() {
                                             {r.no_afternoon_break ? <span style={{ color: '#f87171', fontWeight: 700 }}>✕</span> : <span style={{ color: '#4ade80' }}>✓</span>}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
-                                            {canEdit ? (
+                                            {canToggleLe ? (
                                               <button disabled={togBusy}
                                                 onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
                                                 style={{ padding: '2px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.05)', color: isHol ? '#f87171' : '#7878a0' }}>
