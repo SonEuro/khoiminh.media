@@ -303,44 +303,41 @@ export default function XacNhanCong() {
                                   const dayTag = dayLabel(r.report_date);
                                   return (
                                     <div key={r.id} style={{ borderRadius: '8px', padding: '10px 12px', background: isHol ? 'rgba(248,113,113,0.06)' : isSun ? 'rgba(96,165,250,0.06)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                                      {/* Row 1: date + event */}
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '7px' }}>
-                                        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem' }}>{fmtDate(r.report_date)}</span>
-                                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
-                                        <span style={{ fontSize: '0.78rem', color: '#9898b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{r.event_label || '—'}</span>
+                                      {/* Row 1: date + day + event */}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem', flexShrink: 0 }}>{fmtDate(r.report_date)}</span>
+                                        <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
+                                        <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
                                       </div>
-                                      {/* Row 2: times + km */}
-                                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '7px', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.78rem', color: '#c8c8e0', fontVariantNumeric: 'tabular-nums' }}>
+                                      {/* Row 2: times + Làm Việc + N.Trưa + N.Chiều */}
+                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '0.78rem', color: '#c8c8e0', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                                           {r.time_present || '—'} → {r.time_end || '—'}
                                         </span>
-                                        <span style={{ fontSize: '0.78rem', color: GOLD, fontWeight: 700 }}>KM: {result ? fmtMins(result.kmMins) : '—'}</span>
-                                        <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>Thực: {result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
-                                      </div>
-                                      {/* Row 3: flags */}
-                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0 }}>
+                                          Làm Việc: <span style={{ color: GOLD, fontWeight: 700 }}>{result ? fmtMins(Math.max(0, result.effectiveMins)) : '—'}</span>
+                                        </span>
+                                        <span style={{ fontSize: '0.72rem', color: r.no_lunch_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>
                                           N.Trưa: {r.no_lunch_break ? '✕' : '✓'}
                                         </span>
-                                        <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80' }}>
+                                        <span style={{ fontSize: '0.72rem', color: r.no_afternoon_break ? '#f87171' : '#4ade80', flexShrink: 0 }}>
                                           N.Chiều: {r.no_afternoon_break ? '✕' : '✓'}
                                         </span>
-                                        {/* Holiday toggle */}
-                                        {canEdit ? (
-                                          <button disabled={togBusy}
-                                            onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
-                                            style={{ padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0' }}>
-                                            Lễ: {isHol ? 'Có' : 'Không'}
-                                          </button>
-                                        ) : isHol ? (
-                                          <span style={{ fontSize: '0.72rem', color: '#f87171', fontWeight: 700 }}>Ngày Lễ</span>
-                                        ) : null}
-                                        {/* Công + OT */}
-                                        <span style={{ marginLeft: 'auto', fontSize: '0.80rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
+                                      </div>
+                                      {/* Row 3: công + OT + Lễ toggle (canEdit only) */}
+                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isHol ? '#f87171' : isSun ? '#60a5fa' : isAft ? '#9898b8' : GOLD }}>
                                           {result ? fmtNum(result.congRate) + ' công' : '—'}
                                         </span>
                                         {result?.otHours > 0 && (
                                           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(result.otHours)}h OT</span>
+                                        )}
+                                        {canEdit && (
+                                          <button disabled={togBusy}
+                                            onClick={e => { e.stopPropagation(); toggleHoliday(r.id, isHol); }}
+                                            style={{ marginLeft: 'auto', padding: '1px 8px', borderRadius: '5px', border: 'none', cursor: togBusy ? 'wait' : 'pointer', fontSize: '0.70rem', fontWeight: 700, background: isHol ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)', color: isHol ? '#f87171' : '#7878a0' }}>
+                                            Lễ: {isHol ? 'Có' : 'Không'}
+                                          </button>
                                         )}
                                       </div>
                                     </div>
