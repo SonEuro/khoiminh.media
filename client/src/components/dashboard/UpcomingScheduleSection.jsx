@@ -17,6 +17,7 @@ const DEPT_COLORS = { 'Sân Khấu':'#a78bfa', 'ATAS-LED':'#60a5fa', 'Cơ Sở V
 export default function UpcomingScheduleSection({ userName, userId }) {
   const [upcoming, setUpcoming]       = useState([]);
   const [detailSched, setDetailSched] = useState(null);
+  const [detailGroup, setDetailGroup] = useState(null);
   const navigate = useNavigate();
   const { can } = useAuth();
   const { kmGroups: liveKmGroups } = useStaffGroups();
@@ -110,7 +111,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
     const nameColor   = isToday ? '#fca5a5' : isTomorrow ? '#86efac' : '#c9a84c';
     return (
       <div
-        onClick={() => api.getWorkScheduleById(group.schedId).then(setDetailSched).catch(() => {})}
+        onClick={() => api.getWorkScheduleById(group.schedId).then(sched => { setDetailSched(sched); setDetailGroup(group); }).catch(() => {})}
         style={{ border:`1px solid rgba(255,255,255,0.07)`, borderLeft:`3px solid ${accentColor}`, borderRadius:'10px', cursor:'pointer', overflow:'hidden', transition:'filter 0.15s' }}
         onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.12)'}
         onMouseLeave={e => e.currentTarget.style.filter = ''}
@@ -165,7 +166,8 @@ export default function UpcomingScheduleSection({ userName, userId }) {
       {detailSched && (() => {
         const todayEntries = [];
         for (const p of PHASES_ORDER) {
-          const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => d === todayVN);
+          const phaseDatesInGroup = detailGroup?.dates[p] || [];
+          const dates = (detailSched[`${p}_dates`] || (detailSched[`${p}_date`] ? [detailSched[`${p}_date`]] : [])).filter(d => phaseDatesInGroup.includes(d));
           for (const date of dates) {
             const leadsMap = detailSched[`${p}_leads_map`];
             const leads = leadsMap ? (leadsMap[date] || []) : (detailSched[`${p}_leads`] || []);
@@ -186,12 +188,12 @@ export default function UpcomingScheduleSection({ userName, userId }) {
           }
         }
         return (
-          <Modal title={`Nhân Sự — ${detailSched.event_name}`} onClose={() => setDetailSched(null)} size="xl">
+          <Modal title={`Nhân Sự — ${detailSched.event_name}`} onClose={() => { setDetailSched(null); setDetailGroup(null); }} size="xl">
             <p style={{ fontSize:'0.85rem', color:'#a0a0b8', marginBottom:'12px' }}>
               👤 Người phân lịch: <strong style={{ color: GOLD }}>{detailSched.scheduler_name}</strong>
             </p>
             {todayEntries.length === 0
-              ? <p style={{ color:'#7878a0', fontSize:'0.85rem' }}>Không có lịch hôm nay.</p>
+              ? <p style={{ color:'#7878a0', fontSize:'0.85rem' }}>Không có dữ liệu nhân sự.</p>
               : todayEntries.map(({ p, date, leads, byDept, freeDepts }) => (
                 <div key={`${p}-${date}`}>
                   <div style={{ fontSize:'0.87rem', fontWeight:700, color: GOLD, marginBottom:'6px' }}>{PHASE_LABEL_MAP[p]} <span style={{ color:'#f87171' }}>{fmtD(date)}</span></div>
@@ -261,7 +263,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
                   <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                     {pastDates.map(({ p, date, label }) => (
                       <button key={`${p}-${date}`}
-                        onClick={() => { setDetailSched(null); navigate('/event-report', { state: { prefill: { event_id: detailSched.event_id, event_label: detailSched.event_name, report_date: date } } }); }}
+                        onClick={() => { setDetailSched(null); setDetailGroup(null); navigate('/event-report', { state: { prefill: { event_id: detailSched.event_id, event_label: detailSched.event_name, report_date: date } } }); }}
                         style={{ display:'flex', alignItems:'center', gap:'8px', padding:'7px 12px', borderRadius:'7px', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(201,168,76,0.08)', color: GOLD, cursor:'pointer', fontSize:'0.83rem', fontWeight:600, textAlign:'left' }}>
                         <span>{label}</span>
                         <span style={{ color:'#c8c8e0' }}>{fmtD(date)}</span>
@@ -273,7 +275,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
               );
             })()}
             {can('viewWorkSchedule') && (
-              <button onClick={() => { setDetailSched(null); navigate('/work-schedule', { state: { schedId: detailSched.id } }); }}
+              <button onClick={() => { setDetailSched(null); setDetailGroup(null); navigate('/work-schedule', { state: { schedId: detailSched.id } }); }}
                 style={{ marginTop:'12px', padding:'8px 16px', borderRadius:'8px', border:'1px solid rgba(201,168,76,0.4)', background:'rgba(201,168,76,0.1)', color: GOLD, cursor:'pointer', fontSize:'0.85rem', fontWeight:600 }}>
                 Xem đầy đủ trên trang Lịch làm việc →
               </button>
