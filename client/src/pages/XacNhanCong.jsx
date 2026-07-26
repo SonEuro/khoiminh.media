@@ -271,8 +271,8 @@ export default function XacNhanCong() {
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
         </div>
-        {/* Row 2: grand totals — full width on mobile */}
-        {!loading && grandCong > 0 && (
+        {/* Row 2: grand totals — chỉ admin/director/phân lịch all */}
+        {!loading && canViewAll && grandCong > 0 && (
           <div style={{ display: 'flex', gap: '8px' }}>
             <div style={{ flex: 1, background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
               <p style={{ fontSize: '0.66rem', color: '#a08040', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng Công</p>
