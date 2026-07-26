@@ -250,7 +250,7 @@ export default function XacNhanCong() {
       {/* Title */}
       <div style={{ marginBottom: '18px' }}>
         <h1 style={{ color: GOLD, fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 3px' }}>
-          Bảng Xác Nhận Công
+          Bảng Xác Nhận Ngày Công
         </h1>
         <p style={{ color: '#7878a0', fontSize: '0.76rem', margin: 0 }}>Tổng hợp ngày công &amp; OT nhân sự Khôi Minh theo tháng</p>
       </div>
