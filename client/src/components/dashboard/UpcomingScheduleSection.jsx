@@ -173,9 +173,10 @@ export default function UpcomingScheduleSection({ userName, userId }) {
             const leads = leadsMap ? (leadsMap[date] || []) : (detailSched[`${p}_leads`] || []);
             const staffMap = detailSched[`${p}_km_staff_map`];
             const staff = staffMap ? (staffMap[date] || []) : (detailSched[`${p}_km_staff`] || []);
+            const daySupport = (detailSched[`${p}_km_support`] || {})[date] || {};
             const byDept = {};
             for (const n of staff) {
-              const dept = KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
+              const dept = daySupport[n] || KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
               (byDept[dept] = byDept[dept] || []).push(n);
             }
             const freeMap = detailSched[`${p}_freelancers_map`];
