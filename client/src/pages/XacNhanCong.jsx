@@ -237,7 +237,9 @@ export default function XacNhanCong() {
 
   // Department totals for the month
   let grandCong = 0, grandOT = 0;
-  for (const es of Object.values(personMap)) {
+  const visibleMemberSet = new Set(visibleGroups.flatMap(g => g.members));
+  for (const [name, es] of Object.entries(personMap)) {
+    if (!canViewAll && !visibleMemberSet.has(name)) continue;
     const t = personTotals(es);
     grandCong += t.cong; grandOT += t.ot;
   }
@@ -271,15 +273,15 @@ export default function XacNhanCong() {
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
         </div>
-        {/* Row 2: grand totals — chỉ admin/director/phân lịch all */}
-        {!loading && canViewAll && grandCong > 0 && (
+        {/* Row 2: grand totals — admin/director/phân lịch all + trưởng phòng (theo dept) */}
+        {!loading && (canViewAll || isTruongPhong) && grandCong > 0 && (
           <div style={{ display: 'flex', gap: '8px' }}>
             <div style={{ flex: 1, background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.66rem', color: '#a08040', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng Công</p>
+              <p style={{ fontSize: '0.66rem', color: '#a08040', margin: '0 0 1px', textTransform: 'uppercase' }}>{isTruongPhong ? `Công ${userDept}` : 'Tổng Công'}</p>
               <p style={{ fontSize: '1rem', fontWeight: 800, color: GOLD, margin: 0 }}>{fmtNum(grandCong)}</p>
             </div>
             <div style={{ flex: 1, background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.66rem', color: '#4a7fcb', margin: '0 0 1px', textTransform: 'uppercase' }}>Tổng OT</p>
+              <p style={{ fontSize: '0.66rem', color: '#4a7fcb', margin: '0 0 1px', textTransform: 'uppercase' }}>{isTruongPhong ? `OT ${userDept}` : 'Tổng OT'}</p>
               <p style={{ fontSize: '1rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{fmtNum(grandOT)}h</p>
             </div>
           </div>
