@@ -185,7 +185,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
               ? Object.entries(freeMap[date]).filter(([, v]) => v?.trim()).map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)]).filter(([, ns]) => ns.length)
               : freeFlat.length ? [['', freeFlat]] : [];
             if (!leads.length && !staff.length && !freeDepts.length) continue;
-            todayEntries.push({ p, date, leads, byDept, freeDepts });
+            todayEntries.push({ p, date, leads, byDept, freeDepts, daySupport });
           }
         }
         return (
@@ -195,7 +195,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
             </p>
             {todayEntries.length === 0
               ? <p style={{ color:'#7878a0', fontSize:'0.85rem' }}>Không có dữ liệu nhân sự.</p>
-              : todayEntries.map(({ p, date, leads, byDept, freeDepts }) => (
+              : todayEntries.map(({ p, date, leads, byDept, freeDepts, daySupport }) => (
                 <div key={`${p}-${date}`}>
                   <div style={{ fontSize:'0.87rem', fontWeight:700, color: GOLD, marginBottom:'6px' }}>{PHASE_LABEL_MAP[p]} <span style={{ color:'#f87171' }}>{fmtD(date)}</span></div>
                   {leads.map(l => (
@@ -209,7 +209,14 @@ export default function UpcomingScheduleSection({ userName, userId }) {
                       {Object.entries(byDept).map(([dept, members]) => (
                         <div key={dept} style={{ marginBottom:'4px' }}>
                           <div style={{ fontSize:'0.80rem', fontWeight:700, color: getDeptColor(dept), paddingLeft:'8px' }}>{dept}</div>
-                          {members.map(n => <div key={n} style={{ fontSize:'0.92rem', color:'#eeeef5', padding:'1px 0 1px 18px' }}>• {n}</div>)}
+                          {members.map(n => (
+                            <div key={n} style={{ fontSize:'0.92rem', color:'#eeeef5', padding:'1px 0 1px 18px', display:'flex', alignItems:'center', gap:'5px' }}>
+                              <span>• {n}</span>
+                              {daySupport[n] && <span style={{ fontSize:'0.72rem', background:'rgba(96,165,250,0.15)', color:'#60a5fa', border:'1px solid rgba(96,165,250,0.35)', borderRadius:'4px', padding:'1px 4px', flexShrink:0 }}>
+                                {KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || ''} - HT
+                              </span>}
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
