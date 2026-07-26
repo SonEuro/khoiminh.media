@@ -101,27 +101,24 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             <col />
-            <col style={{ width: '70px' }} />
-            <col style={{ width: '60px' }} />
-            <col style={{ width: '55px' }} />
+            <col style={{ width: '72px' }} />
+            <col style={{ width: '64px' }} />
           </colgroup>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
               <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
               <th style={thS}>Công</th>
               <th style={thS}>OT</th>
-              <th style={thS}>Ca</th>
             </tr>
           </thead>
           <tbody>
-            {personRows.map(([name, { cong, ot, buoi }]) => (
+            {personRows.map(([name, { cong, ot }]) => (
               <tr key={name} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.04)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <td style={{ ...tdS, fontWeight: 600, color: '#eeeef5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</td>
                 <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNumD(cong)}</td>
                 <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
-                <td style={{ ...tdS, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>{buoi} Ngày</td>
               </tr>
             ))}
           </tbody>
