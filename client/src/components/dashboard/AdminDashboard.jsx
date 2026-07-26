@@ -171,7 +171,7 @@ export default function AdminDashboard({ dash, events, violations, lockedObs, my
         }
       </AdminSec>}
 
-      {dash?.overdue?.length > 0 && <OverdueSection items={dash.overdue} />}
+      {isAdmin && dash?.overdue?.length > 0 && <OverdueSection items={dash.overdue} />}
     </div>
   );
 }
