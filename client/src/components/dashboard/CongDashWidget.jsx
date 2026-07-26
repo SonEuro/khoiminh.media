@@ -82,8 +82,8 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
   }
   const personRows = Object.entries(personSummary).sort((a, b) => b[1].cong - a[1].cong);
 
-  const thS = { padding: '6px 10px', fontSize: '0.70rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap', textAlign: 'center' };
-  const tdS = { padding: '7px 10px', fontSize: '0.82rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
+  const thS = { padding: '5px 6px', fontSize: '0.62rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap', textAlign: 'center' };
+  const tdS = { padding: '6px 6px', fontSize: '0.80rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
 
   return (
     <div style={{ borderRadius: '10px', border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.04)', overflow: 'hidden' }}>
@@ -101,9 +101,9 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             <col />
-            <col style={{ width: '100px' }} />
-            <col style={{ width: '90px' }} />
-            <col style={{ width: '85px' }} />
+            <col style={{ width: '76px' }} />
+            <col style={{ width: '68px' }} />
+            <col style={{ width: '62px' }} />
           </colgroup>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
