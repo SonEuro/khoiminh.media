@@ -174,6 +174,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
             const staffMap = detailSched[`${p}_km_staff_map`];
             const staff = staffMap ? (staffMap[date] || []) : (detailSched[`${p}_km_staff`] || []);
             const daySupport = (detailSched[`${p}_km_support`] || {})[date] || {};
+            const dayStartTimes = (detailSched[`${p}_start_times`] || {})[date] || {};
             const byDept = {};
             for (const n of staff) {
               const dept = daySupport[n] || KM_STAFF_GROUPS.find(g => g.members.includes(n))?.dept || 'Khác';
@@ -185,7 +186,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
               ? Object.entries(freeMap[date]).filter(([, v]) => v?.trim()).map(([dept, names]) => [dept, names.split(',').map(n => n.trim()).filter(Boolean)]).filter(([, ns]) => ns.length)
               : freeFlat.length ? [['', freeFlat]] : [];
             if (!leads.length && !staff.length && !freeDepts.length) continue;
-            todayEntries.push({ p, date, leads, byDept, freeDepts, daySupport });
+            todayEntries.push({ p, date, leads, byDept, freeDepts, daySupport, dayStartTimes });
           }
         }
         return (
@@ -195,9 +196,19 @@ export default function UpcomingScheduleSection({ userName, userId }) {
             </p>
             {todayEntries.length === 0
               ? <p style={{ color:'#7878a0', fontSize:'0.85rem' }}>Không có dữ liệu nhân sự.</p>
-              : todayEntries.map(({ p, date, leads, byDept, freeDepts, daySupport }) => (
+              : todayEntries.map(({ p, date, leads, byDept, freeDepts, daySupport, dayStartTimes }) => (
                 <div key={`${p}-${date}`}>
                   <div style={{ fontSize:'0.87rem', fontWeight:700, color: GOLD, marginBottom:'6px' }}>{PHASE_LABEL_MAP[p]} <span style={{ color:'#f87171' }}>{fmtD(date)}</span></div>
+                  {Object.entries(dayStartTimes).filter(([, t]) => t).length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
+                      {Object.entries(dayStartTimes).filter(([, t]) => t).map(([dept, time]) => (
+                        <span key={dept} style={{ display:'inline-flex', alignItems:'baseline', gap:'5px', padding:'3px 9px', borderRadius:'6px', background:`${getDeptColor(dept)}18`, border:`1px solid ${getDeptColor(dept)}55` }}>
+                          <span style={{ fontSize:'0.72rem', fontWeight:700, color: getDeptColor(dept) }}>⏰ {dept}</span>
+                          <span style={{ fontSize:'0.95rem', fontWeight:800, color:'#fff', letterSpacing:'0.03em' }}>{time}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {leads.map(l => (
                     <div key={l.name||l} style={{ fontSize:'0.92rem', color:'#a0a0b8', padding:'2px 0 2px 10px' }}>
                       👑 {l.name||l}{l.department ? <span style={{ color:'#fbbf24', marginLeft:'6px', fontSize:'0.82rem' }}>({l.department})</span> : null}
