@@ -101,16 +101,16 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             <col />
-            <col style={{ width: '76px' }} />
-            <col style={{ width: '68px' }} />
-            <col style={{ width: '62px' }} />
+            <col style={{ width: '70px' }} />
+            <col style={{ width: '60px' }} />
+            <col style={{ width: '55px' }} />
           </colgroup>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
-              <th style={{ ...thS, textAlign: 'left' }}>Tên Nhân Viên</th>
-              <th style={thS}>Ngày Công</th>
-              <th style={thS}>OT (giờ)</th>
-              <th style={thS}>Chi Tiết</th>
+              <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
+              <th style={thS}>Công</th>
+              <th style={thS}>OT</th>
+              <th style={thS}>Ca</th>
             </tr>
           </thead>
           <tbody>
