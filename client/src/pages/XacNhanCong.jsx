@@ -257,21 +257,26 @@ export default function XacNhanCong() {
       const [yy, mm] = month.split('-');
       const titleText = `BẢNG XÁC NHẬN NGÀY CÔNG — THÁNG ${parseInt(mm, 10)}/${yy}`;
 
+      const border = { top: { style: 'thin', color: { argb: 'FFB0B0B0' } }, left: { style: 'thin', color: { argb: 'FFB0B0B0' } }, bottom: { style: 'thin', color: { argb: 'FFB0B0B0' } }, right: { style: 'thin', color: { argb: 'FFB0B0B0' } } };
+      const borderMedium = { top: { style: 'medium', color: { argb: 'FF888888' } }, left: { style: 'medium', color: { argb: 'FF888888' } }, bottom: { style: 'medium', color: { argb: 'FF888888' } }, right: { style: 'medium', color: { argb: 'FF888888' } } };
+      const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+
       // Title
       ws.mergeCells('A1:F1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
-      titleCell.font = { bold: true, size: 13, color: { argb: 'FFC9A84C' } };
+      titleCell.font = { bold: true, size: 13 };
       titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.fill = white;
       ws.getRow(1).height = 28;
 
       // Header row
       const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)']);
       hdrRow.eachCell(cell => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E1E2E' } };
+        cell.font = { bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = { bottom: { style: 'thin', color: { argb: 'FF444466' } } };
+        cell.border = borderMedium;
       });
       hdrRow.getCell(3).alignment = { horizontal: 'left' };
       hdrRow.height = 20;
@@ -293,21 +298,19 @@ export default function XacNhanCong() {
           if (!days && !cong) continue;
           stt++;
           const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot))]);
-          row.getCell(1).alignment = { horizontal: 'center' };
-          row.getCell(2).alignment = { horizontal: 'center' };
-          row.getCell(4).alignment = { horizontal: 'center' };
-          row.getCell(5).alignment = { horizontal: 'center', numFmt: '0.##' };
-          row.getCell(6).alignment = { horizontal: 'center', numFmt: '0.##' };
+          row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
+          row.getCell(3).alignment = { horizontal: 'left' };
           deptCong += cong; deptOT += ot; deptDays += days;
         }
 
         const deptEndRow = ws.rowCount;
         if (deptEndRow >= deptStartRow) {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays;
-          const subRow = ws.addRow(['', `${g.dept} (Tổng)`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT))]);
+          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT))]);
           subRow.eachCell(cell => {
-            cell.font = { bold: true, color: { argb: 'FFC9A84C' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1A28' } };
+            cell.font = { bold: true, color: { argb: 'FF000000' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+            cell.border = border;
             cell.alignment = { horizontal: 'center' };
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
@@ -318,11 +321,12 @@ export default function XacNhanCong() {
       ws.addRow([]);
       const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX))]);
       totalRow.eachCell(cell => {
-        cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2A2A3E' } };
+        cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
         cell.alignment = { horizontal: 'center' };
-        cell.border = { top: { style: 'medium', color: { argb: 'FFC9A84C' } } };
+        cell.border = borderMedium;
       });
+      totalRow.getCell(2).alignment = { horizontal: 'left' };
 
       ws.columns = [
         { width: 6 }, { width: 20 }, { width: 24 },
