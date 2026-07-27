@@ -429,13 +429,15 @@ export default function XacNhanCong() {
                 <col />
                 <col style={{ width: isMobile ? '76px' : '88px' }} />
                 <col style={{ width: isMobile ? '76px' : '96px' }} />
-                {!isMobile && <col style={{ width: '85px' }} />}
+                {!isMobile && <col style={{ width: '72px' }} />}
+                {!isMobile && <col style={{ width: '80px' }} />}
               </colgroup>
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.015)' }}>
                   <th style={{ ...thBase }}>Tên Nhân Viên</th>
                   <th style={{ ...thBase, textAlign: 'center' }}>Công</th>
                   <th style={{ ...thBase, textAlign: 'center' }}>{isMobile ? 'OT' : 'OT (giờ)'}</th>
+                  {!isMobile && <th style={{ ...thBase, textAlign: 'center' }}>Leader</th>}
                   {!isMobile && <th style={{ ...thBase, textAlign: 'center' }}>Chi Tiết</th>}
                 </tr>
               </thead>
@@ -473,8 +475,13 @@ export default function XacNhanCong() {
                           {ot > 0 ? fmtMins(Math.round(ot * 60)) : '—'}
                         </td>
                         {!isMobile && (
+                          <td style={{ ...tdBase, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: leaderCount > 0 ? GOLD : '#555570' }}>
+                            {leaderCount > 0 ? leaderCount : '—'}
+                          </td>
+                        )}
+                        {!isMobile && (
                           <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
-                            {hasData ? `${confirmedCount} Ngày${leaderCount > 0 ? ` · ${leaderCount} TN` : ''}` : '—'}
+                            {hasData ? `${confirmedCount} Ngày` : '—'}
                           </td>
                         )}
                       </tr>
@@ -482,7 +489,7 @@ export default function XacNhanCong() {
                       {/* Expanded detail */}
                       {isExp && (
                         <tr key={`${name}-detail`}>
-                          <td colSpan={isMobile ? 3 : 4} style={{ padding: 0, background: 'rgba(255,255,255,0.012)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
+                          <td colSpan={isMobile ? 3 : 5} style={{ padding: 0, background: 'rgba(255,255,255,0.012)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
                             {isMobile ? (
                               /* ── Mobile: card layout ── */
                               <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -635,10 +642,10 @@ export default function XacNhanCong() {
                                           <td style={{ ...dtd, maxWidth: '180px' }}>
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
                                           </td>
-                                          <td style={{ ...dtd, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                                            {(r.leaders || []).includes(name) ? (
-                                              <span style={{ fontSize: '0.70rem', fontWeight: 700, padding: '1px 7px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, border: '1px solid rgba(201,168,76,0.3)' }}>TN</span>
-                                            ) : <span style={{ color: '#555570', fontSize: '0.75rem' }}>—</span>}
+                                          <td style={{ ...dtd, textAlign: 'center' }}>
+                                            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: (r.leaders || []).includes(name) ? GOLD : '#555570' }}>
+                                              {(r.leaders || []).includes(name) ? '1' : '—'}
+                                            </span>
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
                                             {isEditing
