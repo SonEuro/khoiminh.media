@@ -334,6 +334,63 @@ export default function XacNhanCong() {
         { width: 12 }, { width: 14 }, { width: 16 }, { width: 10 },
       ];
 
+      // ── Sheet 2: Chi Tiết ──
+      const ws2 = wb.addWorksheet('Chi Tiết');
+      ws2.mergeCells('A1:L1');
+      const title2 = ws2.getCell('A1');
+      title2.value = `CHI TIẾT NGÀY CÔNG — THÁNG ${parseInt(mm, 10)}/${yy}`;
+      title2.font = { bold: true, size: 13 };
+      title2.alignment = { horizontal: 'center', vertical: 'middle' };
+      title2.fill = white;
+      ws2.getRow(1).height = 28;
+
+      const hdr2 = ws2.addRow(['STT', 'Họ Tên', 'Bộ Phận', 'Ngày', 'Thứ', 'Sự Kiện', 'Leader', 'Có Mặt', 'Kết Thúc', 'G.Thực', 'Công', 'OT (h)']);
+      hdr2.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = borderMedium;
+      });
+      hdr2.getCell(2).alignment = { horizontal: 'left' };
+      hdr2.getCell(3).alignment = { horizontal: 'left' };
+      hdr2.getCell(6).alignment = { horizontal: 'left' };
+      hdr2.height = 20;
+
+      let stt2 = 0;
+      for (const g2 of kmGroups) {
+        for (const name of g2.members) {
+          const entries2 = personMap[name] || [];
+          if (!entries2.length) continue;
+          const sorted2 = [...entries2].sort((a, b) => a.report.report_date.localeCompare(b.report.report_date));
+          for (const { report: r, result } of sorted2) {
+            stt2++;
+            const isLeaderVal = (r.leaders || []).includes(name) ? 1 : '';
+            const [ry, rmx, rday] = r.report_date.split('-');
+            const row2 = ws2.addRow([
+              stt2, name, g2.dept,
+              `${rday}/${rmx}/${ry}`, dayLabel(r.report_date),
+              r.event_label || '—', isLeaderVal,
+              r.time_present || '—', r.time_end || '—',
+              result ? fmtMins(Math.max(0, result.effectiveMins)) : 'Chưa XN',
+              result ? parseFloat(fmtNum(result.congRate)) : '',
+              result?.otMins > 0 ? parseFloat((result.otMins / 60).toFixed(2)) : '',
+            ]);
+            row2.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
+            row2.getCell(2).alignment = { horizontal: 'left' };
+            row2.getCell(3).alignment = { horizontal: 'left' };
+            row2.getCell(6).alignment = { horizontal: 'left' };
+            if (!result) row2.getCell(10).font = { italic: true, color: { argb: 'FF888888' } };
+          }
+        }
+      }
+
+      ws2.columns = [
+        { width: 6 }, { width: 24 }, { width: 20 },
+        { width: 14 }, { width: 8 }, { width: 28 },
+        { width: 8 }, { width: 10 }, { width: 10 },
+        { width: 10 }, { width: 8 }, { width: 10 },
+      ];
+
       const buf = await wb.xlsx.writeBuffer();
       const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
