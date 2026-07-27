@@ -522,7 +522,7 @@ export default function XacNhanCong() {
                               : <span style={{ width: 13, flexShrink: 0 }} />}
                             <div style={{ minWidth: 0 }}>
                               <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{name}</div>
-                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{confirmedCount} Ngày{leaderCount > 0 ? ` · ${leaderCount} TN` : ''}</div>}
+                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{confirmedCount} Ngày{leaderCount > 0 ? ` · ${leaderCount} NT` : ''}</div>}
                             </div>
                           </div>
                         </td>
@@ -569,7 +569,7 @@ export default function XacNhanCong() {
                                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
                                         {(r.leaders || []).includes(name) && (
-                                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>TN</span>
+                                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>NT</span>
                                         )}
                                       </div>
 

@@ -112,7 +112,7 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
               <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
               <th style={thS}>Công</th>
               <th style={thS}>OT</th>
-              <th style={thS}>TN</th>
+              <th style={thS}>NT</th>
             </tr>
           </thead>
           <tbody>
