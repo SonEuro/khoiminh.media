@@ -37,7 +37,7 @@ function calcCong(r) {
   if (isAfternoon) {
     effectiveMins = kmMins; // không trừ nghỉ trưa (đã qua trưa)
     congRate = (isSunday || isHoliday) ? 1 : 0.5;
-    otThresholdMins = 4 * 60;
+    otThresholdMins = 4 * 60 + 30; // ca chiều 13:00-17:30 = 4.5h
   } else {
     const endM = toM(r.time_end);
     const skipAft = r.no_afternoon_break || (endM !== null && endM <= 17 * 60 + 30);
