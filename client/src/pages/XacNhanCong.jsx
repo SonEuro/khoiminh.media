@@ -149,6 +149,7 @@ export default function XacNhanCong() {
   const [expanded, setExpanded]     = useState(new Set());
   const [toggling, setToggling]     = useState(new Set());
   const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
+  const [exporting, setExporting]   = useState(false);
   const [editingRowId, setEditingRowId] = useState(null);
   const [editRowData, setEditRowData]   = useState({});
   const [savingRow, setSavingRow]       = useState(false);
@@ -246,6 +247,101 @@ export default function XacNhanCong() {
     grandCong += t.cong; grandOT += t.ot;
   }
 
+  async function exportCongExcel() {
+    setExporting(true);
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Tổng Hợp Ngày Công');
+
+      const [yy, mm] = month.split('-');
+      const titleText = `BẢNG XÁC NHẬN NGÀY CÔNG — THÁNG ${parseInt(mm, 10)}/${yy}`;
+
+      // Title
+      ws.mergeCells('A1:F1');
+      const titleCell = ws.getCell('A1');
+      titleCell.value = titleText;
+      titleCell.font = { bold: true, size: 13, color: { argb: 'FFC9A84C' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 28;
+
+      // Header row
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)']);
+      hdrRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E1E2E' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FF444466' } } };
+      });
+      hdrRow.getCell(3).alignment = { horizontal: 'left' };
+      hdrRow.height = 20;
+
+      let stt = 0;
+      let grandCongX = 0, grandOTX = 0, grandDays = 0;
+
+      for (const g of kmGroups) {
+        const deptMembers = g.members.filter(name => personMap[name]);
+        if (!deptMembers.length) continue;
+
+        let deptCong = 0, deptOT = 0, deptDays = 0;
+        const deptStartRow = ws.rowCount + 1;
+
+        for (const name of deptMembers) {
+          const entries = personMap[name] || [];
+          const { cong, ot } = personTotals(entries);
+          const days = entries.filter(e => e.result).length;
+          if (!days && !cong) continue;
+          stt++;
+          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot))]);
+          row.getCell(1).alignment = { horizontal: 'center' };
+          row.getCell(2).alignment = { horizontal: 'center' };
+          row.getCell(4).alignment = { horizontal: 'center' };
+          row.getCell(5).alignment = { horizontal: 'center', numFmt: '0.##' };
+          row.getCell(6).alignment = { horizontal: 'center', numFmt: '0.##' };
+          deptCong += cong; deptOT += ot; deptDays += days;
+        }
+
+        const deptEndRow = ws.rowCount;
+        if (deptEndRow >= deptStartRow) {
+          grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays;
+          const subRow = ws.addRow(['', `${g.dept} (Tổng)`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT))]);
+          subRow.eachCell(cell => {
+            cell.font = { bold: true, color: { argb: 'FFC9A84C' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1A28' } };
+            cell.alignment = { horizontal: 'center' };
+          });
+          subRow.getCell(2).alignment = { horizontal: 'left' };
+        }
+      }
+
+      // Grand total
+      ws.addRow([]);
+      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX))]);
+      totalRow.eachCell(cell => {
+        cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2A2A3E' } };
+        cell.alignment = { horizontal: 'center' };
+        cell.border = { top: { style: 'medium', color: { argb: 'FFC9A84C' } } };
+      });
+
+      ws.columns = [
+        { width: 6 }, { width: 20 }, { width: 24 },
+        { width: 12 }, { width: 14 }, { width: 16 },
+      ];
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `Xac Nhan Ngay Cong - Thang ${parseInt(mm, 10)}-${yy}.xlsx`;
+      a.click(); URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Lỗi xuất Excel: ' + (e.message || e));
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const thBase = { padding: isMobile ? '6px 8px' : '7px 12px', fontSize: isMobile ? '0.67rem' : '0.72rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' };
   const tdBase = { padding: isMobile ? '7px 8px' : '8px 12px', fontSize: isMobile ? '0.80rem' : '0.83rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
 
@@ -274,6 +370,12 @@ export default function XacNhanCong() {
             style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
+          {canViewAll && (
+            <button onClick={exportCongExcel} disabled={exporting || loading}
+              style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
+              {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
+            </button>
+          )}
         </div>
         {/* Row 2: grand totals — admin/director/phân lịch all + trưởng phòng (theo dept) */}
         {!loading && (canViewAll || isTruongPhong) && grandCong > 0 && (
