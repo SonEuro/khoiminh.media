@@ -21,7 +21,7 @@ function calcCongDash(r) {
   const skipAft = r.no_afternoon_break || (e !== null && e <= 17 * 60 + 30);
   const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60) - (skipAft ? 0 : 90);
   const thresh = isAft ? 240 : 480;
-  const congRate = isAft ? (isSun ? 1 : 0.5) : isHol ? 2 : isSun ? 1.5 : 1;
+  const congRate = isAft ? ((isSun || isHol) ? 1 : 0.5) : isHol ? 2 : isSun ? 1.5 : 1;
   return { congRate, otHours: Math.max(0, effMins - thresh) / 60 };
 }
 

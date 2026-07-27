@@ -36,7 +36,7 @@ function calcCong(r) {
   let effectiveMins, congRate, otThresholdMins;
   if (isAfternoon) {
     effectiveMins = kmMins; // không trừ nghỉ trưa (đã qua trưa)
-    congRate = isSunday ? 1 : 0.5;
+    congRate = (isSunday || isHoliday) ? 1 : 0.5;
     otThresholdMins = 4 * 60;
   } else {
     const endM = toM(r.time_end);
