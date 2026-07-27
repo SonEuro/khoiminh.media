@@ -444,6 +444,7 @@ export default function XacNhanCong() {
                   const entries = personMap[name] || [];
                   const { cong, ot } = personTotals(entries);
                   const confirmedCount = entries.filter(e => e.result).length;
+                  const leaderCount = entries.filter(({ report }) => (report.leaders || []).includes(name)).length;
                   const isExp = expanded.has(name);
                   const hasData = entries.length > 0;
                   const sortedEntries = [...entries].sort((a, b) => b.report.report_date.localeCompare(a.report.report_date));
@@ -461,7 +462,7 @@ export default function XacNhanCong() {
                               : <span style={{ width: 13, flexShrink: 0 }} />}
                             <div style={{ minWidth: 0 }}>
                               <div style={{ fontWeight: hasData ? 600 : 400, color: hasData ? '#eeeef5' : '#7878a0', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{name}</div>
-                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{confirmedCount} Ngày</div>}
+                              {isMobile && hasData && <div style={{ fontSize: '0.68rem', color: '#7878a0', marginTop: '1px' }}>{confirmedCount} Ngày{leaderCount > 0 ? ` · ${leaderCount} TN` : ''}</div>}
                             </div>
                           </div>
                         </td>
@@ -473,7 +474,7 @@ export default function XacNhanCong() {
                         </td>
                         {!isMobile && (
                           <td style={{ ...tdBase, textAlign: 'center', color: '#7878a0', fontSize: '0.75rem' }}>
-                            {hasData ? `${confirmedCount} Ngày` : '—'}
+                            {hasData ? `${confirmedCount} Ngày${leaderCount > 0 ? ` · ${leaderCount} TN` : ''}` : '—'}
                           </td>
                         )}
                       </tr>
@@ -502,6 +503,9 @@ export default function XacNhanCong() {
                                         <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem', flexShrink: 0 }}>{fmtDate(r.report_date)}</span>
                                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
+                                        {(r.leaders || []).includes(name) && (
+                                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>TN</span>
+                                        )}
                                       </div>
 
                                       {isEditing ? (
@@ -605,8 +609,8 @@ export default function XacNhanCong() {
                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                   <thead>
                                     <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                      {['Ngày','Sự Kiện','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT', ...(canSuaCong ? [''] : [])].map((h, i) => (
-                                        <th key={i} style={{ padding: '4px 7px', fontSize: '0.60rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                                      {['Ngày','Sự Kiện','Leader','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT', ...(canSuaCong ? [''] : [])].map((h, i) => (
+                                        <th key={i} style={{ padding: '4px 7px', fontSize: '0.60rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: ['Leader','Có Mặt','Kết Thúc','Giờ KM','N.Trưa','N.Chiều','Ngày Lễ','G.Thực','Công','OT'].includes(h) ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
                                       ))}
                                     </tr>
                                   </thead>
@@ -630,6 +634,11 @@ export default function XacNhanCong() {
                                           </td>
                                           <td style={{ ...dtd, maxWidth: '180px' }}>
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
+                                          </td>
+                                          <td style={{ ...dtd, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                            {(r.leaders || []).includes(name) ? (
+                                              <span style={{ fontSize: '0.70rem', fontWeight: 700, padding: '1px 7px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, border: '1px solid rgba(201,168,76,0.3)' }}>TN</span>
+                                            ) : <span style={{ color: '#555570', fontSize: '0.75rem' }}>—</span>}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
                                             {isEditing
@@ -688,7 +697,7 @@ export default function XacNhanCong() {
                                   </tbody>
                                   <tfoot>
                                     <tr style={{ background: 'rgba(201,168,76,0.05)', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
-                                      <td colSpan={canSuaCong ? 10 : 9} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {confirmedCount} Ngày</td>
+                                      <td colSpan={canSuaCong ? 11 : 10} style={{ padding: '5px 7px', fontSize: '0.68rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Tổng · {confirmedCount} Ngày</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 800, color: GOLD, fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{fmtNum(cong)}</td>
                                       <td style={{ padding: '5px 7px', textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums', fontSize: '0.78rem' }}>{ot > 0 ? fmtMins(Math.round(ot * 60)) : '—'}</td>
                                     </tr>

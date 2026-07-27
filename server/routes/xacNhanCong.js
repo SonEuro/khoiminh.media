@@ -49,8 +49,26 @@ router.get('/', requireAuth, (req, res) => {
     }
   }
 
+  // Build leadMap: { 'eventId::date': [leadNames] }
+  const obligations = db.prepare(`
+    SELECT event_id, assigned_date, lead_name
+    FROM lead_report_obligations
+    WHERE assigned_date LIKE ?
+  `).all(`${month}%`);
+  const leadMap = {};
+  for (const ob of obligations) {
+    if (!ob.event_id) continue;
+    const key = `${ob.event_id}::${ob.assigned_date}`;
+    if (!leadMap[key]) leadMap[key] = [];
+    if (!leadMap[key].includes(ob.lead_name)) leadMap[key].push(ob.lead_name);
+  }
+
   res.json({
-    reports: rows.map(r => ({ ...r, km_staff: JSON.parse(r.km_staff || '[]') })),
+    reports: rows.map(r => ({
+      ...r,
+      km_staff: JSON.parse(r.km_staff || '[]'),
+      leaders: r.event_id ? (leadMap[`${r.event_id}::${r.report_date}`] || []) : [],
+    })),
     supportByDate,
   });
 });
