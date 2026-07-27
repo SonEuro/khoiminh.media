@@ -18,7 +18,8 @@ function calcCongDash(r) {
   const isAft = s >= 720;
   const isSun = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHol = !!r.is_holiday;
-  const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60) - (r.no_afternoon_break ? 0 : 90);
+  const skipAft = r.no_afternoon_break || (e !== null && e <= 17 * 60 + 30);
+  const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60) - (skipAft ? 0 : 90);
   const thresh = isAft ? 240 : 480;
   const congRate = isAft ? 0.5 : isHol ? 2 : isSun ? 1.5 : 1;
   return { congRate, otHours: Math.max(0, effMins - thresh) / 60 };

@@ -39,7 +39,9 @@ function calcCong(r) {
     congRate = 0.5;
     otThresholdMins = 4 * 60;
   } else {
-    effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60) - (r.no_afternoon_break ? 0 : 90);
+    const endM = toM(r.time_end);
+    const skipAft = r.no_afternoon_break || (endM !== null && endM <= 17 * 60 + 30);
+    effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60) - (skipAft ? 0 : 90);
     congRate = isHoliday ? 2 : isSunday ? 1.5 : 1;
     otThresholdMins = 8 * 60;
   }
