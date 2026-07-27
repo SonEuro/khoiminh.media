@@ -262,7 +262,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:F1');
+      ws.mergeCells('A1:G1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -271,7 +271,7 @@ export default function XacNhanCong() {
       ws.getRow(1).height = 28;
 
       // Header row
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)']);
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -282,31 +282,32 @@ export default function XacNhanCong() {
       hdrRow.height = 20;
 
       let stt = 0;
-      let grandCongX = 0, grandOTX = 0, grandDays = 0;
+      let grandCongX = 0, grandOTX = 0, grandDays = 0, grandLeader = 0;
 
       for (const g of kmGroups) {
         const deptMembers = g.members.filter(name => personMap[name]);
         if (!deptMembers.length) continue;
 
-        let deptCong = 0, deptOT = 0, deptDays = 0;
+        let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
         const deptStartRow = ws.rowCount + 1;
 
         for (const name of deptMembers) {
           const entries = personMap[name] || [];
           const { cong, ot } = personTotals(entries);
           const days = entries.filter(e => e.result).length;
+          const leaders = entries.filter(({ report }) => (report.leaders || []).includes(name)).length;
           if (!days && !cong) continue;
           stt++;
-          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot))]);
+          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '']);
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
-          deptCong += cong; deptOT += ot; deptDays += days;
+          deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
         }
 
         const deptEndRow = ws.rowCount;
         if (deptEndRow >= deptStartRow) {
-          grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays;
-          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT))]);
+          grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
+          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '']);
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -319,7 +320,7 @@ export default function XacNhanCong() {
 
       // Grand total
       ws.addRow([]);
-      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX))]);
+      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '']);
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -330,7 +331,7 @@ export default function XacNhanCong() {
 
       ws.columns = [
         { width: 6 }, { width: 20 }, { width: 24 },
-        { width: 12 }, { width: 14 }, { width: 16 },
+        { width: 12 }, { width: 14 }, { width: 16 }, { width: 10 },
       ];
 
       const buf = await wb.xlsx.writeBuffer();
