@@ -1913,7 +1913,7 @@ export default function EventReport() {
                     borderColor: form.has_taxi ? 'rgba(74,222,128,0.5)' : 'rgba(120,120,160,0.25)',
                     color: form.has_taxi ? '#4ade80' : '#7878a0',
                   }}>
-                  {form.has_taxi ? '✓ ' : ''}Taxi/Xăng
+                  {form.has_taxi ? '✓ ' : ''}Xăng Xe
                 </button>
                 {!!form.has_taxi && (
                   <input
