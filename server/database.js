@@ -535,6 +535,7 @@ if (staffCount === 0) {
 try { db.prepare("ALTER TABLE users ADD COLUMN luong_co_ban INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN luong_ngay_cong INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE users ADD COLUMN luong_ot_h INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN bac_luong TEXT DEFAULT ''").run(); } catch (_) {}
 {
   const SALARY_DATA = [
     ['Trần Nhật Duy',        5500000, 230000, 38000],

@@ -30,7 +30,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, is_giam_doc: false, is_van_hanh_ke_toan: false, zalo_uid: '', luong_co_ban: '', luong_ngay_cong: '', luong_ot_h: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, is_giam_doc: false, is_van_hanh_ke_toan: false, zalo_uid: '', luong_co_ban: '', luong_ngay_cong: '', luong_ot_h: '', bac_luong: '' };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -152,7 +152,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, is_giam_doc: !!u.is_giam_doc, is_van_hanh_ke_toan: !!u.is_van_hanh_ke_toan, zalo_uid: u.zalo_uid || '', luong_co_ban: u.luong_co_ban || '', luong_ngay_cong: u.luong_ngay_cong || '', luong_ot_h: u.luong_ot_h || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, is_giam_doc: !!u.is_giam_doc, is_van_hanh_ke_toan: !!u.is_van_hanh_ke_toan, zalo_uid: u.zalo_uid || '', luong_co_ban: u.luong_co_ban || '', luong_ngay_cong: u.luong_ngay_cong || '', luong_ot_h: u.luong_ot_h || '', bac_luong: u.bac_luong || '' });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -726,13 +726,21 @@ export default function Users() {
               <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '10px' }}>
                 💰 Thông Tin Lương
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Bậc Lương</label>
+                  <input className="input" placeholder="VD: Bậc 3, Senior..."
+                    value={form.bac_luong || ''} onChange={e => set('bac_luong', e.target.value)}
+                    style={{ fontSize: '0.88rem' }} />
+                </div>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Lương Cơ Bản</label>
                   <input className="input" type="number" placeholder="VD: 5500000"
                     value={form.luong_co_ban || ''} onChange={e => set('luong_co_ban', e.target.value)}
                     style={{ fontSize: '0.88rem' }} />
                 </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Lương Ngày Công</label>
                   <input className="input" type="number" placeholder="VD: 230000"
