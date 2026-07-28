@@ -61,7 +61,7 @@ router.post('/', requireAuth, (req, res) => {
     no_lunch_break, no_afternoon_break,
     incomplete, incidents, progress, completed_work, service_quality,
     images, reporter_name, job_content, timeline,
-    has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi,
+    has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount,
   } = req.body;
 
   const result = db.prepare(`
@@ -71,8 +71,8 @@ router.post('/', requireAuth, (req, res) => {
        no_lunch_break, no_afternoon_break,
        incomplete, incidents, progress, completed_work, service_quality,
        images, reporter_name, reporter_user_id, job_content, timeline,
-       has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     event_id || null, event_label || '', location || '', report_date || '',
     JSON.stringify(km_staff || []), freelancer_staff || '',
@@ -85,6 +85,7 @@ router.post('/', requireAuth, (req, res) => {
     JSON.stringify((timeline || []).filter(t => t.time)),
     has_com_sang ? 1 : 0, has_com_trua ? 1 : 0, has_com_chieu ? 1 : 0,
     has_com_toi ? 1 : 0, has_nuoc ? 1 : 0, has_taxi ? 1 : 0,
+    has_taxi ? (taxi_amount || null) : null,
   );
   res.json({ id: result.lastInsertRowid });
 });
@@ -115,7 +116,7 @@ router.put('/:id', requireAuth, (req, res) => {
     no_lunch_break, no_afternoon_break,
     incomplete, incidents, progress, completed_work, service_quality,
     images, job_content, timeline,
-    has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi,
+    has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount,
   } = req.body;
 
   const vnNow = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
@@ -131,7 +132,7 @@ router.put('/:id', requireAuth, (req, res) => {
       no_lunch_break=?, no_afternoon_break=?,
       incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
       images=?, job_content=?, timeline=?, edit_history=?,
-      has_com_sang=?, has_com_trua=?, has_com_chieu=?, has_com_toi=?, has_nuoc=?, has_taxi=?
+      has_com_sang=?, has_com_trua=?, has_com_chieu=?, has_com_toi=?, has_nuoc=?, has_taxi=?, taxi_amount=?
     WHERE id=?
   `).run(
     location || '',
@@ -145,6 +146,7 @@ router.put('/:id', requireAuth, (req, res) => {
     JSON.stringify(newHistory),
     has_com_sang ? 1 : 0, has_com_trua ? 1 : 0, has_com_chieu ? 1 : 0,
     has_com_toi ? 1 : 0, has_nuoc ? 1 : 0, has_taxi ? 1 : 0,
+    has_taxi ? (taxi_amount || null) : null,
     req.params.id,
   );
   res.json({ ok: true });

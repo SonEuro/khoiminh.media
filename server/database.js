@@ -303,6 +303,10 @@ if (!erCols.includes('timeline')) {
       console.log(`[DB] Migration: thêm cột ${col} vào event_reports`);
     }
   }
+  if (!erCols3.includes('taxi_amount')) {
+    db.exec(`ALTER TABLE event_reports ADD COLUMN taxi_amount TEXT DEFAULT NULL`);
+    console.log('[DB] Migration: thêm cột taxi_amount vào event_reports');
+  }
 }
 
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có

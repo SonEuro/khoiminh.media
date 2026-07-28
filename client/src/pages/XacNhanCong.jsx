@@ -376,7 +376,8 @@ export default function XacNhanCong() {
               result ? parseFloat(fmtNum(result.congRate)) : '',
               result?.otMins > 0 ? parseFloat((result.otMins / 60).toFixed(2)) : '',
               yesNo(r.has_com_sang), yesNo(r.has_com_trua), yesNo(r.has_com_chieu),
-              yesNo(r.has_com_toi), yesNo(r.has_nuoc), yesNo(r.has_taxi),
+              yesNo(r.has_com_toi), yesNo(r.has_nuoc),
+              r.has_taxi ? (r.taxi_amount || '✓') : '',
             ]);
             row2.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
             row2.getCell(2).alignment = { horizontal: 'left' };
