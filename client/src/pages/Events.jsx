@@ -1209,7 +1209,8 @@ export default function Events() {
                 {(() => {
                   const _pg = []; const _pm = {};
                   for (const _e of pastFiltered) {
-                    const _k = (_e.start_date || '').slice(0, 7) || '0000-00';
+                    const _firstDate = _e.start_date || parseDatesField(_e, 'start_dates', 'start_date')[0] || getAllDates(_e).sort()[0] || '';
+                    const _k = _firstDate.slice(0, 7) || '0000-00';
                     if (!_pm[_k]) { const [_y, _m] = _k.split('-'); _pm[_k] = { key: _k, label: _k === '0000-00' ? 'Không rõ ngày' : `Tháng ${parseInt(_m)}/${_y}`, evs: [] }; _pg.push(_pm[_k]); }
                     _pm[_k].evs.push(_e);
                   }
