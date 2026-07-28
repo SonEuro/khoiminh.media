@@ -294,6 +294,17 @@ if (!erCols.includes('timeline')) {
   }
 }
 
+// Migration: thêm các cột phụ cấp vào event_reports
+{
+  const erCols3 = db.pragma('table_info(event_reports)').map(c => c.name);
+  for (const col of ['has_com_sang','has_com_trua','has_com_chieu','has_com_toi','has_nuoc','has_taxi']) {
+    if (!erCols3.includes(col)) {
+      db.exec(`ALTER TABLE event_reports ADD COLUMN ${col} INTEGER DEFAULT 0`);
+      console.log(`[DB] Migration: thêm cột ${col} vào event_reports`);
+    }
+  }
+}
+
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có
 const eventCols = db.pragma('table_info(events)').map(c => c.name);
 if (!eventCols.includes('filming_dates')) {

@@ -336,7 +336,7 @@ export default function XacNhanCong() {
 
       // ── Sheet 2: Chi Tiết ──
       const ws2 = wb.addWorksheet('Chi Tiết');
-      ws2.mergeCells('A1:L1');
+      ws2.mergeCells('A1:R1');
       const title2 = ws2.getCell('A1');
       title2.value = `CHI TIẾT NGÀY CÔNG — THÁNG ${parseInt(mm, 10)}/${yy}`;
       title2.font = { bold: true, size: 13 };
@@ -344,7 +344,7 @@ export default function XacNhanCong() {
       title2.fill = white;
       ws2.getRow(1).height = 28;
 
-      const hdr2 = ws2.addRow(['STT', 'Họ Tên', 'Bộ Phận', 'Ngày', 'Thứ', 'Sự Kiện', 'Leader', 'Có Mặt', 'Kết Thúc', 'G.Thực', 'Công', 'OT (h)']);
+      const hdr2 = ws2.addRow(['STT', 'Họ Tên', 'Bộ Phận', 'Ngày', 'Thứ', 'Sự Kiện', 'Leader', 'Có Mặt', 'Kết Thúc', 'G.Thực', 'Công', 'OT (h)', 'C.Sáng', 'C.Trưa', 'C.Chiều', 'C.Tối', 'Nước', 'Taxi/Xăng']);
       hdr2.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -366,6 +366,7 @@ export default function XacNhanCong() {
             stt2++;
             const isLeaderVal = (r.leaders || []).includes(name) ? 1 : '';
             const [ry, rmx, rday] = r.report_date.split('-');
+            const yesNo = v => v ? '✓' : '';
             const row2 = ws2.addRow([
               stt2, name, g2.dept,
               `${rday}/${rmx}/${ry}`, dayLabel(r.report_date),
@@ -374,6 +375,8 @@ export default function XacNhanCong() {
               result ? fmtMins(Math.max(0, result.effectiveMins)) : 'Chưa XN',
               result ? parseFloat(fmtNum(result.congRate)) : '',
               result?.otMins > 0 ? parseFloat((result.otMins / 60).toFixed(2)) : '',
+              yesNo(r.has_com_sang), yesNo(r.has_com_trua), yesNo(r.has_com_chieu),
+              yesNo(r.has_com_toi), yesNo(r.has_nuoc), yesNo(r.has_taxi),
             ]);
             row2.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
             row2.getCell(2).alignment = { horizontal: 'left' };
@@ -389,6 +392,8 @@ export default function XacNhanCong() {
         { width: 14 }, { width: 8 }, { width: 28 },
         { width: 8 }, { width: 10 }, { width: 10 },
         { width: 10 }, { width: 8 }, { width: 10 },
+        { width: 9 }, { width: 9 }, { width: 9 },
+        { width: 8 }, { width: 8 }, { width: 10 },
       ];
 
       const buf = await wb.xlsx.writeBuffer();
