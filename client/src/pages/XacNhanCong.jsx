@@ -262,7 +262,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:M1');
+      ws.mergeCells('A1:N1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -271,7 +271,7 @@ export default function XacNhanCong() {
       ws.getRow(1).height = 28;
 
       // Header row — 13 cột
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Chiều', 'C.Tối', 'Nước', 'Taxi/Xăng']);
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Chiều', 'C.Tối', 'Nước', 'Taxi/Xăng', 'Tổng Số Tiền']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -307,7 +307,7 @@ export default function XacNhanCong() {
           if (!days && !cong) continue;
           stt++;
           const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '',
-            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '']);
+            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '', '']);
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
@@ -319,7 +319,7 @@ export default function XacNhanCong() {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
           grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxi += deptTaxi;
           const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '',
-            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '']);
+            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '', '']);
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -333,7 +333,7 @@ export default function XacNhanCong() {
       // Grand total
       ws.addRow([]);
       const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '',
-        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '']);
+        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '', '']);
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -345,7 +345,7 @@ export default function XacNhanCong() {
       ws.columns = [
         { width: 6 }, { width: 20 }, { width: 24 },
         { width: 12 }, { width: 14 }, { width: 16 }, { width: 10 },
-        { width: 9 }, { width: 9 }, { width: 9 }, { width: 8 }, { width: 8 }, { width: 11 },
+        { width: 9 }, { width: 9 }, { width: 9 }, { width: 8 }, { width: 8 }, { width: 11 }, { width: 16 },
       ];
 
       // ── Sheet 2: Chi Tiết ──
