@@ -1879,31 +1879,33 @@ export default function EventReport() {
               </label>
             ))}
           </div>
-          <div style={{ marginTop:'10px' }}>
-            <div style={{ fontSize:'0.75rem', color:'#7878a0', fontWeight:600, letterSpacing:'0.05em', marginBottom:'6px' }}>PHỤ CẤP (áp dụng cho tất cả nhân viên trong báo cáo)</div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
-              {[
-                ['has_com_sang',  'Cơm Sáng'],
-                ['has_com_trua',  'Cơm Trưa'],
-                ['has_com_chieu', 'Cơm Chiều'],
-                ['has_com_toi',   'Cơm Tối'],
-                ['has_nuoc',      'Nước'],
-                ['has_taxi',      'Taxi/Xăng'],
-              ].map(([key, label]) => (
-                <button key={key} type="button"
-                  onClick={() => setField(key, form[key] ? 0 : 1)}
-                  style={{
-                    padding:'5px 14px', borderRadius:'20px', border:'1px solid',
-                    fontSize:'0.8rem', fontWeight:700, cursor:'pointer',
-                    background: form[key] ? 'rgba(74,222,128,0.15)' : 'rgba(120,120,160,0.08)',
-                    borderColor: form[key] ? 'rgba(74,222,128,0.5)' : 'rgba(120,120,160,0.25)',
-                    color: form[key] ? '#4ade80' : '#7878a0',
-                  }}>
-                  {form[key] ? '✓ ' : ''}{label}
-                </button>
-              ))}
+          {(user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all) && (
+            <div style={{ marginTop:'10px' }}>
+              <div style={{ fontSize:'0.75rem', color:'#7878a0', fontWeight:600, letterSpacing:'0.05em', marginBottom:'6px' }}>PHỤ CẤP (áp dụng cho tất cả nhân viên trong báo cáo)</div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+                {[
+                  ['has_com_sang',  'Cơm Sáng'],
+                  ['has_com_trua',  'Cơm Trưa'],
+                  ['has_com_chieu', 'Cơm Chiều'],
+                  ['has_com_toi',   'Cơm Tối'],
+                  ['has_nuoc',      'Nước'],
+                  ['has_taxi',      'Taxi/Xăng'],
+                ].map(([key, label]) => (
+                  <button key={key} type="button"
+                    onClick={() => setField(key, form[key] ? 0 : 1)}
+                    style={{
+                      padding:'5px 14px', borderRadius:'20px', border:'1px solid',
+                      fontSize:'0.8rem', fontWeight:700, cursor:'pointer',
+                      background: form[key] ? 'rgba(74,222,128,0.15)' : 'rgba(120,120,160,0.08)',
+                      borderColor: form[key] ? 'rgba(74,222,128,0.5)' : 'rgba(120,120,160,0.25)',
+                      color: form[key] ? '#4ade80' : '#7878a0',
+                    }}>
+                    {form[key] ? '✓ ' : ''}{label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           {(() => {
             function calcDuration(start, end, forceNextDay = false) {
               if (!start || !end) return null;
