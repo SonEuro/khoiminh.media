@@ -1889,7 +1889,6 @@ export default function EventReport() {
                   ['has_com_trua',  'Cơm Trưa'],
                   ['has_com_chieu', 'Cơm Chiều'],
                   ['has_com_toi',   'Cơm Tối'],
-                  ['has_nuoc',      'Nước'],
                 ].map(([key, label]) => (
                   <button key={key} type="button"
                     onClick={() => setField(key, form[key] ? 0 : 1)}
@@ -1903,30 +1902,6 @@ export default function EventReport() {
                     {form[key] ? '✓ ' : ''}{label}
                   </button>
                 ))}
-                {/* Taxi/Xăng — có ô nhập thủ công */}
-                <button type="button"
-                  onClick={() => { setField('has_taxi', form.has_taxi ? 0 : 1); if (form.has_taxi) setField('taxi_amount', ''); }}
-                  style={{
-                    padding:'5px 14px', borderRadius:'20px', border:'1px solid',
-                    fontSize:'0.8rem', fontWeight:700, cursor:'pointer',
-                    background: form.has_taxi ? 'rgba(74,222,128,0.15)' : 'rgba(120,120,160,0.08)',
-                    borderColor: form.has_taxi ? 'rgba(74,222,128,0.5)' : 'rgba(120,120,160,0.25)',
-                    color: form.has_taxi ? '#4ade80' : '#7878a0',
-                  }}>
-                  {form.has_taxi ? '✓ ' : ''}Xăng Xe
-                </button>
-                {!!form.has_taxi && (
-                  <input
-                    type="text" placeholder="Nhập số tiền..."
-                    value={form.taxi_amount || ''}
-                    onChange={e => setField('taxi_amount', e.target.value)}
-                    style={{
-                      padding:'5px 10px', borderRadius:'8px', border:'1px solid rgba(74,222,128,0.35)',
-                      background:'rgba(74,222,128,0.06)', color:'#c8c8e0', fontSize:'0.82rem',
-                      outline:'none', width:'140px',
-                    }}
-                  />
-                )}
               </div>
             </div>
           )}
