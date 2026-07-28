@@ -41,6 +41,8 @@ export default function StaffSummarySection() {
             (lMap ? (lMap[targetDate] ?? []) : lFlat).forEach(l => kmNames.add(l?.name ?? l));
             const sMap = s[`${p}_km_staff_map`]; const sFlat = s[`${p}_km_staff`] || [];
             (sMap ? (sMap[targetDate] ?? []) : sFlat).forEach(n => kmNames.add(n?.name ?? n));
+            const suppMap = s[`${p}_km_support`];
+            if (suppMap && suppMap[targetDate]) Object.keys(suppMap[targetDate]).forEach(n => { if (n) kmNames.add(n); });
             const fMap = s[`${p}_freelancers_map`]; const fFlat = s[`${p}_freelancers`] || '';
             if (fMap && fMap[targetDate]) {
               Object.values(fMap[targetDate]).forEach(v =>
