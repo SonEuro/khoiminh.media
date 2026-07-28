@@ -21,7 +21,8 @@ router.get('/', requireAuth, (req, res) => {
     SELECT id, event_id, event_label, report_date,
            km_staff, time_present, time_onset, time_off, time_end,
            no_lunch_break, no_afternoon_break, is_holiday,
-           confirmed_at
+           confirmed_at,
+           has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount
     FROM event_reports
     WHERE deleted_at IS NULL
       AND report_date LIKE ?
