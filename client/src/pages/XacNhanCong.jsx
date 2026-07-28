@@ -341,7 +341,7 @@ export default function XacNhanCong() {
           if (firstPersonRow === null) firstPersonRow = r;
           // Công thức: LCB + LNC×Công + LOT×OT + Leader×200k + CS×40k + CT×30k + CC×30k + CKhuya×40k + Xăng − Phạt
           row.getCell(18).value = {
-            formula: `=D${r}+E${r}*H${r}+F${r}*I${r}+J${r}*200000+K${r}*40000+L${r}*30000+M${r}*30000+N${r}*40000+P${r}-Q${r}`,
+            formula: `=N(D${r})+N(E${r})*N(H${r})+N(F${r})*N(I${r})+N(J${r})*200000+N(K${r})*40000+N(L${r})*30000+N(M${r})*30000+N(N${r})*40000+N(P${r})-N(Q${r})`,
             result: totalTien,
           };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
