@@ -64,6 +64,17 @@ router.get('/', requireAuth, (req, res) => {
     if (!leadMap[key].includes(ob.lead_name)) leadMap[key].push(ob.lead_name);
   }
 
+  // Build violByName: { name: count } — chỉ vi phạm về báo cáo trong tháng
+  const violRows = db.prepare(`
+    SELECT violator, COUNT(*) AS cnt
+    FROM violations
+    WHERE violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
+      AND created_at LIKE ?
+    GROUP BY violator
+  `).all(`${month}%`);
+  const violByName = {};
+  for (const v of violRows) violByName[v.violator] = v.cnt;
+
   res.json({
     reports: rows.map(r => ({
       ...r,
@@ -71,6 +82,7 @@ router.get('/', requireAuth, (req, res) => {
       leaders: r.event_id ? (leadMap[`${r.event_id}::${r.report_date}`] || []) : [],
     })),
     supportByDate,
+    violByName,
   });
 });
 
