@@ -766,7 +766,13 @@ ${rows.map(renderRow).join('\n')}
                   const entries = personMap[name] || [];
                   const { cong, ot } = personTotals(entries);
                   const confirmedCount = entries.filter(e => e.result).length;
-                  const leaderCount = entries.filter(({ report }) => (report.leaders || []).includes(name)).length;
+                  const leaderCount = entries.filter(({ report: r }) => {
+                    if (!(r.leaders || []).includes(name)) return false;
+                    const phase = detectPhase(r.event_label);
+                    if (dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
+                    if (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') return phase === 'filming';
+                    return false;
+                  }).length;
                   const isExp = expanded.has(name);
                   const hasData = entries.length > 0;
                   const sortedEntries = [...entries].sort((a, b) => b.report.report_date.localeCompare(a.report.report_date));
