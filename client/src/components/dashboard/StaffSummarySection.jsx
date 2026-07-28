@@ -38,9 +38,9 @@ export default function StaffSummarySection() {
             const dates = s[`${p}_dates`] || (s[`${p}_date`] ? [s[`${p}_date`]] : []);
             if (!dates.includes(targetDate)) continue;
             const lMap = s[`${p}_leads_map`]; const lFlat = s[`${p}_leads`] || [];
-            (lMap ? (lMap[targetDate] ?? []) : lFlat).forEach(l => kmNames.add(l?.name ?? l));
+            (lMap?.[targetDate] ?? lFlat).forEach(l => kmNames.add(l?.name ?? l));
             const sMap = s[`${p}_km_staff_map`]; const sFlat = s[`${p}_km_staff`] || [];
-            (sMap ? (sMap[targetDate] ?? []) : sFlat).forEach(n => kmNames.add(n?.name ?? n));
+            (sMap?.[targetDate] ?? sFlat).forEach(n => kmNames.add(n?.name ?? n));
             const suppMap = s[`${p}_km_support`];
             if (suppMap && suppMap[targetDate]) Object.keys(suppMap[targetDate]).forEach(n => { if (n) kmNames.add(n); });
             const fMap = s[`${p}_freelancers_map`]; const fFlat = s[`${p}_freelancers`] || '';
