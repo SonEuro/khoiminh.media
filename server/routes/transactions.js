@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
-const { notifyAll } = require('../services/zaloNotify');
 const { pushByRoles } = require('../services/pushNotify');
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
@@ -323,7 +322,6 @@ router.post('/out', canTransact, (req, res) => {
     // Notification (fire-and-forget)
     const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id);
     const label = result._pending ? '📋 Phiếu xuất tạm' : '📋 Phiếu xuất mới';
-    notifyAll(`${label}: ${result.code}\n👤 ${responsible_person || req.user.full_name}\n🗓 Sự kiện: ${ev?.name || '—'}`).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -356,7 +354,6 @@ router.post('/confirm/:id', canTransact, (req, res) => {
     res.json(doConfirm());
     logEdit(tx.id, req.user, 'Xác nhận xuất kho');
     const ev = tx.event_id ? db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id) : null;
-    notifyAll(`✅ Xác nhận xuất kho: ${tx.code}\n🗓 Sự kiện: ${ev?.name || '—'}\n👤 ${tx.responsible_person || '—'}`).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -496,7 +493,6 @@ router.post('/intake', canIntake, (req, res) => {
     const result = doIntake();
     res.json(result);
     logEdit(result.id, req.user, 'Tạo phiếu nhập kho mới');
-    notifyAll(`📦 Nhập kho mới: ${result.code}\n👤 ${responsible_person || '—'}\n🔢 ${validItems.length} thiết bị${department ? `\n🏢 ${department}` : ''}`).catch(() => {});
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
