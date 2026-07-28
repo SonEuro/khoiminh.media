@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { api } from '../api';
 import { fmtD } from '../utils/fmt';
-import { useAuth } from '../contexts/AuthContext';
 
 function buildPrintHtml(ev, parseFilmingDates, parseDatesField) {
   const CAT_COLORS = { TECH:'#e07b2a', AUDIO:'#3a7bd5', LIGHT:'#d4a017', LED:'#1a8a4a', STAGE:'#9b3a6e', CSVC:'#4a6a8a', MATRIX:'#6a3a9b' };
@@ -217,12 +216,8 @@ function parseDatesField(ev, multiKey, singleKey) {
 }
 
 export default function EventDetailModal({ eventId, onClose }) {
-  const { user } = useAuth();
-  const canNotify = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
-  const [ev, setEv]               = useState(null);
-  const [err, setErr]             = useState(false);
-  const [notifying, setNotifying] = useState(false);
-  const [notified, setNotified]   = useState(false);
+  const [ev, setEv]   = useState(null);
+  const [err, setErr] = useState(false);
   useEffect(() => {
     const fetch = () => api.getEventById(eventId).then(setEv).catch(() => setErr(true));
     fetch();
@@ -263,18 +258,6 @@ export default function EventDetailModal({ eventId, onClose }) {
     </Modal>
   );
 
-  const handleNotify = async () => {
-    if (notifying || notified) return;
-    setNotifying(true);
-    try {
-      await api.notifyEvent(eventId);
-      setNotified(true);
-      setTimeout(() => setNotified(false), 3000);
-    } catch { /* ignore */ } finally {
-      setNotifying(false);
-    }
-  };
-
   const btnStyle = {
     background:'none', border:'1px solid rgba(201,168,76,0.35)', borderRadius:'6px',
     cursor:'pointer', color:'#c9a84c', fontSize:'0.78rem', fontWeight:600,
@@ -284,13 +267,6 @@ export default function EventDetailModal({ eventId, onClose }) {
     <div style={{ display:'flex', gap:'6px' }}>
       <button onClick={handlePrint} title="In / lưu PDF" style={btnStyle}>🖨️ PDF</button>
       <button onClick={handleExcel} title="Tải file Excel" style={{ ...btnStyle, borderColor:'rgba(74,222,128,0.35)', color:'#4ade80' }}>📊 Excel</button>
-      {canNotify && (
-        <button onClick={handleNotify} disabled={notifying || notified}
-          title="Gửi push notification đến tất cả nhân viên"
-          style={{ ...btnStyle, borderColor: notified ? 'rgba(74,222,128,0.5)' : 'rgba(96,165,250,0.4)', color: notified ? '#4ade80' : '#60a5fa', opacity: notifying ? 0.6 : 1 }}>
-          {notified ? '✓ Đã gửi' : notifying ? '...' : '🔔 Thông Báo'}
-        </button>
-      )}
     </div>
   ) : null;
 

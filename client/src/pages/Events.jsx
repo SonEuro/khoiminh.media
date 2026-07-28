@@ -855,6 +855,15 @@ export default function Events() {
   const [reportListEvent, setReportListEvent] = useState(null);
   const [pastSearch, setPastSearch] = useState('');
   const handledNavId = useRef(null);
+  const [notifyEvId, setNotifyEvId]     = useState(null); // đang gửi
+  const [notifiedEvId, setNotifiedEvId] = useState(null); // đã gửi (3s)
+  const canNotify = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) || !!user?.is_phan_lich_all;
+  const handleNotifyEv = async (evId) => {
+    if (notifyEvId || notifiedEvId === evId) return;
+    setNotifyEvId(evId);
+    try { await api.notifyEvent(evId); setNotifiedEvId(evId); setTimeout(() => setNotifiedEvId(null), 3000); }
+    catch { /* ignore */ } finally { setNotifyEvId(null); }
+  };
 
   const load = useCallback(() => {
     const params = statusFilter ? { status: statusFilter } : {};
@@ -1078,6 +1087,14 @@ export default function Events() {
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
                         <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
+                      {canNotify && (
+                        <button className="ev-action" disabled={notifyEvId === ev.id || notifiedEvId === ev.id}
+                          style={{ color: notifiedEvId === ev.id ? '#4ade80' : '#60a5fa', borderColor: notifiedEvId === ev.id ? 'rgba(74,222,128,0.4)' : 'rgba(96,165,250,0.3)', opacity: notifyEvId === ev.id ? 0.6 : 1 }}
+                          onClick={() => handleNotifyEv(ev.id)}>
+                          <span className="ev-ico">🔔</span>
+                          <span className="ev-lbl">{notifiedEvId === ev.id ? 'Đã gửi' : notifyEvId === ev.id ? '...' : 'Thông Báo'}</span>
+                        </button>
+                      )}
                     </div>
                     {/* Hàng 2: hành động quản lý */}
                     {hasActions && (
@@ -1288,6 +1305,14 @@ export default function Events() {
                             <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}><span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span></button>
                             {user?.role === 'SUPER_ADMIN' && (
                               <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}><span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span></button>
+                            )}
+                            {canNotify && (
+                              <button className="ev-action" disabled={notifyEvId === ev.id || notifiedEvId === ev.id}
+                                style={{ color: notifiedEvId === ev.id ? '#4ade80' : '#60a5fa', borderColor: notifiedEvId === ev.id ? 'rgba(74,222,128,0.4)' : 'rgba(96,165,250,0.3)', opacity: notifyEvId === ev.id ? 0.6 : 1 }}
+                                onClick={() => handleNotifyEv(ev.id)}>
+                                <span className="ev-ico">🔔</span>
+                                <span className="ev-lbl">{notifiedEvId === ev.id ? 'Đã gửi' : notifyEvId === ev.id ? '...' : 'Thông Báo'}</span>
+                              </button>
                             )}
                           </div>
                           {(showEdit || showSuaLich || showArchive || showUnarch || showCancel || showDelete) && (
