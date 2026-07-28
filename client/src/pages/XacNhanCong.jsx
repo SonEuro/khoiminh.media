@@ -463,7 +463,7 @@ export default function XacNhanCong() {
       const now = new Date();
       const pad = n => String(n).padStart(2, '0');
       const stamp = `${pad(now.getDate())}-${pad(now.getMonth()+1)} ${pad(now.getHours())}h${pad(now.getMinutes())}`;
-      a.href = url; a.download = `Xac Nhan Ngay Cong - Thang ${parseInt(mm, 10)}-${yy} - ${stamp}.xlsx`;
+      a.href = url; a.download = `Bảng Lương - Tháng ${parseInt(mm, 10)}-${yy} - ${stamp}.xlsx`;
       a.click(); URL.revokeObjectURL(url);
     } catch (e) {
       alert('Lỗi xuất Excel: ' + (e.message || e));
