@@ -281,9 +281,13 @@ export default function XacNhanCong() {
       hdrRow.getCell(3).alignment = { horizontal: 'left' };
       hdrRow.height = 20;
 
+      const RATES = { leader: 200000, cs: 20000, ct: 30000, cc: 30000, ctoi: 40000, nuoc: 20000 };
+      const vndFmt = '#,##0';
+
       let stt = 0;
       let grandCongX = 0, grandOTX = 0, grandDays = 0, grandLeader = 0;
       let grandCS = 0, grandCT = 0, grandCC = 0, grandCToi = 0, grandNuoc = 0, grandTaxi = 0;
+      let grandTotalTien = 0;
 
       for (const g of kmGroups) {
         const deptMembers = g.members.filter(name => personMap[name]);
@@ -291,6 +295,7 @@ export default function XacNhanCong() {
 
         let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
         let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0, deptNuoc = 0, deptTaxi = 0;
+        let deptTotalTien = 0;
         const deptStartRow = ws.rowCount + 1;
 
         for (const name of deptMembers) {
@@ -304,22 +309,31 @@ export default function XacNhanCong() {
           const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;
           const nuoc = entries.filter(({ report: r }) => r.has_nuoc).length;
           const taxi = entries.filter(({ report: r }) => r.has_taxi).length;
+          const taxiAmt = entries.reduce((sum, { report: r }) => {
+            if (!r.has_taxi) return sum;
+            const v = parseFloat(r.taxi_amount || '0');
+            return sum + (isNaN(v) ? 0 : v);
+          }, 0);
+          const totalTien = leaders * RATES.leader + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + nuoc * RATES.nuoc + taxiAmt;
           if (!days && !cong) continue;
           stt++;
           const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '',
-            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '', '']);
+            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '', totalTien > 0 ? totalTien : '']);
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
+          if (totalTien > 0) row.getCell(14).numFmt = vndFmt;
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
           deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxi += taxi;
+          deptTotalTien += totalTien;
         }
 
         const deptEndRow = ws.rowCount;
         if (deptEndRow >= deptStartRow) {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
           grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxi += deptTaxi;
+          grandTotalTien += deptTotalTien;
           const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '',
-            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '', '']);
+            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '', deptTotalTien > 0 ? deptTotalTien : '']);
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -327,13 +341,14 @@ export default function XacNhanCong() {
             cell.alignment = { horizontal: 'center' };
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
+          if (deptTotalTien > 0) subRow.getCell(14).numFmt = vndFmt;
         }
       }
 
       // Grand total
       ws.addRow([]);
       const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '',
-        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '', '']);
+        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '', grandTotalTien > 0 ? grandTotalTien : '']);
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -341,6 +356,7 @@ export default function XacNhanCong() {
         cell.border = borderMedium;
       });
       totalRow.getCell(2).alignment = { horizontal: 'left' };
+      if (grandTotalTien > 0) totalRow.getCell(14).numFmt = vndFmt;
 
       ws.columns = [
         { width: 6 }, { width: 20 }, { width: 24 },
