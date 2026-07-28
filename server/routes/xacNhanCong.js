@@ -22,7 +22,8 @@ router.get('/', requireAuth, (req, res) => {
            km_staff, time_present, time_onset, time_off, time_end,
            no_lunch_break, no_afternoon_break, is_holiday,
            confirmed_at,
-           has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount
+           has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount,
+           xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note
     FROM event_reports
     WHERE deleted_at IS NULL
       AND report_date LIKE ?

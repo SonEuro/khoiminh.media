@@ -309,6 +309,21 @@ if (!erCols.includes('timeline')) {
   }
 }
 
+// Migration: 4 cột phụ cấp thủ công (nhập trong XacNhanCong)
+{
+  const erCols4 = db.pragma('table_info(event_reports)').map(c => c.name);
+  for (const col of ['xang_xe', 'tien_nuoc', 'giu_xe', 'phu_cap_khac']) {
+    if (!erCols4.includes(col)) {
+      db.exec(`ALTER TABLE event_reports ADD COLUMN ${col} INTEGER DEFAULT 0`);
+      console.log(`[DB] Migration: thêm cột ${col} vào event_reports`);
+    }
+    if (!erCols4.includes(`${col}_note`)) {
+      db.exec(`ALTER TABLE event_reports ADD COLUMN ${col}_note TEXT DEFAULT ''`);
+      console.log(`[DB] Migration: thêm cột ${col}_note vào event_reports`);
+    }
+  }
+}
+
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có
 const eventCols = db.pragma('table_info(events)').map(c => c.name);
 if (!eventCols.includes('filming_dates')) {

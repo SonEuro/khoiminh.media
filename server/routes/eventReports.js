@@ -117,6 +117,7 @@ router.put('/:id', requireAuth, (req, res) => {
     incomplete, incidents, progress, completed_work, service_quality,
     images, job_content, timeline,
     has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount,
+    xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note,
   } = req.body;
 
   const vnNow = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ');
@@ -132,7 +133,8 @@ router.put('/:id', requireAuth, (req, res) => {
       no_lunch_break=?, no_afternoon_break=?,
       incomplete=?, incidents=?, progress=?, completed_work=?, service_quality=?,
       images=?, job_content=?, timeline=?, edit_history=?,
-      has_com_sang=?, has_com_trua=?, has_com_chieu=?, has_com_toi=?, has_nuoc=?, has_taxi=?, taxi_amount=?
+      has_com_sang=?, has_com_trua=?, has_com_chieu=?, has_com_toi=?, has_nuoc=?, has_taxi=?, taxi_amount=?,
+      xang_xe=?, xang_xe_note=?, tien_nuoc=?, tien_nuoc_note=?, giu_xe=?, giu_xe_note=?, phu_cap_khac=?, phu_cap_khac_note=?
     WHERE id=?
   `).run(
     location || '',
@@ -147,6 +149,10 @@ router.put('/:id', requireAuth, (req, res) => {
     has_com_sang ? 1 : 0, has_com_trua ? 1 : 0, has_com_chieu ? 1 : 0,
     has_com_toi ? 1 : 0, has_nuoc ? 1 : 0, has_taxi ? 1 : 0,
     has_taxi ? (taxi_amount || null) : null,
+    parseInt(xang_xe || '0', 10) || 0, xang_xe_note || '',
+    parseInt(tien_nuoc || '0', 10) || 0, tien_nuoc_note || '',
+    parseInt(giu_xe || '0', 10) || 0, giu_xe_note || '',
+    parseInt(phu_cap_khac || '0', 10) || 0, phu_cap_khac_note || '',
     req.params.id,
   );
   res.json({ ok: true });
