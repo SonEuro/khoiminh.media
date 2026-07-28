@@ -1072,7 +1072,7 @@ export default function Events() {
                 const canSuaLich = ev.archived_at ? isSuperAdmin
                   : (canFullEdit || !!user?.is_phan_lich_all || isTruongPhongOfDept || (!!user?.is_phan_lich && !isTp));
                 const showEdit = ev.archived_at ? isSuperAdmin : (canFullEdit || isTruongPhongOfDept);
-                const showCancel  = canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                const showCancel  = canManage && ev.status !== 'cancelled' && ev.status !== 'completed' && canManageEvent(ev);
                 const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                 const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
                 const hasActions = showEdit || (canSuaLich && ev.status !== 'cancelled') || showCancel;
@@ -1239,7 +1239,7 @@ export default function Events() {
                     : ev.status === 'completed' ? (user?.role === 'SUPER_ADMIN' || isTruongPhongOfDeptPast)
                     : (canFullEdit || isTruongPhongOfDeptPast);
                   const showSuaLich = user?.role === 'SUPER_ADMIN';
-                  const showCancel  = !ev.archived_at && canManage && ev.status !== 'cancelled' && canManageEvent(ev) && (ev.status !== 'completed' || user?.role === 'SUPER_ADMIN');
+                  const showCancel  = !ev.archived_at && canManage && ev.status !== 'cancelled' && ev.status !== 'completed' && canManageEvent(ev);
                   const showArchive = user?.role === 'SUPER_ADMIN' && ev.status === 'completed' && !ev.archived_at;
                   const showUnarch  = user?.role === 'SUPER_ADMIN' && !!ev.archived_at;
                   const showDelete  = user?.role === 'SUPER_ADMIN' && ev.status === 'cancelled';
