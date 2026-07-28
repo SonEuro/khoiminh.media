@@ -293,17 +293,18 @@ export default function XacNhanCong() {
 
       let stt = 0;
       let grandCongX = 0, grandOTX = 0, grandDays = 0, grandLeader = 0;
-      let grandCS = 0, grandCT = 0, grandCC = 0, grandCToi = 0, grandNuoc = 0, grandTaxi = 0;
+      let grandCS = 0, grandCT = 0, grandCC = 0, grandCToi = 0, grandNuoc = 0, grandTaxiAmt = 0;
       let grandPhat = 0, grandTotalTien = 0;
+      const deptSubtotalRows = [];
 
       for (const g of kmGroups) {
         const deptMembers = g.members.filter(name => personMap[name]);
         if (!deptMembers.length) continue;
 
         let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
-        let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0, deptNuoc = 0, deptTaxi = 0;
+        let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0, deptNuoc = 0, deptTaxiAmt = 0;
         let deptPhat = 0, deptTotalTien = 0;
-        const deptStartRow = ws.rowCount + 1;
+        let firstPersonRow = null;
 
         for (const name of deptMembers) {
           const entries = personMap[name] || [];
@@ -315,7 +316,6 @@ export default function XacNhanCong() {
           const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;  // C.Tối
           const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;    // C.Khuya
           const nuoc = entries.filter(({ report: r }) => r.has_nuoc && (r.leaders || []).includes(name)).length;
-          const taxi = entries.filter(({ report: r }) => r.has_taxi).length;
           const taxiAmt = entries.reduce((sum, { report: r }) => {
             if (!r.has_taxi) return sum;
             const v = parseFloat(r.taxi_amount || '0');
@@ -332,30 +332,43 @@ export default function XacNhanCong() {
             stt, g.dept, name,
             sal.lcb || '', sal.lnc || '', sal.lot || '',
             days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)),
-            leaders || '', cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '',
-            phatAmt > 0 ? phatAmt : '', totalTien !== 0 ? totalTien : '',
+            leaders || '', cs || '', ct || '', cc || '', ctoi || '', nuoc || '',
+            taxiAmt || '',  // P: số tiền xăng (để công thức R dùng được)
+            phatAmt > 0 ? phatAmt : '',
+            '',             // R: set bằng formula bên dưới
           ]);
+          const r = row.number;
+          if (firstPersonRow === null) firstPersonRow = r;
+          // Công thức: LCB + LNC×Công + LOT×OT + Leader×200k + CS×40k + CT×30k + CC×30k + CKhuya×40k + Xăng − Phạt
+          row.getCell(18).value = {
+            formula: `=D${r}+E${r}*H${r}+F${r}*I${r}+J${r}*200000+K${r}*40000+L${r}*30000+M${r}*30000+N${r}*40000+P${r}-Q${r}`,
+            result: totalTien,
+          };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(4).numFmt = vndFmt; row.getCell(5).numFmt = vndFmt; row.getCell(6).numFmt = vndFmt; }
+          if (taxiAmt > 0) row.getCell(16).numFmt = vndFmt;
           if (phatAmt > 0) { row.getCell(17).numFmt = vndFmt; row.getCell(17).font = { color: { argb: 'FFCC0000' } }; }
-          if (totalTien !== 0) row.getCell(18).numFmt = vndFmt;
+          row.getCell(18).numFmt = vndFmt;
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
-          deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxi += taxi;
+          deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxiAmt += taxiAmt;
           deptPhat += phatAmt; deptTotalTien += totalTien;
         }
 
         const deptEndRow = ws.rowCount;
-        if (deptEndRow >= deptStartRow) {
+        if (firstPersonRow !== null && deptEndRow >= firstPersonRow) {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
-          grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxi += deptTaxi;
+          grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxiAmt += deptTaxiAmt;
           grandPhat += deptPhat; grandTotalTien += deptTotalTien;
-          const subRow = ws.addRow([
-            '', `Tổng ${g.dept}`, '', '', '', '',
-            deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)),
-            deptLeader || '', deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '',
-            deptPhat > 0 ? deptPhat : '', deptTotalTien !== 0 ? deptTotalTien : '',
-          ]);
+          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+          const sr = subRow.number;
+          deptSubtotalRows.push(sr);
+          // SUM formulas cho cột G(7) đến R(18)
+          const sCols = ['G','H','I','J','K','L','M','N','O','P','Q','R'];
+          const sVals = [deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader, deptCS, deptCT, deptCC, deptCToi, deptNuoc, deptTaxiAmt, deptPhat, deptTotalTien];
+          sCols.forEach((col, i) => {
+            subRow.getCell(7 + i).value = { formula: `=SUM(${col}${firstPersonRow}:${col}${deptEndRow})`, result: sVals[i] || 0 };
+          });
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -363,19 +376,23 @@ export default function XacNhanCong() {
             cell.alignment = { horizontal: 'center' };
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
+          if (deptTaxiAmt > 0) subRow.getCell(16).numFmt = vndFmt;
           if (deptPhat > 0) { subRow.getCell(17).numFmt = vndFmt; subRow.getCell(17).font = { bold: true, color: { argb: 'FFCC0000' } }; }
-          if (deptTotalTien !== 0) subRow.getCell(18).numFmt = vndFmt;
+          subRow.getCell(18).numFmt = vndFmt;
         }
       }
 
       // Grand total
       ws.addRow([]);
-      const totalRow = ws.addRow([
-        '', 'TỔNG CỘNG', '', '', '', '',
-        grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)),
-        grandLeader || '', grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '',
-        grandPhat > 0 ? grandPhat : '', grandTotalTien !== 0 ? grandTotalTien : '',
-      ]);
+      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+      if (deptSubtotalRows.length > 0) {
+        const tCols = ['G','H','I','J','K','L','M','N','O','P','Q','R'];
+        const tVals = [grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader, grandCS, grandCT, grandCC, grandCToi, grandNuoc, grandTaxiAmt, grandPhat, grandTotalTien];
+        tCols.forEach((col, i) => {
+          const formula = deptSubtotalRows.map(r => `${col}${r}`).join('+');
+          totalRow.getCell(7 + i).value = { formula: `=${formula}`, result: tVals[i] || 0 };
+        });
+      }
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -383,8 +400,9 @@ export default function XacNhanCong() {
         cell.border = borderMedium;
       });
       totalRow.getCell(2).alignment = { horizontal: 'left' };
+      if (grandTaxiAmt > 0) totalRow.getCell(16).numFmt = vndFmt;
       if (grandPhat > 0) { totalRow.getCell(17).numFmt = vndFmt; totalRow.getCell(17).font = { bold: true, size: 11, color: { argb: 'FFCC0000' } }; }
-      if (grandTotalTien !== 0) totalRow.getCell(18).numFmt = vndFmt;
+      totalRow.getCell(18).numFmt = vndFmt;
 
       ws.columns = [
         { width: 6 }, { width: 18 }, { width: 24 },
@@ -472,6 +490,91 @@ export default function XacNhanCong() {
     }
   }
 
+  function exportCongPDF() {
+    const [yy, mm] = month.split('-');
+    const RATES = { leader: 200000, cs: 40000, ct: 30000, cc: 30000, ctoi: 40000 };
+    const VIOL_PENALTY = 100000;
+    const fmtVND = n => n ? Math.round(n).toLocaleString('vi-VN') : '';
+
+    let stt = 0;
+    const rows = [];
+
+    for (const g of kmGroups) {
+      const deptMembers = g.members.filter(name => personMap[name]);
+      if (!deptMembers.length) continue;
+      let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
+      let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0, deptNuoc = 0, deptTaxiAmt = 0;
+      let deptPhat = 0, deptTotalTien = 0;
+      let hasDept = false;
+
+      for (const name of deptMembers) {
+        const entries = personMap[name] || [];
+        const { cong, ot } = personTotals(entries);
+        const days = entries.filter(e => e.result).length;
+        if (!days && !cong) continue;
+        const leaders  = entries.filter(({ report: r }) => (r.leaders || []).includes(name)).length;
+        const cs       = entries.filter(({ report: r }) => r.has_com_sang).length;
+        const ct       = entries.filter(({ report: r }) => r.has_com_trua).length;
+        const cc       = entries.filter(({ report: r }) => r.has_com_chieu).length;
+        const ctoi     = entries.filter(({ report: r }) => r.has_com_toi).length;
+        const nuoc     = entries.filter(({ report: r }) => r.has_nuoc && (r.leaders || []).includes(name)).length;
+        const taxiAmt  = entries.reduce((s, { report: r }) => { if (!r.has_taxi) return s; const v = parseFloat(r.taxi_amount || '0'); return s + (isNaN(v) ? 0 : v); }, 0);
+        const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
+        const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0 };
+        const totalTien = (sal.lcb || 0) + sal.lnc * cong + sal.lot * ot + leaders * RATES.leader + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + taxiAmt - phatAmt;
+        stt++; hasDept = true;
+        rows.push({ type: 'person', stt, dept: g.dept, name, sal, days, cong, ot, leaders, cs, ct, cc, ctoi, nuoc, taxiAmt, phatAmt, totalTien });
+        deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
+        deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxiAmt += taxiAmt;
+        deptPhat += phatAmt; deptTotalTien += totalTien;
+      }
+      if (hasDept) rows.push({ type: 'sub', dept: g.dept, days: deptDays, cong: deptCong, ot: deptOT, leaders: deptLeader, cs: deptCS, ct: deptCT, cc: deptCC, ctoi: deptCToi, nuoc: deptNuoc, taxiAmt: deptTaxiAmt, phat: deptPhat, total: deptTotalTien });
+    }
+    const grand = rows.filter(r => r.type === 'sub').reduce((acc, r) => {
+      acc.days += r.days; acc.cong += r.cong; acc.ot += r.ot; acc.leaders += r.leaders;
+      acc.cs += r.cs; acc.ct += r.ct; acc.cc += r.cc; acc.ctoi += r.ctoi; acc.nuoc += r.nuoc;
+      acc.taxiAmt += r.taxiAmt; acc.phat += r.phat; acc.total += r.total; return acc;
+    }, { days:0, cong:0, ot:0, leaders:0, cs:0, ct:0, cc:0, ctoi:0, nuoc:0, taxiAmt:0, phat:0, total:0 });
+
+    const hdr = ['STT','Bộ Phận','Họ Tên','Lương CB','LNC/ngày','LOT/h','Ngày','Công','OT(h)','Leader','C.Sáng','C.Trưa','C.Tối','C.Khuya','Nước','Xăng Xe','Phạt BC','Tổng Lương'];
+    const tdC = (v, extra='') => `<td${extra}>${v ?? ''}</td>`;
+    const renderRow = r => {
+      if (r.type === 'person') {
+        return `<tr>${[r.stt, r.dept, r.name, fmtVND(r.sal.lcb), fmtVND(r.sal.lnc), fmtVND(r.sal.lot), r.days, fmtNum(r.cong), fmtNum(r.ot), r.leaders||'', r.cs||'', r.ct||'', r.cc||'', r.ctoi||'', r.nuoc||'', fmtVND(r.taxiAmt), r.phatAmt ? '<span style="color:#c00">'+fmtVND(r.phatAmt)+'</span>' : '', fmtVND(r.totalTien)].map((v,i) => `<td${i===2?' style="text-align:left"':''}>${v??''}</td>`).join('')}</tr>`;
+      }
+      return `<tr class="sub">${tdC('')}${tdC('Tổng '+r.dept,' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC('')}${tdC(r.days)}${tdC(fmtNum(r.cong))}${tdC(fmtNum(r.ot))}${tdC(r.leaders||'')}${tdC(r.cs||'')}${tdC(r.ct||'')}${tdC(r.cc||'')}${tdC(r.ctoi||'')}${tdC(r.nuoc||'')}${tdC(fmtVND(r.taxiAmt))}${tdC(r.phat?'<span style="color:#c00">'+fmtVND(r.phat)+'</span>':'')}${tdC(fmtVND(r.total))}</tr>`;
+    };
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${yy} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Bảng Lương Tháng ${parseInt(mm,10)}-${yy}</title>
+<style>
+@page{size:A4 landscape;margin:8mm}
+body{font-family:Arial,sans-serif;font-size:7.5pt;margin:0}
+h2{text-align:center;font-size:10pt;margin:0 0 2px;text-transform:uppercase;letter-spacing:.05em}
+.sub-title{text-align:center;font-size:7pt;color:#666;margin:0 0 8px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #b0b0b0;padding:2.5px 4px;text-align:center;vertical-align:middle}
+th{background:#D9E1F2!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;font-size:7.5pt}
+tr.sub td{background:#FFF2CC!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;font-weight:700}
+tr.grand td{background:#BDD7EE!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;font-weight:700;font-size:8pt}
+</style></head><body>
+<h2>Bảng Lương — Tháng ${parseInt(mm,10)}/${yy}</h2>
+<p class="sub-title">Xuất lúc ${stamp}</p>
+<table><thead><tr>${hdr.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
+${rows.map(renderRow).join('\n')}
+<tr class="grand">${tdC('')}${tdC('TỔNG CỘNG',' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC('')}${tdC(grand.days)}${tdC(fmtNum(grand.cong))}${tdC(fmtNum(grand.ot))}${tdC(grand.leaders||'')}${tdC(grand.cs||'')}${tdC(grand.ct||'')}${tdC(grand.cc||'')}${tdC(grand.ctoi||'')}${tdC(grand.nuoc||'')}${tdC(fmtVND(grand.taxiAmt))}${tdC(grand.phat?'<span style="color:#c00">'+fmtVND(grand.phat)+'</span>':'')}${tdC(fmtVND(grand.total))}</tr>
+</tbody></table></body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Vui lòng cho phép popup để xuất PDF'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 600);
+  }
+
   const thBase = { padding: isMobile ? '6px 8px' : '7px 12px', fontSize: isMobile ? '0.67rem' : '0.72rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' };
   const tdBase = { padding: isMobile ? '7px 8px' : '8px 12px', fontSize: isMobile ? '0.80rem' : '0.83rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
 
@@ -501,10 +604,16 @@ export default function XacNhanCong() {
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
           {canViewAll && (
-            <button onClick={exportCongExcel} disabled={exporting || loading}
-              style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
-              {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
-            </button>
+            <>
+              <button onClick={exportCongExcel} disabled={exporting || loading}
+                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
+                {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
+              </button>
+              <button onClick={exportCongPDF} disabled={loading}
+                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(251,146,60,0.4)', background: 'rgba(251,146,60,0.1)', color: '#fb923c', fontWeight: 700, fontSize: '0.83rem', cursor: loading ? 'default' : 'pointer', flexShrink: 0 }}>
+                🖨️ PDF
+              </button>
+            </>
           )}
         </div>
         {/* Row 2: grand totals — admin/director/phân lịch all + trưởng phòng (theo dept) */}
