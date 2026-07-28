@@ -10,6 +10,14 @@ function canEditAccess(req, res, next) {
 
 const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
+function parseDatesField(val) {
+  if (!val) return [];
+  if (typeof val === 'string' && val.startsWith('[')) {
+    try { return JSON.parse(val); } catch { return []; }
+  }
+  return [val];
+}
+
 // GET /api/xac-nhan-cong?month=YYYY-MM  (tất cả user đã đăng nhập)
 router.get('/', requireAuth, (req, res) => {
   const { month } = req.query;
@@ -72,6 +80,18 @@ router.get('/', requireAuth, (req, res) => {
     if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '' };
   }
 
+  // Build phaseDateMap: { 'eventId::YYYY-MM-DD': phase }
+  const phaseRows = db.prepare('SELECT event_id, setup_date, teardown_date, rehearsal_date, filming_date FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL').all();
+  const phaseDateMap = {};
+  for (const s of phaseRows) {
+    const eid = s.event_id;
+    for (const [phase, col] of [['filming','filming_date'],['rehearsal','rehearsal_date'],['setup','setup_date'],['teardown','teardown_date']]) {
+      for (const date of parseDatesField(s[col])) {
+        if (date) phaseDateMap[`${eid}::${date}`] = phase;
+      }
+    }
+  }
+
   // Build violByName: { name: count } — chỉ vi phạm về báo cáo trong tháng
   const violRows = db.prepare(`
     SELECT violator, COUNT(*) AS cnt
@@ -92,6 +112,7 @@ router.get('/', requireAuth, (req, res) => {
     supportByDate,
     violByName,
     salaryByName,
+    phaseDateMap,
   });
 });
 

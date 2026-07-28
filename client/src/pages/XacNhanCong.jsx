@@ -145,6 +145,7 @@ export default function XacNhanCong() {
   const [supportByDate, setSupportByDate] = useState({});
   const [violByName, setViolByName]   = useState({});
   const [salaryByName, setSalaryByName] = useState({});
+  const [phaseDateMap, setPhaseDateMap] = useState({});
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [filterName, setFilter]     = useState('');
@@ -170,6 +171,7 @@ export default function XacNhanCong() {
       setSupportByDate(data.supportByDate || {});
       setViolByName(data.violByName || {});
       setSalaryByName(data.salaryByName || {});
+      setPhaseDateMap(data.phaseDateMap || {});
     }
     catch (e) { setError(e.message || 'Lỗi tải dữ liệu'); }
     finally { setLoading(false); }
@@ -340,7 +342,7 @@ export default function XacNhanCong() {
           const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
           const leaders = entries.filter(({ report: r }) => {
             if (!(r.leaders || []).includes(name)) return false;
-            const phase = detectPhase(r.event_label);
+            const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
             if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
             if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
             return false;
@@ -578,7 +580,7 @@ export default function XacNhanCong() {
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
         const leaders = entries.filter(({ report: r }) => {
           if (!(r.leaders || []).includes(name)) return false;
-          const phase = detectPhase(r.event_label);
+          const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
           if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
           if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
           return false;
@@ -768,7 +770,7 @@ ${rows.map(renderRow).join('\n')}
                   const confirmedCount = entries.filter(e => e.result).length;
                   const leaderCount = entries.filter(({ report: r }) => {
                     if (!(r.leaders || []).includes(name)) return false;
-                    const phase = detectPhase(r.event_label);
+                    const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
                     if (dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
                     if (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') return phase === 'filming';
                     return false;
