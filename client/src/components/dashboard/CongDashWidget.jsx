@@ -30,10 +30,14 @@ function fmtNumD(n) { return n % 1 === 0 ? String(n) : parseFloat(n.toFixed(2)).
 export default function CongDashWidget({ user, kmStaffGroups }) {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [phaseDateMap, setPhaseDateMap] = useState({});
   const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
 
   useEffect(() => {
-    api.getXacNhanCong(currentMonth).then(res => setData(res.reports || res)).catch(() => {});
+    api.getXacNhanCong(currentMonth).then(res => {
+      setData(res.reports || res);
+      setPhaseDateMap(res.phaseDateMap || {});
+    }).catch(() => {});
   }, [currentMonth]);
 
   if (!data) return null;
@@ -79,7 +83,14 @@ export default function CongDashWidget({ user, kmStaffGroups }) {
       personSummary[name].cong += res.congRate;
       personSummary[name].ot  += res.otHours;
       personSummary[name].buoi++;
-      personSummary[name].leader += (r.leaders || []).includes(name) ? 1 : 0;
+      const isLeader = (() => {
+        if (!(r.leaders || []).includes(name)) return false;
+        const phase = phaseDateMap[`${r.event_id}::${r.report_date}`];
+        if (myDept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
+        if (myDept === 'ATAS-LED' || myDept === 'Kỹ Thuật') return phase === 'filming';
+        return false;
+      })();
+      personSummary[name].leader += isLeader ? 1 : 0;
     }
   }
   const personRows = Object.entries(personSummary).sort((a, b) => b[1].cong - a[1].cong);
