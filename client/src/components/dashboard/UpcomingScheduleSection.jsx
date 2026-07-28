@@ -69,12 +69,16 @@ export default function UpcomingScheduleSection({ userName, userId }) {
   }, [userName, userId]);
 
   useEffect(() => {
-    if (!detailSched?.event_id) { setSubmittedDates(new Set()); return; }
+    if (!detailSched?.event_id || !userName) { setSubmittedDates(new Set()); return; }
     api.getEventReports({ event_id: detailSched.event_id }).then(rows => {
-      const s = new Set(rows.map(r => r.report_date));
+      const s = new Set(
+        rows
+          .filter(r => (Array.isArray(r.km_staff) ? r.km_staff : []).includes(userName))
+          .map(r => r.report_date)
+      );
       setSubmittedDates(s);
     }).catch(() => setSubmittedDates(new Set()));
-  }, [detailSched?.event_id]);
+  }, [detailSched?.event_id, userName]);
 
   const zoneOf = (date) => {
     if (date === todayVN)    return 'today';
