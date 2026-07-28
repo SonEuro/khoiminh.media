@@ -262,7 +262,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:G1');
+      ws.mergeCells('A1:M1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -270,8 +270,8 @@ export default function XacNhanCong() {
       titleCell.fill = white;
       ws.getRow(1).height = 28;
 
-      // Header row
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader']);
+      // Header row — 13 cột
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Chiều', 'C.Tối', 'Nước', 'Taxi/Xăng']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -283,12 +283,14 @@ export default function XacNhanCong() {
 
       let stt = 0;
       let grandCongX = 0, grandOTX = 0, grandDays = 0, grandLeader = 0;
+      let grandCS = 0, grandCT = 0, grandCC = 0, grandCToi = 0, grandNuoc = 0, grandTaxi = 0;
 
       for (const g of kmGroups) {
         const deptMembers = g.members.filter(name => personMap[name]);
         if (!deptMembers.length) continue;
 
         let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
+        let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0, deptNuoc = 0, deptTaxi = 0;
         const deptStartRow = ws.rowCount + 1;
 
         for (const name of deptMembers) {
@@ -296,18 +298,28 @@ export default function XacNhanCong() {
           const { cong, ot } = personTotals(entries);
           const days = entries.filter(e => e.result).length;
           const leaders = entries.filter(({ report }) => (report.leaders || []).includes(name)).length;
+          const cs   = entries.filter(({ report: r }) => r.has_com_sang).length;
+          const ct   = entries.filter(({ report: r }) => r.has_com_trua).length;
+          const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;
+          const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;
+          const nuoc = entries.filter(({ report: r }) => r.has_nuoc).length;
+          const taxi = entries.filter(({ report: r }) => r.has_taxi).length;
           if (!days && !cong) continue;
           stt++;
-          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '']);
+          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '',
+            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '']);
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
+          deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxi += taxi;
         }
 
         const deptEndRow = ws.rowCount;
         if (deptEndRow >= deptStartRow) {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
-          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '']);
+          grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxi += deptTaxi;
+          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '',
+            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '']);
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -320,7 +332,8 @@ export default function XacNhanCong() {
 
       // Grand total
       ws.addRow([]);
-      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '']);
+      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '',
+        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '']);
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -332,6 +345,7 @@ export default function XacNhanCong() {
       ws.columns = [
         { width: 6 }, { width: 20 }, { width: 24 },
         { width: 12 }, { width: 14 }, { width: 16 }, { width: 10 },
+        { width: 9 }, { width: 9 }, { width: 9 }, { width: 8 }, { width: 8 }, { width: 11 },
       ];
 
       // ── Sheet 2: Chi Tiết ──
