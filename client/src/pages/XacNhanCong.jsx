@@ -314,7 +314,7 @@ export default function XacNhanCong() {
           const ct   = entries.filter(({ report: r }) => r.has_com_trua).length;
           const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;  // C.Tối
           const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;    // C.Khuya
-          const nuoc = entries.filter(({ report: r }) => r.has_nuoc).length;
+          const nuoc = entries.filter(({ report: r }) => r.has_nuoc && (r.leaders || []).includes(name)).length;
           const taxi = entries.filter(({ report: r }) => r.has_taxi).length;
           const taxiAmt = entries.reduce((sum, { report: r }) => {
             if (!r.has_taxi) return sum;
