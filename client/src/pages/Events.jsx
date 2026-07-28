@@ -1087,7 +1087,7 @@ export default function Events() {
                       <button className="ev-action" onClick={() => { setSelected(ev); setModal('staff'); }}>
                         <span className="ev-ico">👥</span><span className="ev-lbl">Nhân Sự</span>
                       </button>
-                      {canNotify && (
+                      {canNotify && ev.status !== 'completed' && ev.status !== 'cancelled' && (
                         <button className="ev-action" disabled={notifyEvId === ev.id || notifiedEvId === ev.id}
                           style={{ color: notifiedEvId === ev.id ? '#4ade80' : '#60a5fa', borderColor: notifiedEvId === ev.id ? 'rgba(74,222,128,0.4)' : 'rgba(96,165,250,0.3)', opacity: notifyEvId === ev.id ? 0.6 : 1 }}
                           onClick={() => handleNotifyEv(ev.id)}>
@@ -1307,7 +1307,7 @@ export default function Events() {
                             {user?.role === 'SUPER_ADMIN' && (
                               <button className="ev-action" style={{ color:GOLD, borderColor:'rgba(201,168,76,0.3)' }} onClick={() => setReportListEvent(ev)}><span className="ev-ico">📄</span><span className="ev-lbl">Báo Cáo</span></button>
                             )}
-                            {canNotify && (
+                            {canNotify && ev.status !== 'completed' && ev.status !== 'cancelled' && (
                               <button className="ev-action" disabled={notifyEvId === ev.id || notifiedEvId === ev.id}
                                 style={{ color: notifiedEvId === ev.id ? '#4ade80' : '#60a5fa', borderColor: notifiedEvId === ev.id ? 'rgba(74,222,128,0.4)' : 'rgba(96,165,250,0.3)', opacity: notifyEvId === ev.id ? 0.6 : 1 }}
                                 onClick={() => handleNotifyEv(ev.id)}>
