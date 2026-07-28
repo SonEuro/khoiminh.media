@@ -426,7 +426,6 @@ router.post('/', canWrite, (req, res) => {
   );
   res.json({ id: r.lastInsertRowid, code, name: finalName });
   notifyAll(`🗓 Sự kiện mới: ${finalName}\n📍 ${location || '—'}\n📅 ${startDate || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushByRoles(`🗓 Sự kiện mới: ${finalName}`, `📍 ${location || '—'}  📅 ${startDate || '—'}`, `/events?id=${r.lastInsertRowid}`, ALL_ROLES).catch(() => {});
 });
 
 const ROLE_TO_DEPT = { ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật', CSVC: 'Cơ Sở Vật Chất' };
@@ -479,7 +478,6 @@ router.put('/:id', (req, res, next) => {
   try { db.prepare('UPDATE event_reports SET event_label = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}
   res.json({ ok: true });
   notifyAll(`✏️ Sự kiện cập nhật: ${name}\n📍 ${location || '—'}\n📅 ${startDate2 || '—'}\n👤 ${req.user?.full_name || '—'}`).catch(() => {});
-  pushByRoles(`✏️ Sự kiện cập nhật`, `${name}\n📍 ${location || '—'}  📅 ${startDate2 || '—'}`, `/events?id=${req.params.id}`, ALL_ROLES).catch(() => {});
 });
 
 // Soft delete → trash (chỉ sự kiện đã hủy)
@@ -623,6 +621,18 @@ router.post('/:id/exempt', requireRole('SUPER_ADMIN'), (req, res) => {
     db.prepare(`UPDATE lead_report_obligations SET dismissed = 1 WHERE event_id = ? AND violation_created = 0`).run(req.params.id);
   }
   res.json({ ok: true, is_exempt: newVal });
+});
+
+// Gửi push notification thủ công — SUPER_ADMIN, DIRECTOR, is_phan_lich_all
+router.post('/:id/notify', requireAuth, (req, res) => {
+  const { role, is_phan_lich_all } = req.user || {};
+  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role) && !is_phan_lich_all)
+    return res.status(403).json({ error: 'Không có quyền' });
+  const ev = db.prepare('SELECT id, name FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
+  const { pushAll } = require('../services/pushNotify');
+  pushAll(`📅 Lịch sự kiện cập nhật`, ev.name, `/events?id=${ev.id}`).catch(() => {});
+  res.json({ ok: true });
 });
 
 module.exports = router;
