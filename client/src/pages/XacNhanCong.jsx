@@ -324,7 +324,7 @@ export default function XacNhanCong() {
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0 };
-          const salaryPart = sal.lnc * cong + sal.lot * ot;
+          const salaryPart = (sal.lcb || 0) + sal.lnc * cong + sal.lot * ot;
           const totalTien = salaryPart + leaders * RATES.leader + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + taxiAmt - phatAmt;
           if (!days && !cong) continue;
           stt++;
