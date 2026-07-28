@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const db = require('../database');
-const { requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 const { pushByRoles } = require('../services/pushNotify');
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
