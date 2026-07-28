@@ -15,9 +15,10 @@ const PHASES_ORDER = ['setup', 'rehearsal', 'filming', 'teardown'];
 const DEPT_COLORS = { 'Sân Khấu':'#a78bfa', 'ATAS-LED':'#60a5fa', 'Cơ Sở Vật Chất':'#4ade80', 'Kỹ Thuật':'#fb923c', 'Kinh Doanh':'#f472b6', 'Kế Toán':'#facc15' };
 
 export default function UpcomingScheduleSection({ userName, userId }) {
-  const [upcoming, setUpcoming]       = useState([]);
-  const [detailSched, setDetailSched] = useState(null);
-  const [detailGroup, setDetailGroup] = useState(null);
+  const [upcoming, setUpcoming]         = useState([]);
+  const [detailSched, setDetailSched]   = useState(null);
+  const [detailGroup, setDetailGroup]   = useState(null);
+  const [submittedDates, setSubmittedDates] = useState(new Set());
   const navigate = useNavigate();
   const { can } = useAuth();
   const { kmGroups: liveKmGroups } = useStaffGroups();
@@ -66,6 +67,14 @@ export default function UpcomingScheduleSection({ userName, userId }) {
       setUpcoming(found);
     }).catch(() => {});
   }, [userName, userId]);
+
+  useEffect(() => {
+    if (!detailSched?.event_id) { setSubmittedDates(new Set()); return; }
+    api.getEventReports({ event_id: detailSched.event_id }).then(rows => {
+      const s = new Set(rows.map(r => r.report_date));
+      setSubmittedDates(s);
+    }).catch(() => setSubmittedDates(new Set()));
+  }, [detailSched?.event_id]);
 
   const zoneOf = (date) => {
     if (date === todayVN)    return 'today';
@@ -270,7 +279,7 @@ export default function UpcomingScheduleSection({ userName, userId }) {
                   const isResponsible = deptLeads.length > 0
                     ? deptLeads.includes(myName)
                     : deptStaff[0] === myName;
-                  if (isResponsible) {
+                  if (isResponsible && !submittedDates.has(date)) {
                     pastDates.push({ p, date, label: PHASE_LABEL_MAP[p] });
                   }
                 }
