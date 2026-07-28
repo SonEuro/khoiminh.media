@@ -625,16 +625,4 @@ router.post('/:id/exempt', requireRole('SUPER_ADMIN'), (req, res) => {
   res.json({ ok: true, is_exempt: newVal });
 });
 
-// Gửi push notification lịch sự kiện — SUPER_ADMIN hoặc is_phan_lich_all
-router.post('/:id/notify', requireAuth, (req, res) => {
-  const { role, is_phan_lich_all } = req.user || {};
-  if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role) && !is_phan_lich_all)
-    return res.status(403).json({ error: 'Không có quyền' });
-  const ev = db.prepare('SELECT id, name FROM events WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
-  if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
-  const { pushAll } = require('../services/pushNotify');
-  pushAll(`📅 Lịch sự kiện cập nhật`, ev.name, `/events?id=${ev.id}`).catch(() => {});
-  res.json({ ok: true });
-});
-
 module.exports = router;
