@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
-const { pushByRoles } = require('../services/pushNotify');
+const { pushAll } = require('../services/pushNotify');
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
 function canTransact(req, res, next) {
@@ -319,9 +319,9 @@ router.post('/out', canTransact, (req, res) => {
     const result = doOut();
     res.json(result);
     logEdit(result.id, req.user, result._pending ? 'Tạo phiếu xuất tạm' : 'Tạo phiếu xuất kho');
-    // Notification (fire-and-forget)
-    const ev = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id);
-    const label = result._pending ? '📋 Phiếu xuất tạm' : '📋 Phiếu xuất mới';
+    const evName = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id)?.name || '';
+    const label = result._pending ? '📋 Phiếu xuất tạm' : '📤 Xuất kho';
+    pushAll(label, `${evName} · ${result.code}`, '/transactions').catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -353,7 +353,8 @@ router.post('/confirm/:id', canTransact, (req, res) => {
   try {
     res.json(doConfirm());
     logEdit(tx.id, req.user, 'Xác nhận xuất kho');
-    const ev = tx.event_id ? db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id) : null;
+    const evName2 = tx.event_id ? (db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id)?.name || '') : '';
+    pushAll('✅ Xác nhận xuất kho', `${evName2} · ${tx.code}`, '/transactions').catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -493,6 +494,7 @@ router.post('/intake', canIntake, (req, res) => {
     const result = doIntake();
     res.json(result);
     logEdit(result.id, req.user, 'Tạo phiếu nhập kho mới');
+    pushAll('📦 Nhập kho mới', result.code, '/transactions').catch(() => {});
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
