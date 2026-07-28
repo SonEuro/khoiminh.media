@@ -64,6 +64,13 @@ router.get('/', requireAuth, (req, res) => {
     if (!leadMap[key].includes(ob.lead_name)) leadMap[key].push(ob.lead_name);
   }
 
+  // Build salaryByName: { name: { lcb, lnc, lot } }
+  const salaryRows = db.prepare('SELECT full_name, luong_co_ban, luong_ngay_cong, luong_ot_h FROM users WHERE full_name IS NOT NULL').all();
+  const salaryByName = {};
+  for (const u of salaryRows) {
+    if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0 };
+  }
+
   // Build violByName: { name: count } — chỉ vi phạm về báo cáo trong tháng
   const violRows = db.prepare(`
     SELECT violator, COUNT(*) AS cnt
@@ -83,6 +90,7 @@ router.get('/', requireAuth, (req, res) => {
     })),
     supportByDate,
     violByName,
+    salaryByName,
   });
 });
 

@@ -143,7 +143,8 @@ export default function XacNhanCong() {
   const [month, setMonth]           = useState(todayMonth);
   const [reports, setReports]       = useState([]);
   const [supportByDate, setSupportByDate] = useState({});
-  const [violByName, setViolByName] = useState({});
+  const [violByName, setViolByName]   = useState({});
+  const [salaryByName, setSalaryByName] = useState({});
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [filterName, setFilter]     = useState('');
@@ -168,6 +169,7 @@ export default function XacNhanCong() {
       setReports(data.reports || []);
       setSupportByDate(data.supportByDate || {});
       setViolByName(data.violByName || {});
+      setSalaryByName(data.salaryByName || {});
     }
     catch (e) { setError(e.message || 'Lỗi tải dữ liệu'); }
     finally { setLoading(false); }
@@ -264,7 +266,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:O1');
+      ws.mergeCells('A1:R1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -272,8 +274,8 @@ export default function XacNhanCong() {
       titleCell.fill = white;
       ws.getRow(1).height = 28;
 
-      // Header row — 15 cột
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Chiều', 'C.Tối', 'Nước', 'Taxi/Xăng', 'Phạt BC', 'Tổng Số Tiền']);
+      // Header row — 18 cột
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Lương Cơ Bản', 'Lương Ngày Công', 'Lương OT/h', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Nước', 'Xăng', 'Phạt BC', 'Tổng Số Tiền']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -283,7 +285,8 @@ export default function XacNhanCong() {
       hdrRow.getCell(3).alignment = { horizontal: 'left' };
       hdrRow.height = 20;
 
-      const RATES = { leader: 200000, cs: 20000, ct: 30000, cc: 30000, ctoi: 40000, nuoc: 20000 };
+      // Đơn giá phụ cấp: C.Sáng=40k, C.Trưa=30k, C.Tối(has_com_chieu)=30k, C.Khuya(has_com_toi)=40k
+      const RATES = { leader: 200000, cs: 40000, ct: 30000, cc: 30000, ctoi: 40000 };
       const vndFmt = '#,##0';
 
       const VIOL_PENALTY = 100000;
@@ -309,8 +312,8 @@ export default function XacNhanCong() {
           const leaders = entries.filter(({ report }) => (report.leaders || []).includes(name)).length;
           const cs   = entries.filter(({ report: r }) => r.has_com_sang).length;
           const ct   = entries.filter(({ report: r }) => r.has_com_trua).length;
-          const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;
-          const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;
+          const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;  // C.Tối
+          const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;    // C.Khuya
           const nuoc = entries.filter(({ report: r }) => r.has_nuoc).length;
           const taxi = entries.filter(({ report: r }) => r.has_taxi).length;
           const taxiAmt = entries.reduce((sum, { report: r }) => {
@@ -320,16 +323,23 @@ export default function XacNhanCong() {
           }, 0);
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
-          const totalTien = leaders * RATES.leader + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + nuoc * RATES.nuoc + taxiAmt - phatAmt;
+          const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0 };
+          const salaryPart = sal.lnc * cong + sal.lot * ot;
+          const totalTien = salaryPart + leaders * RATES.leader + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + taxiAmt - phatAmt;
           if (!days && !cong) continue;
           stt++;
-          const row = ws.addRow([stt, g.dept, name, days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)), leaders || '',
-            cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '',
-            phatAmt > 0 ? phatAmt : '', totalTien !== 0 ? totalTien : '']);
+          const row = ws.addRow([
+            stt, g.dept, name,
+            sal.lcb || '', sal.lnc || '', sal.lot || '',
+            days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)),
+            leaders || '', cs || '', ct || '', cc || '', ctoi || '', nuoc || '', taxi || '',
+            phatAmt > 0 ? phatAmt : '', totalTien !== 0 ? totalTien : '',
+          ]);
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
-          if (phatAmt > 0) { row.getCell(14).numFmt = vndFmt; row.getCell(14).font = { color: { argb: 'FFCC0000' } }; }
-          if (totalTien !== 0) row.getCell(15).numFmt = vndFmt;
+          if (sal.lcb) { row.getCell(4).numFmt = vndFmt; row.getCell(5).numFmt = vndFmt; row.getCell(6).numFmt = vndFmt; }
+          if (phatAmt > 0) { row.getCell(17).numFmt = vndFmt; row.getCell(17).font = { color: { argb: 'FFCC0000' } }; }
+          if (totalTien !== 0) row.getCell(18).numFmt = vndFmt;
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaders;
           deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi; deptNuoc += nuoc; deptTaxi += taxi;
           deptPhat += phatAmt; deptTotalTien += totalTien;
@@ -340,9 +350,12 @@ export default function XacNhanCong() {
           grandCongX += deptCong; grandOTX += deptOT; grandDays += deptDays; grandLeader += deptLeader;
           grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi; grandNuoc += deptNuoc; grandTaxi += deptTaxi;
           grandPhat += deptPhat; grandTotalTien += deptTotalTien;
-          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader || '',
-            deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '',
-            deptPhat > 0 ? deptPhat : '', deptTotalTien !== 0 ? deptTotalTien : '']);
+          const subRow = ws.addRow([
+            '', `Tổng ${g.dept}`, '', '', '', '',
+            deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)),
+            deptLeader || '', deptCS || '', deptCT || '', deptCC || '', deptCToi || '', deptNuoc || '', deptTaxi || '',
+            deptPhat > 0 ? deptPhat : '', deptTotalTien !== 0 ? deptTotalTien : '',
+          ]);
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
@@ -350,16 +363,19 @@ export default function XacNhanCong() {
             cell.alignment = { horizontal: 'center' };
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
-          if (deptPhat > 0) { subRow.getCell(14).numFmt = vndFmt; subRow.getCell(14).font = { bold: true, color: { argb: 'FFCC0000' } }; }
-          if (deptTotalTien !== 0) subRow.getCell(15).numFmt = vndFmt;
+          if (deptPhat > 0) { subRow.getCell(17).numFmt = vndFmt; subRow.getCell(17).font = { bold: true, color: { argb: 'FFCC0000' } }; }
+          if (deptTotalTien !== 0) subRow.getCell(18).numFmt = vndFmt;
         }
       }
 
       // Grand total
       ws.addRow([]);
-      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader || '',
-        grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '',
-        grandPhat > 0 ? grandPhat : '', grandTotalTien !== 0 ? grandTotalTien : '']);
+      const totalRow = ws.addRow([
+        '', 'TỔNG CỘNG', '', '', '', '',
+        grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)),
+        grandLeader || '', grandCS || '', grandCT || '', grandCC || '', grandCToi || '', grandNuoc || '', grandTaxi || '',
+        grandPhat > 0 ? grandPhat : '', grandTotalTien !== 0 ? grandTotalTien : '',
+      ]);
       totalRow.eachCell(cell => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
@@ -367,13 +383,14 @@ export default function XacNhanCong() {
         cell.border = borderMedium;
       });
       totalRow.getCell(2).alignment = { horizontal: 'left' };
-      if (grandPhat > 0) { totalRow.getCell(14).numFmt = vndFmt; totalRow.getCell(14).font = { bold: true, size: 11, color: { argb: 'FFCC0000' } }; }
-      if (grandTotalTien !== 0) totalRow.getCell(15).numFmt = vndFmt;
+      if (grandPhat > 0) { totalRow.getCell(17).numFmt = vndFmt; totalRow.getCell(17).font = { bold: true, size: 11, color: { argb: 'FFCC0000' } }; }
+      if (grandTotalTien !== 0) totalRow.getCell(18).numFmt = vndFmt;
 
       ws.columns = [
-        { width: 6 }, { width: 20 }, { width: 24 },
-        { width: 12 }, { width: 14 }, { width: 16 }, { width: 10 },
-        { width: 9 }, { width: 9 }, { width: 9 }, { width: 8 }, { width: 8 }, { width: 11 }, { width: 13 }, { width: 16 },
+        { width: 6 }, { width: 18 }, { width: 24 },
+        { width: 14 }, { width: 16 }, { width: 12 },
+        { width: 10 }, { width: 12 }, { width: 14 }, { width: 10 },
+        { width: 9 }, { width: 9 }, { width: 9 }, { width: 9 }, { width: 8 }, { width: 10 }, { width: 12 }, { width: 16 },
       ];
 
       // ── Sheet 2: Chi Tiết ──

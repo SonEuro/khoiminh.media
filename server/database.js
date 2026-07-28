@@ -531,6 +531,41 @@ if (staffCount === 0) {
   console.log('[DB] Seed: staff_groups');
 }
 
+// ── Salary rate columns ─────────────────────────────────────────────────────
+try { db.prepare("ALTER TABLE users ADD COLUMN luong_co_ban INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN luong_ngay_cong INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN luong_ot_h INTEGER DEFAULT 0").run(); } catch (_) {}
+{
+  const SALARY_DATA = [
+    ['Trần Nhật Duy',        5500000, 230000, 38000],
+    ['Lê Trần Hoài Vĩ',     4500000, 200000, 35000],
+    ['Huỳnh Sự',             5500000, 230000, 38000],
+    ['Trương Lê Trung Tín',  5500000, 230000, 38000],
+    ['Nguyễn Trường Chinh',  4500000, 170000, 32000],
+    ['Hứa Khắc Cần',         6500000, 260000, 41000],
+    ['Phạm Đăng Sinh',       4000000, 170000, 32000],
+    ['Nguyễn Ngọc Ly',       5500000, 260000, 41000],
+    ['Phạm Hữu Phúc Khang',  4000000, 170000, 32000],
+    ['Nguyễn Trí Tài',       4500000, 200000, 35000],
+    ['Võ Chí Thiện',         5500000, 200000, 35000],
+    ['Lê Anh Kiệt',          4500000, 200000, 35000],
+    ['Nguyễn Thanh Sang',    4500000, 200000, 35000],
+    ['Phan Khắc Luyện',      4500000, 170000, 32000],
+    ['Đỗ Quý Vượng',         3500000, 170000, 32000],
+    ['Nguyễn Thành Trung',   4000000, 170000, 32000],
+    ['Phan Ngọc Mạnh',       3500000, 170000, 32000],
+    ['Trần Đình Cương',      3500000, 140000, 29000],
+    ['Hồ Văn Toàn',          3000000, 140000, 29000],
+    ['Hồ Bảo Trường',        3000000, 140000, 29000],
+    ['Trần Triệu Vĩ',        3000000, 140000, 29000],
+    ['Hoàng Văn Tuân',       3000000, 140000, 29000],
+    ['Ngô Văn Hảo',          4500000, 170000, 32000],
+    ['Nguyễn Hoàng Gia Bảo', 2500000, 140000, 29000],
+  ];
+  const upd = db.prepare('UPDATE users SET luong_co_ban=?, luong_ngay_cong=?, luong_ot_h=? WHERE full_name=? AND (luong_co_ban IS NULL OR luong_co_ban=0)');
+  for (const [name, lcb, lnc, lot] of SALARY_DATA) upd.run(lcb, lnc, lot, name);
+}
+
 // ── Indexes ────────────────────────────────────────────────────────────────
 // SQLite không tự tạo index cho foreign keys — phải tạo thủ công
 db.exec(`
