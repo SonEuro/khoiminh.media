@@ -1014,6 +1014,7 @@ export default function EventReport() {
   const [notInSchedule, setNotInSchedule] = useState(false);
   const [allowedEventIds, setAllowedEventIds] = useState(undefined); // undefined=loading, null=admin(all), Set=filtered
   const [dateLocked, setDateLocked] = useState(false);
+  const [confirmedSearch, setConfirmedSearch] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -1607,18 +1608,32 @@ export default function EventReport() {
             if (!map[key]) { map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] }; order.push(key); }
             map[key].reports.push(r);
           });
+          const q = confirmedSearch.trim().toLowerCase();
+          const filteredOrder = q
+            ? order.filter(k => map[k].event_label.toLowerCase().includes(q) || (map[k].location || '').toLowerCase().includes(q) || map[k].reports.some(r => (r.reporter_name || '').toLowerCase().includes(q)))
+            : order;
           return (
             <div style={{ marginTop:'8px', borderRadius:'10px', overflow:'hidden', border:'1px solid rgba(74,222,128,0.28)' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(74,222,128,0.14) 0%,rgba(74,222,128,0.03) 100%)', borderLeft:'3px solid #4ade80', borderBottom:'1px solid rgba(74,222,128,0.16)' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 14px', background:'linear-gradient(135deg,rgba(74,222,128,0.14) 0%,rgba(74,222,128,0.03) 100%)', borderLeft:'3px solid #4ade80', borderBottom:'1px solid rgba(74,222,128,0.16)', flexWrap:'wrap' }}>
                 <span style={{ fontWeight:700, color:'#4ade80', fontSize:'0.84rem', flex:1, letterSpacing:'0.04em' }}>✅ ĐÃ XÁC NHẬN</span>
+                <input
+                  type="text"
+                  placeholder="Tìm sự kiện, địa điểm, nhân viên..."
+                  value={confirmedSearch}
+                  onChange={e => setConfirmedSearch(e.target.value)}
+                  style={{ fontSize:'0.8rem', padding:'4px 10px', borderRadius:'6px', border:'1px solid rgba(74,222,128,0.3)', background:'rgba(0,0,0,0.3)', color:'#e0e0ee', outline:'none', width:'220px' }}
+                />
                 <span style={{ background:'rgba(74,222,128,0.2)', border:'1px solid rgba(74,222,128,0.4)', borderRadius:'9999px', padding:'1px 8px', fontSize:'0.78rem', fontWeight:700, color:'#4ade80' }}>
                   {confirmedReports.length} báo cáo
                 </span>
               </div>
               <div style={{ background:'#13131d', maxHeight:'480px', overflowY:'auto', padding:'8px 12px' }}>
-                {order.map(k => (
-                  <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} defaultOpen={false} />
-                ))}
+                {filteredOrder.length === 0
+                  ? <div style={{ color:'#7878a0', fontSize:'0.82rem', padding:'12px 4px' }}>Không tìm thấy kết quả</div>
+                  : filteredOrder.map(k => (
+                    <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} defaultOpen={false} />
+                  ))
+                }
               </div>
             </div>
           );
