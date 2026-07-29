@@ -7,8 +7,10 @@ router.use(requireAuth, requireRole('SUPER_ADMIN'));
 
 router.get('/', (req, res) => {
   const users = db.prepare(
-    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, created_at FROM users ORDER BY created_at DESC'
+    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, created_at FROM users'
   ).all();
+  const byTen = n => ((n || '').trim().split(/\s+/).pop() || n);
+  users.sort((a, b) => byTen(a.full_name).localeCompare(byTen(b.full_name), 'vi'));
   res.json(users);
 });
 
