@@ -90,6 +90,17 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// Khóa chỉnh sửa sau 30 ngày kể từ ngày cuối tháng
+function isMonthLocked(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const [ty, tm, td] = todayVN.split('-').map(Number);
+  const lastDayOfMonth = new Date(Date.UTC(y, m, 0)); // ngày cuối tháng
+  const lockDate = new Date(lastDayOfMonth.getTime() + 30 * 864e5); // +30 ngày
+  const today = new Date(Date.UTC(ty, tm - 1, td));
+  return today > lockDate;
+}
+
 // Build map: personName → [{ report, result }]
 function buildPersonMap(reports) {
   const map = {};
@@ -119,7 +130,7 @@ export default function XacNhanCong() {
   const { kmGroups } = useStaffGroups();
   const canViewAll  = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
   const canEdit     = canViewAll;
-  const isPast      = month < todayMonth();
+  const isPast      = isMonthLocked(month);
   const canToggleLe = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
   const canSuaCong  = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
   const isTruongPhong = !!user?.is_truong_phong && !canViewAll;
