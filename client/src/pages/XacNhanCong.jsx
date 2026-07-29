@@ -119,8 +119,9 @@ export default function XacNhanCong() {
   const { kmGroups } = useStaffGroups();
   const canViewAll  = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
   const canEdit     = canViewAll;
-  const canToggleLe = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
-  const canSuaCong  = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
+  const isPast      = month < todayMonth();
+  const canToggleLe = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
+  const canSuaCong  = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
   const isTruongPhong = !!user?.is_truong_phong && !canViewAll;
 
   // Tính bộ phận của user (cho truong_phong và nhân viên thường)
@@ -683,8 +684,8 @@ ${rows.map(renderRow).join('\n')}
             <button onClick={() => setMonth(m => shiftMonth(m, -1))}
               style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>‹</button>
             <span style={{ padding: '6px 10px', color: GOLD, fontWeight: 700, fontSize: '0.88rem', minWidth: '120px', textAlign: 'center' }}>{fmtMonth(month)}</span>
-            <button onClick={() => setMonth(m => shiftMonth(m, 1))}
-              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
+            <button onClick={() => setMonth(m => shiftMonth(m, 1))} disabled={month >= todayMonth()}
+              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: month >= todayMonth() ? '#3a3a5a' : '#c8c8e0', cursor: month >= todayMonth() ? 'default' : 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
           </div>
           <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
             style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
