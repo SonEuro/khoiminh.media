@@ -144,9 +144,9 @@ function syncObligations(scheduleId) {
         const deptKmStaff = allKmStaff.filter(n => getPersonDept(n, kmGroups) === dept);
 
         if (deptLeads.length > 0) {
-          for (const l of deptLeads) obligated.push({ name: l.name });
+          for (const l of deptLeads) obligated.push({ name: l.name, isLead: 1 });
         } else if (deptKmStaff.length > 0) {
-          obligated.push({ name: deptKmStaff[0] });
+          obligated.push({ name: deptKmStaff[0], isLead: 0 });
         }
         // Chỉ có freelancer (không có KM) → không cần nộp
       }
@@ -158,14 +158,14 @@ function syncObligations(scheduleId) {
         const user = db.prepare('SELECT id FROM users WHERE full_name = ? AND is_active = 1 LIMIT 1').get(ob.name);
         db.prepare(`
           INSERT OR IGNORE INTO lead_report_obligations
-            (schedule_id, event_id, event_name, lead_name, user_id, phase, assigned_date, deadline)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(scheduleId, sched.event_id || null, sched.event_name || '', ob.name, user?.id || null, phase, date, deadline);
+            (schedule_id, event_id, event_name, lead_name, user_id, phase, assigned_date, deadline, is_lead)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(scheduleId, sched.event_id || null, sched.event_name || '', ob.name, user?.id || null, phase, date, deadline, ob.isLead);
         db.prepare(`
           UPDATE lead_report_obligations
-          SET event_id = ?, event_name = ?, user_id = COALESCE(?, user_id)
+          SET event_id = ?, event_name = ?, user_id = COALESCE(?, user_id), is_lead = ?
           WHERE schedule_id = ? AND lead_name = ? AND phase = ? AND assigned_date = ?
-        `).run(sched.event_id || null, sched.event_name || '', user?.id || null, scheduleId, ob.name, phase, date);
+        `).run(sched.event_id || null, sched.event_name || '', user?.id || null, ob.isLead, scheduleId, ob.name, phase, date);
       }
     }
   }

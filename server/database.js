@@ -442,6 +442,11 @@ if (!oblCols.includes('dismissed')) {
   db.prepare('ALTER TABLE lead_report_obligations ADD COLUMN dismissed INTEGER DEFAULT 0').run();
   console.log('[DB] Migration: thêm cột dismissed vào lead_report_obligations');
 }
+// Migration: thêm cột is_lead (1 = được chỉ định lead, 0 = fallback reporter)
+if (!oblCols.includes('is_lead')) {
+  db.prepare('ALTER TABLE lead_report_obligations ADD COLUMN is_lead INTEGER DEFAULT 1').run();
+  console.log('[DB] Migration: thêm cột is_lead vào lead_report_obligations');
+}
 
 // Migration: đổi tên Ngô Văn Hào → Ngô Văn Hảo
 const oldName = 'Ngô Văn Hào', newName = 'Ngô Văn Hảo';

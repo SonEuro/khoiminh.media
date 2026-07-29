@@ -59,11 +59,11 @@ router.get('/', requireAuth, (req, res) => {
     }
   }
 
-  // Build leadMap: { 'eventId::date': [leadNames] }
+  // Build leadMap: { 'eventId::date': [leadNames] } — chỉ người được chỉ định lead (is_lead=1)
   const obligations = db.prepare(`
     SELECT event_id, assigned_date, lead_name
     FROM lead_report_obligations
-    WHERE assigned_date LIKE ?
+    WHERE assigned_date LIKE ? AND (is_lead IS NULL OR is_lead = 1)
   `).all(`${month}%`);
   const leadMap = {};
   for (const ob of obligations) {
