@@ -90,28 +90,6 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-function isMonthArchived(ym) {
-  const [y, m] = ym.split('-').map(Number);
-  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
-  const [ty, tm, td] = todayVN.split('-').map(Number);
-  const nextM = m === 12 ? 1 : m + 1;
-  const nextY = m === 12 ? y + 1 : y;
-  if (nextY < ty) return true;
-  if (nextY > ty) return false;
-  if (nextM < tm) return true;
-  if (nextM > tm) return false;
-  return td >= 8;
-}
-
-function latestArchivedMonth() {
-  let m = shiftMonth(todayMonth(), -1);
-  for (let i = 0; i < 36; i++) {
-    if (isMonthArchived(m)) return m;
-    m = shiftMonth(m, -1);
-  }
-  return m;
-}
-
 // Build map: personName → [{ report, result }]
 function buildPersonMap(reports) {
   const map = {};
@@ -281,7 +259,6 @@ export default function XacNhanCong() {
   const personMap = buildPersonMap(reports);
 
   const lowerFilter = filterName.trim().toLowerCase();
-  const isArchived = isMonthArchived(month);
 
   // Department totals for the month
   let grandCong = 0, grandOT = 0;
@@ -702,17 +679,13 @@ ${rows.map(renderRow).join('\n')}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
         {/* Row 1: month nav + search */}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: isArchived ? 'rgba(148,163,184,0.08)' : 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '2px', border: isArchived ? '1px solid rgba(148,163,184,0.2)' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '2px' }}>
             <button onClick={() => setMonth(m => shiftMonth(m, -1))}
               style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>‹</button>
-            <span style={{ padding: '6px 10px', color: isArchived ? '#94a3b8' : GOLD, fontWeight: 700, fontSize: '0.88rem', minWidth: '120px', textAlign: 'center' }}>{fmtMonth(month)}</span>
-            <button onClick={() => setMonth(m => shiftMonth(m, 1))} disabled={!isMonthArchived(shiftMonth(month, 1))}
-              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: isMonthArchived(shiftMonth(month, 1)) ? '#c8c8e0' : '#3a3a5a', cursor: isMonthArchived(shiftMonth(month, 1)) ? 'pointer' : 'default', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
+            <span style={{ padding: '6px 10px', color: GOLD, fontWeight: 700, fontSize: '0.88rem', minWidth: '120px', textAlign: 'center' }}>{fmtMonth(month)}</span>
+            <button onClick={() => setMonth(m => shiftMonth(m, 1))}
+              style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
           </div>
-          {isArchived
-            ? <button onClick={() => setMonth(todayMonth())} style={{ padding: '5px 12px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.08)', color: GOLD, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0 }}>← Tháng Hiện Tại</button>
-            : <button onClick={() => setMonth(latestArchivedMonth())} style={{ padding: '5px 12px', borderRadius: '8px', border: '1px solid rgba(148,163,184,0.3)', background: 'rgba(148,163,184,0.06)', color: '#94a3b8', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', flexShrink: 0 }}>📦 Lưu Trữ</button>
-          }
           <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
             style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
@@ -744,17 +717,6 @@ ${rows.map(renderRow).join('\n')}
           </div>
         )}
       </div>
-
-      {/* Archive banner */}
-      {isArchived && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', marginBottom: '14px', borderRadius: '8px', background: 'rgba(148,163,184,0.07)', border: '1px solid rgba(148,163,184,0.2)', borderLeft: '3px solid #94a3b8' }}>
-          <span style={{ fontSize: '1rem' }}>📦</span>
-          <div>
-            <span style={{ fontWeight: 700, color: '#94a3b8', fontSize: '0.84rem', letterSpacing: '0.05em' }}>LƯU TRỮ — {fmtMonth(month)}</span>
-            <span style={{ fontSize: '0.76rem', color: '#5a6a80', marginLeft: '10px' }}>Tháng đã kết thúc · Dữ liệu chỉ đọc</span>
-          </div>
-        </div>
-      )}
 
       {/* Department sections */}
       {visibleGroups.map(({ dept, members }) => {
