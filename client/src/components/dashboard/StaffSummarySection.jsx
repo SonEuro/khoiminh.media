@@ -65,7 +65,7 @@ export default function StaffSummarySection() {
   if (today.total === 0 && tomorrow.total === 0) return null;
 
   const buildFree = (busyKm) => KM_STAFF_GROUPS
-    .map(g => ({ dept: g.dept, members: g.members.filter(n => !busyKm.has(n) && !vanPhongSet.has(n)) }))
+    .map(g => ({ dept: g.dept, members: g.members.filter(n => !busyKm.has(n) && !vanPhongSet.has(n)).sort((a, b) => a.localeCompare(b, 'vi')) }))
     .filter(g => g.members.length > 0);
 
   const freeToday    = buildFree(today.busyKm);
