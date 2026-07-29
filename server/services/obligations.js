@@ -129,7 +129,8 @@ function syncObligations(scheduleId) {
       // Tập hợp bộ phận xuất hiện trong ngày (từ leads có dept + km_staff có dept trong kmGroups)
       const deptsPresent = new Set();
       for (const l of allLeads) {
-        const dept = l.department || getPersonDept(l.name, kmGroups);
+        // Ưu tiên dept từ staff_groups (chuẩn hóa) thay vì label trong filming_leads
+        const dept = getPersonDept(l.name, kmGroups) || l.department;
         if (dept) deptsPresent.add(dept);
       }
       for (const name of allKmStaff) {
@@ -140,7 +141,7 @@ function syncObligations(scheduleId) {
       // Với mỗi bộ phận: lead của bộ phận đó nộp; nếu không có lead → km_staff đầu tiên nộp
       const obligated = [];
       for (const dept of deptsPresent) {
-        const deptLeads  = allLeads.filter(l => (l.department || getPersonDept(l.name, kmGroups)) === dept);
+        const deptLeads  = allLeads.filter(l => (getPersonDept(l.name, kmGroups) || l.department) === dept);
         const deptKmStaff = allKmStaff.filter(n => getPersonDept(n, kmGroups) === dept);
 
         if (deptLeads.length > 0) {
