@@ -518,7 +518,12 @@ export default function XacNhanCong() {
           const sorted2 = [...entries2].sort((a, b) => a.report.report_date.localeCompare(b.report.report_date));
           for (const { report: r, result } of sorted2) {
             stt2++;
-            const isLeaderVal = (r.leaders || []).includes(name) ? 1 : '';
+            const leaderPhase2 = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+            const isLeaderVal = (r.leaders || []).includes(name) && (
+              g2.dept === 'Sân Khấu' ? (leaderPhase2 === 'setup' || leaderPhase2 === 'rehearsal') :
+              (g2.dept === 'ATAS-LED' || g2.dept === 'Kỹ Thuật') ? leaderPhase2 === 'filming' :
+              false
+            ) ? 1 : '';
             const [ry, rmx, rday] = r.report_date.split('-');
             const yesNo = v => v ? '✓' : '';
             const row2 = ws2.addRow([
