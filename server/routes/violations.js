@@ -70,6 +70,27 @@ router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req,
   res.json({ ok: true });
 });
 
+// POST /api/violations/:id/forgive — tha vi phạm sau khi nộp BC bổ sung (không log audit)
+router.post('/:id/forgive', requireAuth, (req, res) => {
+  const viol = db.prepare('SELECT * FROM violations WHERE id = ?').get(req.params.id);
+  if (!viol) return res.status(404).json({ error: 'Không tìm thấy vi phạm' });
+  if (viol.violation_type !== 'Không nộp báo cáo') {
+    return res.status(400).json({ error: 'Chỉ có thể tha vi phạm "Không nộp báo cáo"' });
+  }
+
+  if (viol.reporter_name === 'Hệ thống') {
+    const dateMatch = viol.description?.match(/ngày (\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      db.prepare(`
+        UPDATE lead_report_obligations SET dismissed = 1
+        WHERE lead_name = ? AND assigned_date = ?
+      `).run(viol.violator, dateMatch[1]);
+    }
+  }
+  db.prepare('DELETE FROM violations WHERE id = ?').run(viol.id);
+  res.json({ ok: true });
+});
+
 // GET /api/violations/delete-log  (SUPER_ADMIN, DIRECTOR)
 router.get('/delete-log', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const rows = db.prepare(`

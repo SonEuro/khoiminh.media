@@ -110,6 +110,7 @@ export const api = {
   getViolationDeleteLog: () => request('/violations/delete-log'),
   createViolation: (data) => request('/violations', { method: 'POST', body: data }),
   deleteViolation: (id) => request(`/violations/${id}`, { method: 'DELETE' }),
+  forgiveViolation: (id) => request(`/violations/${id}/forgive`, { method: 'POST' }),
   importEquipment: () => request('/admin/import-equipment', { method: 'POST' }),
   resetOutTransactions: () => request('/admin/reset-out-transactions', { method: 'POST' }),
   getOutTransactions: () => request('/admin/out-transactions'),
