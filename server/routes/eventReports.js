@@ -206,6 +206,16 @@ router.delete('/:id', canManage, (req, res) => {
   res.json({ ok: true });
 });
 
+router.post('/:id/restore', (req, res) => {
+  const { role } = req.user;
+  if (role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Chỉ SUPER_ADMIN mới được khôi phục báo cáo' });
+  const report = db.prepare('SELECT id, deleted_at FROM event_reports WHERE id = ?').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
+  if (!report.deleted_at) return res.status(400).json({ error: 'Báo cáo chưa bị xóa' });
+  db.prepare('UPDATE event_reports SET deleted_at = NULL, deleted_by_id = NULL WHERE id = ?').run(report.id);
+  res.json({ ok: true });
+});
+
 router.get('/admin/delete-log', (req, res) => {
   const { role } = req.user;
   if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))

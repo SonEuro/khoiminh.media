@@ -372,14 +372,14 @@ export default function Users() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.83rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(251,191,36,0.2)' }}>
-                        {['ID BC', 'Sự kiện', 'Ngày BC', 'Người báo cáo', 'Tóm tắt', 'Người xóa', 'Thời gian xóa'].map(h => (
+                        {['ID BC', 'Sự kiện', 'Ngày BC', 'Người báo cáo', 'Tóm tắt', 'Người xóa', 'Thời gian xóa', ...(isSuperAdmin ? [''] : [])].map(h => (
                           <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: '#fbbf24', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {deleteLog.map(row => (
-                        <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: row._restoring ? 0.5 : 1 }}>
                           <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>#{row.report_id}</td>
                           <td style={{ padding: '8px 10px', color: 'var(--text-primary)' }}>{row.event_label || '—'}</td>
                           <td style={{ padding: '8px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{row.event_date ? fmtD(row.event_date) : '—'}</td>
@@ -387,6 +387,30 @@ export default function Users() {
                           <td style={{ padding: '8px 10px', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.report_summary || '—'}</td>
                           <td style={{ padding: '8px 10px', color: '#f87171' }}>{row.deleted_by_name || '—'}</td>
                           <td style={{ padding: '8px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{row.deleted_at ? row.deleted_at.slice(0, 16) : '—'}</td>
+                          {isSuperAdmin && (
+                            <td style={{ padding: '8px 10px' }}>
+                              {row.soft_deleted_at ? (
+                                <button
+                                  disabled={row._restoring}
+                                  onClick={async () => {
+                                    setDeleteLog(prev => prev.map(r => r.id === row.id ? { ...r, _restoring: true } : r));
+                                    try {
+                                      await api.restoreEventReport(row.report_id);
+                                      setDeleteLog(prev => prev.filter(r => r.id !== row.id));
+                                    } catch (e) {
+                                      alert(e.message || 'Lỗi khôi phục');
+                                      setDeleteLog(prev => prev.map(r => r.id === row.id ? { ...r, _restoring: false } : r));
+                                    }
+                                  }}
+                                  style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '6px', color: '#4ade80', padding: '4px 10px', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  Khôi phục
+                                </button>
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Đã xóa vĩnh viễn</span>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
