@@ -326,7 +326,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const hasDetail = v.description || v.images?.length > 0;
-  const isReportViol = v.violation_type === 'Không nộp báo cáo';
+  const isReportViol = ['Không nộp báo cáo', 'Nộp báo cáo trễ'].includes(v.violation_type);
   const assignedDate = v.description?.match(/ngày (\d{4}-\d{2}-\d{2})/)?.[1];
 
   return (
