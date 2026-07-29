@@ -130,9 +130,6 @@ export default function XacNhanCong() {
   const { kmGroups } = useStaffGroups();
   const canViewAll  = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
   const canEdit     = canViewAll;
-  const isPast      = isMonthLocked(month);
-  const canToggleLe = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
-  const canSuaCong  = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
   const isTruongPhong = !!user?.is_truong_phong && !canViewAll;
 
   // Tính bộ phận của user (cho truong_phong và nhân viên thường)
@@ -269,6 +266,10 @@ export default function XacNhanCong() {
   }
 
   const personMap = buildPersonMap(reports);
+
+  const isPast      = isMonthLocked(month);
+  const canToggleLe = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
+  const canSuaCong  = !isPast && (user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all);
 
   const lowerFilter = filterName.trim().toLowerCase();
 
