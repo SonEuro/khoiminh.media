@@ -1013,7 +1013,7 @@ ${rows.map(renderRow).join('\n')}
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
-                                            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isLeaderRow ? GOLD : '#555570' }}>
+                                            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isLeaderRow ? GOLD : '#4a4a6a' }}>
                                               {isLeaderRow ? '1' : '—'}
                                             </span>
                                           </td>
