@@ -65,7 +65,6 @@ router.get('/', requireAuth, (req, res) => {
     FROM lead_report_obligations
     WHERE assigned_date LIKE ?
       AND (is_lead IS NULL OR is_lead = 1)
-      AND (dismissed IS NULL OR dismissed = 0)
   `).all(`${month}%`);
   const leadMap = {};
   for (const ob of obligations) {
