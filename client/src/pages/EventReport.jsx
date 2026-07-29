@@ -1423,10 +1423,6 @@ export default function EventReport() {
         await api.updateEventReport(editingId, form);
       } else {
         await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
-        const violationId = location.state?.prefill?.violation_id;
-        if (violationId) {
-          try { await api.forgiveViolation(violationId); } catch {}
-        }
       }
       const updated = await api.getEventReports();
       setReports(updated);
