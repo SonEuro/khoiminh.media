@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react'; // v2
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
