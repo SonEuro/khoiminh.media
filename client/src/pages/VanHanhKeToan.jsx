@@ -31,6 +31,20 @@ function applyBorders(ws) {
   ws.eachRow(row => row.eachCell(cell => { cell.border = BORDER_THIN; }));
 }
 
+function isMonthArchived(ym) {
+  if (!ym || ym === '0000-00') return false;
+  const [y, m] = ym.split('-').map(Number);
+  const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const [ty, tm, td] = todayVN.split('-').map(Number);
+  const nextM = m === 12 ? 1 : m + 1;
+  const nextY = m === 12 ? y + 1 : y;
+  if (nextY < ty) return true;
+  if (nextY > ty) return false;
+  if (nextM < tm) return true;
+  if (nextM > tm) return false;
+  return td >= 8;
+}
+
 function groupByMonth(events) {
   const tryKey = s => { const k = (s || '').slice(0, 7); return /^\d{4}-\d{2}$/.test(k) ? k : null; };
   const tryJsonKey = s => { try { const v = JSON.parse(s || '[]'); return Array.isArray(v) && v.length ? tryKey(v[0]) : null; } catch { return null; } };
@@ -55,6 +69,7 @@ function KhoiMinhTab() {
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([api.getKeToanKhoiMinh(), api.getKeToanNcc()])
@@ -168,66 +183,89 @@ function KhoiMinhTab() {
       <p style={{ fontSize: '0.79rem', color: '#5a5a80', marginBottom: '10px' }}>
         {filtered.length} sự kiện{search.trim() ? ` / ${events.length}` : ''}
       </p>
-      {byMonth.map(({ label, evs: monthEvs }) => (
-        <div key={label} style={{ marginBottom: '24px' }}>
-          {/* Month header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
-            <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
-          </div>
-          {monthEvs.map(ev => {
-            const isExp = expandedId === ev.event_id;
-            return (
-              <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
-                <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
-                  {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
-                    <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
-                      {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
-                    </p>
+      {(() => {
+        const activeMonths   = byMonth.filter(g => !isMonthArchived(g.key));
+        const archivedMonths = byMonth.filter(g => isMonthArchived(g.key));
+        const renderMonthGroup = ({ label, evs: monthEvs, archived }) => (
+          <div key={label} style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: archived ? '#94a3b8' : GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+              <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
+              <div style={{ flex: 1, height: '1px', background: archived ? 'rgba(148,163,184,0.15)' : 'rgba(201,168,76,0.15)' }} />
+            </div>
+            {monthEvs.map(ev => {
+              const isExp = expandedId === ev.event_id;
+              return (
+                <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
+                  <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
+                    {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
+                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
+                        {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '56px', textAlign: 'right' }}>{ev.items.length} thiết bị</span>
+                      <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${safeName(ev.event_name)}.xlsx`); }}
+                        title="Xuất Excel sự kiện này"
+                        style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
+                        <Download size={12} />
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '56px', textAlign: 'right' }}>{ev.items.length} thiết bị</span>
-                    <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Chi Phí Nghiệm Thu - ${safeName(ev.event_name)}.xlsx`); }}
-                      title="Xuất Excel sự kiện này"
-                      style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
-                      <Download size={12} />
-                    </button>
-                  </div>
-                </div>
-                {isExp && (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                      <thead>
-                        <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
-                          {['STT','Thiết Bị','ĐVT','SL Xuất','FREE','SL Tính Tiền'].map(h => (
-                            <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL Xuất','FREE','SL Tính Tiền'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ev.items.map((it, idx) => (
-                          <tr key={it.name} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                            <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
-                            <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.name}</td>
-                            <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit}</td>
-                            <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.qty_total}</td>
-                            <td style={{ padding: '6px 10px', textAlign: 'center', color: it.qty_free > 0 ? '#a78bfa' : '#3a3a50' }}>{it.qty_free > 0 ? it.qty_free : '—'}</td>
-                            <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.qty_billed}</td>
+                  {isExp && (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                        <thead>
+                          <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
+                            {['STT','Thiết Bị','ĐVT','SL Xuất','FREE','SL Tính Tiền'].map(h => (
+                              <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL Xuất','FREE','SL Tính Tiền'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {ev.items.map((it, idx) => (
+                            <tr key={it.name} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                              <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
+                              <td style={{ padding: '6px 10px', color: '#c0c0d8', fontWeight: 600 }}>{it.name}</td>
+                              <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.qty_total}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'center', color: it.qty_free > 0 ? '#a78bfa' : '#3a3a50' }}>{it.qty_free > 0 ? it.qty_free : '—'}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.qty_billed}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+        return (
+          <>
+            {activeMonths.map(g => renderMonthGroup({ ...g, archived: false }))}
+            {archivedMonths.length > 0 && (
+              <div style={{ marginTop: '8px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(148,163,184,0.2)' }}>
+                <div onClick={() => setArchiveOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', background: 'rgba(148,163,184,0.07)', borderLeft: '3px solid #94a3b8', cursor: 'pointer', userSelect: 'none' }}>
+                  <span style={{ fontSize: '1rem' }}>📦</span>
+                  <span style={{ fontWeight: 700, color: '#94a3b8', fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>LƯU TRỮ</span>
+                  <span style={{ fontSize: '0.78rem', color: '#5a6a80', background: 'rgba(148,163,184,0.15)', borderRadius: '9999px', padding: '1px 8px', fontWeight: 700 }}>{archivedMonths.reduce((s, g) => s + g.evs.length, 0)} sự kiện</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.78rem', transition: 'transform 0.15s', display: 'inline-block', transform: archiveOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+                </div>
+                {archiveOpen && (
+                  <div style={{ padding: '12px 14px', background: 'rgba(10,10,20,0.4)' }}>
+                    {archivedMonths.map(g => renderMonthGroup({ ...g, archived: true }))}
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      ))}
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
@@ -239,6 +277,7 @@ function NccTab() {
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedNcc, setSelectedNcc]     = useState('');
   const [expandedId, setExpandedId]       = useState(null);
+  const [archiveOpen, setArchiveOpen]     = useState(false);
 
   useEffect(() => {
     api.getKeToanNcc().then(setRows).finally(() => setLoading(false));
@@ -361,66 +400,90 @@ function NccTab() {
               {events.length} sự kiện
               {selectedNcc && <> · NCC: <span style={{ color: '#60a5fa', fontWeight: 700 }}>{selectedNcc}</span></>}
             </p>
-            {byMonth.map(({ label, evs: monthEvs }) => (
-              <div key={label} style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
-                </div>
-                {monthEvs.map(ev => {
-                  const isExp = expandedId === ev.event_id;
-                  return (
-                    <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
-                      <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
-                        {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
-                          <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
-                            {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
-                          </p>
+            {(() => {
+              const activeMonths   = byMonth.filter(g => !isMonthArchived(g.key));
+              const archivedMonths = byMonth.filter(g => isMonthArchived(g.key));
+              const renderMonthGroup = ({ label, evs: monthEvs, archived }) => (
+                <div key={label} style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: archived ? '#94a3b8' : GOLD, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#5a5a80' }}>· {monthEvs.length} sự kiện</span>
+                    <div style={{ flex: 1, height: '1px', background: archived ? 'rgba(148,163,184,0.15)' : 'rgba(201,168,76,0.15)' }} />
+                  </div>
+                  {monthEvs.map(ev => {
+                    const isExp = expandedId === ev.event_id;
+                    return (
+                      <div key={ev.event_id} style={{ marginBottom: '8px', borderRadius: '10px', border: '1px solid rgba(120,120,160,0.15)', overflow: 'hidden' }}>
+                        <div onClick={() => setExpandedId(isExp ? null : ev.event_id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', userSelect: 'none' }}>
+                          {isExp ? <ChevronDown size={14} style={{ color: GOLD, flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: '#5a5a80', flexShrink: 0 }} />}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontWeight: 700, color: GOLD, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.event_name}</p>
+                            <p style={{ margin: 0, fontSize: '0.76rem', color: '#7878a0', marginTop: '2px' }}>
+                              {[ev.client, fmtDate(ev.start_date)].filter(Boolean).join(' · ')}
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '44px', textAlign: 'right' }}>{ev.items.length} mục</span>
+                            <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Nghiệm Thu${selectedNcc ? ` - ${safeName(selectedNcc)}` : ''} - ${safeName(ev.event_name)}.xlsx`); }}
+                              title="Xuất Excel sự kiện này"
+                              style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
+                              <Download size={12} />
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                          <span style={{ fontSize: '0.74rem', color: '#5a5a80', minWidth: '44px', textAlign: 'right' }}>{ev.items.length} mục</span>
-                          <button onClick={e => { e.stopPropagation(); exportExcel([ev], `Nghiệm Thu${selectedNcc ? ` - ${safeName(selectedNcc)}` : ''} - ${safeName(ev.event_name)}.xlsx`); }}
-                            title="Xuất Excel sự kiện này"
-                            style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.07)', color: GOLD, cursor: 'pointer', gap: '4px' }}>
-                            <Download size={12} />
-                          </button>
-                        </div>
-                      </div>
-                      {isExp && (
-                        <div style={{ overflowX: 'auto' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                            <thead>
-                              <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
-                                {['STT','NCC','Tên Thiết Bị','SL','ĐVT','Số Ngày','Ghi Chú'].map(h => (
-                                  <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL','Số Ngày'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {ev.items.map((it, idx) => (
-                                <tr key={idx} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
-                                  <td style={{ padding: '6px 10px', color: '#60a5fa', fontWeight: 600, whiteSpace: 'nowrap' }}>{it.supplier}</td>
-                                  <td style={{ padding: '6px 10px', color: '#c0c0d8' }}>{it.item_name}</td>
-                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.quantity}</td>
-                                  <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit || 'Cái'}</td>
-                                  <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.rental_days || 1}</td>
-                                  <td style={{ padding: '6px 10px', color: '#7878a0', fontSize: '0.78rem' }}>{it.notes || ''}</td>
+                        {isExp && (
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                              <thead>
+                                <tr style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(120,120,160,0.12)' }}>
+                                  {['STT','NCC','Tên Thiết Bị','SL','ĐVT','Số Ngày','Ghi Chú'].map(h => (
+                                    <th key={h} style={{ padding: '7px 10px', textAlign: ['STT','SL','Số Ngày'].includes(h) ? 'center' : 'left', color: '#9090a8', fontWeight: 700, fontSize: '0.74rem', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>{h}</th>
+                                  ))}
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {ev.items.map((it, idx) => (
+                                  <tr key={idx} style={{ borderBottom: '1px solid rgba(120,120,160,0.07)', background: idx % 2 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                                    <td style={{ padding: '6px 10px', textAlign: 'center', color: '#5a5a80' }}>{idx + 1}</td>
+                                    <td style={{ padding: '6px 10px', color: '#60a5fa', fontWeight: 600, whiteSpace: 'nowrap' }}>{it.supplier}</td>
+                                    <td style={{ padding: '6px 10px', color: '#c0c0d8' }}>{it.item_name}</td>
+                                    <td style={{ padding: '6px 10px', textAlign: 'center', color: GOLD, fontWeight: 700 }}>{it.quantity}</td>
+                                    <td style={{ padding: '6px 10px', color: '#9090a8' }}>{it.unit || 'Cái'}</td>
+                                    <td style={{ padding: '6px 10px', textAlign: 'center', color: '#c0c0d8' }}>{it.rental_days || 1}</td>
+                                    <td style={{ padding: '6px 10px', color: '#7878a0', fontSize: '0.78rem' }}>{it.notes || ''}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+              return (
+                <>
+                  {activeMonths.map(g => renderMonthGroup({ ...g, archived: false }))}
+                  {archivedMonths.length > 0 && (
+                    <div style={{ marginTop: '8px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(148,163,184,0.2)' }}>
+                      <div onClick={() => setArchiveOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', background: 'rgba(148,163,184,0.07)', borderLeft: '3px solid #94a3b8', cursor: 'pointer', userSelect: 'none' }}>
+                        <span style={{ fontSize: '1rem' }}>📦</span>
+                        <span style={{ fontWeight: 700, color: '#94a3b8', fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>LƯU TRỮ</span>
+                        <span style={{ fontSize: '0.78rem', color: '#5a6a80', background: 'rgba(148,163,184,0.15)', borderRadius: '9999px', padding: '1px 8px', fontWeight: 700 }}>{archivedMonths.reduce((s, g) => s + g.evs.length, 0)} sự kiện</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.78rem', transition: 'transform 0.15s', display: 'inline-block', transform: archiveOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
+                      </div>
+                      {archiveOpen && (
+                        <div style={{ padding: '12px 14px', background: 'rgba(10,10,20,0.4)' }}>
+                          {archivedMonths.map(g => renderMonthGroup({ ...g, archived: true }))}
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+                  )}
+                </>
+              );
+            })()}
           </>
         )
       }
