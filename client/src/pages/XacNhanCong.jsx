@@ -851,9 +851,15 @@ ${rows.map(renderRow).join('\n')}
                                         <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem', flexShrink: 0 }}>{fmtDate(r.report_date)}</span>
                                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
-                                        {(r.leaders || []).includes(name) && (
-                                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>NT</span>
-                                        )}
+                                        {(() => {
+                                          const mPhase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+                                          const isNT = (r.leaders || []).includes(name) && (
+                                            dept === 'Sân Khấu' ? (mPhase === 'setup' || mPhase === 'rehearsal') :
+                                            (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') ? mPhase === 'filming' :
+                                            false
+                                          );
+                                          return isNT ? <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>NT</span> : null;
+                                        })()}
                                       </div>
 
                                       {isEditing ? (
@@ -991,6 +997,12 @@ ${rows.map(renderRow).join('\n')}
                                       const preview = isEditing ? calcCong({ ...r, ...ed, no_lunch_break: ed.no_lunch_break ? 1 : 0, no_afternoon_break: ed.no_afternoon_break ? 1 : 0, is_holiday: ed.is_holiday ? 1 : 0 }) : null;
                                       const dtd = { padding: '5px 7px', fontSize: '0.75rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
                                       const dtInp = { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: '4px', color: '#eeeef5', padding: '2px 4px', fontSize: '0.73rem', width: '90px', outline: 'none' };
+                                      const rPhase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+                                      const isLeaderRow = (r.leaders || []).includes(name) && (
+                                        dept === 'Sân Khấu' ? (rPhase === 'setup' || rPhase === 'rehearsal') :
+                                        (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') ? rPhase === 'filming' :
+                                        false
+                                      );
                                       const mainRow = (
                                         <tr key={r.id} style={{ background: isEditing ? 'rgba(201,168,76,0.04)' : isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
                                           <td style={dtd}>
@@ -1001,8 +1013,8 @@ ${rows.map(renderRow).join('\n')}
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
-                                            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: (r.leaders || []).includes(name) ? GOLD : '#555570' }}>
-                                              {(r.leaders || []).includes(name) ? '1' : '—'}
+                                            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isLeaderRow ? GOLD : '#555570' }}>
+                                              {isLeaderRow ? '1' : '—'}
                                             </span>
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
