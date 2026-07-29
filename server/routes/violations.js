@@ -46,8 +46,11 @@ router.post('/', requireAuth, (req, res) => {
 
 // DELETE /api/violations/:id  (SUPER_ADMIN, DIRECTOR)
 router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const { id: userId, full_name } = req.user;
   const viol = db.prepare('SELECT * FROM violations WHERE id = ?').get(req.params.id);
-  if (viol && viol.reporter_name === 'Hệ thống'
+  if (!viol) return res.status(404).json({ error: 'Không tìm thấy vi phạm' });
+
+  if (viol.reporter_name === 'Hệ thống'
       && ['Không nộp báo cáo', 'Nộp báo cáo trễ'].includes(viol.violation_type)) {
     const dateMatch = viol.description?.match(/ngày (\d{4}-\d{2}-\d{2})/);
     if (dateMatch) {
@@ -57,8 +60,22 @@ router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req,
       `).run(viol.violator, dateMatch[1]);
     }
   }
-  db.prepare('DELETE FROM violations WHERE id = ?').run(req.params.id);
+
+  db.prepare(`
+    INSERT INTO violation_delete_log (violation_id, violator, violation_type, description, deleted_by_id, deleted_by_name)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(viol.id, viol.violator, viol.violation_type, viol.description, userId, full_name);
+
+  db.prepare('DELETE FROM violations WHERE id = ?').run(viol.id);
   res.json({ ok: true });
+});
+
+// GET /api/violations/delete-log  (SUPER_ADMIN, DIRECTOR)
+router.get('/delete-log', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const rows = db.prepare(`
+    SELECT * FROM violation_delete_log ORDER BY deleted_at DESC LIMIT 200
+  `).all();
+  res.json(rows);
 });
 
 module.exports = router;

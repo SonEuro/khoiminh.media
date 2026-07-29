@@ -64,6 +64,8 @@ export default function Users() {
   const [restoringId, setRestoringId] = useState(null);
   const [vanPhongSet, setVanPhongSet] = useState(new Set());
   const [showVanPhong, setShowVanPhong] = useState(false);
+  const [violDeleteLog, setViolDeleteLog] = useState([]);
+  const [showViolDeleteLog, setShowViolDeleteLog] = useState(false);
 
   async function load() {
     try {
@@ -88,6 +90,11 @@ export default function Users() {
       api.getReportDeleteLog().then(setDeleteLog).catch(() => {});
     }
   }, [isAdmin, showDeleteLog]);
+  useEffect(() => {
+    if (isAdmin && showViolDeleteLog) {
+      api.getViolationDeleteLog().then(setViolDeleteLog).catch(() => {});
+    }
+  }, [isAdmin, showViolDeleteLog]);
 
   function openStaffModal(type) {
     const groups = type === 'km' ? kmGroups : freelancerGroups;
@@ -411,6 +418,50 @@ export default function Users() {
                               )}
                             </td>
                           )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Lịch Sử Xóa Vi Phạm (Admin only) ── */}
+      {isAdmin && (
+        <div style={{ marginTop: '32px', padding: '20px', borderRadius: '12px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.03)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showViolDeleteLog ? '16px' : 0 }}>
+            <p style={{ color: '#f87171', fontWeight: 700, fontSize: '0.84rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              🗑 Lịch sử xóa vi phạm
+            </p>
+            <button
+              onClick={() => setShowViolDeleteLog(v => !v)}
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: '8px', color: '#f87171', padding: '6px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+            >
+              {showViolDeleteLog ? 'Ẩn' : 'Xem'}
+            </button>
+          </div>
+          {showViolDeleteLog && (
+            violDeleteLog.length === 0
+              ? <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Chưa có vi phạm nào bị xóa.</p>
+              : <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.83rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(248,113,113,0.2)' }}>
+                        {['#VP', 'Người vi phạm', 'Loại vi phạm', 'Mô tả', 'Người xóa', 'Thời gian xóa'].map(h => (
+                          <th key={h} style={{ padding: '8px 10px', textAlign: 'left', color: '#f87171', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {violDeleteLog.map(row => (
+                        <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>#{row.violation_id}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-primary)' }}>{row.violator || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: '#fbbf24', whiteSpace: 'nowrap' }}>{row.violation_type || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.description || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: '#f87171', whiteSpace: 'nowrap' }}>{row.deleted_by_name || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{row.deleted_at ? row.deleted_at.slice(0, 16) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -522,6 +522,16 @@ db.exec(`
     name      TEXT PRIMARY KEY,
     van_phong INTEGER NOT NULL DEFAULT 0
   );
+  CREATE TABLE IF NOT EXISTS violation_delete_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    violation_id    INTEGER NOT NULL,
+    violator        TEXT,
+    violation_type  TEXT,
+    description     TEXT,
+    deleted_by_id   INTEGER,
+    deleted_by_name TEXT,
+    deleted_at      TEXT DEFAULT (datetime('now','localtime'))
+  );
 `);
 
 // Seed staff_groups từ danh sách mặc định nếu chưa có
