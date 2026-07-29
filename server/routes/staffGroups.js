@@ -9,7 +9,8 @@ router.get('/', requireAuth, (req, res) => {
   const rows = type
     ? db.prepare('SELECT dept, members FROM staff_groups WHERE type = ? ORDER BY id').all(type)
     : db.prepare('SELECT type, dept, members FROM staff_groups ORDER BY type, id').all();
-  res.json(rows.map(r => ({ ...r, members: JSON.parse(r.members || '[]').sort((a, b) => a.localeCompare(b, 'vi')) })));
+  const byTen = n => (n.trim().split(/\s+/).pop() || n);
+  res.json(rows.map(r => ({ ...r, members: JSON.parse(r.members || '[]').sort((a, b) => byTen(a).localeCompare(byTen(b), 'vi')) })));
 });
 
 // PUT /api/staff-groups/:type  — thay toàn bộ list theo type (SUPER_ADMIN/DIRECTOR)

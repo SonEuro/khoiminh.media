@@ -19,7 +19,7 @@ export function StaffGroupsProvider({ children }) {
   useEffect(() => { refresh(); }, [refresh]);
 
   const kmGroups = kmGroupsRaw
-    .map(g => ({ ...g, members: g.members.filter(n => !vanPhongSet.has(n)).sort((a, b) => a.localeCompare(b, 'vi')) }))
+    .map(g => ({ ...g, members: g.members.filter(n => !vanPhongSet.has(n)).sort((a, b) => { const t = n => (n.trim().split(/\s+/).pop() || n); return t(a).localeCompare(t(b), 'vi'); }) }))
     .filter(g => g.members.length > 0);
 
   return (
