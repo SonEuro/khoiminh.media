@@ -36,13 +36,10 @@ function isMonthArchived(ym) {
   const [y, m] = ym.split('-').map(Number);
   const todayVN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
   const [ty, tm, td] = todayVN.split('-').map(Number);
-  const nextM = m === 12 ? 1 : m + 1;
-  const nextY = m === 12 ? y + 1 : y;
-  if (nextY < ty) return true;
-  if (nextY > ty) return false;
-  if (nextM < tm) return true;
-  if (nextM > tm) return false;
-  return td >= 8;
+  const lastDay = new Date(Date.UTC(y, m, 0));
+  const lockDate = new Date(lastDay.getTime() + 30 * 864e5);
+  const today = new Date(Date.UTC(ty, tm - 1, td));
+  return today > lockDate;
 }
 
 function groupByMonth(events) {
