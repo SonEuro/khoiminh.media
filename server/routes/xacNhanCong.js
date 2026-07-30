@@ -75,11 +75,11 @@ router.get('/', requireAuth, (req, res) => {
     if (!leadMap[key].includes(ob.lead_name)) leadMap[key].push(ob.lead_name);
   }
 
-  // Build salaryByName: { name: { lcb, lnc, lot } }
-  const salaryRows = db.prepare('SELECT full_name, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong FROM users WHERE full_name IS NOT NULL').all();
+  // Build salaryByName: { name: { lcb, lnc, lot, luong_theo_thang } }
+  const salaryRows = db.prepare('SELECT full_name, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang FROM users WHERE full_name IS NOT NULL').all();
   const salaryByName = {};
   for (const u of salaryRows) {
-    if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '' };
+    if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '', luong_theo_thang: u.luong_theo_thang ? 1 : 0 };
   }
 
   // Build phaseDateMap: { 'eventId::YYYY-MM-DD': phase }

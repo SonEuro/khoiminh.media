@@ -374,6 +374,7 @@ export default function XacNhanCong() {
       const vndFmt = '#,##0';
 
       const VIOL_PENALTY = 100000;
+      const daysInMonth = new Date(parseInt(yy), parseInt(mm), 0).getDate();
 
       let stt = 0;
       let grandCongX = 0, grandOTX = 0, grandDays = 0, grandLeader = 0;
@@ -417,8 +418,9 @@ export default function XacNhanCong() {
           const phuCapKhac  = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
-          const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '' };
-          const salaryPart = (sal.lcb || 0) + sal.lnc * cong + sal.lot * ot;
+          const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0 };
+          const lncBase = sal.luong_theo_thang ? daysInMonth : cong;
+          const salaryPart = (sal.lcb || 0) + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
           if (!days && !cong) continue;
           // Build ghi chú từ notes của từng ca
@@ -628,6 +630,7 @@ export default function XacNhanCong() {
     const [yy, mm] = month.split('-');
     const RATES = { leader: 200000, cs: 40000, ct: 30000, cc: 30000, ctoi: 40000 };
     const VIOL_PENALTY = 100000;
+    const daysInMonthPdf = new Date(parseInt(yy), parseInt(mm), 0).getDate();
     const fmtVND = n => n ? Math.round(n).toLocaleString('vi-VN') : '';
 
     let stt = 0;
@@ -667,8 +670,9 @@ export default function XacNhanCong() {
         const giuXe      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
         const phuCapKhac = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
         const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
-        const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '' };
-        const totalTien = (sal.lcb || 0) + sal.lnc * cong + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
+        const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0 };
+        const lncBasePdf = sal.luong_theo_thang ? daysInMonthPdf : cong;
+        const totalTien = (sal.lcb || 0) + sal.lnc * lncBasePdf + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
         const ghiChuPdfLines = [];
         for (const { report: rep } of entries) {
           const [, rm, rd] = (rep.report_date || '').split('-');

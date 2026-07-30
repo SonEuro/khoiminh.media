@@ -30,7 +30,7 @@ const ROLE_COLORS = {
   CSVC:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.35)' },
 };
 
-const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, is_giam_doc: false, is_van_hanh_ke_toan: false, zalo_uid: '', luong_co_ban: '', luong_ngay_cong: '', luong_ot_h: '', bac_luong: '' };
+const EMPTY = { username: '', password: '', full_name: '', position: '', role: 'ATAS', is_active: true, is_phan_lich: false, is_phan_lich_all: false, is_tra_ncc: false, is_quan_ly_kho: false, is_giam_doc: false, is_van_hanh_ke_toan: false, zalo_uid: '', luong_co_ban: '', luong_ngay_cong: '', luong_ot_h: '', bac_luong: '', luong_theo_thang: false };
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
@@ -159,7 +159,7 @@ export default function Users() {
     setForm(EMPTY); setEditId(null); setError(''); setShowPw(false); setModal('edit');
   }
   function openEdit(u) {
-    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, is_giam_doc: !!u.is_giam_doc, is_van_hanh_ke_toan: !!u.is_van_hanh_ke_toan, zalo_uid: u.zalo_uid || '', luong_co_ban: u.luong_co_ban || '', luong_ngay_cong: u.luong_ngay_cong || '', luong_ot_h: u.luong_ot_h || '', bac_luong: u.bac_luong || '' });
+    setForm({ username: u.username, password: '', full_name: u.full_name, position: u.position || '', role: u.role, is_active: !!u.is_active, is_phan_lich: !!u.is_phan_lich, is_phan_lich_all: !!u.is_phan_lich_all, is_tra_ncc: !!u.is_tra_ncc, is_quan_ly_kho: !!u.is_quan_ly_kho, is_giam_doc: !!u.is_giam_doc, is_van_hanh_ke_toan: !!u.is_van_hanh_ke_toan, zalo_uid: u.zalo_uid || '', luong_co_ban: u.luong_co_ban || '', luong_ngay_cong: u.luong_ngay_cong || '', luong_ot_h: u.luong_ot_h || '', bac_luong: u.bac_luong || '', luong_theo_thang: !!u.luong_theo_thang });
     setEditId(u.id); setError(''); setShowPw(false); setModal('edit');
   }
 
@@ -829,6 +829,12 @@ export default function Users() {
                     style={{ fontSize: '0.88rem' }} />
                 </div>
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '6px' }}>
+                <input type="checkbox" checked={!!form.luong_theo_thang} onChange={e => set('luong_theo_thang', e.target.checked)} />
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Lương theo tháng <span style={{ color: '#7878a0', fontSize: '0.78rem' }}>(LNC × số ngày trong tháng thay vì × công thực tế)</span>
+                </span>
+              </label>
             </div>
 
             {error && (
