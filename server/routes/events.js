@@ -446,7 +446,7 @@ router.put('/:id', (req, res, next) => {
   if (!ev) return res.status(404).json({ error: 'Không tìm thấy sự kiện' });
   if (ev.status === 'completed' && !['SUPER_ADMIN', 'DIRECTOR', 'PRODUCTION'].includes(req.user.role) && !req.user.is_truong_phong)
     return res.status(403).json({ error: 'Không có quyền chỉnh sửa sự kiện đã hoàn thành' });
-  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, status, notes, departments } = req.body;
+  const { name, client, location, start_dates, end_dates, filming_dates, show_dates, notes, departments } = req.body;
   const deptsJson2 = departments?.length ? JSON.stringify(departments) : null;
   const startArr2 = parseMultiField(start_dates);
   const endArr2   = parseMultiField(end_dates);
@@ -456,6 +456,17 @@ router.put('/:id', (req, res, next) => {
   const endDate2   = endArr2[endArr2.length - 1] || null;
   const filmDate2  = filmArr2[filmArr2.length - 1] || null;
   const showDate2  = showArr2[0] || null;
+  // Tính lại status từ ngày, không cho client ghi đè
+  const today2 = db.prepare("SELECT date('now','localtime') AS d").get().d;
+  const newStatus2 = (() => {
+    const currentStatus = ev.status;
+    if (currentStatus === 'cancelled') return 'cancelled';
+    if (filmDate2 && filmDate2 < today2) return 'completed';
+    if (!filmDate2 && endDate2 && endDate2 < today2) return 'completed';
+    if (startDate2 && startDate2 <= today2) return 'active';
+    if (!startDate2 && filmDate2 && filmDate2 === today2) return 'active';
+    return 'planned';
+  })();
   db.prepare(`
     UPDATE events SET name=?, client=?, location=?,
       start_date=?, start_dates=?, end_date=?, end_dates=?,
@@ -467,7 +478,7 @@ router.put('/:id', (req, res, next) => {
     endDate2,   endArr2.length   ? JSON.stringify(endArr2)   : null,
     filmDate2,  filmArr2.length  ? JSON.stringify(filmArr2)  : null,
     showDate2,  showArr2.length  ? JSON.stringify(showArr2)  : null,
-    status, notes, deptsJson2, req.params.id
+    newStatus2, notes, deptsJson2, req.params.id
   );
   // Đồng bộ tên sự kiện sang các bảng liên quan
   try { db.prepare('UPDATE work_schedules SET event_name = ? WHERE event_id = ?').run(name, req.params.id); } catch (_) {}

@@ -274,9 +274,9 @@ function parseDepts(ev) {
 }
 
 
-function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = false, creatorName = '' }) {
+function EventForm({ initial, onSave, onCancel, allEvents = [], creatorName = '' }) {
   const [form, setForm] = useState(() => {
-    const base = initial || { name: '', client: '', location: '', status: 'planned', notes: '' };
+    const base = initial || { name: '', client: '', location: '', notes: '' };
     return {
       ...base,
       start_dates: parseDatesField(initial, 'start_dates', 'start_date'),
@@ -296,22 +296,6 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         ev.name.toLowerCase().includes(form.name.toLowerCase())
       ).slice(0, 6)
     : [];
-
-  if (statusOnly) return (
-    <form onSubmit={async e => { e.preventDefault(); await onSave(form); }} className="space-y-4">
-      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Bạn chỉ có quyền cập nhật trạng thái sự kiện.</p>
-      <div>
-        <label className="label">Trạng thái</label>
-        <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
-          {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
-        </select>
-      </div>
-      <div className="flex gap-3 pt-2">
-        <button type="submit" className="btn-primary flex-1">Cập nhật trạng thái</button>
-        <button type="button" className="btn-secondary" onClick={onCancel}>Hủy</button>
-      </div>
-    </form>
-  );
 
   return (
     <form onSubmit={async e => {
@@ -433,12 +417,6 @@ function EventForm({ initial, onSave, onCancel, allEvents = [], statusOnly = fal
         <div>
           <label className="label">Ngày kết thúc</label>
           <MultiDatePicker value={form.end_dates || []} onChange={v => set('end_dates', v)} placeholder="Chọn ngày kết thúc..." />
-        </div>
-        <div className="sm:col-span-2">
-          <label className="label">Trạng thái</label>
-          <select className="input" style={{ color:'#f87171', fontWeight:700 }} value={form.status} onChange={e => set('status', e.target.value)}>
-            {Object.entries(STATUS_MAP).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
-          </select>
         </div>
       </div>
       <div>
@@ -1366,7 +1344,6 @@ export default function Events() {
             onSave={handleSave}
             onCancel={() => setModal(null)}
             allEvents={events}
-            statusOnly={!canFullEdit && !!selected}
             creatorName={user?.full_name || ''}
           />
         </Modal>
