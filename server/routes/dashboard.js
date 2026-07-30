@@ -1,6 +1,47 @@
 const router = require('express').Router();
 const db = require('../database');
 
+function parseDateField(val) {
+  if (!val) return [];
+  if (val.startsWith('[')) { try { return JSON.parse(val); } catch { return []; } }
+  return [val];
+}
+
+function extractKmNames(raw) {
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v)) return v.filter(Boolean);
+    if (v && typeof v === 'object') return Object.values(v).flat().filter(Boolean);
+  } catch {}
+  return [];
+}
+
+function extractFreelancerNames(raw, dateSet) {
+  if (!raw) return [];
+  try {
+    if (raw.startsWith('{')) {
+      const v = JSON.parse(raw);
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        const names = new Set();
+        const firstVal = Object.values(v)[0];
+        for (const [date, val] of Object.entries(v)) {
+          if (dateSet && !dateSet.has(date)) continue;
+          if (firstVal && typeof firstVal === 'object') {
+            Object.values(val || {}).forEach(s =>
+              (s || '').split(',').map(n => n.trim()).filter(Boolean).forEach(n => names.add(n))
+            );
+          } else {
+            (val || '').split(',').map(n => n.trim()).filter(Boolean).forEach(n => names.add(n));
+          }
+        }
+        return [...names];
+      }
+    }
+  } catch {}
+  return raw.split(',').map(n => n.trim()).filter(Boolean);
+}
+
 // Ngày hiển thị (filming + show) — dùng cho label trên card
 const getFilmingDates = (ev) => {
   let dates = [];
@@ -203,7 +244,43 @@ router.get('/', (req, res) => {
     filming_dates: getFilmingDates(ev), client: ev.client, location: ev.location,
   }));
 
-  res.json({ today, today_events: todayEvents, tomorrow_events: tomorrowEvents, need_confirm: needConfirm, overdue, conflicts });
+  // Build staff maps from work_schedules for today & tomorrow events
+  const SCHED_PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
+  const workScheds = db.prepare(`
+    SELECT event_id,
+      setup_date, teardown_date, rehearsal_date, filming_date,
+      setup_km_staff, teardown_km_staff, rehearsal_km_staff, filming_km_staff,
+      setup_freelancers, teardown_freelancers, rehearsal_freelancers, filming_freelancers
+    FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL
+  `).all();
+
+  const staffToday = {}, staffTomorrow = {};
+  const todaySet = new Set([today]), tomorrowSet = new Set([tomorrow]);
+  for (const ws of workScheds) {
+    const eid = ws.event_id;
+    for (const p of SCHED_PHASES) {
+      const dates = parseDateField(ws[`${p}_date`]);
+      const onT  = dates.includes(today);
+      const onTm = dates.includes(tomorrow);
+      if (!onT && !onTm) continue;
+      const kmNames = extractKmNames(ws[`${p}_km_staff`]);
+      if (onT) {
+        if (!staffToday[eid]) staffToday[eid] = { km: new Set(), free: new Set() };
+        kmNames.forEach(n => staffToday[eid].km.add(n));
+        extractFreelancerNames(ws[`${p}_freelancers`], todaySet).forEach(n => staffToday[eid].free.add(n));
+      }
+      if (onTm) {
+        if (!staffTomorrow[eid]) staffTomorrow[eid] = { km: new Set(), free: new Set() };
+        kmNames.forEach(n => staffTomorrow[eid].km.add(n));
+        extractFreelancerNames(ws[`${p}_freelancers`], tomorrowSet).forEach(n => staffTomorrow[eid].free.add(n));
+      }
+    }
+  }
+
+  const todayEventsStaff   = todayEvents.map(ev => ({ ...ev, km_staff: [...(staffToday[ev.id]?.km   || [])], freelancers: [...(staffToday[ev.id]?.free   || [])] }));
+  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, km_staff: [...(staffTomorrow[ev.id]?.km || [])], freelancers: [...(staffTomorrow[ev.id]?.free || [])] }));
+
+  res.json({ today, tomorrow, today_events: todayEvents, tomorrow_events: tomorrowEvents, today_events_staff: todayEventsStaff, tomorrow_events_staff: tomorrowEventsStaff, need_confirm: needConfirm, overdue, conflicts });
 });
 
 module.exports = router;
