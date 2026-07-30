@@ -34,12 +34,12 @@ function EventStaffCard({ ev, color }) {
       marginBottom: '8px',
       overflow: 'hidden',
     }}>
-      {/* Header sự kiện */}
+      {/* Header sự kiện — tên màu vàng */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 5px ${color}88` }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, color: '#e0e0ee', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+            <div style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.90rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
             <div style={{ fontSize: '0.70rem', color: '#555570', marginTop: '1px' }}>{ev.code}{ev.client ? ` · ${ev.client}` : ''}</div>
           </div>
         </div>
@@ -51,9 +51,9 @@ function EventStaffCard({ ev, color }) {
       {total === 0 ? (
         <div style={{ padding: '10px 14px', fontSize: '0.80rem', color: '#555570' }}>Chưa có nhân sự được phân lịch</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: kmStaff.length > 0 && freelancers.length > 0 ? '1fr 1fr' : '1fr', gap: 0 }}>
+        <div style={{ padding: '10px 14px' }}>
           {kmStaff.length > 0 && (
-            <div style={{ padding: '10px 14px', borderRight: freelancers.length > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+            <div style={{ marginBottom: freelancers.length > 0 ? '12px' : 0 }}>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#5b8bb5', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                 Khôi Minh · {kmStaff.length}
               </div>
@@ -61,7 +61,7 @@ function EventStaffCard({ ev, color }) {
             </div>
           )}
           {freelancers.length > 0 && (
-            <div style={{ padding: '10px 14px' }}>
+            <div>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#7c6fa0', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                 Freelancer · {freelancers.length}
               </div>
