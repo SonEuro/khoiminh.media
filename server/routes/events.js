@@ -411,7 +411,10 @@ router.post('/', canWrite, (req, res) => {
 
   const code = nextCode();
   const today = db.prepare("SELECT date('now','localtime') AS d").get().d;
-  const initialStatus = (startDate && startDate <= today) ? 'active' : 'planned';
+  const firstFilmDate = filmArr[0] || null;
+  const isActiveNow = (startDate && startDate <= today)
+    || (!startDate && firstFilmDate && firstFilmDate <= today && filmDate && filmDate >= today);
+  const initialStatus = isActiveNow ? 'active' : 'planned';
   const r = db.prepare(`
     INSERT INTO events (code, name, client, location, start_date, start_dates, end_date, end_dates, filming_date, filming_dates, show_date, show_dates, notes, status, created_by, created_by_id, departments)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -458,13 +461,15 @@ router.put('/:id', (req, res, next) => {
   const showDate2  = showArr2[0] || null;
   // Tính lại status từ ngày, không cho client ghi đè
   const today2 = db.prepare("SELECT date('now','localtime') AS d").get().d;
+  const firstFilm2 = filmArr2[0] || null;
   const newStatus2 = (() => {
     const currentStatus = ev.status;
     if (currentStatus === 'cancelled') return 'cancelled';
     if (filmDate2 && filmDate2 < today2) return 'completed';
     if (!filmDate2 && endDate2 && endDate2 < today2) return 'completed';
     if (startDate2 && startDate2 <= today2) return 'active';
-    if (!startDate2 && filmDate2 && filmDate2 === today2) return 'active';
+    // Đang ở giữa khoảng filming (firstFilm đã qua, lastFilm chưa qua)
+    if (!startDate2 && firstFilm2 && firstFilm2 <= today2 && filmDate2 && filmDate2 >= today2) return 'active';
     return 'planned';
   })();
   db.prepare(`
