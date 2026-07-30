@@ -21,7 +21,7 @@ function NameList({ names, color }) {
   );
 }
 
-function EventStaffCard({ ev, color }) {
+function EventStaffCard({ ev, color, date }) {
   const kmStaff     = ev.km_staff    || [];
   const freelancers = ev.freelancers || [];
   const total = kmStaff.length + freelancers.length;
@@ -40,7 +40,12 @@ function EventStaffCard({ ev, color }) {
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 5px ${color}88` }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.90rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
-            <div style={{ fontSize: '0.70rem', color: '#555570', marginTop: '1px' }}>{ev.code}{ev.client ? ` · ${ev.client}` : ''}</div>
+            <div style={{ fontSize: '0.70rem', color: '#7878a0', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '0 6px' }}>
+              {date && <span>{fmtD(date)}</span>}
+              {ev.start_time && <span>🕐 {ev.start_time}</span>}
+              {ev.location && <span>📍 {ev.location}</span>}
+              {ev.client && <span>👤 {ev.client}</span>}
+            </div>
           </div>
         </div>
         {total > 0 && (
@@ -88,7 +93,7 @@ function DaySection({ title, date, events, color }) {
           {events.length} sự kiện · {totalPeople} người
         </span>
       </div>
-      {events.map(ev => <EventStaffCard key={ev.id} ev={ev} color={color} />)}
+      {events.map(ev => <EventStaffCard key={ev.id} ev={ev} color={color} date={date} />)}
     </div>
   );
 }

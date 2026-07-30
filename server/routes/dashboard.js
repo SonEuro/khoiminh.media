@@ -250,7 +250,8 @@ router.get('/', (req, res) => {
     SELECT event_id,
       setup_date, teardown_date, rehearsal_date, filming_date,
       setup_km_staff, teardown_km_staff, rehearsal_km_staff, filming_km_staff,
-      setup_freelancers, teardown_freelancers, rehearsal_freelancers, filming_freelancers
+      setup_freelancers, teardown_freelancers, rehearsal_freelancers, filming_freelancers,
+      setup_start_times, teardown_start_times, rehearsal_start_times, filming_start_times
     FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL
   `).all();
 
@@ -264,21 +265,26 @@ router.get('/', (req, res) => {
       const onTm = dates.includes(tomorrow);
       if (!onT && !onTm) continue;
       const kmNames = extractKmNames(ws[`${p}_km_staff`]);
+      // Parse start_times map {date: "HH:MM"}
+      let stMap = {};
+      try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
       if (onT) {
-        if (!staffToday[eid]) staffToday[eid] = { km: new Set(), free: new Set() };
+        if (!staffToday[eid]) staffToday[eid] = { km: new Set(), free: new Set(), startTime: null };
         kmNames.forEach(n => staffToday[eid].km.add(n));
         extractFreelancerNames(ws[`${p}_freelancers`], todaySet).forEach(n => staffToday[eid].free.add(n));
+        if (!staffToday[eid].startTime && stMap[today]) staffToday[eid].startTime = stMap[today];
       }
       if (onTm) {
-        if (!staffTomorrow[eid]) staffTomorrow[eid] = { km: new Set(), free: new Set() };
+        if (!staffTomorrow[eid]) staffTomorrow[eid] = { km: new Set(), free: new Set(), startTime: null };
         kmNames.forEach(n => staffTomorrow[eid].km.add(n));
         extractFreelancerNames(ws[`${p}_freelancers`], tomorrowSet).forEach(n => staffTomorrow[eid].free.add(n));
+        if (!staffTomorrow[eid].startTime && stMap[tomorrow]) staffTomorrow[eid].startTime = stMap[tomorrow];
       }
     }
   }
 
-  const todayEventsStaff   = todayEvents.map(ev => ({ ...ev, km_staff: [...(staffToday[ev.id]?.km   || [])], freelancers: [...(staffToday[ev.id]?.free   || [])] }));
-  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, km_staff: [...(staffTomorrow[ev.id]?.km || [])], freelancers: [...(staffTomorrow[ev.id]?.free || [])] }));
+  const todayEventsStaff   = todayEvents.map(ev => ({ ...ev, km_staff: [...(staffToday[ev.id]?.km   || [])], freelancers: [...(staffToday[ev.id]?.free   || [])], start_time: staffToday[ev.id]?.startTime   || null }));
+  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, km_staff: [...(staffTomorrow[ev.id]?.km || [])], freelancers: [...(staffTomorrow[ev.id]?.free || [])], start_time: staffTomorrow[ev.id]?.startTime || null }));
 
   res.json({ today, tomorrow, today_events: todayEvents, tomorrow_events: tomorrowEvents, today_events_staff: todayEventsStaff, tomorrow_events_staff: tomorrowEventsStaff, need_confirm: needConfirm, overdue, conflicts });
 });
