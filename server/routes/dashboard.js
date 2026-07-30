@@ -333,10 +333,14 @@ router.get('/', (req, res) => {
     }
   }
   function serializeEntry(st) {
+    const supportNames = new Set(Object.keys(st?.support || {}));
     const kmByDept = {};
-    for (const [dept, s] of Object.entries(st?.kmByDept || {})) kmByDept[dept] = [...s];
+    for (const [dept, s] of Object.entries(st?.kmByDept || {})) {
+      const filtered = [...s].filter(n => !supportNames.has(n));
+      if (filtered.length) kmByDept[dept] = filtered;
+    }
     return {
-      km_staff: [...(st?.km || [])],
+      km_staff: [...(st?.km || [])].filter(n => !supportNames.has(n)),
       km_staff_by_dept: kmByDept,
       km_support: st?.support || {},
       freelancers: [...(st?.free || [])],
