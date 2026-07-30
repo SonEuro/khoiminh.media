@@ -62,6 +62,47 @@ function extractKmByDept(raw) {
   return {};
 }
 
+// Trích xuất km_staff cho đúng ngày — xử lý cả dạng date-indexed {date: [names]}/{date: {dept: [names]}} lẫn dept-indexed {dept: [names]}
+function extractKmByDeptForDate(raw, date) {
+  if (!raw) return {};
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v)) {
+      const names = v.filter(n => typeof n === 'string' && n);
+      return names.length ? { '': names } : {};
+    }
+    if (v && typeof v === 'object') {
+      const firstKey = Object.keys(v)[0] || '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(firstKey)) {
+        // Date-indexed — chỉ lấy đúng ngày cần
+        const dateVal = v[date];
+        if (!dateVal) return {};
+        if (Array.isArray(dateVal)) {
+          const names = dateVal.filter(n => typeof n === 'string' && n);
+          return names.length ? { '': names } : {};
+        }
+        if (typeof dateVal === 'object') {
+          const result = {};
+          for (const [dept, names] of Object.entries(dateVal)) {
+            const flat = Array.isArray(names) ? names.filter(n => typeof n === 'string' && n) : [];
+            if (flat.length) result[dept] = flat;
+          }
+          return result;
+        }
+        return {};
+      }
+      // Dept-indexed
+      const result = {};
+      for (const [dept, names] of Object.entries(v)) {
+        const flat = Array.isArray(names) ? names.filter(n => typeof n === 'string' && n) : [];
+        if (flat.length) result[dept] = flat;
+      }
+      return result;
+    }
+  } catch {}
+  return {};
+}
+
 // Ngày hiển thị (filming + show) — dùng cho label trên card
 const getFilmingDates = (ev) => {
   let dates = [];
@@ -314,8 +355,9 @@ router.get('/', (req, res) => {
         const key = `${date}::${eid}`;
         if (!staffByDateEvent[key]) staffByDateEvent[key] = initEntry();
         const entry = staffByDateEvent[key];
-        extractKmNames(ws[`${p}_km_staff`]).forEach(n => entry.km.add(n));
-        mergeByDept(entry.kmByDept, extractKmByDept(ws[`${p}_km_staff`]));
+        const byDept = extractKmByDeptForDate(ws[`${p}_km_staff`], date);
+        Object.values(byDept).flat().forEach(n => entry.km.add(n));
+        mergeByDept(entry.kmByDept, byDept);
         extractFreelancerNames(ws[`${p}_freelancers`], new Set([date])).forEach(n => entry.free.add(n));
         let stMap = {};
         try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
