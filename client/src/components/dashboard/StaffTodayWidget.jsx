@@ -8,27 +8,21 @@ function dayLabel(dateStr) {
   return `${DAY_NAMES[d.getDay()]}, ${fmtD(dateStr)}`;
 }
 
-function NameChip({ name, variant }) {
-  const isKm = variant === 'km';
+function NameList({ names, color }) {
   return (
-    <span style={{
-      display: 'inline-block',
-      padding: '3px 10px',
-      borderRadius: '20px',
-      fontSize: '0.78rem',
-      fontWeight: 600,
-      background: isKm ? 'rgba(96,165,250,0.12)' : 'rgba(167,139,250,0.10)',
-      color: isKm ? '#93c5fd' : '#c4b5fd',
-      border: `1px solid ${isKm ? 'rgba(96,165,250,0.25)' : 'rgba(167,139,250,0.22)'}`,
-      whiteSpace: 'nowrap',
-    }}>
-      {name}
-    </span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+      {names.map((n, i) => (
+        <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < names.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: color, flexShrink: 0, opacity: 0.7 }} />
+          <span style={{ fontSize: '0.83rem', color: '#ddddf0', fontWeight: 500 }}>{n}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
 function EventStaffCard({ ev, color }) {
-  const kmStaff    = ev.km_staff    || [];
+  const kmStaff     = ev.km_staff    || [];
   const freelancers = ev.freelancers || [];
   const total = kmStaff.length + freelancers.length;
 
@@ -37,49 +31,43 @@ function EventStaffCard({ ev, color }) {
       borderRadius: '8px',
       border: '1px solid rgba(255,255,255,0.07)',
       background: 'rgba(255,255,255,0.025)',
-      padding: '12px 14px',
       marginBottom: '8px',
+      overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: total > 0 ? '10px' : 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', minWidth: 0, flex: 1 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 5, boxShadow: `0 0 5px ${color}88` }} />
+      {/* Header sự kiện */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 5px ${color}88` }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 700, color: '#e0e0ee', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
-            <div style={{ fontSize: '0.72rem', color: '#555570', marginTop: '2px' }}>{ev.code}{ev.client ? ` · ${ev.client}` : ''}</div>
+            <div style={{ fontSize: '0.70rem', color: '#555570', marginTop: '1px' }}>{ev.code}{ev.client ? ` · ${ev.client}` : ''}</div>
           </div>
         </div>
         {total > 0 && (
-          <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0, marginLeft: '12px', marginTop: '3px' }}>
-            {total} người
-          </span>
+          <span style={{ fontSize: '0.75rem', color: '#7878a0', flexShrink: 0, marginLeft: '12px' }}>{total} người</span>
         )}
       </div>
 
-      {kmStaff.length > 0 && (
-        <div style={{ marginBottom: freelancers.length > 0 ? '8px' : 0 }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#5b8bb5', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '5px' }}>
-            Khôi Minh · {kmStaff.length} người
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {kmStaff.map(n => <NameChip key={n} name={n} variant="km" />)}
-          </div>
-        </div>
-      )}
-
-      {freelancers.length > 0 && (
-        <div>
-          <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#7c6fa0', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '5px' }}>
-            Freelancer · {freelancers.length} người
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {freelancers.map(n => <NameChip key={n} name={n} variant="free" />)}
-          </div>
-        </div>
-      )}
-
-      {total === 0 && (
-        <div style={{ fontSize: '0.80rem', color: '#555570', paddingLeft: '14px' }}>
-          Chưa có nhân sự được phân lịch
+      {total === 0 ? (
+        <div style={{ padding: '10px 14px', fontSize: '0.80rem', color: '#555570' }}>Chưa có nhân sự được phân lịch</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: kmStaff.length > 0 && freelancers.length > 0 ? '1fr 1fr' : '1fr', gap: 0 }}>
+          {kmStaff.length > 0 && (
+            <div style={{ padding: '10px 14px', borderRight: freelancers.length > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#5b8bb5', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                Khôi Minh · {kmStaff.length}
+              </div>
+              <NameList names={kmStaff} color="#93c5fd" />
+            </div>
+          )}
+          {freelancers.length > 0 && (
+            <div style={{ padding: '10px 14px' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#7c6fa0', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                Freelancer · {freelancers.length}
+              </div>
+              <NameList names={freelancers} color="#c4b5fd" />
+            </div>
+          )}
         </div>
       )}
     </div>
