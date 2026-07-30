@@ -324,6 +324,15 @@ if (!erCols.includes('timeline')) {
   }
 }
 
+// Migration: per-person allowances JSON
+{
+  const erCols5 = db.pragma('table_info(event_reports)').map(c => c.name);
+  if (!erCols5.includes('per_person_allowances')) {
+    db.exec("ALTER TABLE event_reports ADD COLUMN per_person_allowances TEXT DEFAULT NULL");
+    console.log('[DB] Migration: thêm cột per_person_allowances vào event_reports');
+  }
+}
+
 // Migration: thêm filming_dates, show_dates, show_date vào events nếu chưa có
 const eventCols = db.pragma('table_info(events)').map(c => c.name);
 if (!eventCols.includes('filming_dates')) {

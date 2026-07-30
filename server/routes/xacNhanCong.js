@@ -31,7 +31,8 @@ router.get('/', requireAuth, (req, res) => {
            no_lunch_break, no_afternoon_break, is_holiday,
            confirmed_at,
            has_com_sang, has_com_trua, has_com_chieu, has_com_toi, has_nuoc, has_taxi, taxi_amount,
-           xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note
+           xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note,
+           per_person_allowances
     FROM event_reports
     WHERE deleted_at IS NULL
       AND report_date LIKE ?
@@ -108,6 +109,7 @@ router.get('/', requireAuth, (req, res) => {
     reports: rows.map(r => ({
       ...r,
       km_staff: JSON.parse(r.km_staff || '[]'),
+      per_person_allowances: (() => { try { return JSON.parse(r.per_person_allowances || '{}'); } catch { return {}; } })(),
       leaders: r.event_id ? (leadMap[`${r.event_id}::${r.report_date}`] || []) : [],
     })),
     supportByDate,

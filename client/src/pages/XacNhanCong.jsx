@@ -101,6 +101,18 @@ function isMonthLocked(ym) {
   return today > lockDate;
 }
 
+// Per-person allowance helpers — fallback to flat report field for old data
+function getPA(r, name, field) {
+  const pa = r.per_person_allowances;
+  if (pa && name in pa) return pa[name]?.[field] || 0;
+  return r[field] || 0;
+}
+function getPANote(r, name, noteField) {
+  const pa = r.per_person_allowances;
+  if (pa && name in pa) return pa[name]?.[noteField] || '';
+  return r[noteField] || '';
+}
+
 // Build map: personName → [{ report, result }]
 function buildPersonMap(reports) {
   const map = {};
@@ -162,9 +174,10 @@ export default function XacNhanCong() {
   const [toggling, setToggling]     = useState(new Set());
   const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
   const [exporting, setExporting]   = useState(false);
-  const [editingRowId, setEditingRowId] = useState(null);
-  const [editRowData, setEditRowData]   = useState({});
-  const [savingRow, setSavingRow]       = useState(false);
+  const [editingRowId, setEditingRowId]         = useState(null);
+  const [editingPersonName, setEditingPersonName] = useState(null);
+  const [editRowData, setEditRowData]           = useState({});
+  const [savingRow, setSavingRow]               = useState(false);
 
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 768);
@@ -209,8 +222,9 @@ export default function XacNhanCong() {
     }
   }
 
-  function startEditRow(r) {
+  function startEditRow(r, name) {
     setEditingRowId(r.id);
+    setEditingPersonName(name);
     setEditRowData({
       time_present: r.time_present || '',
       time_end: r.time_end || '',
@@ -218,21 +232,22 @@ export default function XacNhanCong() {
       no_lunch_break: !!r.no_lunch_break,
       no_afternoon_break: !!r.no_afternoon_break,
       is_holiday: !!r.is_holiday,
-      xang_xe: r.xang_xe || '',
-      xang_xe_note: r.xang_xe_note || '',
-      tien_nuoc: r.tien_nuoc || '',
-      tien_nuoc_note: r.tien_nuoc_note || '',
-      giu_xe: r.giu_xe || '',
-      giu_xe_note: r.giu_xe_note || '',
-      phu_cap_khac: r.phu_cap_khac || '',
-      phu_cap_khac_note: r.phu_cap_khac_note || '',
+      xang_xe: getPA(r, name, 'xang_xe') || '',
+      xang_xe_note: getPANote(r, name, 'xang_xe_note') || '',
+      tien_nuoc: getPA(r, name, 'tien_nuoc') || '',
+      tien_nuoc_note: getPANote(r, name, 'tien_nuoc_note') || '',
+      giu_xe: getPA(r, name, 'giu_xe') || '',
+      giu_xe_note: getPANote(r, name, 'giu_xe_note') || '',
+      phu_cap_khac: getPA(r, name, 'phu_cap_khac') || '',
+      phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note') || '',
     });
   }
 
-  async function saveEditRow(r) {
+  async function saveEditRow(r, name) {
     setSavingRow(true);
     try {
-      const payload = {
+      // Save time/break fields to the report (shared across all people)
+      const timePayload = {
         ...r,
         km_staff: Array.isArray(r.km_staff) ? r.km_staff : [],
         images: Array.isArray(r.images) ? r.images : [],
@@ -243,6 +258,12 @@ export default function XacNhanCong() {
         no_lunch_break: editRowData.no_lunch_break ? 1 : 0,
         no_afternoon_break: editRowData.no_afternoon_break ? 1 : 0,
         is_holiday: editRowData.is_holiday ? 1 : 0,
+      };
+      await api.updateEventReport(r.id, timePayload);
+
+      // Save allowances per-person
+      const paRes = await api.updatePersonAllowance(r.id, {
+        person_name: name,
         xang_xe: parseInt(editRowData.xang_xe || '0', 10) || 0,
         xang_xe_note: editRowData.xang_xe_note || '',
         tien_nuoc: parseInt(editRowData.tien_nuoc || '0', 10) || 0,
@@ -251,13 +272,14 @@ export default function XacNhanCong() {
         giu_xe_note: editRowData.giu_xe_note || '',
         phu_cap_khac: parseInt(editRowData.phu_cap_khac || '0', 10) || 0,
         phu_cap_khac_note: editRowData.phu_cap_khac_note || '',
-      };
-      await api.updateEventReport(r.id, payload);
+      });
+
       setReports(prev => prev.map(rep => rep.id === r.id
-        ? { ...rep, ...payload }
+        ? { ...rep, ...timePayload, per_person_allowances: paRes.per_person_allowances }
         : rep
       ));
       setEditingRowId(null);
+      setEditingPersonName(null);
     } catch (e) {
       alert('Lỗi lưu: ' + (e.message || 'Không thể cập nhật'));
     } finally {
@@ -365,10 +387,10 @@ export default function XacNhanCong() {
           const ct   = entries.filter(({ report: r }) => r.has_com_trua).length;
           const cc   = entries.filter(({ report: r }) => r.has_com_chieu).length;  // C.Tối
           const ctoi = entries.filter(({ report: r }) => r.has_com_toi).length;    // C.Khuya
-          const xangXe      = entries.reduce((s, { report: r }) => s + (r.xang_xe      || 0), 0);
-          const tienNuoc    = entries.reduce((s, { report: r }) => s + (r.tien_nuoc    || 0), 0);
-          const giuXe       = entries.reduce((s, { report: r }) => s + (r.giu_xe       || 0), 0);
-          const phuCapKhac  = entries.reduce((s, { report: r }) => s + (r.phu_cap_khac || 0), 0);
+          const xangXe      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'xang_xe'), 0);
+          const tienNuoc    = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
+          const giuXe       = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
+          const phuCapKhac  = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '' };
@@ -380,10 +402,14 @@ export default function XacNhanCong() {
           for (const { report: rep } of entries) {
             const [, rm, rd] = (rep.report_date || '').split('-');
             const dd = rd && rm ? `${rd}/${rm}` : '';
-            if (rep.xang_xe_note?.trim())       ghiChuLines.push(`Xăng Xe: ${rep.xang_xe_note.trim()} (${dd})`);
-            if (rep.tien_nuoc_note?.trim())     ghiChuLines.push(`T.Nước: ${rep.tien_nuoc_note.trim()} (${dd})`);
-            if (rep.giu_xe_note?.trim())        ghiChuLines.push(`Giữ Xe: ${rep.giu_xe_note.trim()} (${dd})`);
-            if (rep.phu_cap_khac_note?.trim())  ghiChuLines.push(`PC Khác: ${rep.phu_cap_khac_note.trim()} (${dd})`);
+            const xzNote = getPANote(rep, name, 'xang_xe_note');
+            const tnNote = getPANote(rep, name, 'tien_nuoc_note');
+            const gxNote = getPANote(rep, name, 'giu_xe_note');
+            const pcNote = getPANote(rep, name, 'phu_cap_khac_note');
+            if (xzNote?.trim())  ghiChuLines.push(`Xăng Xe: ${xzNote.trim()} (${dd})`);
+            if (tnNote?.trim())  ghiChuLines.push(`T.Nước: ${tnNote.trim()} (${dd})`);
+            if (gxNote?.trim())  ghiChuLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
+            if (pcNote?.trim())  ghiChuLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
           }
           const ghiChu = ghiChuLines.join('\n');
           stt++;
@@ -536,7 +562,7 @@ export default function XacNhanCong() {
               result?.otMins > 0 ? parseFloat((result.otMins / 60).toFixed(2)) : '',
               yesNo(r.has_com_sang), yesNo(r.has_com_trua), yesNo(r.has_com_chieu),
               yesNo(r.has_com_toi), yesNo(r.has_nuoc),
-              r.xang_xe || '', r.tien_nuoc || '', r.giu_xe || '', r.phu_cap_khac || '',
+              getPA(r, name, 'xang_xe') || '', getPA(r, name, 'tien_nuoc') || '', getPA(r, name, 'giu_xe') || '', getPA(r, name, 'phu_cap_khac') || '',
             ]);
             row2.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
             row2.getCell(2).alignment = { horizontal: 'left' };
@@ -608,10 +634,10 @@ export default function XacNhanCong() {
         const ct       = entries.filter(({ report: r }) => r.has_com_trua).length;
         const cc       = entries.filter(({ report: r }) => r.has_com_chieu).length;
         const ctoi     = entries.filter(({ report: r }) => r.has_com_toi).length;
-        const xangXe     = entries.reduce((s, { report: r }) => s + (r.xang_xe      || 0), 0);
-        const tienNuoc   = entries.reduce((s, { report: r }) => s + (r.tien_nuoc    || 0), 0);
-        const giuXe      = entries.reduce((s, { report: r }) => s + (r.giu_xe       || 0), 0);
-        const phuCapKhac = entries.reduce((s, { report: r }) => s + (r.phu_cap_khac || 0), 0);
+        const xangXe     = entries.reduce((s, { report: r }) => s + getPA(r, name, 'xang_xe'), 0);
+        const tienNuoc   = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
+        const giuXe      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
+        const phuCapKhac = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
         const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '' };
         const totalTien = (sal.lcb || 0) + sal.lnc * cong + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
@@ -619,10 +645,14 @@ export default function XacNhanCong() {
         for (const { report: rep } of entries) {
           const [, rm, rd] = (rep.report_date || '').split('-');
           const dd = rd && rm ? `${rd}/${rm}` : '';
-          if (rep.xang_xe_note?.trim())       ghiChuPdfLines.push(`Xăng Xe: ${rep.xang_xe_note.trim()} (${dd})`);
-          if (rep.tien_nuoc_note?.trim())     ghiChuPdfLines.push(`T.Nước: ${rep.tien_nuoc_note.trim()} (${dd})`);
-          if (rep.giu_xe_note?.trim())        ghiChuPdfLines.push(`Giữ Xe: ${rep.giu_xe_note.trim()} (${dd})`);
-          if (rep.phu_cap_khac_note?.trim())  ghiChuPdfLines.push(`PC Khác: ${rep.phu_cap_khac_note.trim()} (${dd})`);
+          const xzNote = getPANote(rep, name, 'xang_xe_note');
+          const tnNote = getPANote(rep, name, 'tien_nuoc_note');
+          const gxNote = getPANote(rep, name, 'giu_xe_note');
+          const pcNote = getPANote(rep, name, 'phu_cap_khac_note');
+          if (xzNote?.trim())  ghiChuPdfLines.push(`Xăng Xe: ${xzNote.trim()} (${dd})`);
+          if (tnNote?.trim())  ghiChuPdfLines.push(`T.Nước: ${tnNote.trim()} (${dd})`);
+          if (gxNote?.trim())  ghiChuPdfLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
+          if (pcNote?.trim())  ghiChuPdfLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
         }
         const ghiChu = ghiChuPdfLines.join('<br>');
         stt++; hasDept = true;
@@ -917,7 +947,7 @@ ${rows.map(renderRow).join('\n')}
                                             </div>
                                           )}
                                           <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button disabled={savingRow} onClick={() => saveEditRow(r)}
+                                            <button disabled={savingRow} onClick={() => saveEditRow(r, name)}
                                               style={{ padding: '4px 16px', borderRadius: '6px', border: 'none', cursor: savingRow ? 'wait' : 'pointer', fontSize: '0.78rem', fontWeight: 700, background: 'rgba(201,168,76,0.25)', color: GOLD }}>
                                               {savingRow ? 'Đang lưu...' : 'Lưu'}
                                             </button>
@@ -961,7 +991,7 @@ ${rows.map(renderRow).join('\n')}
                                               </button>
                                             )}
                                             {canSuaCong && (
-                                              <button onClick={e => { e.stopPropagation(); startEditRow(r); }}
+                                              <button onClick={e => { e.stopPropagation(); startEditRow(r, name); }}
                                                 style={{ marginLeft: 'auto', padding: '1px 10px', borderRadius: '5px', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer', fontSize: '0.70rem', fontWeight: 700, background: 'rgba(201,168,76,0.08)', color: GOLD, flexShrink: 0 }}>
                                                 Sửa Công
                                               </button>
@@ -1065,11 +1095,11 @@ ${rows.map(renderRow).join('\n')}
                                             <td style={{ ...dtd, textAlign: 'center', whiteSpace: 'nowrap' }}>
                                               {isEditing ? (
                                                 <div style={{ display: 'flex', gap: '4px' }}>
-                                                  <button disabled={savingRow} onClick={() => saveEditRow(r)} style={{ padding: '2px 10px', borderRadius: '4px', border: 'none', cursor: savingRow ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.25)', color: GOLD }}>{savingRow ? '...' : 'Lưu'}</button>
+                                                  <button disabled={savingRow} onClick={() => saveEditRow(r, name)} style={{ padding: '2px 10px', borderRadius: '4px', border: 'none', cursor: savingRow ? 'wait' : 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.25)', color: GOLD }}>{savingRow ? '...' : 'Lưu'}</button>
                                                   <button disabled={savingRow} onClick={() => setEditingRowId(null)} style={{ padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontSize: '0.72rem', background: 'transparent', color: '#7878a0' }}>Hủy</button>
                                                 </div>
                                               ) : (
-                                                <button onClick={() => startEditRow(r)} style={{ padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.08)', color: GOLD }}>Sửa</button>
+                                                <button onClick={() => startEditRow(r, name)} style={{ padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, background: 'rgba(201,168,76,0.08)', color: GOLD }}>Sửa</button>
                                               )}
                                             </td>
                                           )}
