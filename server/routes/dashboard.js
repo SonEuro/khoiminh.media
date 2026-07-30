@@ -42,6 +42,26 @@ function extractFreelancerNames(raw, dateSet) {
   return raw.split(',').map(n => n.trim()).filter(Boolean);
 }
 
+function extractKmByDept(raw) {
+  if (!raw) return {};
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v)) {
+      const names = v.filter(n => typeof n === 'string' && n);
+      return names.length ? { '': names } : {};
+    }
+    if (v && typeof v === 'object') {
+      const result = {};
+      for (const [dept, names] of Object.entries(v)) {
+        const flat = Array.isArray(names) ? names.filter(n => typeof n === 'string' && n) : [];
+        if (flat.length) result[dept] = flat;
+      }
+      return result;
+    }
+  } catch {}
+  return {};
+}
+
 // Ngày hiển thị (filming + show) — dùng cho label trên card
 const getFilmingDates = (ev) => {
   let dates = [];
@@ -251,12 +271,22 @@ router.get('/', (req, res) => {
       setup_date, teardown_date, rehearsal_date, filming_date,
       setup_km_staff, teardown_km_staff, rehearsal_km_staff, filming_km_staff,
       setup_freelancers, teardown_freelancers, rehearsal_freelancers, filming_freelancers,
-      setup_start_times, teardown_start_times, rehearsal_start_times, filming_start_times
+      setup_start_times, teardown_start_times, rehearsal_start_times, filming_start_times,
+      setup_km_support, teardown_km_support, rehearsal_km_support, filming_km_support
     FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL
   `).all();
 
   const staffToday = {}, staffTomorrow = {};
   const todaySet = new Set([today]), tomorrowSet = new Set([tomorrow]);
+
+  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null }; }
+  function mergeByDept(byDept, incoming) {
+    for (const [dept, names] of Object.entries(incoming)) {
+      if (!byDept[dept]) byDept[dept] = new Set();
+      names.forEach(n => byDept[dept].add(n));
+    }
+  }
+
   for (const ws of workScheds) {
     const eid = ws.event_id;
     for (const p of SCHED_PHASES) {
@@ -264,27 +294,46 @@ router.get('/', (req, res) => {
       const onT  = dates.includes(today);
       const onTm = dates.includes(tomorrow);
       if (!onT && !onTm) continue;
-      const kmNames = extractKmNames(ws[`${p}_km_staff`]);
-      // Parse start_times map {date: "HH:MM"}
-      let stMap = {};
+      const kmNames  = extractKmNames(ws[`${p}_km_staff`]);
+      const byDept   = extractKmByDept(ws[`${p}_km_staff`]);
+      let stMap = {}, supMap = {};
       try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
+      try { supMap = JSON.parse(ws[`${p}_km_support`]  || '{}'); } catch {}
       if (onT) {
-        if (!staffToday[eid]) staffToday[eid] = { km: new Set(), free: new Set(), startTime: null };
+        if (!staffToday[eid]) staffToday[eid] = initEntry();
         kmNames.forEach(n => staffToday[eid].km.add(n));
+        mergeByDept(staffToday[eid].kmByDept, byDept);
         extractFreelancerNames(ws[`${p}_freelancers`], todaySet).forEach(n => staffToday[eid].free.add(n));
         if (!staffToday[eid].startTime && typeof stMap[today] === 'string') staffToday[eid].startTime = stMap[today];
+        const sup = supMap[today];
+        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(staffToday[eid].support, sup);
       }
       if (onTm) {
-        if (!staffTomorrow[eid]) staffTomorrow[eid] = { km: new Set(), free: new Set(), startTime: null };
+        if (!staffTomorrow[eid]) staffTomorrow[eid] = initEntry();
         kmNames.forEach(n => staffTomorrow[eid].km.add(n));
+        mergeByDept(staffTomorrow[eid].kmByDept, byDept);
         extractFreelancerNames(ws[`${p}_freelancers`], tomorrowSet).forEach(n => staffTomorrow[eid].free.add(n));
         if (!staffTomorrow[eid].startTime && typeof stMap[tomorrow] === 'string') staffTomorrow[eid].startTime = stMap[tomorrow];
+        const sup = supMap[tomorrow];
+        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(staffTomorrow[eid].support, sup);
       }
     }
   }
 
-  const todayEventsStaff   = todayEvents.map(ev => ({ ...ev, km_staff: [...(staffToday[ev.id]?.km   || [])], freelancers: [...(staffToday[ev.id]?.free   || [])], start_time: staffToday[ev.id]?.startTime   || null }));
-  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, km_staff: [...(staffTomorrow[ev.id]?.km || [])], freelancers: [...(staffTomorrow[ev.id]?.free || [])], start_time: staffTomorrow[ev.id]?.startTime || null }));
+  function serializeEntry(st) {
+    const kmByDept = {};
+    for (const [dept, s] of Object.entries(st?.kmByDept || {})) kmByDept[dept] = [...s];
+    return {
+      km_staff: [...(st?.km || [])],
+      km_staff_by_dept: kmByDept,
+      km_support: st?.support || {},
+      freelancers: [...(st?.free || [])],
+      start_time: st?.startTime || null,
+    };
+  }
+
+  const todayEventsStaff    = todayEvents.map(ev => ({ ...ev, ...serializeEntry(staffToday[ev.id]) }));
+  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, ...serializeEntry(staffTomorrow[ev.id]) }));
 
   res.json({ today, tomorrow, today_events: todayEvents, tomorrow_events: tomorrowEvents, today_events_staff: todayEventsStaff, tomorrow_events_staff: tomorrowEventsStaff, need_confirm: needConfirm, overdue, conflicts });
 });
