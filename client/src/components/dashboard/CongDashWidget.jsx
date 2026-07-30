@@ -64,12 +64,14 @@ export default function CongDashWidget({ user }) {
         : name === myName;
       if (!belongsToMe) continue;
       memberSet.add(name);
-      totalCong += res.congRate;
+      const paOv = r.per_person_allowances?.[name]?.cong_override;
+      const effCong = (paOv != null && paOv !== '') ? Number(paOv) : res.congRate;
+      totalCong += effCong;
       totalOT += res.otHours;
     }
   }
 
-  const [mm, yy] = currentMonth.split('-');
+  const [yy, mm] = currentMonth.split('-');
   const label = `Tháng ${parseInt(mm, 10)}/${yy}`;
 
   const personSummary = {};
@@ -83,7 +85,8 @@ export default function CongDashWidget({ user }) {
         : name === myName;
       if (!belongsToMe) continue;
       if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0, leader: 0 };
-      personSummary[name].cong += res.congRate;
+      const paOv2 = r.per_person_allowances?.[name]?.cong_override;
+      personSummary[name].cong += (paOv2 != null && paOv2 !== '') ? Number(paOv2) : res.congRate;
       personSummary[name].ot  += res.otHours;
       personSummary[name].buoi++;
       const isLeader = (() => {

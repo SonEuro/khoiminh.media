@@ -423,7 +423,7 @@ export default function XacNhanCong() {
           const lncBase = sal.luong_theo_thang ? daysInMonth : cong;
           const salaryPart = (sal.lcb || 0) + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
-          if (!daysWorked && !cong) continue;
+          if (!sal.luong_theo_thang && !daysWorked && !cong) continue;
           // Build ghi chú từ notes của từng ca
           const ghiChuLines = [];
           for (const { report: rep } of entries) {
@@ -452,11 +452,14 @@ export default function XacNhanCong() {
           ]);
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
-          // Công thức col V: LCB + LNC×Công + LOT×OT + Leader(₫) + C.Sáng×40k + C.Trưa×30k + C.Tối×30k + C.Khuya×40k + Xăng + T.Nước + Giữ Xe + PC Khác − Phạt
-          row.getCell(21).value = {
-            formula: `=N(E${r})+N(F${r})*N(I${r})+N(G${r})*N(J${r})+N(K${r})+N(L${r})*40000+N(M${r})*30000+N(N${r})*30000+N(O${r})*40000+N(P${r})+N(Q${r})+N(R${r})+N(S${r})-N(T${r})`,
-            result: totalTien,
-          };
+          // Công thức col U: LCB + LNC×Công/Ngày + LOT×OT + Leader(₫) + phụ cấp − Phạt
+          // luong_theo_thang: dùng giá trị tĩnh vì công thức Excel cần col H (Ngày) thay vì I (Công)
+          row.getCell(21).value = sal.luong_theo_thang
+            ? totalTien
+            : {
+                formula: `=N(E${r})+N(F${r})*N(I${r})+N(G${r})*N(J${r})+N(K${r})+N(L${r})*40000+N(M${r})*30000+N(N${r})*30000+N(O${r})*40000+N(P${r})+N(Q${r})+N(R${r})+N(S${r})-N(T${r})`,
+                result: totalTien,
+              };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(6).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; }
@@ -650,7 +653,8 @@ export default function XacNhanCong() {
         const entries = personMap[name] || [];
         const { cong, ot } = personTotals(entries, name);
         const daysWorkedPdf = entries.filter(e => e.result).length;
-        if (!daysWorkedPdf && !cong) continue;
+        const salPre = salaryByName[name] || { luong_theo_thang: 0 };
+        if (!salPre.luong_theo_thang && !daysWorkedPdf && !cong) continue;
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
         const leaders = entries.reduce((sum, { report: r }) => {
           const autoLeader = (r.leaders || []).includes(name) && (() => {
