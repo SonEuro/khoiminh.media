@@ -166,12 +166,12 @@ router.patch('/:id/person-allowance', requireAuth, (req, res) => {
   const report = db.prepare('SELECT id, per_person_allowances FROM event_reports WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
 
-  const { person_name, xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note } = req.body;
+  const { person_name, xang_xe, xang_xe_note, tien_nuoc, tien_nuoc_note, giu_xe, giu_xe_note, phu_cap_khac, phu_cap_khac_note, leader_override, cong_override } = req.body;
   if (!person_name?.trim()) return res.status(400).json({ error: 'Thiếu tên nhân viên' });
 
   let pa = {};
   try { pa = JSON.parse(report.per_person_allowances || '{}'); } catch {}
-  pa[person_name] = {
+  const entry = {
     xang_xe:          parseInt(xang_xe      || '0', 10) || 0,
     xang_xe_note:     xang_xe_note     || '',
     tien_nuoc:        parseInt(tien_nuoc    || '0', 10) || 0,
@@ -181,6 +181,10 @@ router.patch('/:id/person-allowance', requireAuth, (req, res) => {
     phu_cap_khac:     parseInt(phu_cap_khac || '0', 10) || 0,
     phu_cap_khac_note:phu_cap_khac_note|| '',
   };
+  // leader_override/cong_override: null = tự tính, số = override thủ công
+  if (leader_override !== undefined) entry.leader_override = leader_override === '' ? null : (parseInt(leader_override, 10) >= 0 ? parseInt(leader_override, 10) : null);
+  if (cong_override   !== undefined) entry.cong_override   = cong_override   === '' ? null : (parseFloat(cong_override) >= 0   ? parseFloat(cong_override)   : null);
+  pa[person_name] = entry;
   const updated = JSON.stringify(pa);
   db.prepare('UPDATE event_reports SET per_person_allowances = ? WHERE id = ?').run(updated, report.id);
   res.json({ ok: true, per_person_allowances: pa });

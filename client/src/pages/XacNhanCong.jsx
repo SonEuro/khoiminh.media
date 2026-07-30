@@ -101,7 +101,7 @@ function isMonthLocked(ym) {
   return today > lockDate;
 }
 
-// Per-person allowance helpers — trả 0/'nếu chưa có entry riêng (không fallback flat)
+// Per-person allowance helpers — trả 0/'' nếu chưa có entry riêng (không fallback flat)
 function getPA(r, name, field) {
   const pa = r.per_person_allowances;
   if (pa && name in pa) return pa[name]?.[field] || 0;
@@ -111,6 +111,23 @@ function getPANote(r, name, noteField) {
   const pa = r.per_person_allowances;
   if (pa && name in pa) return pa[name]?.[noteField] || '';
   return '';
+}
+// Override công/leader per-person: null → tự tính, số → dùng override
+function getPersonCong(r, name, result) {
+  const pa = r.per_person_allowances;
+  if (pa && name in pa) {
+    const ov = pa[name]?.cong_override;
+    if (ov !== null && ov !== undefined && ov !== '') return Number(ov);
+  }
+  return result?.congRate || 0;
+}
+function getPersonLeader(r, name, autoIsLeader) {
+  const pa = r.per_person_allowances;
+  if (pa && name in pa) {
+    const ov = pa[name]?.leader_override;
+    if (ov !== null && ov !== undefined && ov !== '') return Number(ov);
+  }
+  return autoIsLeader ? 1 : 0;
 }
 
 // Build map: personName → [{ report, result }]
@@ -129,10 +146,13 @@ function buildPersonMap(reports) {
 }
 
 // Aggregate totals for a person (each session counted independently)
-function personTotals(entries) {
+function personTotals(entries, name) {
   let cong = 0, ot = 0;
-  for (const { result } of entries) {
-    if (result) { cong += result.congRate; ot += result.otHours; }
+  for (const { report: r, result } of entries) {
+    if (result) {
+      cong += name ? getPersonCong(r, name, result) : result.congRate;
+      ot += result.otHours;
+    }
   }
   return { cong, ot };
 }
@@ -240,6 +260,8 @@ export default function XacNhanCong() {
       giu_xe_note: getPANote(r, name, 'giu_xe_note'),
       phu_cap_khac: getPA(r, name, 'phu_cap_khac') || '',
       phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note'),
+      leader_override: (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.leader_override; return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
+      cong_override:   (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.cong_override;   return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
     });
   }
 
@@ -272,6 +294,8 @@ export default function XacNhanCong() {
         giu_xe_note: editRowData.giu_xe_note || '',
         phu_cap_khac: parseInt(editRowData.phu_cap_khac || '0', 10) || 0,
         phu_cap_khac_note: editRowData.phu_cap_khac_note || '',
+        leader_override: editRowData.leader_override,
+        cong_override:   editRowData.cong_override,
       });
 
       setReports(prev => prev.map(rep => rep.id === r.id
@@ -300,7 +324,7 @@ export default function XacNhanCong() {
   const visibleMemberSet = new Set(visibleGroups.flatMap(g => g.members));
   for (const [name, es] of Object.entries(personMap)) {
     if (!canViewAll && !visibleMemberSet.has(name)) continue;
-    const t = personTotals(es);
+    const t = personTotals(es, name);
     grandCong += t.cong; grandOT += t.ot;
   }
 
@@ -372,16 +396,18 @@ export default function XacNhanCong() {
 
         for (const name of deptMembers) {
           const entries = personMap[name] || [];
-          const { cong, ot } = personTotals(entries);
+          const { cong, ot } = personTotals(entries, name);
           const days = entries.filter(e => e.result).length;
           const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
-          const leaders = entries.filter(({ report: r }) => {
-            if (!(r.leaders || []).includes(name)) return false;
-            const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-            if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
-            if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
-            return false;
-          }).length;
+          const leaders = entries.reduce((sum, { report: r }) => {
+            const autoLeader = (r.leaders || []).includes(name) && (() => {
+              const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+              if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
+              if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
+              return false;
+            })();
+            return sum + getPersonLeader(r, name, autoLeader);
+          }, 0);
           const leaderAmt = leaders * leaderRate;
           const cs   = entries.filter(({ report: r }) => r.has_com_sang).length;
           const ct   = entries.filter(({ report: r }) => r.has_com_trua).length;
@@ -618,17 +644,19 @@ export default function XacNhanCong() {
 
       for (const name of deptMembers) {
         const entries = personMap[name] || [];
-        const { cong, ot } = personTotals(entries);
+        const { cong, ot } = personTotals(entries, name);
         const days = entries.filter(e => e.result).length;
         if (!days && !cong) continue;
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
-        const leaders = entries.filter(({ report: r }) => {
-          if (!(r.leaders || []).includes(name)) return false;
-          const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-          if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
-          if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
-          return false;
-        }).length;
+        const leaders = entries.reduce((sum, { report: r }) => {
+          const autoLeader = (r.leaders || []).includes(name) && (() => {
+            const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+            if (g.dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
+            if (g.dept === 'ATAS-LED' || g.dept === 'Kỹ Thuật') return phase === 'filming';
+            return false;
+          })();
+          return sum + getPersonLeader(r, name, autoLeader);
+        }, 0);
         const leaderAmt = leaders * leaderRate;
         const cs       = entries.filter(({ report: r }) => r.has_com_sang).length;
         const ct       = entries.filter(({ report: r }) => r.has_com_trua).length;
@@ -777,7 +805,7 @@ ${rows.map(renderRow).join('\n')}
         // Dept totals
         let deptCong = 0, deptOT = 0;
         for (const name of members) {
-          const { cong, ot } = personTotals(personMap[name] || []);
+          const { cong, ot } = personTotals(personMap[name] || [], name);
           deptCong += cong; deptOT += ot;
         }
 
@@ -814,15 +842,17 @@ ${rows.map(renderRow).join('\n')}
               <tbody>
                 {filteredMembers.map(name => {
                   const entries = personMap[name] || [];
-                  const { cong, ot } = personTotals(entries);
+                  const { cong, ot } = personTotals(entries, name);
                   const confirmedCount = entries.filter(e => e.result).length;
-                  const leaderCount = entries.filter(({ report: r }) => {
-                    if (!(r.leaders || []).includes(name)) return false;
-                    const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-                    if (dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
-                    if (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') return phase === 'filming';
-                    return false;
-                  }).length;
+                  const leaderCount = entries.reduce((sum, { report: r }) => {
+                    const autoLeader = (r.leaders || []).includes(name) && (() => {
+                      const phase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
+                      if (dept === 'Sân Khấu') return phase === 'setup' || phase === 'rehearsal';
+                      if (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') return phase === 'filming';
+                      return false;
+                    })();
+                    return sum + getPersonLeader(r, name, autoLeader);
+                  }, 0);
                   const isExp = expanded.has(name);
                   const hasData = entries.length > 0;
                   const sortedEntries = [...entries].sort((a, b) => b.report.report_date.localeCompare(a.report.report_date));
@@ -924,6 +954,17 @@ ${rows.map(renderRow).join('\n')}
                                             ))}
                                           </div>
                                           <div style={{ marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '0.63rem', color: GOLD, fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Công &amp; Leader</div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                              <div>
+                                                <div style={{ fontSize: '0.63rem', color: '#9898b8', marginBottom: '3px' }}>Công (để trống = tự tính)</div>
+                                                <input type="number" step="0.5" min="0" placeholder={preview ? String(preview.congRate) : 'Tự tính'} value={ed.cong_override} onChange={e => setEditRowData(d => ({ ...d, cong_override: e.target.value }))} style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '4px', color: '#eeeef5', padding: '3px 6px', fontSize: '0.76rem', outline: 'none', boxSizing: 'border-box' }} />
+                                              </div>
+                                              <div>
+                                                <div style={{ fontSize: '0.63rem', color: '#9898b8', marginBottom: '3px' }}>Leader (để trống = tự tính)</div>
+                                                <input type="number" min="0" placeholder="Tự tính" value={ed.leader_override} onChange={e => setEditRowData(d => ({ ...d, leader_override: e.target.value }))} style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '4px', color: '#eeeef5', padding: '3px 6px', fontSize: '0.76rem', outline: 'none', boxSizing: 'border-box' }} />
+                                              </div>
+                                            </div>
                                             <div style={{ fontSize: '0.63rem', color: GOLD, fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phụ Cấp</div>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                                               {[
@@ -1033,11 +1074,13 @@ ${rows.map(renderRow).join('\n')}
                                       const dtd = { padding: '5px 7px', fontSize: '0.75rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
                                       const dtInp = { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: '4px', color: '#eeeef5', padding: '2px 4px', fontSize: '0.73rem', width: '90px', outline: 'none' };
                                       const rPhase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-                                      const isLeaderRow = (r.leaders || []).includes(name) && (
+                                      const autoIsLeaderRow = (r.leaders || []).includes(name) && (
                                         dept === 'Sân Khấu' ? (rPhase === 'setup' || rPhase === 'rehearsal') :
                                         (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') ? rPhase === 'filming' :
                                         false
                                       );
+                                      const leaderRowVal = getPersonLeader(r, name, autoIsLeaderRow);
+                                      const isLeaderRow = leaderRowVal > 0;
                                       const mainRow = (
                                         <tr key={r.id} style={{ background: isEditing ? 'rgba(201,168,76,0.04)' : isHol ? 'rgba(248,113,113,0.04)' : isSun ? 'rgba(96,165,250,0.04)' : undefined }}>
                                           <td style={dtd}>
@@ -1049,7 +1092,7 @@ ${rows.map(renderRow).join('\n')}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
                                             <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isLeaderRow ? GOLD : '#4a4a6a' }}>
-                                              {isLeaderRow ? '1' : '—'}
+                                              {isLeaderRow ? leaderRowVal : '—'}
                                             </span>
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center' }}>
@@ -1086,7 +1129,9 @@ ${rows.map(renderRow).join('\n')}
                                             {(isEditing ? preview : result) ? fmtMins(Math.max(0, (isEditing ? preview : result).effectiveMins)) : '—'}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: (isEditing ? preview?.isHoliday : isHol) ? '#f87171' : (isEditing ? preview?.isSunday : isSun) ? '#60a5fa' : (isEditing ? preview?.isAfternoon : isAft) ? '#9898b8' : GOLD }}>
-                                            {(isEditing ? preview : result) ? fmtNum((isEditing ? preview : result).congRate) : '—'}
+                                            {isEditing
+                                              ? (ed.cong_override !== '' ? fmtNum(Number(ed.cong_override)) : (preview ? fmtNum(preview.congRate) : '—'))
+                                              : (() => { const co = getPersonCong(r, name, result); return result ? fmtNum(co) : '—'; })()}
                                           </td>
                                           <td style={{ ...dtd, textAlign: 'center', fontVariantNumeric: 'tabular-nums', color: (isEditing ? preview : result)?.otHours > 0 ? '#60a5fa' : '#7878a0' }}>
                                             {(isEditing ? preview : result)?.otMins > 0 ? fmtMins((isEditing ? preview : result).otMins) : '—'}
@@ -1112,6 +1157,17 @@ ${rows.map(renderRow).join('\n')}
                                         mainRow,
                                         <tr key={`${r.id}-pc`}>
                                           <td colSpan={canSuaCong ? 13 : 12} style={{ padding: '10px 14px', background: 'rgba(201,168,76,0.03)', borderBottom: '2px solid rgba(201,168,76,0.15)' }}>
+                                            <div style={{ fontSize: '0.65rem', color: GOLD, fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Công &amp; Leader</div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', marginBottom: '10px' }}>
+                                              <div>
+                                                <div style={{ fontSize: '0.65rem', color: '#9898b8', marginBottom: '4px' }}>Công (để trống = tự tính)</div>
+                                                <input type="number" step="0.5" min="0" placeholder={preview ? String(preview.congRate) : 'Tự tính'} value={ed.cong_override} onChange={e => setEditRowData(d => ({ ...d, cong_override: e.target.value }))} style={pcInpStyle} />
+                                              </div>
+                                              <div>
+                                                <div style={{ fontSize: '0.65rem', color: '#9898b8', marginBottom: '4px' }}>Leader (để trống = tự tính)</div>
+                                                <input type="number" min="0" placeholder="Tự tính" value={ed.leader_override} onChange={e => setEditRowData(d => ({ ...d, leader_override: e.target.value }))} style={pcInpStyle} />
+                                              </div>
+                                            </div>
                                             <div style={{ fontSize: '0.65rem', color: GOLD, fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phụ Cấp</div>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                                               {[
