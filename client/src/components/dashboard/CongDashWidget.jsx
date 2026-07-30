@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { GOLD } from './dashShared';
+import { useStaffGroups } from '../../contexts/StaffGroupsContext';
 
 const ROLE_TO_KM_DEPT_DASH = {
   ATAS: 'ATAS-LED', STAGE: 'Sân Khấu', TECHNICAL: 'Kỹ Thuật',
@@ -27,7 +28,8 @@ function calcCongDash(r) {
 
 function fmtNumD(n) { return n % 1 === 0 ? String(n) : parseFloat(n.toFixed(2)).toString(); }
 
-export default function CongDashWidget({ user, kmStaffGroups }) {
+export default function CongDashWidget({ user }) {
+  const { kmGroupsRaw: kmStaffGroups } = useStaffGroups();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [phaseDateMap, setPhaseDateMap] = useState({});

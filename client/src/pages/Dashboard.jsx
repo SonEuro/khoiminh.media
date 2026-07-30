@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { KM_STAFF_GROUPS } from '../constants/staff';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import AdminDashboard from '../components/dashboard/AdminDashboard';
@@ -51,7 +50,7 @@ export default function Dashboard() {
       ) : (
         <AdminDashboard dash={dash} events={events} violations={violations} lockedObs={lockedObs} myObs={myObs} onConfirmed={load} userName={user?.full_name || ''} user={user} />
       )}
-      <CongDashWidget user={user} kmStaffGroups={KM_STAFF_GROUPS} />
+      <CongDashWidget user={user} />
     </div>
   );
 }
