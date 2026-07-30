@@ -1342,23 +1342,7 @@ export default function EventReport() {
   async function handleImageFiles(files) {
     setUploadingImg(true);
     try {
-      const token = localStorage.getItem('km_token');
-      const results = await Promise.all(Array.from(files).map(async f => {
-        try {
-          const fd = new FormData();
-          fd.append('image', f);
-          const res = await fetch('/api/upload-image', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: fd,
-          });
-          if (!res.ok) throw new Error('Upload thất bại');
-          const { url } = await res.json();
-          return url;
-        } catch {
-          return resizeImage(f);
-        }
-      }));
+      const results = await Promise.all(Array.from(files).map(f => resizeImage(f)));
       setField('images', [...form.images, ...results]);
     } finally {
       setUploadingImg(false);
