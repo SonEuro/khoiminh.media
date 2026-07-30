@@ -317,11 +317,11 @@ export default function XacNhanCong() {
 
   const lowerFilter = filterName.trim().toLowerCase();
 
-  // Department totals for the month
+  // Department totals for the month — only count members in visibleGroups (matches Excel)
   let grandCong = 0, grandOT = 0;
   const visibleMemberSet = new Set(visibleGroups.flatMap(g => g.members));
   for (const [name, es] of Object.entries(personMap)) {
-    if (!canViewAll && !visibleMemberSet.has(name)) continue;
+    if (!visibleMemberSet.has(name)) continue;
     const t = personTotals(es, name);
     grandCong += t.cong; grandOT += t.ot;
   }
