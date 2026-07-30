@@ -396,7 +396,7 @@ export default function XacNhanCong() {
         for (const name of deptMembers) {
           const entries = personMap[name] || [];
           const { cong, ot } = personTotals(entries, name);
-          const days = entries.filter(e => e.result).length;
+          const daysWorked = entries.filter(e => e.result).length;
           const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
           const leaders = entries.reduce((sum, { report: r }) => {
             const autoLeader = (r.leaders || []).includes(name) && (() => {
@@ -419,10 +419,11 @@ export default function XacNhanCong() {
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0 };
+          const days = sal.luong_theo_thang ? daysInMonth : daysWorked;
           const lncBase = sal.luong_theo_thang ? daysInMonth : cong;
           const salaryPart = (sal.lcb || 0) + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
-          if (!days && !cong) continue;
+          if (!daysWorked && !cong) continue;
           // Build ghi chú từ notes của từng ca
           const ghiChuLines = [];
           for (const { report: rep } of entries) {
@@ -648,8 +649,8 @@ export default function XacNhanCong() {
       for (const name of deptMembers) {
         const entries = personMap[name] || [];
         const { cong, ot } = personTotals(entries, name);
-        const days = entries.filter(e => e.result).length;
-        if (!days && !cong) continue;
+        const daysWorkedPdf = entries.filter(e => e.result).length;
+        if (!daysWorkedPdf && !cong) continue;
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
         const leaders = entries.reduce((sum, { report: r }) => {
           const autoLeader = (r.leaders || []).includes(name) && (() => {
@@ -671,6 +672,7 @@ export default function XacNhanCong() {
         const phuCapKhac = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
         const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0 };
+        const days     = sal.luong_theo_thang ? daysInMonthPdf : daysWorkedPdf;
         const lncBasePdf = sal.luong_theo_thang ? daysInMonthPdf : cong;
         const totalTien = (sal.lcb || 0) + sal.lnc * lncBasePdf + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
         const ghiChuPdfLines = [];
