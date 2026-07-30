@@ -989,6 +989,7 @@ export default function Events() {
             : isPast ? { opacity: 0.55 } : {};
           const startDates  = parseDatesField(ev, 'start_dates',   'start_date');
           const endDates    = parseDatesField(ev, 'end_dates',     'end_date');
+          const showDates   = parseDatesField(ev, 'show_dates',    'show_date');
           const filmDates   = parseDatesField(ev, 'filming_dates', 'filming_date');
           function dateColor(d) { return d === todayStr ? '#f87171' : d === tomorrowStr ? '#4ade80' : undefined; }
           function renderDateSpan(d) { return <span key={d} style={dateColor(d) ? { color: dateColor(d), fontWeight: 800 } : undefined}>{fmtD(d)}</span>; }
@@ -1031,6 +1032,9 @@ export default function Events() {
                   <span>📅 {startDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}
                     {endDates.length > 0 && endDates[0] !== startDates[0] && <> → {endDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</>}
                   </span>
+                )}
+                {showDates.length > 0 && (
+                  <span style={{ color:'#a78bfa', fontWeight:600 }}>🎤 {showDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
                 )}
                 {filmDates.length > 0 && (
                   <span style={{ color:'#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d, i) => <span key={d}>{i > 0 && ' · '}{renderDateSpan(d)}</span>)}</span>
@@ -1207,6 +1211,7 @@ export default function Events() {
                   const accentRgb = isCancelled ? '248,113,113' : '120,120,160';
                   const startDates = parseDatesField(ev, 'start_dates', 'start_date');
                   const endDates   = parseDatesField(ev, 'end_dates',   'end_date');
+                  const showDatesP = parseDatesField(ev, 'show_dates',  'show_date');
                   const filmDates  = parseDatesField(ev, 'filming_dates', 'filming_date');
                   const pastEvDepts = parseDepts(ev);
                   const isTpPast = user?.position === 'Trưởng phòng';
@@ -1264,7 +1269,7 @@ export default function Events() {
                         </div>
                       );})()}
                       {/* Hàng 4: thông tin */}
-                      {(ev.client || ev.location || startDates.length > 0 || filmDates.length > 0) && (
+                      {(ev.client || ev.location || startDates.length > 0 || showDatesP.length > 0 || filmDates.length > 0) && (
                         <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', padding:'7px 12px', fontSize:'0.8rem', color:'#6b6b80' }}>
                           {ev.client   && <span>👤 {ev.client}</span>}
                           {ev.location && <span>📍 {ev.location}</span>}
@@ -1273,6 +1278,7 @@ export default function Events() {
                               {endDates.length>0 && endDates[0]!==startDates[0] && <> → {endDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</>}
                             </span>
                           )}
+                          {showDatesP.length > 0 && <span style={{ color:'#a78bfa', fontWeight:600 }}>🎤 {showDatesP.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</span>}
                           {filmDates.length > 0 && <span style={{ color:'#fb923c', fontWeight:700 }}>🎬 {filmDates.map((d,i) => <span key={d}>{i>0&&' · '}{fmtD(d)}</span>)}</span>}
                         </div>
                       )}
