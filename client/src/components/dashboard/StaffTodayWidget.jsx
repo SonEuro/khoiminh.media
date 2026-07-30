@@ -102,8 +102,8 @@ function EventStaffCard({ ev, color, date }) {
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.90rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
             <div style={{ fontSize: '0.70rem', color: '#7878a0', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '0 6px' }}>
-              {date && <span>{fmtD(date)}</span>}
-              {typeof ev.start_time === 'string' && ev.start_time && <span>🕐 {ev.start_time}</span>}
+              {date && <span style={{ color: '#f97316', fontWeight: 700 }}>{fmtD(date)}</span>}
+              {typeof ev.start_time === 'string' && ev.start_time && <span style={{ color: '#f97316', fontWeight: 700 }}>🕐 {ev.start_time}</span>}
               {typeof ev.location   === 'string' && ev.location   && <span>📍 {ev.location}</span>}
               {typeof ev.client     === 'string' && ev.client     && <span>👤 {ev.client}</span>}
             </div>
@@ -161,7 +161,7 @@ function DaySection({ title, date, events, color }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', padding: '8px 0 6px', borderBottom: `1px solid ${color}22` }}>
         <div style={{ width: 3, height: 22, borderRadius: 2, background: color, flexShrink: 0 }} />
         <span style={{ fontWeight: 800, color, fontSize: '0.86rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{title}</span>
-        <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>— {dayLabel(date)}</span>
+        <span style={{ fontSize: '0.78rem', color: '#f97316', fontWeight: 700 }}>— {dayLabel(date)}</span>
         <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#555570' }}>{events.length} sự kiện · {totalPeople} người</span>
       </div>
       {events.map(ev => <EventStaffCard key={ev.id} ev={ev} color={color} date={date} />)}
