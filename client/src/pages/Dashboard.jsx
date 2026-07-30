@@ -64,7 +64,7 @@ export default function Dashboard() {
         <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#e8c97a', margin: '0 0 10px' }}>Trang Chủ</h1>
         <div style={{ display: 'flex', gap: '2px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <TabBtn active={tab === 'overview'} onClick={() => setTab('overview')}>Tổng Quan</TabBtn>
-          <TabBtn active={tab === 'nhansu'} onClick={() => setTab('nhansu')}>Nhân Sự Hôm Nay & Ngày Mai</TabBtn>
+          <TabBtn active={tab === 'nhansu'} onClick={() => setTab('nhansu')}>Lịch Nhân Sự</TabBtn>
         </div>
       </div>
 
