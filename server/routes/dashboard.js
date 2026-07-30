@@ -344,6 +344,29 @@ router.get('/', (req, res) => {
     };
   }
 
+  // Bản đồ tên → bộ phận KM (dùng để gắn nhãn khi km_staff không lưu dept)
+  const nameToKmDept = {};
+  for (const g of db.prepare("SELECT dept, members FROM staff_groups WHERE type = 'km'").all()) {
+    try {
+      for (const name of JSON.parse(g.members || '[]')) {
+        if (typeof name === 'string' && name) nameToKmDept[name] = g.dept;
+      }
+    } catch {}
+  }
+
+  function enrichByDept(byDept) {
+    if (!byDept['']) return byDept;
+    const result = { ...byDept };
+    const namesToAssign = result[''];
+    delete result[''];
+    for (const name of namesToAssign) {
+      const dept = nameToKmDept[name] || '';
+      if (!result[dept]) result[dept] = [];
+      result[dept].push(name);
+    }
+    return result;
+  }
+
   // staffByDateEvent: key = "YYYY-MM-DD::eventId"
   const staffByDateEvent = {};
   for (const ws of workScheds) {
@@ -355,7 +378,7 @@ router.get('/', (req, res) => {
         const key = `${date}::${eid}`;
         if (!staffByDateEvent[key]) staffByDateEvent[key] = initEntry();
         const entry = staffByDateEvent[key];
-        const byDept = extractKmByDeptForDate(ws[`${p}_km_staff`], date);
+        const byDept = enrichByDept(extractKmByDeptForDate(ws[`${p}_km_staff`], date));
         Object.values(byDept).flat().forEach(n => entry.km.add(n));
         mergeByDept(entry.kmByDept, byDept);
         extractFreelancerNames(ws[`${p}_freelancers`], new Set([date])).forEach(n => entry.free.add(n));
