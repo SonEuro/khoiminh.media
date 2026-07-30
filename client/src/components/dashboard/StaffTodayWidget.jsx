@@ -9,9 +9,10 @@ function dayLabel(dateStr) {
 }
 
 function NameList({ names, color }) {
+  const safeNames = names.filter(n => typeof n === 'string' && n);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-      {names.map((n, i) => (
+      {safeNames.map((n, i) => (
         <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < names.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
           <span style={{ width: 4, height: 4, borderRadius: '50%', background: color, flexShrink: 0, opacity: 0.7 }} />
           <span style={{ fontSize: '0.83rem', color: '#ddddf0', fontWeight: 500 }}>{n}</span>
@@ -42,9 +43,9 @@ function EventStaffCard({ ev, color, date }) {
             <div style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.90rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
             <div style={{ fontSize: '0.70rem', color: '#7878a0', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '0 6px' }}>
               {date && <span>{fmtD(date)}</span>}
-              {ev.start_time && <span>🕐 {ev.start_time}</span>}
-              {ev.location && <span>📍 {ev.location}</span>}
-              {ev.client && <span>👤 {ev.client}</span>}
+              {typeof ev.start_time === 'string' && ev.start_time && <span>🕐 {ev.start_time}</span>}
+              {typeof ev.location === 'string' && ev.location && <span>📍 {ev.location}</span>}
+              {typeof ev.client === 'string' && ev.client && <span>👤 {ev.client}</span>}
             </div>
           </div>
         </div>

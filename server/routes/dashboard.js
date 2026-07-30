@@ -11,8 +11,8 @@ function extractKmNames(raw) {
   if (!raw) return [];
   try {
     const v = JSON.parse(raw);
-    if (Array.isArray(v)) return v.filter(Boolean);
-    if (v && typeof v === 'object') return Object.values(v).flat().filter(Boolean);
+    if (Array.isArray(v)) return v.filter(n => typeof n === 'string' && n);
+    if (v && typeof v === 'object') return Object.values(v).flat().filter(n => typeof n === 'string' && n);
   } catch {}
   return [];
 }
@@ -272,13 +272,13 @@ router.get('/', (req, res) => {
         if (!staffToday[eid]) staffToday[eid] = { km: new Set(), free: new Set(), startTime: null };
         kmNames.forEach(n => staffToday[eid].km.add(n));
         extractFreelancerNames(ws[`${p}_freelancers`], todaySet).forEach(n => staffToday[eid].free.add(n));
-        if (!staffToday[eid].startTime && stMap[today]) staffToday[eid].startTime = stMap[today];
+        if (!staffToday[eid].startTime && typeof stMap[today] === 'string') staffToday[eid].startTime = stMap[today];
       }
       if (onTm) {
         if (!staffTomorrow[eid]) staffTomorrow[eid] = { km: new Set(), free: new Set(), startTime: null };
         kmNames.forEach(n => staffTomorrow[eid].km.add(n));
         extractFreelancerNames(ws[`${p}_freelancers`], tomorrowSet).forEach(n => staffTomorrow[eid].free.add(n));
-        if (!staffTomorrow[eid].startTime && stMap[tomorrow]) staffTomorrow[eid].startTime = stMap[tomorrow];
+        if (!staffTomorrow[eid].startTime && typeof stMap[tomorrow] === 'string') staffTomorrow[eid].startTime = stMap[tomorrow];
       }
     }
   }
