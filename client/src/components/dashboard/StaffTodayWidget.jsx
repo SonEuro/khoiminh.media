@@ -70,13 +70,10 @@ function EventStaffCard({ ev, color, date }) {
   const supportCount = Object.keys(support).length;
   const totalKm     = (ev.km_staff?.length || 0) + supportCount;
   const total       = totalKm + freelancers.length;
-
-  // Hiện dept header khi có nhiều bộ phận hoặc có người hỗ trợ
   const groupByDept = depts.length > 1 || supportCount > 0;
 
   return (
     <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)', marginBottom: '8px', overflow: 'hidden' }}>
-      {/* Header sự kiện */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 5px ${color}88` }} />
@@ -99,11 +96,9 @@ function EventStaffCard({ ev, color, date }) {
         <div style={{ padding: '10px 14px', fontSize: '0.80rem', color: '#555570' }}>Chưa có nhân sự được phân lịch</div>
       ) : (
         <div style={{ padding: '10px 14px' }}>
-          {/* KM staff */}
           {(depts.length > 0 || supportCount > 0) && (
             <div style={{ marginBottom: freelancers.length > 0 ? '12px' : 0 }}>
               {groupByDept ? (
-                /* Nhiều bộ phận → hiện header từng bộ phận */
                 <>
                   {depts.map(dept => (
                     <DeptSection key={dept} dept={dept || null} names={kmByDept[dept]} />
@@ -111,7 +106,6 @@ function EventStaffCard({ ev, color, date }) {
                   <SupportSection support={support} />
                 </>
               ) : (
-                /* 1 bộ phận, không có hỗ trợ → flat list */
                 <>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#5b8bb5', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                     Khôi Minh · {totalKm}
@@ -122,7 +116,6 @@ function EventStaffCard({ ev, color, date }) {
             </div>
           )}
 
-          {/* Freelancer */}
           {freelancers.length > 0 && (
             <div>
               <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#7c6fa0', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
@@ -154,24 +147,37 @@ function DaySection({ title, date, events, color }) {
   );
 }
 
+const UPCOMING_COLORS = ['#60a5fa', '#a78bfa', '#34d399', '#f97316', '#e879f9'];
+
 export default function StaffTodayWidget({ dash }) {
   const today    = dash?.today    || '';
   const tomorrow = dash?.tomorrow || '';
-  const todayEvs    = dash?.today_events_staff    || [];
-  const tomorrowEvs = dash?.tomorrow_events_staff || [];
+  const days = dash?.schedule_days || [];
 
-  if (todayEvs.length === 0 && tomorrowEvs.length === 0) {
+  if (days.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '48px', color: '#7878a0', fontSize: '0.88rem' }}>
-        Không có sự kiện nào hôm nay và ngày mai
+        Không có sự kiện nào trong 7 ngày tới
       </div>
     );
   }
 
+  let upcomingIdx = 0;
   return (
     <div>
-      {todayEvs.length > 0    && <DaySection title="Hôm Nay"  date={today}    events={todayEvs}    color="#f87171" />}
-      {tomorrowEvs.length > 0 && <DaySection title="Ngày Mai" date={tomorrow} events={tomorrowEvs} color="#4ade80" />}
+      {days.map(({ date, events }) => {
+        let title, color;
+        if (date === today) {
+          title = 'Hôm Nay'; color = '#f87171';
+        } else if (date === tomorrow) {
+          title = 'Ngày Mai'; color = '#4ade80';
+        } else {
+          color = UPCOMING_COLORS[upcomingIdx % UPCOMING_COLORS.length];
+          upcomingIdx++;
+          title = dayLabel(date);
+        }
+        return <DaySection key={date} title={title} date={date} events={events} color={color} />;
+      })}
     </div>
   );
 }

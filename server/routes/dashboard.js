@@ -264,7 +264,15 @@ router.get('/', (req, res) => {
     filming_dates: getFilmingDates(ev), client: ev.client, location: ev.location,
   }));
 
-  // Build staff maps from work_schedules for today & tomorrow events
+  // Build schedule_days: 7 ngày tới, mỗi ngày có events + staff
+  function isoAddDays(iso, n) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + n);
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+  const nextDates = Array.from({ length: 7 }, (_, i) => isoAddDays(today, i));
+  const nextDatesSet = new Set(nextDates);
+
   const SCHED_PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
   const workScheds = db.prepare(`
     SELECT event_id,
@@ -276,9 +284,6 @@ router.get('/', (req, res) => {
     FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL
   `).all();
 
-  const staffToday = {}, staffTomorrow = {};
-  const todaySet = new Set([today]), tomorrowSet = new Set([tomorrow]);
-
   function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null }; }
   function mergeByDept(byDept, incoming) {
     for (const [dept, names] of Object.entries(incoming)) {
@@ -286,40 +291,6 @@ router.get('/', (req, res) => {
       names.forEach(n => byDept[dept].add(n));
     }
   }
-
-  for (const ws of workScheds) {
-    const eid = ws.event_id;
-    for (const p of SCHED_PHASES) {
-      const dates = parseDateField(ws[`${p}_date`]);
-      const onT  = dates.includes(today);
-      const onTm = dates.includes(tomorrow);
-      if (!onT && !onTm) continue;
-      const kmNames  = extractKmNames(ws[`${p}_km_staff`]);
-      const byDept   = extractKmByDept(ws[`${p}_km_staff`]);
-      let stMap = {}, supMap = {};
-      try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
-      try { supMap = JSON.parse(ws[`${p}_km_support`]  || '{}'); } catch {}
-      if (onT) {
-        if (!staffToday[eid]) staffToday[eid] = initEntry();
-        kmNames.forEach(n => staffToday[eid].km.add(n));
-        mergeByDept(staffToday[eid].kmByDept, byDept);
-        extractFreelancerNames(ws[`${p}_freelancers`], todaySet).forEach(n => staffToday[eid].free.add(n));
-        if (!staffToday[eid].startTime && typeof stMap[today] === 'string') staffToday[eid].startTime = stMap[today];
-        const sup = supMap[today];
-        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(staffToday[eid].support, sup);
-      }
-      if (onTm) {
-        if (!staffTomorrow[eid]) staffTomorrow[eid] = initEntry();
-        kmNames.forEach(n => staffTomorrow[eid].km.add(n));
-        mergeByDept(staffTomorrow[eid].kmByDept, byDept);
-        extractFreelancerNames(ws[`${p}_freelancers`], tomorrowSet).forEach(n => staffTomorrow[eid].free.add(n));
-        if (!staffTomorrow[eid].startTime && typeof stMap[tomorrow] === 'string') staffTomorrow[eid].startTime = stMap[tomorrow];
-        const sup = supMap[tomorrow];
-        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(staffTomorrow[eid].support, sup);
-      }
-    }
-  }
-
   function serializeEntry(st) {
     const kmByDept = {};
     for (const [dept, s] of Object.entries(st?.kmByDept || {})) kmByDept[dept] = [...s];
@@ -332,10 +303,45 @@ router.get('/', (req, res) => {
     };
   }
 
-  const todayEventsStaff    = todayEvents.map(ev => ({ ...ev, ...serializeEntry(staffToday[ev.id]) }));
-  const tomorrowEventsStaff = tomorrowEvents.map(ev => ({ ...ev, ...serializeEntry(staffTomorrow[ev.id]) }));
+  // staffByDateEvent: key = "YYYY-MM-DD::eventId"
+  const staffByDateEvent = {};
+  for (const ws of workScheds) {
+    const eid = ws.event_id;
+    for (const p of SCHED_PHASES) {
+      const dates = parseDateField(ws[`${p}_date`]);
+      for (const date of dates) {
+        if (!nextDatesSet.has(date)) continue;
+        const key = `${date}::${eid}`;
+        if (!staffByDateEvent[key]) staffByDateEvent[key] = initEntry();
+        const entry = staffByDateEvent[key];
+        extractKmNames(ws[`${p}_km_staff`]).forEach(n => entry.km.add(n));
+        mergeByDept(entry.kmByDept, extractKmByDept(ws[`${p}_km_staff`]));
+        extractFreelancerNames(ws[`${p}_freelancers`], new Set([date])).forEach(n => entry.free.add(n));
+        let stMap = {};
+        try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
+        if (!entry.startTime && typeof stMap[date] === 'string') entry.startTime = stMap[date];
+        let supMap = {};
+        try { supMap = JSON.parse(ws[`${p}_km_support`] || '{}'); } catch {}
+        const sup = supMap[date];
+        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(entry.support, sup);
+      }
+    }
+  }
 
-  res.json({ today, tomorrow, today_events: todayEvents, tomorrow_events: tomorrowEvents, today_events_staff: todayEventsStaff, tomorrow_events_staff: tomorrowEventsStaff, need_confirm: needConfirm, overdue, conflicts });
+  const scheduleDays = nextDates.map(date => {
+    const dayEvents = allEvents.filter(ev => {
+      if (ev.status === 'cancelled') return false;
+      return isEventOnDate(ev, date);
+    }).map(ev => ({
+      id: ev.id, name: ev.name, code: ev.code, status: ev.status,
+      client: ev.client, location: ev.location,
+      ...serializeEntry(staffByDateEvent[`${date}::${ev.id}`]),
+    }));
+    return { date, events: dayEvents };
+  }).filter(d => d.events.length > 0);
+
+  res.json({ today, tomorrow, today_events: todayEvents, tomorrow_events: tomorrowEvents,
+    schedule_days: scheduleDays, need_confirm: needConfirm, overdue, conflicts });
 });
 
 module.exports = router;
