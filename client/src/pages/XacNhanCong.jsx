@@ -270,12 +270,8 @@ export default function XacNhanCong() {
   async function saveEditRow(r, name) {
     setSavingRow(true);
     try {
-      // Save time/break fields to the report (shared across all people)
+      // Chỉ update giờ/nghỉ — dùng endpoint riêng để không ghi đè nội dung báo cáo
       const timePayload = {
-        ...r,
-        km_staff: Array.isArray(r.km_staff) ? r.km_staff : [],
-        images: Array.isArray(r.images) ? r.images : [],
-        timeline: Array.isArray(r.timeline) ? r.timeline : [],
         time_present: editRowData.time_present,
         time_end: editRowData.time_end,
         time_onset: editRowData.time_onset,
@@ -283,7 +279,7 @@ export default function XacNhanCong() {
         no_afternoon_break: editRowData.no_afternoon_break ? 1 : 0,
         is_holiday: editRowData.is_holiday ? 1 : 0,
       };
-      await api.updateEventReport(r.id, timePayload);
+      await api.updateReportTimeFields(r.id, timePayload);
 
       // Save allowances per-person
       const paRes = await api.updatePersonAllowance(r.id, {
@@ -301,7 +297,7 @@ export default function XacNhanCong() {
       });
 
       setReports(prev => prev.map(rep => rep.id === r.id
-        ? { ...rep, ...timePayload, per_person_allowances: paRes.per_person_allowances }
+        ? { ...rep, ...timePayload, per_person_allowances: paRes.per_person_allowances, confirmed_at: rep.confirmed_at }
         : rep
       ));
       setEditingRowId(null);
@@ -573,20 +569,22 @@ export default function XacNhanCong() {
           for (const { report: r, result } of sorted2) {
             stt2++;
             const leaderPhase2 = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-            const isLeaderVal = (r.leaders || []).includes(name) && (
+            const autoIsLeader2 = (r.leaders || []).includes(name) && (
               g2.dept === 'Sân Khấu' ? (leaderPhase2 === 'setup' || leaderPhase2 === 'rehearsal') :
               (g2.dept === 'ATAS-LED' || g2.dept === 'Kỹ Thuật') ? leaderPhase2 === 'filming' :
               false
-            ) ? 1 : '';
+            );
+            const leaderVal2 = getPersonLeader(r, name, autoIsLeader2);
+            const congVal2 = result ? getPersonCong(r, name, result) : null;
             const [ry, rmx, rday] = r.report_date.split('-');
             const yesNo = v => v ? '✓' : '';
             const row2 = ws2.addRow([
               stt2, name, g2.dept,
               `${rday}/${rmx}/${ry}`, dayLabel(r.report_date),
-              r.event_label || '—', isLeaderVal,
+              r.event_label || '—', leaderVal2 || '',
               r.time_present || '—', r.time_end || '—',
               result ? fmtMins(Math.max(0, result.effectiveMins)) : 'Chưa XN',
-              result ? parseFloat(fmtNum(result.congRate)) : '',
+              congVal2 !== null ? parseFloat(fmtNum(congVal2)) : '',
               result?.otMins > 0 ? parseFloat((result.otMins / 60).toFixed(2)) : '',
               yesNo(r.has_com_sang), yesNo(r.has_com_trua), yesNo(r.has_com_chieu),
               yesNo(r.has_com_toi), yesNo(r.has_nuoc),

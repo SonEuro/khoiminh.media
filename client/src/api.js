@@ -142,6 +142,7 @@ export const api = {
   restoreEventReport: (id) => request(`/event-reports/${id}/restore`, { method: 'POST' }),
   getXacNhanCong: (month) => request(`/xac-nhan-cong?month=${month}`),
   setReportHoliday: (id, is_holiday) => request(`/xac-nhan-cong/${id}/holiday`, { method: 'PATCH', body: { is_holiday } }),
+  updateReportTimeFields: (id, body) => request(`/xac-nhan-cong/${id}/time-fields`, { method: 'PATCH', body }),
   updatePersonAllowance: (reportId, body) => request(`/event-reports/${reportId}/person-allowance`, { method: 'PATCH', body }),
   getTrashEvents: () => request('/events/trash'),
   restoreEvent: (id) => request(`/events/${id}/restore`, { method: 'POST' }),

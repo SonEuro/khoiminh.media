@@ -238,7 +238,7 @@ router.delete('/:id', canManage, (req, res) => {
   res.json({ ok: true });
 });
 
-router.post('/:id/restore', (req, res) => {
+router.post('/:id/restore', requireAuth, (req, res) => {
   const { role } = req.user;
   if (role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Chỉ SUPER_ADMIN mới được khôi phục báo cáo' });
   const report = db.prepare('SELECT id, deleted_at FROM event_reports WHERE id = ?').get(req.params.id);
@@ -248,7 +248,7 @@ router.post('/:id/restore', (req, res) => {
   res.json({ ok: true });
 });
 
-router.get('/admin/delete-log', (req, res) => {
+router.get('/admin/delete-log', requireAuth, (req, res) => {
   const { role } = req.user;
   if (!['SUPER_ADMIN', 'DIRECTOR'].includes(role))
     return res.status(403).json({ error: 'Không có quyền' });

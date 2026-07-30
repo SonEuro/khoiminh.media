@@ -119,6 +119,22 @@ router.get('/', requireAuth, (req, res) => {
   });
 });
 
+// PATCH /api/xac-nhan-cong/:id/time-fields — chỉ update giờ/nghỉ, không đụng content báo cáo
+router.patch('/:id/time-fields', requireAuth, canEditAccess, (req, res) => {
+  const report = db.prepare('SELECT id FROM event_reports WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
+  const { time_present, time_end, time_onset, no_lunch_break, no_afternoon_break, is_holiday } = req.body;
+  db.prepare(`UPDATE event_reports SET
+    time_present=?, time_end=?, time_onset=?,
+    no_lunch_break=?, no_afternoon_break=?, is_holiday=?
+    WHERE id=?`).run(
+    time_present || '', time_end || '', time_onset || '',
+    no_lunch_break ? 1 : 0, no_afternoon_break ? 1 : 0, is_holiday ? 1 : 0,
+    report.id,
+  );
+  res.json({ ok: true });
+});
+
 // PATCH /api/xac-nhan-cong/:id/holiday
 router.patch('/:id/holiday', requireAuth, canEditAccess, (req, res) => {
   const { is_holiday } = req.body;
