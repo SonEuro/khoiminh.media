@@ -70,7 +70,7 @@ function EventStaffCard({ ev, color, date }) {
   const supportCount = Object.keys(support).length;
   const totalKm     = (ev.km_staff?.length || 0) + supportCount;
   const total       = totalKm + freelancers.length;
-  const groupByDept = depts.length > 1 || supportCount > 0;
+  const groupByDept = supportCount > 0 || depts.some(d => d !== '');
 
   return (
     <div style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)', marginBottom: '8px', overflow: 'hidden' }}>
