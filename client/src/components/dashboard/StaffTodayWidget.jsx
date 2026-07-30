@@ -39,25 +39,47 @@ function DeptSection({ dept, names }) {
 function SupportSection({ support }) {
   const entries = Object.entries(support || {}).filter(([name]) => typeof name === 'string' && name);
   if (!entries.length) return null;
+
+  // Group by ownDept
+  const grouped = {};
+  for (const [name, val] of entries) {
+    const forDept = typeof val === 'string' ? val : (val?.forDept || '');
+    const ownDept = typeof val === 'object' && val ? (val.ownDept || '') : '';
+    if (!grouped[ownDept]) grouped[ownDept] = [];
+    grouped[ownDept].push({ name, forDept });
+  }
+  const depts = Object.keys(grouped);
+  const showDeptHeaders = depts.some(d => d !== '');
+
   return (
     <div style={{ marginBottom: '8px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
         <span style={{ width: 2, height: 12, borderRadius: 1, background: '#d97706', flexShrink: 0 }} />
         <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Hỗ Trợ</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-        {entries.map(([name, forDept], i) => (
-          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < entries.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f59e0b', flexShrink: 0, opacity: 0.7 }} />
-            <span style={{ fontSize: '0.83rem', color: '#ddddf0', fontWeight: 500, flex: 1 }}>{name}</span>
-            {typeof forDept === 'string' && forDept && (
-              <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
-                HT {forDept}
-              </span>
-            )}
+      {depts.map(dept => (
+        <div key={dept} style={{ marginBottom: showDeptHeaders ? '6px' : 0 }}>
+          {showDeptHeaders && dept && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', paddingLeft: '6px' }}>
+              <span style={{ width: 2, height: 10, borderRadius: 1, background: '#b45309', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{dept}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {grouped[dept].map(({ name, forDept }, i) => (
+              <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < grouped[dept].length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f59e0b', flexShrink: 0, opacity: 0.7 }} />
+                <span style={{ fontSize: '0.83rem', color: '#ddddf0', fontWeight: 500, flex: 1 }}>{name}</span>
+                {forDept && (
+                  <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                    HT {forDept}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

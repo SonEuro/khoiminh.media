@@ -388,7 +388,13 @@ router.get('/', (req, res) => {
         let supMap = {};
         try { supMap = JSON.parse(ws[`${p}_km_support`] || '{}'); } catch {}
         const sup = supMap[date];
-        if (sup && typeof sup === 'object' && !Array.isArray(sup)) Object.assign(entry.support, sup);
+        if (sup && typeof sup === 'object' && !Array.isArray(sup)) {
+          for (const [name, forDept] of Object.entries(sup)) {
+            if (typeof name === 'string' && name) {
+              entry.support[name] = { forDept: typeof forDept === 'string' ? forDept : '', ownDept: nameToKmDept[name] || '' };
+            }
+          }
+        }
       }
     }
   }
