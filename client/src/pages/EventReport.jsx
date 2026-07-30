@@ -64,7 +64,7 @@ const QUALITY_CHIPS    = ['Xuất sắc', 'Cần cải thiện'];
 function imgUrl(src)   { return (src && typeof src === 'object') ? src.url   : src; }
 function imgThumb(src) { return (src && typeof src === 'object') ? src.thumb : src; }
 
-function resizeImage(file, maxPx = 1000) {
+function resizeImage(file, maxPx = 1000, quality = 0.82) {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -78,7 +78,7 @@ function resizeImage(file, maxPx = 1000) {
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/jpeg', 0.82));
+      resolve(c.toDataURL('image/jpeg', quality));
     };
     img.src = url;
   });
@@ -1342,7 +1342,13 @@ export default function EventReport() {
   async function handleImageFiles(files) {
     setUploadingImg(true);
     try {
-      const results = await Promise.all(Array.from(files).map(f => resizeImage(f)));
+      const results = await Promise.all(Array.from(files).map(async f => {
+        const [url, thumb] = await Promise.all([
+          resizeImage(f, 1000, 0.82),
+          resizeImage(f, 300, 0.65),
+        ]);
+        return { url, thumb };
+      }));
       setField('images', [...form.images, ...results]);
     } finally {
       setUploadingImg(false);
