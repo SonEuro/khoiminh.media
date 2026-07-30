@@ -30,6 +30,8 @@ function calcCong(r) {
   const kmMins = calcKmMins(r);
   if (kmMins === null) return null;
   const startM = toM(r.time_present);
+  const endM   = toM(r.time_end);
+  const isOvernight = startM !== null && endM !== null && endM < startM;
   const isAfternoon = startM !== null && startM >= 12 * 60; // bắt đầu từ 12:00 trở đi
   const isSunday = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHoliday = !!r.is_holiday;
@@ -39,8 +41,8 @@ function calcCong(r) {
     congRate = (isSunday || isHoliday) ? 1 : 0.5;
     otThresholdMins = 4 * 60 + 30; // ca chiều 13:00-17:30 = 4.5h
   } else {
-    const endM = toM(r.time_end);
-    const skipAft = r.no_afternoon_break || (endM !== null && endM <= 17 * 60 + 30);
+    // Ca qua đêm: endM < startM — không dùng endM để đoán nghỉ chiều
+    const skipAft = r.no_afternoon_break || (!isOvernight && endM !== null && endM <= 17 * 60 + 30);
     effectiveMins = kmMins - (r.no_lunch_break ? 0 : 60) - (skipAft ? 0 : 90);
     congRate = isHoliday ? 2 : isSunday ? 1.5 : 1;
     otThresholdMins = 8 * 60;

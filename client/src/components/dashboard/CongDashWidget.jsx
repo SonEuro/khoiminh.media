@@ -15,11 +15,12 @@ function calcCongDash(r) {
   if (!r.confirmed_at) return null;
   const s = toMD(r.time_present), e = toMD(r.time_end);
   if (s === null || e === null) return null;
+  const isOvernight = e < s;
   let diff = e - s; if (diff < 0) diff += 1440;
   const isAft = s >= 720;
   const isSun = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHol = !!r.is_holiday;
-  const skipAft = r.no_afternoon_break || (e !== null && e <= 17 * 60 + 30);
+  const skipAft = r.no_afternoon_break || (!isOvernight && e <= 17 * 60 + 30);
   const effMins = isAft ? diff : diff - (r.no_lunch_break ? 0 : 60) - (skipAft ? 0 : 90);
   const thresh = isAft ? 270 : 480; // ca chiều 13:00-17:30 = 4.5h = 270 min
   const congRate = isAft ? ((isSun || isHol) ? 1 : 0.5) : isHol ? 2 : isSun ? 1.5 : 1;
