@@ -32,7 +32,7 @@ function calcCong(r) {
   const startM = toM(r.time_present);
   const endM   = toM(r.time_end);
   const isOvernight = startM !== null && endM !== null && endM < startM;
-  const isAfternoon = startM !== null && startM >= 12 * 60; // bắt đầu từ 12:00 trở đi
+  const isAfternoon = startM !== null && startM >= 13 * 60; // bắt đầu từ 13:00 trở đi (ca chiều)
   const isSunday = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHoliday = !!r.is_holiday;
   let effectiveMins, congRate, otThresholdMins;

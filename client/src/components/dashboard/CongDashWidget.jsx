@@ -17,7 +17,7 @@ function calcCongDash(r) {
   if (s === null || e === null) return null;
   const isOvernight = e < s;
   let diff = e - s; if (diff < 0) diff += 1440;
-  const isAft = s >= 720;
+  const isAft = s >= 780; // 13:00 = 780 phút
   const isSun = new Date(r.report_date + 'T00:00:00').getDay() === 0;
   const isHol = !!r.is_holiday;
   const skipAft = r.no_afternoon_break || (!isOvernight && e <= 17 * 60 + 30);
