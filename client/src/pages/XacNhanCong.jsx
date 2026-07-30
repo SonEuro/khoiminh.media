@@ -918,12 +918,13 @@ ${rows.map(renderRow).join('\n')}
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
                                         {(() => {
                                           const mPhase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
-                                          const isNT = (r.leaders || []).includes(name) && (
+                                          const autoIsNT = (r.leaders || []).includes(name) && (
                                             dept === 'Sân Khấu' ? (mPhase === 'setup' || mPhase === 'rehearsal') :
                                             (dept === 'ATAS-LED' || dept === 'Kỹ Thuật') ? mPhase === 'filming' :
                                             false
                                           );
-                                          return isNT ? <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>NT</span> : null;
+                                          const ntVal = getPersonLeader(r, name, autoIsNT);
+                                          return ntVal > 0 ? <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(201,168,76,0.18)', color: GOLD, flexShrink: 0, border: '1px solid rgba(201,168,76,0.3)' }}>NT</span> : null;
                                         })()}
                                       </div>
 

@@ -95,13 +95,18 @@ router.get('/', requireAuth, (req, res) => {
   }
 
   // Build violByName: { name: count } — chỉ vi phạm về báo cáo trong tháng
+  // Ưu tiên lọc theo ngày trong description (chứa 'YYYY-MM-'),
+  // fallback created_at cho vi phạm không có ngày trong description
   const violRows = db.prepare(`
     SELECT violator, COUNT(*) AS cnt
     FROM violations
     WHERE violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
-      AND created_at LIKE ?
+      AND (
+        description LIKE '%' || ? || '-%'
+        OR (description NOT LIKE '%20__-__-%' AND created_at LIKE ?)
+      )
     GROUP BY violator
-  `).all(`${month}%`);
+  `).all(month, `${month}%`);
   const violByName = {};
   for (const v of violRows) violByName[v.violator] = v.cnt;
 
