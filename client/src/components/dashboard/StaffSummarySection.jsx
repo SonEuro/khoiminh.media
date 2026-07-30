@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { KM_STAFF_GROUPS } from '../../constants/staff';
 import { api } from '../../api';
 import { AdminSec, ARow } from './dashShared';
+import { useStaffGroups } from '../../contexts/StaffGroupsContext';
 
 const DEPT_COLORS_DASH = {
   'ATAS-LED': '#a78bfa', 'Sân Khấu': '#fb923c', 'Kỹ Thuật': '#38bdf8',
@@ -13,16 +13,10 @@ const RGB = '251,191,36';
 const PHASES = ['setup', 'teardown', 'rehearsal', 'filming'];
 
 export default function StaffSummarySection() {
+  const { kmGroups } = useStaffGroups();
   const [summary, setSummary]               = useState(null);
-  const [vanPhongSet, setVanPhongSet]       = useState(new Set());
   const [expandToday, setExpandToday]       = useState(false);
   const [expandTomorrow, setExpandTomorrow] = useState(false);
-
-  const loadFlags = useCallback(() =>
-    api.getStaffFlags().then(d => setVanPhongSet(new Set(d.vanPhong))).catch(() => {}),
-  []);
-
-  useEffect(() => { loadFlags(); }, [loadFlags]);
 
   useEffect(() => {
     const todayVN    = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
@@ -64,8 +58,8 @@ export default function StaffSummarySection() {
   const { today, tomorrow } = summary;
   if (today.total === 0 && tomorrow.total === 0) return null;
 
-  const buildFree = (busyKm) => KM_STAFF_GROUPS
-    .map(g => ({ dept: g.dept, members: g.members.filter(n => !busyKm.has(n) && !vanPhongSet.has(n)).sort((a, b) => { const t = n => (n.trim().split(/\s+/).pop() || n); return t(a).localeCompare(t(b), 'vi'); }) }))
+  const buildFree = (busyKm) => kmGroups
+    .map(g => ({ dept: g.dept, members: g.members.filter(n => !busyKm.has(n)).sort((a, b) => { const t = n => (n.trim().split(/\s+/).pop() || n); return t(a).localeCompare(t(b), 'vi'); }) }))
     .filter(g => g.members.length > 0);
 
   const freeToday    = buildFree(today.busyKm);

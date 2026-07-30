@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
 import Modal from '../components/Modal';
 import { fmtD } from '../utils/fmt';
-import { DEPARTMENTS, KM_STAFF_GROUPS } from '../constants/staff';
+import { DEPARTMENTS } from '../constants/staff';
 
 const FREELANCER_DEPTS = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Quay Phim', 'Sản Xuất'];
 
@@ -34,7 +34,7 @@ const EMPTY = { username: '', password: '', full_name: '', position: '', role: '
 
 export default function Users() {
   const { ROLE_LABELS, user: currentUser } = useAuth();
-  const { kmGroups, freelancerGroups, refresh: refreshStaff } = useStaffGroups();
+  const { kmGroups, kmGroupsRaw, freelancerGroups, refresh: refreshStaff } = useStaffGroups();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(currentUser?.role);
   const [users, setUsers]       = useState([]);
@@ -332,7 +332,7 @@ export default function Users() {
             <span style={{ fontSize:'0.78rem', color:'#7878a0', transition:'transform 0.15s', display:'inline-block', transform: showVanPhong ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
           </div>
           {showVanPhong && <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-            {KM_STAFF_GROUPS.map(g => (
+            {kmGroupsRaw.map(g => (
               <div key={g.dept}>
                 <div style={{ fontSize:'0.73rem', fontWeight:700, color:'#7878a0', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:'5px' }}>{g.dept}</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>

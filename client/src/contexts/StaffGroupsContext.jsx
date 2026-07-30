@@ -23,7 +23,7 @@ export function StaffGroupsProvider({ children }) {
     .filter(g => g.members.length > 0);
 
   return (
-    <StaffGroupsContext.Provider value={{ kmGroups, freelancerGroups, refresh }}>
+    <StaffGroupsContext.Provider value={{ kmGroups, kmGroupsRaw, freelancerGroups, refresh }}>
       {children}
     </StaffGroupsContext.Provider>
   );
