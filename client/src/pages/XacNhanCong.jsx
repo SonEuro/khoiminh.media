@@ -101,16 +101,16 @@ function isMonthLocked(ym) {
   return today > lockDate;
 }
 
-// Per-person allowance helpers — fallback to flat report field for old data
+// Per-person allowance helpers — trả 0/'nếu chưa có entry riêng (không fallback flat)
 function getPA(r, name, field) {
   const pa = r.per_person_allowances;
   if (pa && name in pa) return pa[name]?.[field] || 0;
-  return r[field] || 0;
+  return 0;
 }
 function getPANote(r, name, noteField) {
   const pa = r.per_person_allowances;
   if (pa && name in pa) return pa[name]?.[noteField] || '';
-  return r[noteField] || '';
+  return '';
 }
 
 // Build map: personName → [{ report, result }]
@@ -233,13 +233,13 @@ export default function XacNhanCong() {
       no_afternoon_break: !!r.no_afternoon_break,
       is_holiday: !!r.is_holiday,
       xang_xe: getPA(r, name, 'xang_xe') || '',
-      xang_xe_note: getPANote(r, name, 'xang_xe_note') || '',
+      xang_xe_note: getPANote(r, name, 'xang_xe_note'),
       tien_nuoc: getPA(r, name, 'tien_nuoc') || '',
-      tien_nuoc_note: getPANote(r, name, 'tien_nuoc_note') || '',
+      tien_nuoc_note: getPANote(r, name, 'tien_nuoc_note'),
       giu_xe: getPA(r, name, 'giu_xe') || '',
-      giu_xe_note: getPANote(r, name, 'giu_xe_note') || '',
+      giu_xe_note: getPANote(r, name, 'giu_xe_note'),
       phu_cap_khac: getPA(r, name, 'phu_cap_khac') || '',
-      phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note') || '',
+      phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note'),
     });
   }
 
