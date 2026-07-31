@@ -808,7 +808,7 @@ tr.grand td{background:#BDD7EE!important;print-color-adjust:exact;-webkit-print-
 <p class="sub-title">Xuất lúc ${stamp}</p>
 <table><thead><tr>${hdr.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
 ${rows.map(renderRow).join('\n')}
-<tr class="grand">${tdC('')}${tdC('TỔNG CỘNG',' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(fmtVND(grand.phuCap))}${tdC(grand.days)}${tdC(fmtNum(grand.cong))}${tdC(fmtNum(grand.ot))}${tdC(fmtVND(grand.leaders))}${tdC(grand.cs||'')}${tdC(grand.ct||'')}${tdC(grand.cc||'')}${tdC(grand.ctoi||'')}${tdC(fmtVND(grand.xangXe))}${tdC(fmtVND(grand.tienNuoc))}${tdC(fmtVND(grand.giuXe))}${tdC(fmtVND(grand.phuCapKhac))}${tdC(grand.phat?'<span style="color:#c00">'+fmtVND(grand.phat)+'</span>':'')}${tdC(fmtVND(grand.total))}${tdC('')}</tr>
+<tr class="grand">${tdC('')}${tdC('TỔNG CỘNG',' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC(fmtVND(grand.phuCap))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(grand.days)}${tdC(fmtNum(grand.cong))}${tdC(fmtNum(grand.ot))}${tdC(fmtVND(grand.leaders))}${tdC(grand.cs||'')}${tdC(grand.ct||'')}${tdC(grand.cc||'')}${tdC(grand.ctoi||'')}${tdC(fmtVND(grand.xangXe))}${tdC(fmtVND(grand.tienNuoc))}${tdC(fmtVND(grand.giuXe))}${tdC(fmtVND(grand.phuCapKhac))}${tdC(grand.phat?'<span style="color:#c00">'+fmtVND(grand.phat)+'</span>':'')}${tdC(fmtVND(grand.total))}${tdC('')}</tr>
 </tbody></table></body></html>`;
 
     const win = window.open('', '_blank');
