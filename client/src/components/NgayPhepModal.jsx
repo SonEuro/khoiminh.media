@@ -195,20 +195,30 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
   const monthNum = parseInt((month || '2026-01').split('-')[1], 10);
 
+  const tl = tichLuy(user.phep_nam, month || `${year}-01`);
+  const effDaNghi  = daOv.isOv   ? (daOv.val   ?? user.da_nghi_before) : user.da_nghi_before;
+  const effThang   = thangOv.isOv ? (thangOv.val ?? user.nghi_thang)   : user.nghi_thang;
+
   return (
     <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '14px 16px', marginTop: '4px' }}>
-      {/* Quota */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-        <span style={{ fontSize: '0.78rem', color: '#a08040', fontWeight: 600 }}>Phép Năm (quota):</span>
-        <input type="number" min="0" max="365" value={phepNam} onChange={e => setPhepNam(e.target.value)}
-          style={{ ...inS, width: '64px', textAlign: 'center' }} />
-        <button onClick={savePhepNam} disabled={saving} style={btnS(GOLD)}>Lưu</button>
+      {/* Header: auto Phép Năm + close */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+        <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>Phép Năm T{monthNum}:</span>
+        <span style={{ color: GOLD, fontWeight: 800, fontSize: '1.05rem' }}>{tl}</span>
+        <span style={{ fontSize: '0.70rem', color: '#3a3a5a' }}>(tự động · quota gốc: {user.phep_nam})</span>
         <button onClick={onClose} style={{ ...btnS('#7878a0'), marginLeft: 'auto' }}>✕ Đóng</button>
       </div>
 
       {/* Manual overrides */}
       <div style={divS}>Điều Chỉnh Thủ Công</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '6px' }}>
+        {/* Quota gốc */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.78rem', color: '#7878a0', minWidth: '110px' }}>Quota năm</span>
+          <input type="number" min="0" max="365" value={phepNam} onChange={e => setPhepNam(e.target.value)}
+            style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#eeeef5', fontSize: '0.82rem', outline: 'none', width: '72px', textAlign: 'center' }} />
+          <button onClick={savePhepNam} disabled={saving} style={btnS(GOLD)}>Lưu</button>
+        </div>
         <OverrideField
           label="Đã Nghỉ Năm"
           currentVal={user.da_nghi_before}
@@ -230,11 +240,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
           />
         )}
         <div style={{ fontSize: '0.76rem', color: '#555570' }}>
-          Còn Lại (tự động): <b style={{ color: '#4ade80' }}>{fmtN(
-            tichLuy(user.phep_nam, month || `${year}-01`)
-            - (daOv.isOv ? (daOv.val ?? user.da_nghi_before) : user.da_nghi_before)
-            - (thangOv.isOv ? (thangOv.val ?? user.nghi_thang) : user.nghi_thang)
-          )}</b>
+          Còn Lại (tự động): <b style={{ color: '#4ade80' }}>{fmtN(tl - effDaNghi - effThang)}</b>
           <span style={{ marginLeft: '8px', color: '#3a3a5a' }}>(= phép năm − đã nghỉ − T{monthNum})</span>
         </div>
       </div>
