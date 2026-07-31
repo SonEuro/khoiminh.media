@@ -844,22 +844,22 @@ ${rows.map(renderRow).join('\n')}
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
           {canViewAll && (
-            <>
+            <div style={{ display: 'flex', gap: '8px', flex: isMobile ? 1 : undefined, width: isMobile ? '100%' : undefined }}>
               {canNgayPhep && (
                 <button onClick={() => setShowNgayPhep(true)}
-                  style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', flexShrink: 0 }}>
+                  style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   📅 Ngày Phép
                 </button>
               )}
               <button onClick={exportCongExcel} disabled={exporting || loading}
-                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
+                style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
               </button>
               <button onClick={exportCongPDF} disabled={loading}
-                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(251,146,60,0.4)', background: 'rgba(251,146,60,0.1)', color: '#fb923c', fontWeight: 700, fontSize: '0.83rem', cursor: loading ? 'default' : 'pointer', flexShrink: 0 }}>
+                style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(251,146,60,0.4)', background: 'rgba(251,146,60,0.1)', color: '#fb923c', fontWeight: 700, fontSize: '0.83rem', cursor: loading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 🖨️ PDF
               </button>
-            </>
+            </div>
           )}
         </div>
         {/* Row 2: grand totals — admin/director/phân lịch all + trưởng phòng (theo dept) */}
