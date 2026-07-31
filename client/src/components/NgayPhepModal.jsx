@@ -369,7 +369,6 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                     <th style={{ ...thS, textAlign: 'left', width: '32px' }}>STT</th>
-                    <th style={{ ...thS, textAlign: 'left' }}>Bộ Phận</th>
                     <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
                     <th style={{ ...thS }}>Phép Năm</th>
                     <th style={thS}>Đã Nghỉ</th>
@@ -380,17 +379,26 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map(u => {
+                  {(() => {
+                    let lastDept = null;
+                    return sorted.map(u => {
                     const tl = u.phep_nam_is_override ? u.phep_nam_override : tichLuy(u.phep_nam, month);
                     const conLai = tl - u.da_nghi_before - u.nghi_thang;
+                    const deptHeader = u.dept !== lastDept ? (lastDept = u.dept,
+                      <tr key={`dept-${u.dept}`}>
+                        <td colSpan={8} style={{ padding: '8px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(201,168,76,0.07)', borderTop: '1px solid rgba(201,168,76,0.15)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+                          {u.dept}
+                        </td>
+                      </tr>
+                    ) : null;
                     return (
                       <>
+                        {deptHeader}
                         <tr key={u.id}
                           style={{ background: editingId === u.id ? 'rgba(201,168,76,0.06)' : 'transparent' }}
                           onMouseEnter={e => { if (editingId !== u.id) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
                           onMouseLeave={e => { if (editingId !== u.id) e.currentTarget.style.background = 'transparent'; }}>
                           <td style={{ ...tdS, color: '#555570', fontSize: '0.74rem' }}>{u.stt}</td>
-                          <td style={{ ...tdS, textAlign: 'left', fontSize: '0.77rem', color: '#8888b0' }}>{u.dept}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 600, color: '#eeeef5' }}>{u.full_name}</td>
                           <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
                           <td style={{ ...tdS, color: u.da_nghi_before > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_before > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_before)}</td>
@@ -426,7 +434,8 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                         )}
                       </>
                     );
-                  })}
+                  });
+                })()}
                 </tbody>
               </table>
             </div>
