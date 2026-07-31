@@ -34,12 +34,14 @@ export default function CongDashWidget({ user }) {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [phaseDateMap, setPhaseDateMap] = useState({});
+  const [leaveMap, setLeaveMap] = useState({});
   const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
 
   useEffect(() => {
     api.getXacNhanCong(currentMonth).then(res => {
       setData(res.reports || res);
       setPhaseDateMap(res.phaseDateMap || {});
+      setLeaveMap(res.leaveConLaiByName || {});
     }).catch(() => {});
   }, [currentMonth]);
 
@@ -73,6 +75,9 @@ export default function CongDashWidget({ user }) {
 
   const [yy, mm] = currentMonth.split('-');
   const label = `Tháng ${parseInt(mm, 10)}/${yy}`;
+  const mmInt = parseInt(mm, 10);
+  const myLeave = leaveMap[myName] || null;
+  const phepNamNet = myLeave?.tichLuy != null ? myLeave.tichLuy - (myLeave.daNghi ?? 0) : null;
 
   const personSummary = {};
   for (const r of data) {
@@ -145,6 +150,18 @@ export default function CongDashWidget({ user }) {
             ))}
           </tbody>
         </table>
+      )}
+      {phepNamNet != null && (
+        <div style={{ display: 'flex', gap: '6px', padding: '7px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.76rem', flexWrap: 'wrap' }}>
+          <span style={{ color: '#7878a0' }}>Phép Năm:</span>
+          <span style={{ color: '#ddddf0', fontWeight: 700 }}>{phepNamNet}</span>
+          <span style={{ color: 'rgba(255,255,255,0.15)', margin: '0 2px' }}>·</span>
+          <span style={{ color: '#7878a0' }}>T.{mmInt}:</span>
+          <span style={{ color: '#ddddf0', fontWeight: 700 }}>{myLeave.nghiThang ?? 0}</span>
+          <span style={{ color: 'rgba(255,255,255,0.15)', margin: '0 2px' }}>·</span>
+          <span style={{ color: '#7878a0' }}>Còn Lại:</span>
+          <span style={{ color: myLeave.conLai < 0 ? '#f87171' : myLeave.conLai === 0 ? '#9898b0' : '#4ade80', fontWeight: 700 }}>{myLeave.conLai}</span>
+        </div>
       )}
     </div>
   );
