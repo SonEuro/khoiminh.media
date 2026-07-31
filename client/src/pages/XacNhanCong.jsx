@@ -879,7 +879,7 @@ ${rows.map(renderRow).join('\n')}
             </div>
             <div style={{ flex: 1, background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '8px', padding: '7px 14px', textAlign: 'center' }}>
               <p style={{ fontSize: '0.66rem', color: '#4a7fcb', margin: '0 0 1px', textTransform: 'uppercase' }}>{isTruongPhong ? `OT ${userDept}` : 'Tổng OT'}</p>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{fmtNum(grandOT)}h</p>
+              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{fmtMins(Math.round(grandOT * 60))}</p>
             </div>
           </div>
         )}
@@ -908,7 +908,7 @@ ${rows.map(renderRow).join('\n')}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>{members.length} người</span>
                 {deptCong > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: GOLD }}>{fmtNum(deptCong)} công</span>}
-                {deptOT   > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtNum(deptOT)}h OT</span>}
+                {deptOT   > 0 && <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#60a5fa' }}>+{fmtMins(Math.round(deptOT * 60))} OT</span>}
               </div>
             </div>
 
