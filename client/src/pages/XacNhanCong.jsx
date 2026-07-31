@@ -488,7 +488,8 @@ export default function XacNhanCong() {
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
           // X=Tổng Lương: formula tự tính khi sửa LCB/PC/Công/OT/phụ cấp trực tiếp trên Excel
-          row.getCell(24).value = { formula: `=E${r}+F${r}-IF(K${r}<0,(E${r}+F${r})/26*(-K${r}),0)+G${r}*L${r}+H${r}*M${r}*24+N${r}+O${r}*40000+P${r}*30000+Q${r}*30000+R${r}*40000+S${r}+T${r}+U${r}+V${r}-W${r}`, result: totalTien };
+          // N() chuyển ô rỗng/"" thành 0, tránh #VALUE! khi ô không có giá trị
+          row.getCell(24).value = { formula: `=N(E${r})+N(F${r})-IF(N(K${r})<0,(N(E${r})+N(F${r}))/26*(-N(K${r})),0)+N(G${r})*N(L${r})+N(H${r})*N(M${r})*24+N(N${r})+N(O${r})*40000+N(P${r})*30000+N(Q${r})*30000+N(R${r})*40000+N(S${r})+N(T${r})+N(U${r})+N(V${r})-N(W${r})`, result: totalTien };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; row.getCell(8).numFmt = vndFmt; }
