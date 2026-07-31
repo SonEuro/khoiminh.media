@@ -99,7 +99,7 @@ function OverrideField({ label, currentVal, isOverride, overrideVal, onSave, onC
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span style={{ fontSize: '0.78rem', color: isOverride ? GOLD : '#7878a0', minWidth: '110px', fontWeight: isOverride ? 700 : 400 }}>
-        {label}{isOverride ? ' ✏️' : ''}
+        {label}
       </span>
       <span style={{ fontSize: '0.75rem', color: '#555570' }}>hiện: <b style={{ color: isOverride ? GOLD : '#eeeef5' }}>{fmtN(currentVal)}</b></span>
       <input type="number" min="0" step="0.5" value={inputVal} onChange={e => setInputVal(e.target.value)}
@@ -362,12 +362,8 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                           <td style={{ ...tdS, textAlign: 'left', fontSize: '0.77rem', color: '#8888b0' }}>{u.dept}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 600, color: '#eeeef5' }}>{u.full_name}</td>
                           <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
-                          <td style={{ ...tdS, color: u.da_nghi_to_month > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_to_month > 0 ? 700 : 400 }}>
-                            {fmtN(u.da_nghi_to_month)}{u.da_nghi_is_override ? <span style={{ fontSize: '0.65rem', marginLeft: '3px', opacity: 0.7 }}>✏️</span> : null}
-                          </td>
-                          <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>
-                            {fmtN(u.nghi_thang)}{u.nghi_thang_is_override ? <span style={{ fontSize: '0.65rem', marginLeft: '3px', opacity: 0.7 }}>✏️</span> : null}
-                          </td>
+                          <td style={{ ...tdS, color: u.da_nghi_to_month > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_to_month > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_to_month)}</td>
+                          <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>{fmtN(u.nghi_thang)}</td>
                           <td style={{ ...tdS, color: conLai < 0 ? '#f87171' : conLai <= 2 ? '#fb923c' : '#4ade80', fontWeight: 700 }}>{fmtN(conLai)}</td>
                           <td style={{ ...tdS, textAlign: 'left' }}>
                             {(u.nghi_thang_dates || []).length > 0 ? (
