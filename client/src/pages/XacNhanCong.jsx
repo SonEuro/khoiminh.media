@@ -389,7 +389,7 @@ export default function XacNhanCong() {
       const deptSubtotalRows = [];
 
       for (const g of kmGroups) {
-        const deptMembers = g.members.filter(name => personMap[name]);
+        const deptMembers = g.members;
         if (!deptMembers.length) continue;
 
         let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
@@ -432,7 +432,7 @@ export default function XacNhanCong() {
           const adjPc  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeduct;
           const salaryPart = adjLcb + adjPc + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
-          if (!sal.luong_theo_thang && !daysWorked && !cong) continue;
+          if (!sal.luong_theo_thang && !sal.lcb && !sal.pc && !daysWorked && !cong) continue;
           // Build ghi chú từ notes của từng ca
           const ghiChuLines = [];
           for (const { report: rep } of entries) {
@@ -656,7 +656,7 @@ export default function XacNhanCong() {
     const rows = [];
 
     for (const g of kmGroups) {
-      const deptMembers = g.members.filter(name => personMap[name]);
+      const deptMembers = g.members;
       if (!deptMembers.length) continue;
       let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
       let deptCS = 0, deptCT = 0, deptCC = 0, deptCToi = 0;
@@ -668,8 +668,8 @@ export default function XacNhanCong() {
         const entries = personMap[name] || [];
         const { cong, ot } = personTotals(entries, name);
         const daysWorkedPdf = entries.filter(e => e.result).length;
-        const salPre = salaryByName[name] || { luong_theo_thang: 0 };
-        if (!salPre.luong_theo_thang && !daysWorkedPdf && !cong) continue;
+        const salPre = salaryByName[name] || { luong_theo_thang: 0, lcb: 0, pc: 0 };
+        if (!salPre.luong_theo_thang && !salPre.lcb && !salPre.pc && !daysWorkedPdf && !cong) continue;
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
         const leaders = entries.reduce((sum, { report: r }) => {
           const autoLeader = (r.leaders || []).includes(name) && (() => {
