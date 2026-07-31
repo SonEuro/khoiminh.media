@@ -65,6 +65,8 @@ function fmtNum(n) {
   return n % 1 === 0 ? String(n) : parseFloat(n.toFixed(2)).toString();
 }
 
+function fmtVND(n) { return n ? Math.round(n).toLocaleString('vi-VN') : ''; }
+
 function fmtDate(d) {
   if (!d) return '—';
   const [y, m, day] = d.split('-');
@@ -675,7 +677,6 @@ export default function XacNhanCong() {
     const RATES = { leader: 200000, cs: 40000, ct: 30000, cc: 30000, ctoi: 40000 };
     const VIOL_PENALTY = 100000;
     const daysInMonthPdf = new Date(parseInt(yy), parseInt(mm), 0).getDate();
-    const fmtVND = n => n ? Math.round(n).toLocaleString('vi-VN') : '';
 
     let stt = 0;
     const rows = [];
