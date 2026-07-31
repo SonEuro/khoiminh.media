@@ -405,7 +405,7 @@ export default function XacNhanCong() {
         groupedNamesExcel.add(name);
       }
       const byTenExcel = n => (n || '').trim().split(/\s+/).pop() || n;
-      const salRankExcel = n => { const s = salaryByName[n] || {}; return (s.truong_phong || 0) * 4 + (s.luong_theo_thang || 0) * 2; };
+      const salRankExcel = n => (salaryByName[n]?.truong_phong || 0);
       allGroupsExcel.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
       for (const g of allGroupsExcel) g.members.sort((a, b) => {
         const diff = salRankExcel(b) - salRankExcel(a);
@@ -695,7 +695,7 @@ export default function XacNhanCong() {
       groupedNamesPdf.add(name);
     }
     const byTenPdf = n => (n || '').trim().split(/\s+/).pop() || n;
-    const salRankPdf = n => { const s = salaryByName[n] || {}; return (s.truong_phong || 0) * 4 + (s.luong_theo_thang || 0) * 2; };
+    const salRankPdf = n => (salaryByName[n]?.truong_phong || 0);
     allGroupsPdf.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
     for (const g of allGroupsPdf) g.members.sort((a, b) => {
       const diff = salRankPdf(b) - salRankPdf(a);
