@@ -355,7 +355,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:Z1');
+      ws.mergeCells('A1:Y1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -364,7 +364,7 @@ export default function XacNhanCong() {
       ws.getRow(1).height = 28;
 
       // Header row — 23 cột
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Phụ Cấp', 'Lương Ngày Công', 'Lương OT/h', 'Phép Năm', `T.${parseInt(mm,10)}`, 'Còn Lại', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú']);
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Phụ Cấp', 'Lương Ngày Công', 'Lương OT/h', 'Phép Năm', `T.${parseInt(mm,10)}`, 'Còn Lại', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -480,35 +480,35 @@ export default function XacNhanCong() {
             leaveDeduct > 0 ? Math.round(adjPc) : (sal.pc || ''),    // F: Phụ Cấp
             sal.lnc || '', sal.lot || '',                              // G: LNC, H: LOT
             ld.tichLuy != null ? ld.tichLuy - (ld.daNghi ?? 0) : '', ld.nghiThang ?? '', ld.conLai ?? '',  // I-K: PN net, T.M, CL
-            days, parseFloat(fmtNum(cong)), ot > 0 ? ot / 24 : '',   // L: Ngày, M: Công, N: OT
-            leaderAmt || '', cs || '', ct || '', cc || '', ctoi || '', // O-S
-            xangXe || '', tienNuoc || '', giuXe || '', phuCapKhac || '', // T-W
-            phatAmt > 0 ? phatAmt : '',                               // X: Phạt
-            '',                                                        // Y: Tổng Lương (formula)
-            ghiChu,                                                    // Z: Ghi Chú
+            parseFloat(fmtNum(cong)), ot > 0 ? ot / 24 : '',          // L: Công, M: OT
+            leaderAmt || '', cs || '', ct || '', cc || '', ctoi || '', // N-R
+            xangXe || '', tienNuoc || '', giuXe || '', phuCapKhac || '', // S-V
+            phatAmt > 0 ? phatAmt : '',                               // W: Phạt
+            '',                                                        // X: Tổng Lương (formula)
+            ghiChu,                                                    // Y: Ghi Chú
           ]);
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
-          // Y=Tổng Lương: LCB+PC+LNC×Công+LOT×OT+Leader+bữa ăn+phụ cấp−Phạt
-          row.getCell(25).value = (sal.luong_theo_thang || leaveDeduct > 0)
+          // X=Tổng Lương: LCB+PC+LNC×Công+LOT×OT+Leader+bữa ăn+phụ cấp−Phạt
+          row.getCell(24).value = (sal.luong_theo_thang || leaveDeduct > 0)
             ? totalTien
             : {
-                formula: `=N(E${r})+N(F${r})+N(G${r})*N(M${r})+N(H${r})*N(N${r})*24+N(O${r})+N(P${r})*40000+N(Q${r})*30000+N(R${r})*30000+N(S${r})*40000+N(T${r})+N(U${r})+N(V${r})+N(W${r})-N(X${r})`,
+                formula: `=N(E${r})+N(F${r})+N(G${r})*N(L${r})+N(H${r})*N(M${r})*24+N(N${r})+N(O${r})*40000+N(P${r})*30000+N(Q${r})*30000+N(R${r})*40000+N(S${r})+N(T${r})+N(U${r})+N(V${r})-N(W${r})`,
                 result: totalTien,
               };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; row.getCell(8).numFmt = vndFmt; }
           if (sal.pc > 0) row.getCell(6).numFmt = vndFmt;
-          if (xangXe > 0)     row.getCell(20).numFmt = vndFmt;
-          if (tienNuoc > 0)   row.getCell(21).numFmt = vndFmt;
-          if (giuXe > 0)      row.getCell(22).numFmt = vndFmt;
-          if (phuCapKhac > 0) row.getCell(23).numFmt = vndFmt;
-          if (phatAmt > 0) { row.getCell(24).numFmt = vndFmt; row.getCell(24).font = { color: { argb: 'FFCC0000' } }; }
-          row.getCell(25).numFmt = vndFmt;
-          if (leaderAmt > 0) row.getCell(15).numFmt = vndFmt;
-          if (ot > 0) row.getCell(14).numFmt = '[h]"h"mm';
-          if (ghiChu) row.getCell(26).alignment = { wrapText: true, vertical: 'top', horizontal: 'left' };
+          if (xangXe > 0)     row.getCell(19).numFmt = vndFmt;
+          if (tienNuoc > 0)   row.getCell(20).numFmt = vndFmt;
+          if (giuXe > 0)      row.getCell(21).numFmt = vndFmt;
+          if (phuCapKhac > 0) row.getCell(22).numFmt = vndFmt;
+          if (phatAmt > 0) { row.getCell(23).numFmt = vndFmt; row.getCell(23).font = { color: { argb: 'FFCC0000' } }; }
+          row.getCell(24).numFmt = vndFmt;
+          if (leaderAmt > 0) row.getCell(14).numFmt = vndFmt;
+          if (ot > 0) row.getCell(13).numFmt = '[h]"h"mm';
+          if (ghiChu) row.getCell(25).alignment = { wrapText: true, vertical: 'top', horizontal: 'left' };
           if (ld.conLai !== undefined && ld.conLai < 0) row.getCell(11).font = { color: { argb: 'FFCC0000' } };
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaderAmt;
           deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi;
@@ -522,12 +522,12 @@ export default function XacNhanCong() {
           grandCS += deptCS; grandCT += deptCT; grandCC += deptCC; grandCToi += deptCToi;
           grandXangXe += deptXangXe; grandTienNuoc += deptTienNuoc; grandGiuXe += deptGiuXe; grandPhuCapKhac += deptPhuCapKhac;
           grandPhuCap += deptPhuCap; grandPhat += deptPhat; grandTotalTien += deptTotalTien;
-          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+          const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
           const sr = subRow.number;
           deptSubtotalRows.push(sr);
-          // SUM: F=PC, L=Ngày, M=Công, N=OT, O=Leader, P-S=bữa, T-W=phụ cấp, X=Phạt, Y=Total
-          const sCols = ['F','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y'];
-          const sVals = [deptPhuCap, deptDays, parseFloat(fmtNum(deptCong)), deptOT / 24, deptLeader, deptCS, deptCT, deptCC, deptCToi, deptXangXe, deptTienNuoc, deptGiuXe, deptPhuCapKhac, deptPhat, deptTotalTien];
+          // SUM: F=PC, L=Công, M=OT, N=Leader, O-R=bữa, S-V=phụ cấp, W=Phạt, X=Total
+          const sCols = ['F','L','M','N','O','P','Q','R','S','T','U','V','W','X'];
+          const sVals = [deptPhuCap, parseFloat(fmtNum(deptCong)), deptOT / 24, deptLeader, deptCS, deptCT, deptCC, deptCToi, deptXangXe, deptTienNuoc, deptGiuXe, deptPhuCapKhac, deptPhat, deptTotalTien];
           sCols.forEach((col, i) => {
             subRow.getCell(col.charCodeAt(0) - 64).value = { formula: `=SUM(${col}${firstPersonRow}:${col}${deptEndRow})`, result: sVals[i] || 0 };
           });
@@ -539,23 +539,23 @@ export default function XacNhanCong() {
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
           if (deptPhuCap > 0)     subRow.getCell(6).numFmt = vndFmt;
-          if (deptLeader > 0)     subRow.getCell(15).numFmt = vndFmt;
-          if (deptXangXe > 0)     subRow.getCell(20).numFmt = vndFmt;
-          if (deptTienNuoc > 0)   subRow.getCell(21).numFmt = vndFmt;
-          if (deptGiuXe > 0)      subRow.getCell(22).numFmt = vndFmt;
-          if (deptPhuCapKhac > 0) subRow.getCell(23).numFmt = vndFmt;
-          if (deptPhat > 0) { subRow.getCell(24).numFmt = vndFmt; subRow.getCell(24).font = { bold: true, color: { argb: 'FFCC0000' } }; }
-          subRow.getCell(25).numFmt = vndFmt;
-          if (deptOT > 0) subRow.getCell(14).numFmt = '[h]"h"mm';
+          if (deptLeader > 0)     subRow.getCell(14).numFmt = vndFmt;
+          if (deptXangXe > 0)     subRow.getCell(19).numFmt = vndFmt;
+          if (deptTienNuoc > 0)   subRow.getCell(20).numFmt = vndFmt;
+          if (deptGiuXe > 0)      subRow.getCell(21).numFmt = vndFmt;
+          if (deptPhuCapKhac > 0) subRow.getCell(22).numFmt = vndFmt;
+          if (deptPhat > 0) { subRow.getCell(23).numFmt = vndFmt; subRow.getCell(23).font = { bold: true, color: { argb: 'FFCC0000' } }; }
+          subRow.getCell(24).numFmt = vndFmt;
+          if (deptOT > 0) subRow.getCell(13).numFmt = '[h]"h"mm';
         }
       }
 
       // Grand total
       ws.addRow([]);
-      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+      const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
       if (deptSubtotalRows.length > 0) {
-        const tCols = ['F','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y'];
-        const tVals = [grandPhuCap, grandDays, parseFloat(fmtNum(grandCongX)), grandOTX / 24, grandLeader, grandCS, grandCT, grandCC, grandCToi, grandXangXe, grandTienNuoc, grandGiuXe, grandPhuCapKhac, grandPhat, grandTotalTien];
+        const tCols = ['F','L','M','N','O','P','Q','R','S','T','U','V','W','X'];
+        const tVals = [grandPhuCap, parseFloat(fmtNum(grandCongX)), grandOTX / 24, grandLeader, grandCS, grandCT, grandCC, grandCToi, grandXangXe, grandTienNuoc, grandGiuXe, grandPhuCapKhac, grandPhat, grandTotalTien];
         tCols.forEach((col, i) => {
           const formula = deptSubtotalRows.map(r => `${col}${r}`).join('+');
           totalRow.getCell(col.charCodeAt(0) - 64).value = { formula: `=${formula}`, result: tVals[i] || 0 };
@@ -569,23 +569,23 @@ export default function XacNhanCong() {
       });
       totalRow.getCell(2).alignment = { horizontal: 'left' };
       if (grandPhuCap > 0)     totalRow.getCell(6).numFmt = vndFmt;
-      if (grandLeader > 0)     totalRow.getCell(15).numFmt = vndFmt;
-      if (grandXangXe > 0)     totalRow.getCell(20).numFmt = vndFmt;
-      if (grandTienNuoc > 0)   totalRow.getCell(21).numFmt = vndFmt;
-      if (grandGiuXe > 0)      totalRow.getCell(22).numFmt = vndFmt;
-      if (grandPhuCapKhac > 0) totalRow.getCell(23).numFmt = vndFmt;
-      if (grandPhat > 0) { totalRow.getCell(24).numFmt = vndFmt; totalRow.getCell(24).font = { bold: true, size: 11, color: { argb: 'FFCC0000' } }; }
-      totalRow.getCell(25).numFmt = vndFmt;
-      if (grandOTX > 0) totalRow.getCell(14).numFmt = '[h]"h"mm';
+      if (grandLeader > 0)     totalRow.getCell(14).numFmt = vndFmt;
+      if (grandXangXe > 0)     totalRow.getCell(19).numFmt = vndFmt;
+      if (grandTienNuoc > 0)   totalRow.getCell(20).numFmt = vndFmt;
+      if (grandGiuXe > 0)      totalRow.getCell(21).numFmt = vndFmt;
+      if (grandPhuCapKhac > 0) totalRow.getCell(22).numFmt = vndFmt;
+      if (grandPhat > 0) { totalRow.getCell(23).numFmt = vndFmt; totalRow.getCell(23).font = { bold: true, size: 11, color: { argb: 'FFCC0000' } }; }
+      totalRow.getCell(24).numFmt = vndFmt;
+      if (grandOTX > 0) totalRow.getCell(13).numFmt = '[h]"h"mm';
 
       ws.columns = [
         { width: 6 }, { width: 18 }, { width: 24 }, { width: 10 },  // A-D
         { width: 14 }, { width: 16 }, { width: 12 }, { width: 13 }, // E-H: LCB,PC,LNC,LOT
         { width: 10 }, { width: 10 }, { width: 10 },                 // I-K: PN net,T.M,CL
-        { width: 10 }, { width: 12 }, { width: 14 }, { width: 10 }, // L-O: Ngày,Công,OT,Leader
-        { width: 9 }, { width: 9 }, { width: 9 }, { width: 9 },     // P-S: bữa ăn
-        { width: 11 }, { width: 12 }, { width: 9 }, { width: 13 }, { width: 12 }, { width: 16 }, // T-Y
-        { width: 38 },                                                // Z: Ghi Chú
+        { width: 12 }, { width: 14 }, { width: 10 },                 // L-N: Công,OT,Leader
+        { width: 9 }, { width: 9 }, { width: 9 }, { width: 9 },     // O-R: bữa ăn
+        { width: 11 }, { width: 12 }, { width: 9 }, { width: 13 }, { width: 12 }, { width: 16 }, // S-X
+        { width: 38 },                                                // Y: Ghi Chú
       ];
 
       // ── Sheet 2: Chi Tiết ──
@@ -781,15 +781,15 @@ export default function XacNhanCong() {
       acc.phuCap += r.phuCap; acc.phat += r.phat; acc.total += r.total; return acc;
     }, { days:0, cong:0, ot:0, leaders:0, cs:0, ct:0, cc:0, ctoi:0, xangXe:0, tienNuoc:0, giuXe:0, phuCapKhac:0, phuCap:0, phat:0, total:0 });
 
-    const hdr = ['STT','Bộ Phận','Họ Tên','Bậc','Lương CB','Phụ Cấp','LNC/ngày','LOT/h',`Phép Năm`,`T.${parseInt(mm,10)}`,'Còn Lại','Ngày','Công','OT(h)','Leader','C.Sáng','C.Trưa','C.Tối','C.Khuya','Xăng Xe','T.Nước','Giữ Xe','PC Khác','Phạt BC','Tổng Lương','Ghi Chú'];
+    const hdr = ['STT','Bộ Phận','Họ Tên','Bậc','Lương CB','Phụ Cấp','LNC/ngày','LOT/h',`Phép Năm`,`T.${parseInt(mm,10)}`,'Còn Lại','Công','OT(h)','Leader','C.Sáng','C.Trưa','C.Tối','C.Khuya','Xăng Xe','T.Nước','Giữ Xe','PC Khác','Phạt BC','Tổng Lương','Ghi Chú'];
     const tdC = (v, extra='') => `<td${extra}>${v ?? ''}</td>`;
     const renderRow = r => {
       if (r.type === 'person') {
         const ld = r.leaveDetail || {};
         const conLaiStyle = (ld.conLai !== undefined && ld.conLai < 0) ? ' style="color:#c00;font-weight:700"' : '';
-        return `<tr>${[r.stt, r.dept, r.name, r.sal.bac||'', fmtVND(r.sal.lcb), fmtVND(r.phuCap), fmtVND(r.sal.lnc), fmtVND(r.sal.lot), ld.tichLuy != null ? ld.tichLuy - (ld.daNghi ?? 0) : '', ld.nghiThang??'', ld.conLai!==undefined?`<span${conLaiStyle}>${ld.conLai}</span>`:'', r.days, fmtNum(r.cong), r.ot > 0 ? fmtMins(Math.round(r.ot * 60)) : '', fmtVND(r.leaders), r.cs||'', r.ct||'', r.cc||'', r.ctoi||'', fmtVND(r.xangXe), fmtVND(r.tienNuoc), fmtVND(r.giuXe), fmtVND(r.phuCapKhac), r.phatAmt ? '<span style="color:#c00">'+fmtVND(r.phatAmt)+'</span>' : '', fmtVND(r.totalTien), r.ghiChu||''].map((v,i) => `<td${i===2?' style="text-align:left"':i===25?' style="text-align:left;white-space:pre-line"':''}>${v??''}</td>`).join('')}</tr>`;
+        return `<tr>${[r.stt, r.dept, r.name, r.sal.bac||'', fmtVND(r.sal.lcb), fmtVND(r.phuCap), fmtVND(r.sal.lnc), fmtVND(r.sal.lot), ld.tichLuy != null ? ld.tichLuy - (ld.daNghi ?? 0) : '', ld.nghiThang??'', ld.conLai!==undefined?`<span${conLaiStyle}>${ld.conLai}</span>`:'', fmtNum(r.cong), r.ot > 0 ? fmtMins(Math.round(r.ot * 60)) : '', fmtVND(r.leaders), r.cs||'', r.ct||'', r.cc||'', r.ctoi||'', fmtVND(r.xangXe), fmtVND(r.tienNuoc), fmtVND(r.giuXe), fmtVND(r.phuCapKhac), r.phatAmt ? '<span style="color:#c00">'+fmtVND(r.phatAmt)+'</span>' : '', fmtVND(r.totalTien), r.ghiChu||''].map((v,i) => `<td${i===2?' style="text-align:left"':i===24?' style="text-align:left;white-space:pre-line"':''}>${v??''}</td>`).join('')}</tr>`;
       }
-      return `<tr class="sub">${tdC('')}${tdC('Tổng '+r.dept,' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC(fmtVND(r.phuCap))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(r.days)}${tdC(fmtNum(r.cong))}${tdC(r.ot > 0 ? fmtMins(Math.round(r.ot * 60)) : '')}${tdC(fmtVND(r.leaders))}${tdC(r.cs||'')}${tdC(r.ct||'')}${tdC(r.cc||'')}${tdC(r.ctoi||'')}${tdC(fmtVND(r.xangXe))}${tdC(fmtVND(r.tienNuoc))}${tdC(fmtVND(r.giuXe))}${tdC(fmtVND(r.phuCapKhac))}${tdC(r.phat?'<span style="color:#c00">'+fmtVND(r.phat)+'</span>':'')}${tdC(fmtVND(r.total))}${tdC('')}</tr>`;
+      return `<tr class="sub">${tdC('')}${tdC('Tổng '+r.dept,' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC(fmtVND(r.phuCap))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(fmtNum(r.cong))}${tdC(r.ot > 0 ? fmtMins(Math.round(r.ot * 60)) : '')}${tdC(fmtVND(r.leaders))}${tdC(r.cs||'')}${tdC(r.ct||'')}${tdC(r.cc||'')}${tdC(r.ctoi||'')}${tdC(fmtVND(r.xangXe))}${tdC(fmtVND(r.tienNuoc))}${tdC(fmtVND(r.giuXe))}${tdC(fmtVND(r.phuCapKhac))}${tdC(r.phat?'<span style="color:#c00">'+fmtVND(r.phat)+'</span>':'')}${tdC(fmtVND(r.total))}${tdC('')}</tr>`;
     };
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
@@ -811,7 +811,7 @@ tr.grand td{background:#BDD7EE!important;print-color-adjust:exact;-webkit-print-
 <p class="sub-title">Xuất lúc ${stamp}</p>
 <table><thead><tr>${hdr.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
 ${rows.map(renderRow).join('\n')}
-<tr class="grand">${tdC('')}${tdC('TỔNG CỘNG',' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC(fmtVND(grand.phuCap))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(grand.days)}${tdC(fmtNum(grand.cong))}${tdC(grand.ot > 0 ? fmtMins(Math.round(grand.ot * 60)) : '')}${tdC(fmtVND(grand.leaders))}${tdC(grand.cs||'')}${tdC(grand.ct||'')}${tdC(grand.cc||'')}${tdC(grand.ctoi||'')}${tdC(fmtVND(grand.xangXe))}${tdC(fmtVND(grand.tienNuoc))}${tdC(fmtVND(grand.giuXe))}${tdC(fmtVND(grand.phuCapKhac))}${tdC(grand.phat?'<span style="color:#c00">'+fmtVND(grand.phat)+'</span>':'')}${tdC(fmtVND(grand.total))}${tdC('')}</tr>
+<tr class="grand">${tdC('')}${tdC('TỔNG CỘNG',' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC(fmtVND(grand.phuCap))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(fmtNum(grand.cong))}${tdC(grand.ot > 0 ? fmtMins(Math.round(grand.ot * 60)) : '')}${tdC(fmtVND(grand.leaders))}${tdC(grand.cs||'')}${tdC(grand.ct||'')}${tdC(grand.cc||'')}${tdC(grand.ctoi||'')}${tdC(fmtVND(grand.xangXe))}${tdC(fmtVND(grand.tienNuoc))}${tdC(fmtVND(grand.giuXe))}${tdC(fmtVND(grand.phuCapKhac))}${tdC(grand.phat?'<span style="color:#c00">'+fmtVND(grand.phat)+'</span>':'')}${tdC(fmtVND(grand.total))}${tdC('')}</tr>
 </tbody></table></body></html>`;
 
     const win = window.open('', '_blank');
