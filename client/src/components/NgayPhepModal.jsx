@@ -34,7 +34,7 @@ function tichLuy(phep_nam, ym) {
 
 const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
-function MultiDatePicker({ selected, onChange }) {
+function MultiDatePicker({ selected, onChange, disabledDates = new Set() }) {
   const today = new Date().toISOString().slice(0, 10);
   const [viewYM, setViewYM] = useState(() => today.slice(0, 7));
 
@@ -50,13 +50,14 @@ function MultiDatePicker({ selected, onChange }) {
   }
 
   function toggleDate(ds) {
+    if (disabledDates.has(ds)) return;
     const next = new Set(selected);
     if (next.has(ds)) next.delete(ds); else next.add(ds);
     onChange(next);
   }
 
   const daysInMonth = new Date(y, m, 0).getDate();
-  const startDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // Mon=0
+  const startDow = (new Date(y, m - 1, 1).getDay() + 6) % 7;
 
   const cells = Array(startDow).fill(null);
   for (let d = 1; d <= daysInMonth; d++) {
@@ -79,12 +80,25 @@ function MultiDatePicker({ selected, onChange }) {
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 28px)', gap: '2px' }}>
-        {cells.map((ds, i) => ds ? (
-          <button key={i} onClick={() => toggleDate(ds)}
-            style={{ width: '28px', height: '26px', borderRadius: '5px', border: selected.has(ds) ? `1px solid ${GOLD}` : '1px solid transparent', background: selected.has(ds) ? `${GOLD}30` : ds === today ? 'rgba(255,255,255,0.07)' : 'transparent', color: selected.has(ds) ? '#e8c97a' : ds === today ? '#eeeef5' : '#c0c0d8', fontSize: '0.76rem', cursor: 'pointer', fontWeight: selected.has(ds) ? 700 : 400, padding: 0 }}>
-            {parseInt(ds.slice(8), 10)}
-          </button>
-        ) : <div key={i} />)}
+        {cells.map((ds, i) => {
+          if (!ds) return <div key={i} />;
+          const isDisabled = disabledDates.has(ds);
+          const isSelected = selected.has(ds);
+          const isToday = ds === today;
+          return (
+            <button key={i} onClick={() => toggleDate(ds)}
+              title={isDisabled ? 'Đã thêm' : ''}
+              style={{
+                width: '28px', height: '26px', borderRadius: '5px', padding: 0, fontSize: '0.76rem', fontWeight: isSelected || isDisabled ? 700 : 400, cursor: isDisabled ? 'not-allowed' : 'pointer',
+                border: isSelected ? `1px solid ${GOLD}` : isDisabled ? '1px solid rgba(248,113,113,0.35)' : '1px solid transparent',
+                background: isSelected ? `${GOLD}30` : isDisabled ? 'rgba(248,113,113,0.12)' : isToday ? 'rgba(255,255,255,0.07)' : 'transparent',
+                color: isSelected ? '#e8c97a' : isDisabled ? '#f87171' : isToday ? '#eeeef5' : '#c0c0d8',
+                opacity: isDisabled ? 0.65 : 1,
+              }}>
+              {parseInt(ds.slice(8), 10)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -223,8 +237,25 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
       {/* Add individual day records */}
       <div style={divS}>Thêm Ngày Nghỉ</div>
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'flex-start' }}>
-        <MultiDatePicker selected={addDates} onChange={setAddDates} />
+
+      {/* Existing records as chips */}
+      {records.length > 0 ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
+          {[...records].sort((a, b) => a.ngay.localeCompare(b.ngay)).map(r => (
+            <span key={r.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#f97316', fontWeight: 600, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '5px', padding: '2px 4px 2px 8px' }}>
+              {fmtNgay(r.ngay)}/{r.ngay.slice(0,4)}{r.so_ngay < 1 ? ` (${r.so_ngay})` : ''}
+              {r.ghi_chu ? <span style={{ color: '#a08040', fontWeight: 400 }}> · {r.ghi_chu}</span> : null}
+              <button onClick={() => delRecord(r.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.95rem', lineHeight: 1, padding: '0 2px', marginLeft: '2px' }}>×</button>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: '0.78rem', color: '#555570', marginBottom: '10px' }}>Chưa có ngày nghỉ nào.</div>
+      )}
+
+      {/* Calendar + options */}
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <MultiDatePicker selected={addDates} onChange={setAddDates} disabledDates={new Set(records.map(r => r.ngay))} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
           <select value={addSo} onChange={e => setAddSo(e.target.value)} style={{ ...inS, width: '100px' }}>
             <option value="0.5">0.5 ngày</option>
@@ -233,9 +264,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
           <input type="text" placeholder="Ghi chú..." value={addNote} onChange={e => setAddNote(e.target.value)}
             style={{ ...inS, width: '160px' }} />
           {addDates.size > 0 && (
-            <div style={{ fontSize: '0.75rem', color: '#e8c97a' }}>
-              Đã chọn: <b>{addDates.size}</b> ngày
-            </div>
+            <div style={{ fontSize: '0.75rem', color: '#e8c97a' }}>Đã chọn: <b>{addDates.size}</b> ngày</div>
           )}
           <button onClick={addRecord} disabled={saving || addDates.size === 0}
             style={{ ...btnS('#4ade80'), opacity: addDates.size === 0 ? 0.4 : 1 }}>
@@ -243,32 +272,6 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
           </button>
         </div>
       </div>
-
-      {records.length > 0 ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.80rem' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-              {['Ngày', 'Số Ngày', 'Ghi Chú', ''].map(h => (
-                <th key={h} style={{ padding: '4px 6px', color: '#7878a0', fontWeight: 600, textAlign: 'left', fontSize: '0.70rem' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {records.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <td style={{ padding: '5px 6px', color: '#f97316', fontWeight: 700 }}>{fmtNgay(r.ngay)}/{r.ngay.slice(0,4)}</td>
-                <td style={{ padding: '5px 6px', color: '#eeeef5', textAlign: 'center' }}>{fmtN(r.so_ngay)}</td>
-                <td style={{ padding: '5px 6px', color: '#a0a0c0' }}>{r.ghi_chu || '—'}</td>
-                <td style={{ padding: '5px 6px', textAlign: 'right' }}>
-                  <button onClick={() => delRecord(r.id)} style={{ ...btnS('#f87171'), padding: '2px 7px' }}>Xoá</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div style={{ fontSize: '0.80rem', color: '#555570', padding: '4px 0' }}>Chưa có ngày nghỉ nào.</div>
-      )}
     </div>
   );
 }
