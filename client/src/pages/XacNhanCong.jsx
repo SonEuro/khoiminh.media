@@ -355,7 +355,7 @@ export default function XacNhanCong() {
       const white = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
 
       // Title
-      ws.mergeCells('A1:W1');
+      ws.mergeCells('A1:AA1');
       const titleCell = ws.getCell('A1');
       titleCell.value = titleText;
       titleCell.font = { bold: true, size: 13 };
@@ -364,7 +364,7 @@ export default function XacNhanCong() {
       ws.getRow(1).height = 28;
 
       // Header row — 23 cột
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Phụ Cấp', 'Lương Ngày Công', 'Lương OT/h', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú']);
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Phụ Cấp', 'Lương Ngày Công', 'Lương OT/h', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú', 'Phép Năm', 'Đã Nghỉ', `T.${parseInt(mm,10)}`, 'Còn Lại']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -450,7 +450,7 @@ export default function XacNhanCong() {
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
           const days = sal.luong_theo_thang ? daysInMonth : daysWorked;
           const lncBase = sal.luong_theo_thang ? daysInMonth : cong;
-          const leaveConLai = leaveConLaiByName[name] ?? null;
+          const leaveConLai = leaveConLaiByName[name]?.conLai ?? null;
           const leaveDeduct = (leaveConLai !== null && leaveConLai < 0) ? Math.abs(leaveConLai) : 0;
           const adjLcb = (sal.lcb || 0) - ((sal.lcb || 0) / 26) * leaveDeduct;
           const adjPc  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeduct;
@@ -472,6 +472,7 @@ export default function XacNhanCong() {
           }
           if (leaveDeduct > 0) ghiChuLines.unshift(`Trừ ${leaveDeduct} ngày phép: LCB ${fmtVND(sal.lcb)}→${fmtVND(Math.round(adjLcb))}, PC ${fmtVND(sal.pc)}→${fmtVND(Math.round(adjPc))}`);
           const ghiChu = ghiChuLines.join('\n');
+          const ld = leaveConLaiByName[name] || {};
           stt++;
           const row = ws.addRow([
             stt, g.dept, name, sal.bac || '',
@@ -484,6 +485,7 @@ export default function XacNhanCong() {
             phatAmt > 0 ? phatAmt : '',
             '',             // V: set bằng formula bên dưới
             ghiChu,         // W: ghi chú
+            ld.tichLuy ?? '', ld.daNghi ?? '', ld.nghiThang ?? '', ld.conLai ?? '',  // X-AA
           ]);
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
@@ -507,6 +509,7 @@ export default function XacNhanCong() {
           row.getCell(22).numFmt = vndFmt;
           if (leaderAmt > 0) row.getCell(12).numFmt = vndFmt;
           if (ghiChu) row.getCell(23).alignment = { wrapText: true, vertical: 'top', horizontal: 'left' };
+          if (ld.conLai !== undefined && ld.conLai < 0) row.getCell(27).font = { color: { argb: 'FFCC0000' } };
           deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaderAmt;
           deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi;
           deptXangXe += xangXe; deptTienNuoc += tienNuoc; deptGiuXe += giuXe; deptPhuCapKhac += phuCapKhac;
@@ -580,6 +583,7 @@ export default function XacNhanCong() {
         { width: 9 }, { width: 9 }, { width: 9 }, { width: 9 },
         { width: 11 }, { width: 12 }, { width: 9 }, { width: 13 }, { width: 12 }, { width: 16 },
         { width: 38 },
+        { width: 10 }, { width: 10 }, { width: 10 }, { width: 10 },
       ];
 
       // ── Sheet 2: Chi Tiết ──
@@ -739,7 +743,7 @@ export default function XacNhanCong() {
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
         const days     = sal.luong_theo_thang ? daysInMonthPdf : daysWorkedPdf;
         const lncBasePdf = sal.luong_theo_thang ? daysInMonthPdf : cong;
-        const leaveConLaiPdf = leaveConLaiByName[name] ?? null;
+        const leaveConLaiPdf = leaveConLaiByName[name]?.conLai ?? null;
         const leaveDeductPdf = (leaveConLaiPdf !== null && leaveConLaiPdf < 0) ? Math.abs(leaveConLaiPdf) : 0;
         const adjLcbPdf = (sal.lcb || 0) - ((sal.lcb || 0) / 26) * leaveDeductPdf;
         const adjPcPdf  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeductPdf;
@@ -759,7 +763,8 @@ export default function XacNhanCong() {
         }
         const ghiChu = ghiChuPdfLines.join('<br>');
         stt++; hasDept = true;
-        rows.push({ type: 'person', stt, dept: g.dept, name, sal, days, cong, ot, leaders: leaderAmt, cs, ct, cc, ctoi, xangXe, tienNuoc, giuXe, phuCapKhac, phuCap: sal.pc || 0, phatAmt, totalTien, ghiChu });
+        const ldPdf = leaveConLaiByName[name] || {};
+        rows.push({ type: 'person', stt, dept: g.dept, name, sal, days, cong, ot, leaders: leaderAmt, cs, ct, cc, ctoi, xangXe, tienNuoc, giuXe, phuCapKhac, phuCap: sal.pc || 0, phatAmt, totalTien, ghiChu, leaveDetail: ldPdf });
         deptCong += cong; deptOT += ot; deptDays += days; deptLeader += leaderAmt;
         deptCS += cs; deptCT += ct; deptCC += cc; deptCToi += ctoi;
         deptXangXe += xangXe; deptTienNuoc += tienNuoc; deptGiuXe += giuXe; deptPhuCapKhac += phuCapKhac;
@@ -774,13 +779,15 @@ export default function XacNhanCong() {
       acc.phuCap += r.phuCap; acc.phat += r.phat; acc.total += r.total; return acc;
     }, { days:0, cong:0, ot:0, leaders:0, cs:0, ct:0, cc:0, ctoi:0, xangXe:0, tienNuoc:0, giuXe:0, phuCapKhac:0, phuCap:0, phat:0, total:0 });
 
-    const hdr = ['STT','Bộ Phận','Họ Tên','Bậc','Lương CB','LNC/ngày','LOT/h','Phụ Cấp','Ngày','Công','OT(h)','Leader','C.Sáng','C.Trưa','C.Tối','C.Khuya','Xăng Xe','T.Nước','Giữ Xe','PC Khác','Phạt BC','Tổng Lương','Ghi Chú'];
+    const hdr = ['STT','Bộ Phận','Họ Tên','Bậc','Lương CB','LNC/ngày','LOT/h','Phụ Cấp','Ngày','Công','OT(h)','Leader','C.Sáng','C.Trưa','C.Tối','C.Khuya','Xăng Xe','T.Nước','Giữ Xe','PC Khác','Phạt BC','Tổng Lương','Ghi Chú',`Phép Năm`,'Đã Nghỉ',`T.${parseInt(mm,10)}`,'Còn Lại'];
     const tdC = (v, extra='') => `<td${extra}>${v ?? ''}</td>`;
     const renderRow = r => {
       if (r.type === 'person') {
-        return `<tr>${[r.stt, r.dept, r.name, r.sal.bac||'', fmtVND(r.sal.lcb), fmtVND(r.sal.lnc), fmtVND(r.sal.lot), fmtVND(r.phuCap), r.days, fmtNum(r.cong), fmtNum(r.ot), fmtVND(r.leaders), r.cs||'', r.ct||'', r.cc||'', r.ctoi||'', fmtVND(r.xangXe), fmtVND(r.tienNuoc), fmtVND(r.giuXe), fmtVND(r.phuCapKhac), r.phatAmt ? '<span style="color:#c00">'+fmtVND(r.phatAmt)+'</span>' : '', fmtVND(r.totalTien), r.ghiChu||''].map((v,i) => `<td${i===2?' style="text-align:left"':i===22?' style="text-align:left;white-space:pre-line"':''}>${v??''}</td>`).join('')}</tr>`;
+        const ld = r.leaveDetail || {};
+        const conLaiStyle = (ld.conLai !== undefined && ld.conLai < 0) ? ' style="color:#c00;font-weight:700"' : '';
+        return `<tr>${[r.stt, r.dept, r.name, r.sal.bac||'', fmtVND(r.sal.lcb), fmtVND(r.sal.lnc), fmtVND(r.sal.lot), fmtVND(r.phuCap), r.days, fmtNum(r.cong), fmtNum(r.ot), fmtVND(r.leaders), r.cs||'', r.ct||'', r.cc||'', r.ctoi||'', fmtVND(r.xangXe), fmtVND(r.tienNuoc), fmtVND(r.giuXe), fmtVND(r.phuCapKhac), r.phatAmt ? '<span style="color:#c00">'+fmtVND(r.phatAmt)+'</span>' : '', fmtVND(r.totalTien), r.ghiChu||'', ld.tichLuy??'', ld.daNghi??'', ld.nghiThang??'', ld.conLai!==undefined?`<span${conLaiStyle}>${ld.conLai}</span>`:''].map((v,i) => `<td${i===2?' style="text-align:left"':i===22?' style="text-align:left;white-space:pre-line"':''}>${v??''}</td>`).join('')}</tr>`;
       }
-      return `<tr class="sub">${tdC('')}${tdC('Tổng '+r.dept,' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(fmtVND(r.phuCap))}${tdC(r.days)}${tdC(fmtNum(r.cong))}${tdC(fmtNum(r.ot))}${tdC(fmtVND(r.leaders))}${tdC(r.cs||'')}${tdC(r.ct||'')}${tdC(r.cc||'')}${tdC(r.ctoi||'')}${tdC(fmtVND(r.xangXe))}${tdC(fmtVND(r.tienNuoc))}${tdC(fmtVND(r.giuXe))}${tdC(fmtVND(r.phuCapKhac))}${tdC(r.phat?'<span style="color:#c00">'+fmtVND(r.phat)+'</span>':'')}${tdC(fmtVND(r.total))}${tdC('')}</tr>`;
+      return `<tr class="sub">${tdC('')}${tdC('Tổng '+r.dept,' colspan="2" style="text-align:left"')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC(fmtVND(r.phuCap))}${tdC(r.days)}${tdC(fmtNum(r.cong))}${tdC(fmtNum(r.ot))}${tdC(fmtVND(r.leaders))}${tdC(r.cs||'')}${tdC(r.ct||'')}${tdC(r.cc||'')}${tdC(r.ctoi||'')}${tdC(fmtVND(r.xangXe))}${tdC(fmtVND(r.tienNuoc))}${tdC(fmtVND(r.giuXe))}${tdC(fmtVND(r.phuCapKhac))}${tdC(r.phat?'<span style="color:#c00">'+fmtVND(r.phat)+'</span>':'')}${tdC(fmtVND(r.total))}${tdC('')}${tdC('')}${tdC('')}${tdC('')}${tdC('')}</tr>`;
     };
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');

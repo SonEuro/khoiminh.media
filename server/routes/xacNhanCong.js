@@ -108,7 +108,7 @@ router.get('/', requireAuth, (req, res) => {
       const tl = pnOvVal !== undefined ? pnOvVal : Math.min(phep_nam, monthNum - 1);
       const da_nghi = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0);
       const nghi_thang = (uov[`${yyyy}-${mm}`] !== undefined) ? uov[`${yyyy}-${mm}`] : recs.filter(r => r.ngay.startsWith(`${yyyy}-${mm}`)).reduce((s, r) => s + r.so_ngay, 0);
-      leaveConLaiByName[u.full_name] = tl - da_nghi - nghi_thang;
+      leaveConLaiByName[u.full_name] = { tichLuy: tl, daNghi: da_nghi, nghiThang: nghi_thang, conLai: tl - da_nghi - nghi_thang };
     }
     res.locals.leaveConLaiByName = leaveConLaiByName;
   }
