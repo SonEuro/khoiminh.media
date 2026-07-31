@@ -82,6 +82,37 @@ router.get('/', requireAuth, (req, res) => {
     if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '', luong_theo_thang: u.luong_theo_thang ? 1 : 0, pc: u.phu_cap || 0 };
   }
 
+  // Build leaveConLaiByName: { name: conLai } — dùng để trừ lương khi nghỉ vượt phép
+  {
+    const [yyyy, mm] = month.split('-');
+    const monthNum = parseInt(mm, 10);
+    const monthStart = `${yyyy}-${mm}-01`;
+    const leaveRecs = db.prepare(`SELECT user_id, ngay, so_ngay FROM ngay_phep WHERE strftime('%Y', ngay) = ?`).all(yyyy);
+    const leaveByUser = {};
+    for (const r of leaveRecs) {
+      if (!leaveByUser[r.user_id]) leaveByUser[r.user_id] = [];
+      leaveByUser[r.user_id].push(r);
+    }
+    const leaveOvRows = db.prepare(`SELECT user_id, month, value FROM ngay_phep_override WHERE year = ?`).all(yyyy);
+    const leaveOvByUser = {};
+    for (const ov of leaveOvRows) {
+      if (!leaveOvByUser[ov.user_id]) leaveOvByUser[ov.user_id] = {};
+      leaveOvByUser[ov.user_id][ov.month] = ov.value;
+    }
+    const leaveConLaiByName = {};
+    for (const u of db.prepare(`SELECT id, full_name, phep_nam FROM users WHERE is_active = 1 AND full_name IS NOT NULL`).all()) {
+      const recs = leaveByUser[u.id] || [];
+      const uov = leaveOvByUser[u.id] || {};
+      const phep_nam = u.phep_nam ?? 12;
+      const pnOvVal = uov[`pn_${yyyy}-${mm}`];
+      const tl = pnOvVal !== undefined ? pnOvVal : Math.min(phep_nam, monthNum - 1);
+      const da_nghi = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0);
+      const nghi_thang = (uov[`${yyyy}-${mm}`] !== undefined) ? uov[`${yyyy}-${mm}`] : recs.filter(r => r.ngay.startsWith(`${yyyy}-${mm}`)).reduce((s, r) => s + r.so_ngay, 0);
+      leaveConLaiByName[u.full_name] = tl - da_nghi - nghi_thang;
+    }
+    res.locals.leaveConLaiByName = leaveConLaiByName;
+  }
+
   // Build phaseDateMap: { 'eventId::YYYY-MM-DD': phase }
   const phaseRows = db.prepare('SELECT event_id, setup_date, teardown_date, rehearsal_date, filming_date FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL').all();
   const phaseDateMap = {};
@@ -121,6 +152,7 @@ router.get('/', requireAuth, (req, res) => {
     violByName,
     salaryByName,
     phaseDateMap,
+    leaveConLaiByName: res.locals.leaveConLaiByName || {},
   });
 });
 

@@ -191,6 +191,7 @@ export default function XacNhanCong() {
   const [violByName, setViolByName]   = useState({});
   const [salaryByName, setSalaryByName] = useState({});
   const [phaseDateMap, setPhaseDateMap] = useState({});
+  const [leaveConLaiByName, setLeaveConLaiByName] = useState({});
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
   const [filterName, setFilter]     = useState('');
@@ -219,6 +220,7 @@ export default function XacNhanCong() {
       setViolByName(data.violByName || {});
       setSalaryByName(data.salaryByName || {});
       setPhaseDateMap(data.phaseDateMap || {});
+      setLeaveConLaiByName(data.leaveConLaiByName || {});
     }
     catch (e) { setError(e.message || 'Lỗi tải dữ liệu'); }
     finally { setLoading(false); }
@@ -424,7 +426,11 @@ export default function XacNhanCong() {
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
           const days = sal.luong_theo_thang ? daysInMonth : daysWorked;
           const lncBase = sal.luong_theo_thang ? daysInMonth : cong;
-          const salaryPart = (sal.lcb || 0) + (sal.pc || 0) + sal.lnc * lncBase + sal.lot * ot;
+          const leaveConLai = leaveConLaiByName[name] ?? null;
+          const leaveDeduct = (leaveConLai !== null && leaveConLai < 0) ? Math.abs(leaveConLai) : 0;
+          const adjLcb = (sal.lcb || 0) - ((sal.lcb || 0) / 26) * leaveDeduct;
+          const adjPc  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeduct;
+          const salaryPart = adjLcb + adjPc + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
           if (!sal.luong_theo_thang && !daysWorked && !cong) continue;
           // Build ghi chú từ notes của từng ca
@@ -441,12 +447,14 @@ export default function XacNhanCong() {
             if (gxNote?.trim())  ghiChuLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
             if (pcNote?.trim())  ghiChuLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
           }
+          if (leaveDeduct > 0) ghiChuLines.unshift(`Trừ ${leaveDeduct} ngày phép: LCB ${fmtVND(sal.lcb)}→${fmtVND(Math.round(adjLcb))}, PC ${fmtVND(sal.pc)}→${fmtVND(Math.round(adjPc))}`);
           const ghiChu = ghiChuLines.join('\n');
           stt++;
           const row = ws.addRow([
             stt, g.dept, name, sal.bac || '',
-            sal.lcb || '', sal.lnc || '', sal.lot || '',
-            sal.pc || '',   // H: Phụ Cấp (cố định theo hồ sơ)
+            leaveDeduct > 0 ? Math.round(adjLcb) : (sal.lcb || ''),
+            sal.lnc || '', sal.lot || '',
+            leaveDeduct > 0 ? Math.round(adjPc) : (sal.pc || ''),   // H: Phụ Cấp
             days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)),
             leaderAmt || '', cs || '', ct || '', cc || '', ctoi || '',
             xangXe || '', tienNuoc || '', giuXe || '', phuCapKhac || '',
@@ -458,7 +466,7 @@ export default function XacNhanCong() {
           if (firstPersonRow === null) firstPersonRow = r;
           // Công thức col V: LCB + PC + LNC×Công/Ngày + LOT×OT + Leader(₫) + phụ cấp − Phạt
           // luong_theo_thang: dùng giá trị tĩnh vì công thức Excel cần col I (Ngày) thay vì J (Công)
-          row.getCell(22).value = sal.luong_theo_thang
+          row.getCell(22).value = (sal.luong_theo_thang || leaveDeduct > 0)
             ? totalTien
             : {
                 formula: `=N(E${r})+N(H${r})+N(F${r})*N(J${r})+N(G${r})*N(K${r})+N(L${r})+N(M${r})*40000+N(N${r})*30000+N(O${r})*30000+N(P${r})*40000+N(Q${r})+N(R${r})+N(S${r})+N(T${r})-N(U${r})`,
@@ -685,7 +693,11 @@ export default function XacNhanCong() {
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
         const days     = sal.luong_theo_thang ? daysInMonthPdf : daysWorkedPdf;
         const lncBasePdf = sal.luong_theo_thang ? daysInMonthPdf : cong;
-        const totalTien = (sal.lcb || 0) + (sal.pc || 0) + sal.lnc * lncBasePdf + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
+        const leaveConLaiPdf = leaveConLaiByName[name] ?? null;
+        const leaveDeductPdf = (leaveConLaiPdf !== null && leaveConLaiPdf < 0) ? Math.abs(leaveConLaiPdf) : 0;
+        const adjLcbPdf = (sal.lcb || 0) - ((sal.lcb || 0) / 26) * leaveDeductPdf;
+        const adjPcPdf  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeductPdf;
+        const totalTien = adjLcbPdf + adjPcPdf + sal.lnc * lncBasePdf + sal.lot * ot + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
         const ghiChuPdfLines = [];
         for (const { report: rep } of entries) {
           const [, rm, rd] = (rep.report_date || '').split('-');

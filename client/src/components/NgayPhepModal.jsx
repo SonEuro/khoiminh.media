@@ -374,6 +374,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                     <th style={{ ...thS }}>Phép Năm</th>
                     <th style={thS}>Đã Nghỉ</th>
                     <th style={thS}>T{monthNum}</th>
+                    <th style={thS}>Tổng Ngày Phép</th>
                     <th style={thS}>Còn Lại</th>
                     <th style={{ ...thS, textAlign: 'left', minWidth: '140px' }}>Ngày Nghỉ T{monthNum}</th>
                     <th style={{ ...thS, width: '56px' }}></th>
@@ -387,7 +388,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                     const conLai = tl - u.da_nghi_before - u.nghi_thang;
                     const deptHeader = u.dept !== lastDept ? (lastDept = u.dept,
                       <tr key={`dept-${u.dept}`}>
-                        <td colSpan={8} style={{ padding: '8px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(201,168,76,0.07)', borderTop: '1px solid rgba(201,168,76,0.15)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+                        <td colSpan={9} style={{ padding: '8px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(201,168,76,0.07)', borderTop: '1px solid rgba(201,168,76,0.15)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
                           {u.dept}
                         </td>
                       </tr>
@@ -404,6 +405,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                           <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
                           <td style={{ ...tdS, color: u.da_nghi_before > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_before > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_before)}</td>
                           <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>{fmtN(u.nghi_thang)}</td>
+                          <td style={{ ...tdS, color: '#c8c8e0', fontWeight: 600 }}>{fmtN(u.da_nghi_before + u.nghi_thang)}</td>
                           <td style={{ ...tdS, color: conLai < 0 ? '#f87171' : conLai <= 2 ? '#fb923c' : '#4ade80', fontWeight: 700 }}>{fmtN(conLai)}</td>
                           <td style={{ ...tdS, textAlign: 'left' }}>
                             {(u.nghi_thang_dates || []).length > 0 ? (
@@ -428,7 +430,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                         </tr>
                         {editingId === u.id && (
                           <tr key={`edit-${u.id}`}>
-                            <td colSpan={9} style={{ padding: '4px 10px 12px' }}>
+                            <td colSpan={10} style={{ padding: '4px 10px 12px' }}>
                               <EditPanel user={u} year={year} month={month} onSaved={load} onClose={() => setEditingId(null)} />
                             </td>
                           </tr>

@@ -25,7 +25,7 @@ router.get('/', (req, res) => {
   const month = req.query.month || null;
 
   const users = db.prepare(`
-    SELECT id, full_name, role, phep_nam FROM users
+    SELECT id, full_name, role, phep_nam, luong_co_ban, phu_cap FROM users
     WHERE is_active = 1 ORDER BY role, full_name
   `).all();
 
@@ -85,6 +85,8 @@ router.get('/', (req, res) => {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
       phep_nam,
+      luong_co_ban: u.luong_co_ban || 0,
+      phu_cap: u.phu_cap || 0,
       phep_nam_is_override: pnOvVal !== undefined,
       phep_nam_override: pnOvVal ?? null,
       da_nghi: calc_da_nghi,
