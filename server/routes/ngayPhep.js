@@ -56,49 +56,75 @@ router.get('/', (req, res) => {
   // monthStart: ngày đầu tháng đang xem, dùng để lọc "đã nghỉ trước tháng"
   const monthStart = month ? `${month}-01` : null;
 
+  const [targetYyyy, targetMm] = month ? month.split('-') : [year, null];
+  const targetMonthNum = targetMm ? parseInt(targetMm, 10) : null;
+
   const result = users.map((u, idx) => {
     const recs = byUser[u.id] || [];
     const calc_da_nghi = recs.reduce((s, r) => s + r.so_ngay, 0);
-    // "Đã Nghỉ" = chỉ các tháng TRƯỚC tháng đang xem (không tính tháng hiện tại)
-    const calc_da_nghi_before = monthStart
-      ? recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0)
-      : calc_da_nghi;
     const thang_recs = month ? recs.filter(r => r.ngay.startsWith(month)) : [];
-    const calc_nghi_thang = thang_recs.reduce((s, r) => s + r.so_ngay, 0);
     const nghi_thang_dates = thang_recs
       .sort((a, b) => a.ngay.localeCompare(b.ngay))
       .map(r => ({ ngay: r.ngay, so_ngay: r.so_ngay, ghi_chu: r.ghi_chu }));
 
     const phep_nam = u.phep_nam ?? 12;
-
     const uov = ovByUser[u.id] || {};
-    const yearOvVal  = uov[''];
     const monthOvKey = month || '';
     const monthOvVal = monthOvKey ? uov[monthOvKey] : undefined;
     const pnOvKey    = month ? `pn_${month}` : null;
     const pnOvVal    = pnOvKey ? uov[pnOvKey] : undefined;
 
-    const da_nghi_before = yearOvVal !== undefined ? yearOvVal : calc_da_nghi_before;
-    const nghi_thang     = monthOvVal !== undefined ? monthOvVal : calc_nghi_thang;
+    let tich_luy, da_nghi_before, nghi_thang, con_lai;
+    let resetMonth = 0;
+
+    if (targetMonthNum) {
+      // Chạy chuỗi tháng 1→target: nếu tháng M có CL<0, tháng M+1 reset ĐN về 0
+      for (let m = 1; m <= targetMonthNum; m++) {
+        const mm_s = String(m).padStart(2, '0');
+        const mKey = `${targetYyyy}-${mm_s}`;
+        const mStart = `${targetYyyy}-${mm_s}-01`;
+        const pnOv = uov[`pn_${mKey}`];
+        let tl, dn;
+        if (resetMonth > 0) {
+          tl = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - resetMonth + 1);
+          const resetDate = `${targetYyyy}-${String(resetMonth).padStart(2, '0')}-01`;
+          dn = recs.filter(r => r.ngay >= resetDate && r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+        } else {
+          tl = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - 1);
+          dn = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+        }
+        const nt = (uov[mKey] !== undefined) ? uov[mKey] : recs.filter(r => r.ngay.startsWith(mKey)).reduce((s, r) => s + r.so_ngay, 0);
+        const cl = tl - dn - nt;
+        if (m === targetMonthNum) { tich_luy = tl; da_nghi_before = dn; nghi_thang = nt; con_lai = cl; }
+        if (cl < 0 && m < targetMonthNum) resetMonth = m + 1;
+      }
+    } else {
+      // Không có tháng cụ thể: dùng logic cũ
+      tich_luy = phep_nam;
+      da_nghi_before = (uov[''] !== undefined) ? uov[''] : calc_da_nghi;
+      nghi_thang = 0;
+      con_lai = phep_nam - da_nghi_before;
+    }
 
     return {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       truong_phong: u.position === 'Trưởng phòng' ? 1 : 0,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
       phep_nam,
+      tich_luy,
       luong_co_ban: u.luong_co_ban || 0,
       phu_cap: u.phu_cap || 0,
       phep_nam_is_override: pnOvVal !== undefined,
       phep_nam_override: pnOvVal ?? null,
       da_nghi: calc_da_nghi,
       da_nghi_before,
-      da_nghi_is_override: yearOvVal !== undefined,
-      da_nghi_override_val: yearOvVal ?? null,
+      da_nghi_is_override: resetMonth === 0 && uov[''] !== undefined,
+      da_nghi_override_val: resetMonth === 0 ? (uov[''] ?? null) : null,
       nghi_thang,
       nghi_thang_is_override: monthOvVal !== undefined,
       nghi_thang_override_val: monthOvVal ?? null,
       nghi_thang_dates,
-      con_lai: phep_nam - da_nghi_before - nghi_thang,
+      con_lai,
     };
   });
 

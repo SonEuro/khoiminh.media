@@ -104,11 +104,27 @@ router.get('/', requireAuth, (req, res) => {
       const recs = leaveByUser[u.id] || [];
       const uov = leaveOvByUser[u.id] || {};
       const phep_nam = u.phep_nam ?? 12;
-      const pnOvVal = uov[`pn_${yyyy}-${mm}`];
-      const tl = pnOvVal !== undefined ? pnOvVal : Math.min(phep_nam, monthNum - 1);
-      const da_nghi = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0);
-      const nghi_thang = (uov[`${yyyy}-${mm}`] !== undefined) ? uov[`${yyyy}-${mm}`] : recs.filter(r => r.ngay.startsWith(`${yyyy}-${mm}`)).reduce((s, r) => s + r.so_ngay, 0);
-      leaveConLaiByName[u.full_name] = { tichLuy: tl, daNghi: da_nghi, nghiThang: nghi_thang, conLai: tl - da_nghi - nghi_thang };
+      // Chạy chuỗi tháng 1→monthNum: nếu tháng M có CL<0 (đã trừ lương), tháng M+1 reset
+      let resetMonth = 0; // tháng bắt đầu đếm mới (0 = chưa reset)
+      let tichLuy = 0, daNghi = 0, nghiThang = 0, conLai = 0;
+      for (let m = 1; m <= monthNum; m++) {
+        const mm_s = String(m).padStart(2, '0');
+        const mKey = `${yyyy}-${mm_s}`;
+        const mStart = `${yyyy}-${mm_s}-01`;
+        const pnOv = uov[`pn_${mKey}`];
+        if (resetMonth > 0) {
+          tichLuy = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - resetMonth + 1);
+          const resetDate = `${yyyy}-${String(resetMonth).padStart(2, '0')}-01`;
+          daNghi = recs.filter(r => r.ngay >= resetDate && r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+        } else {
+          tichLuy = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - 1);
+          daNghi = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+        }
+        nghiThang = (uov[mKey] !== undefined) ? uov[mKey] : recs.filter(r => r.ngay.startsWith(mKey)).reduce((s, r) => s + r.so_ngay, 0);
+        conLai = tichLuy - daNghi - nghiThang;
+        if (conLai < 0 && m < monthNum) resetMonth = m + 1;
+      }
+      leaveConLaiByName[u.full_name] = { tichLuy, daNghi, nghiThang, conLai };
     }
     res.locals.leaveConLaiByName = leaveConLaiByName;
   }
