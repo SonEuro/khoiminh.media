@@ -404,6 +404,9 @@ export default function XacNhanCong() {
         }
         groupedNamesExcel.add(name);
       }
+      const byTenExcel = n => (n || '').trim().split(/\s+/).pop() || n;
+      allGroupsExcel.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
+      for (const g of allGroupsExcel) g.members.sort((a, b) => byTenExcel(a).localeCompare(byTenExcel(b), 'vi'));
 
       for (const g of allGroupsExcel) {
         const deptMembers = g.members;
@@ -687,6 +690,9 @@ export default function XacNhanCong() {
       }
       groupedNamesPdf.add(name);
     }
+    const byTenPdf = n => (n || '').trim().split(/\s+/).pop() || n;
+    allGroupsPdf.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
+    for (const g of allGroupsPdf) g.members.sort((a, b) => byTenPdf(a).localeCompare(byTenPdf(b), 'vi'));
 
     for (const g of allGroupsPdf) {
       const deptMembers = g.members;
