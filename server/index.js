@@ -42,6 +42,7 @@ app.use('/api/xac-nhan-cong',   requireAuth, require('./routes/xacNhanCong'));
 app.use('/api/staff-groups',    requireAuth, require('./routes/staffGroups'));
 app.use('/api/staff-flags',     requireAuth, require('./routes/staffFlags'));
 app.use('/api/dashboard',    requireAuth, require('./routes/dashboard'));
+app.use('/api/ngay-phep',    requireAuth, require('./routes/ngayPhep'));
 app.use('/api/ncc',          requireAuth, require('./routes/ncc'));
 app.use('/api/upload-image', requireAuth, require('./routes/upload'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

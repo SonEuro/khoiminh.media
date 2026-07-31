@@ -116,6 +116,18 @@ try { db.prepare("ALTER TABLE users ADD COLUMN is_giam_doc INTEGER DEFAULT 0").r
 try { db.prepare("ALTER TABLE users ADD COLUMN is_van_hanh_ke_toan INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE events ADD COLUMN is_exempt INTEGER DEFAULT 0").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE work_schedules ADD COLUMN exempt_dates TEXT DEFAULT '[]'").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN phep_nam INTEGER DEFAULT 12").run(); } catch (_) {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ngay_phep (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    ngay       TEXT NOT NULL,
+    so_ngay    REAL NOT NULL DEFAULT 1,
+    ghi_chu    TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS ncc_suppliers (

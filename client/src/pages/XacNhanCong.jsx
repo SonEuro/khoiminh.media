@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'; // v2
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useStaffGroups } from '../contexts/StaffGroupsContext';
+import NgayPhepModal from '../components/NgayPhepModal';
 
 const GOLD = '#c9a84c';
 
@@ -196,6 +197,7 @@ export default function XacNhanCong() {
   const [toggling, setToggling]     = useState(new Set());
   const [isMobile, setIsMobile]     = useState(() => window.innerWidth < 768);
   const [exporting, setExporting]   = useState(false);
+  const [showNgayPhep, setShowNgayPhep] = useState(false);
   const [editingRowId, setEditingRowId]         = useState(null);
   const [editingPersonName, setEditingPersonName] = useState(null);
   const [editRowData, setEditRowData]           = useState({});
@@ -752,6 +754,7 @@ ${rows.map(renderRow).join('\n')}
   const tdBase = { padding: isMobile ? '7px 8px' : '8px 12px', fontSize: isMobile ? '0.80rem' : '0.83rem', color: '#ddddf0', borderBottom: '1px solid rgba(255,255,255,0.04)', verticalAlign: 'middle' };
 
   return (
+    <>
     <div style={{ padding: '16px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Title */}
       <div style={{ marginBottom: '18px' }}>
@@ -778,6 +781,10 @@ ${rows.map(renderRow).join('\n')}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
           {canViewAll && (
             <>
+              <button onClick={() => setShowNgayPhep(true)}
+                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', flexShrink: 0 }}>
+                📅 Ngày Phép
+              </button>
               <button onClick={exportCongExcel} disabled={exporting || loading}
                 style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
                 {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
@@ -1286,5 +1293,7 @@ ${rows.map(renderRow).join('\n')}
         );
       })()}
     </div>
+    {showNgayPhep && <NgayPhepModal month={month} onClose={() => setShowNgayPhep(false)} />}
+    </>
   );
 }
