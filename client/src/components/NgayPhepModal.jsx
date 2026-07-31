@@ -25,9 +25,10 @@ function monthLabel(ym) {
   return `Tháng ${parseInt(m, 10)}/${y}`;
 }
 
-// Phép Năm = phep_nam trực tiếp (admin tự cập nhật theo tháng)
-function tichLuy(phep_nam) {
-  return phep_nam;
+// Phép Năm tích lũy: 1 ngày/tháng hoàn thành, cap theo quota
+function tichLuy(phep_nam, ym) {
+  const monthNum = parseInt(ym.split('-')[1], 10);
+  return Math.min(phep_nam, monthNum - 1);
 }
 
 const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -137,6 +138,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
   const [addNote, setAddNote]   = useState('');
   const [saving, setSaving]     = useState(false);
 
+  const [phepNamOv, setPhepNamOv] = useState({ isOv: user.phep_nam_is_override, val: user.phep_nam_override });
   const [daOv, setDaOv]     = useState({ isOv: user.da_nghi_is_override, val: user.da_nghi_override_val });
   const [thangOv, setThangOv] = useState({ isOv: user.nghi_thang_is_override, val: user.nghi_thang_override_val });
 
@@ -174,9 +176,11 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
     const v = Number(rawVal);
     if (isNaN(v) || v < 0) return;
     setSaving(true);
+    const monthKey = scope === 'year' ? '' : scope === 'phepnam' ? `pn_${month}` : month;
     try {
-      await api.setNgayPhepOverride({ user_id: user.id, year, month: scope === 'year' ? '' : month, value: v });
-      if (scope === 'year') setDaOv({ isOv: true, val: v });
+      await api.setNgayPhepOverride({ user_id: user.id, year, month: monthKey, value: v });
+      if (scope === 'year')    setDaOv({ isOv: true, val: v });
+      else if (scope === 'phepnam') setPhepNamOv({ isOv: true, val: v });
       else setThangOv({ isOv: true, val: v });
       onSaved();
     } finally { setSaving(false); }
@@ -184,9 +188,11 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
   async function clearOverride(scope) {
     setSaving(true);
+    const monthKey = scope === 'year' ? '' : scope === 'phepnam' ? `pn_${month}` : month;
     try {
-      await api.clearNgayPhepOverride({ user_id: user.id, year, month: scope === 'year' ? '' : month });
-      if (scope === 'year') setDaOv({ isOv: false, val: null });
+      await api.clearNgayPhepOverride({ user_id: user.id, year, month: monthKey });
+      if (scope === 'year')    setDaOv({ isOv: false, val: null });
+      else if (scope === 'phepnam') setPhepNamOv({ isOv: false, val: null });
       else setThangOv({ isOv: false, val: null });
       onSaved();
     } finally { setSaving(false); }
@@ -198,7 +204,8 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
   const monthNum = parseInt((month || '2026-01').split('-')[1], 10);
 
-  const tl = tichLuy(user.phep_nam);
+  const autoTl = tichLuy(user.phep_nam, month || `${year}-01`);
+  const tl = phepNamOv.isOv ? (phepNamOv.val ?? autoTl) : autoTl;
   const effDaNghi  = daOv.isOv   ? (daOv.val   ?? user.da_nghi_before) : user.da_nghi_before;
   const effThang   = thangOv.isOv ? (thangOv.val ?? user.nghi_thang)   : user.nghi_thang;
 
@@ -208,7 +215,9 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
         <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>Phép Năm T{monthNum}:</span>
         <span style={{ color: GOLD, fontWeight: 800, fontSize: '1.05rem' }}>{tl}</span>
-        <span style={{ fontSize: '0.70rem', color: '#3a3a5a' }}>(= quota năm)</span>
+        <span style={{ fontSize: '0.70rem', color: '#3a3a5a' }}>
+          {phepNamOv.isOv ? `(thủ công · auto: ${autoTl})` : `(tự động · quota: ${user.phep_nam})`}
+        </span>
         <button onClick={onClose} style={{ ...btnS('#7878a0'), marginLeft: 'auto' }}>✕ Đóng</button>
       </div>
 
@@ -222,6 +231,17 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
             style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#eeeef5', fontSize: '0.82rem', outline: 'none', width: '72px', textAlign: 'center' }} />
           <button onClick={savePhepNam} disabled={saving} style={btnS(GOLD)}>Lưu</button>
         </div>
+        {month && (
+          <OverrideField
+            label={`Phép Năm T${monthNum}`}
+            currentVal={autoTl}
+            isOverride={phepNamOv.isOv}
+            overrideVal={phepNamOv.val}
+            onSave={v => saveOverride('phepnam', v)}
+            onClear={() => clearOverride('phepnam')}
+            saving={saving}
+          />
+        )}
         <OverrideField
           label="Đã Nghỉ Năm"
           currentVal={user.da_nghi_before}
@@ -363,7 +383,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                 </thead>
                 <tbody>
                   {sorted.map(u => {
-                    const tl = tichLuy(u.phep_nam);
+                    const tl = u.phep_nam_is_override ? u.phep_nam_override : tichLuy(u.phep_nam, month);
                     const conLai = tl - u.da_nghi_before - u.nghi_thang;
                     return (
                       <>

@@ -75,14 +75,18 @@ router.get('/', (req, res) => {
     const yearOvVal  = uov[''];
     const monthOvKey = month || '';
     const monthOvVal = monthOvKey ? uov[monthOvKey] : undefined;
+    const pnOvKey    = month ? `pn_${month}` : null;
+    const pnOvVal    = pnOvKey ? uov[pnOvKey] : undefined;
 
-    const da_nghi_before = yearOvVal  !== undefined ? yearOvVal  : calc_da_nghi_before;
+    const da_nghi_before = yearOvVal !== undefined ? yearOvVal : calc_da_nghi_before;
     const nghi_thang     = monthOvVal !== undefined ? monthOvVal : calc_nghi_thang;
 
     return {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
       phep_nam,
+      phep_nam_is_override: pnOvVal !== undefined,
+      phep_nam_override: pnOvVal ?? null,
       da_nghi: calc_da_nghi,
       da_nghi_before,
       da_nghi_is_override: yearOvVal !== undefined,
