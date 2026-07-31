@@ -34,6 +34,7 @@ function tichLuy(phep_nam, ym) {
 
 const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
+// selected: Map<dateStr, soNgay (1 | 0.5)>
 function MultiDatePicker({ selected, onChange, disabledDates = new Set() }) {
   const today = new Date().toISOString().slice(0, 10);
   const [viewYM, setViewYM] = useState(() => today.slice(0, 7));
@@ -51,8 +52,10 @@ function MultiDatePicker({ selected, onChange, disabledDates = new Set() }) {
 
   function toggleDate(ds) {
     if (disabledDates.has(ds)) return;
-    const next = new Set(selected);
-    if (next.has(ds)) next.delete(ds); else next.add(ds);
+    const next = new Map(selected);
+    if (!next.has(ds))          next.set(ds, 1);    // click 1: 1 ngày
+    else if (next.get(ds) === 1) next.set(ds, 0.5); // click 2: 0.5 ngày
+    else                         next.delete(ds);    // click 3: bỏ chọn
     onChange(next);
   }
 
@@ -83,22 +86,25 @@ function MultiDatePicker({ selected, onChange, disabledDates = new Set() }) {
         {cells.map((ds, i) => {
           if (!ds) return <div key={i} />;
           const isDisabled = disabledDates.has(ds);
+          const soNgay = selected.get(ds);
           const isSelected = selected.has(ds);
+          const isHalf = soNgay === 0.5;
           const isToday = ds === today;
+          const borderC = isSelected ? (isHalf ? '#fb923c' : GOLD) : isDisabled ? 'rgba(248,113,113,0.35)' : 'transparent';
+          const bgC     = isSelected ? (isHalf ? 'rgba(251,146,60,0.22)' : `${GOLD}30`) : isDisabled ? 'rgba(248,113,113,0.12)' : isToday ? 'rgba(255,255,255,0.07)' : 'transparent';
+          const textC   = isSelected ? (isHalf ? '#fb923c' : '#e8c97a') : isDisabled ? '#f87171' : isToday ? '#eeeef5' : '#c0c0d8';
           return (
             <button key={i} onClick={() => toggleDate(ds)}
-              title={isDisabled ? 'Đã thêm' : ''}
-              style={{
-                width: '28px', height: '26px', borderRadius: '5px', padding: 0, fontSize: '0.76rem', fontWeight: isSelected || isDisabled ? 700 : 400, cursor: isDisabled ? 'not-allowed' : 'pointer',
-                border: isSelected ? `1px solid ${GOLD}` : isDisabled ? '1px solid rgba(248,113,113,0.35)' : '1px solid transparent',
-                background: isSelected ? `${GOLD}30` : isDisabled ? 'rgba(248,113,113,0.12)' : isToday ? 'rgba(255,255,255,0.07)' : 'transparent',
-                color: isSelected ? '#e8c97a' : isDisabled ? '#f87171' : isToday ? '#eeeef5' : '#c0c0d8',
-                opacity: isDisabled ? 0.65 : 1,
-              }}>
+              title={isDisabled ? 'Đã thêm' : isHalf ? '0.5 ngày — click để bỏ' : isSelected ? '1 ngày — click để chọn 0.5' : 'Click để chọn'}
+              style={{ width: '28px', height: '26px', borderRadius: '5px', padding: 0, fontSize: '0.76rem', fontWeight: isSelected || isDisabled ? 700 : 400, cursor: isDisabled ? 'not-allowed' : 'pointer', border: `1px solid ${borderC}`, background: bgC, color: textC, opacity: isDisabled ? 0.65 : 1, position: 'relative' }}>
               {parseInt(ds.slice(8), 10)}
+              {isHalf && <span style={{ position: 'absolute', bottom: '1px', right: '2px', fontSize: '0.50rem', lineHeight: 1, opacity: 0.9 }}>½</span>}
             </button>
           );
         })}
+      </div>
+      <div style={{ fontSize: '0.60rem', color: '#3a3a5a', marginTop: '6px', textAlign: 'center' }}>
+        1 click = 1ng · 2 click = ½ng · 3 click = bỏ
       </div>
     </div>
   );
@@ -129,8 +135,7 @@ function OverrideField({ label, currentVal, isOverride, overrideVal, onSave, onC
 function EditPanel({ user, year, month, onSaved, onClose }) {
   const [phepNam, setPhepNam] = useState(String(user.phep_nam));
   const [records, setRecords] = useState([]);
-  const [addDates, setAddDates] = useState(new Set());
-  const [addSo, setAddSo]       = useState('1');
+  const [addDates, setAddDates] = useState(new Map());
   const [addNote, setAddNote]   = useState('');
   const [saving, setSaving]     = useState(false);
 
@@ -153,10 +158,10 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
     if (addDates.size === 0) return;
     setSaving(true);
     try {
-      for (const ngay of [...addDates].sort()) {
-        await api.addNgayPhepRecord({ user_id: user.id, ngay, so_ngay: Number(addSo), ghi_chu: addNote });
+      for (const [ngay, soNgay] of [...addDates.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+        await api.addNgayPhepRecord({ user_id: user.id, ngay, so_ngay: soNgay, ghi_chu: addNote });
       }
-      setAddDates(new Set()); setAddNote('');
+      setAddDates(new Map()); setAddNote('');
       loadRecords(); onSaved();
     } finally { setSaving(false); }
   }
@@ -267,18 +272,15 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <MultiDatePicker selected={addDates} onChange={setAddDates} disabledDates={new Set(records.map(r => r.ngay))} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
-          <select value={addSo} onChange={e => setAddSo(e.target.value)} style={{ ...inS, width: '100px' }}>
-            <option value="0.5">0.5 ngày</option>
-            <option value="1">1 ngày</option>
-          </select>
           <input type="text" placeholder="Ghi chú..." value={addNote} onChange={e => setAddNote(e.target.value)}
             style={{ ...inS, width: '160px' }} />
-          {addDates.size > 0 && (
-            <div style={{ fontSize: '0.75rem', color: '#e8c97a' }}>Đã chọn: <b>{addDates.size}</b> ngày</div>
-          )}
+          {addDates.size > 0 && (() => {
+            const total = [...addDates.values()].reduce((s, v) => s + v, 0);
+            return <div style={{ fontSize: '0.75rem', color: '#e8c97a' }}>Đã chọn: <b>{fmtN(total)}</b> ngày</div>;
+          })()}
           <button onClick={addRecord} disabled={saving || addDates.size === 0}
             style={{ ...btnS('#4ade80'), opacity: addDates.size === 0 ? 0.4 : 1 }}>
-            + Thêm{addDates.size > 1 ? ` ${addDates.size} ngày` : ''}
+            + Thêm{addDates.size > 0 ? ` ${fmtN([...addDates.values()].reduce((s,v)=>s+v,0))} ngày` : ''}
           </button>
         </div>
       </div>
