@@ -478,7 +478,7 @@ export default function XacNhanCong() {
             sal.pc  || '',  // F: Phụ Cấp (gốc)
             sal.lnc || '', sal.lot || '',                              // G: LNC, H: LOT
             ld.tichLuy != null ? ld.tichLuy - (ld.daNghi ?? 0) : '', ld.nghiThang ?? '', ld.conLai ?? '',  // I-K: PN net, T.M, CL
-            parseFloat(fmtNum(cong)), ot > 0 ? ot / 24 : '',          // L: Công, M: OT
+            parseFloat(fmtNum(lncBase)), ot > 0 ? ot / 24 : '',        // L: LNC base (lncBase=daysInMonth nếu lương tháng, =cong nếu lương ngày), M: OT
             leaderAmt || '', cs || '', ct || '', cc || '', ctoi || '', // N-R
             xangXe || '', tienNuoc || '', giuXe || '', phuCapKhac || '', // S-V
             phatAmt > 0 ? phatAmt : '',                               // W: Phạt
@@ -487,8 +487,8 @@ export default function XacNhanCong() {
           ]);
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
-          // X=Tổng Lương: số cứng để có thể sửa thủ công trên Excel
-          row.getCell(24).value = totalTien;
+          // X=Tổng Lương: formula tự tính khi sửa LCB/PC/Công/OT/phụ cấp trực tiếp trên Excel
+          row.getCell(24).value = { formula: `=E${r}+F${r}-IF(K${r}<0,(E${r}+F${r})/26*(-K${r}),0)+G${r}*L${r}+H${r}*M${r}*24+N${r}+O${r}*40000+P${r}*30000+Q${r}*30000+R${r}*40000+S${r}+T${r}+U${r}+V${r}-W${r}`, result: totalTien };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; row.getCell(8).numFmt = vndFmt; }
