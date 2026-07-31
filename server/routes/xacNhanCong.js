@@ -76,10 +76,10 @@ router.get('/', requireAuth, (req, res) => {
   }
 
   // Build salaryByName: { name: { lcb, lnc, lot, luong_theo_thang } }
-  const salaryRows = db.prepare('SELECT full_name, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang, phu_cap, role FROM users WHERE full_name IS NOT NULL AND is_active = 1').all();
+  const salaryRows = db.prepare('SELECT full_name, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang, phu_cap, role, position FROM users WHERE full_name IS NOT NULL AND is_active = 1').all();
   const salaryByName = {};
   for (const u of salaryRows) {
-    if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '', luong_theo_thang: u.luong_theo_thang ? 1 : 0, pc: u.phu_cap || 0, role: u.role || '' };
+    if (u.full_name) salaryByName[u.full_name] = { lcb: u.luong_co_ban || 0, lnc: u.luong_ngay_cong || 0, lot: u.luong_ot_h || 0, bac: u.bac_luong || '', luong_theo_thang: u.luong_theo_thang ? 1 : 0, pc: u.phu_cap || 0, role: u.role || '', truong_phong: u.position === 'Trưởng phòng' ? 1 : 0 };
   }
 
   // Build leaveConLaiByName: { name: conLai } — dùng để trừ lương khi nghỉ vượt phép
