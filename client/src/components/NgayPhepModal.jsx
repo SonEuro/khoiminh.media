@@ -25,11 +25,11 @@ function monthLabel(ym) {
   return `Tháng ${parseInt(m, 10)}/${y}`;
 }
 
-// phep tích lũy đến đầu tháng M: mỗi tháng hoàn thành được phep_nam/12
-// T7 → 6 tháng đã qua (T1-T6) → 6 ngày (với phep_nam=12)
+// Tất cả nhân viên tích lũy cùng tốc độ: 1 ngày/tháng hoàn thành
+// phep_nam là cap tối đa. T7 → đã qua 6 tháng → min(phep_nam, 6)
 function tichLuy(phep_nam, ym) {
   const monthNum = parseInt(ym.split('-')[1], 10);
-  return Math.floor(phep_nam * (monthNum - 1) / 12);
+  return Math.min(phep_nam, monthNum - 1);
 }
 
 const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
