@@ -432,7 +432,6 @@ export default function XacNhanCong() {
           const adjPc  = (sal.pc  || 0) - ((sal.pc  || 0) / 26) * leaveDeduct;
           const salaryPart = adjLcb + adjPc + sal.lnc * lncBase + sal.lot * ot;
           const totalTien = salaryPart + leaderAmt + cs * RATES.cs + ct * RATES.ct + cc * RATES.cc + ctoi * RATES.ctoi + xangXe + tienNuoc + giuXe + phuCapKhac - phatAmt;
-          if (!sal.luong_theo_thang && !sal.lcb && !sal.pc && !daysWorked && !cong) continue;
           // Build ghi chú từ notes của từng ca
           const ghiChuLines = [];
           for (const { report: rep } of entries) {
@@ -669,7 +668,6 @@ export default function XacNhanCong() {
         const { cong, ot } = personTotals(entries, name);
         const daysWorkedPdf = entries.filter(e => e.result).length;
         const salPre = salaryByName[name] || { luong_theo_thang: 0, lcb: 0, pc: 0 };
-        if (!salPre.luong_theo_thang && !salPre.lcb && !salPre.pc && !daysWorkedPdf && !cong) continue;
         const leaderRate = g.dept === 'Sân Khấu' ? 100000 : 200000;
         const leaders = entries.reduce((sum, { report: r }) => {
           const autoLeader = (r.leaders || []).includes(name) && (() => {
