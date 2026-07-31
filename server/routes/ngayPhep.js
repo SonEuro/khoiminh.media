@@ -75,31 +75,47 @@ router.get('/', (req, res) => {
     const pnOvVal    = pnOvKey ? uov[pnOvKey] : undefined;
 
     let tich_luy, da_nghi_before, nghi_thang, con_lai;
-    let resetMonth = 0;
+    const TRANS_YEAR = 2026, TRANS_MON = 8;
+    const targetYyyyInt = parseInt(targetYyyy || year);
+    const isNewLogic = targetMonthNum && targetYyyyInt === TRANS_YEAR && targetMonthNum >= TRANS_MON;
 
-    if (targetMonthNum) {
-      // Chạy chuỗi tháng 1→target: nếu tháng M có CL<0, tháng M+1 reset ĐN về 0
-      for (let m = 1; m <= targetMonthNum; m++) {
+    if (isNewLogic) {
+      // Tính CL tháng 7/2026 theo logic cũ làm điểm khởi đầu
+      const baseMm = String(TRANS_MON - 1).padStart(2, '0');
+      const baseMKey = `${TRANS_YEAR}-${baseMm}`;
+      const baseMStart = `${TRANS_YEAR}-${baseMm}-01`;
+      const basePnOv = uov[`pn_${baseMKey}`];
+      const baseTl = basePnOv !== undefined ? basePnOv : Math.min(phep_nam, TRANS_MON - 1);
+      const baseDn = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < baseMStart).reduce((s, r) => s + r.so_ngay, 0);
+      const baseNt = (uov[baseMKey] !== undefined) ? uov[baseMKey] : recs.filter(r => r.ngay.startsWith(baseMKey)).reduce((s, r) => s + r.so_ngay, 0);
+      let prevCL = baseTl - baseDn - baseNt;
+
+      for (let m = TRANS_MON; m <= targetMonthNum; m++) {
         const mm_s = String(m).padStart(2, '0');
         const mKey = `${targetYyyy}-${mm_s}`;
-        const mStart = `${targetYyyy}-${mm_s}-01`;
         const pnOv = uov[`pn_${mKey}`];
         let tl, dn;
-        if (resetMonth > 0) {
-          tl = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - resetMonth + 1);
-          const resetDate = `${targetYyyy}-${String(resetMonth).padStart(2, '0')}-01`;
-          dn = recs.filter(r => r.ngay >= resetDate && r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+        if (prevCL > 0) {
+          tl = pnOv !== undefined ? pnOv : Math.min(phep_nam, prevCL);
+          dn = 0;
         } else {
-          tl = pnOv !== undefined ? pnOv : Math.min(phep_nam, m - 1);
-          dn = (uov[''] !== undefined) ? uov[''] : recs.filter(r => r.ngay < mStart).reduce((s, r) => s + r.so_ngay, 0);
+          tl = pnOv !== undefined ? pnOv : 1;
+          dn = 0;
         }
         const nt = (uov[mKey] !== undefined) ? uov[mKey] : recs.filter(r => r.ngay.startsWith(mKey)).reduce((s, r) => s + r.so_ngay, 0);
         const cl = tl - dn - nt;
         if (m === targetMonthNum) { tich_luy = tl; da_nghi_before = dn; nghi_thang = nt; con_lai = cl; }
-        if (cl < 0 && m < targetMonthNum) resetMonth = m + 1;
+        prevCL = cl;
       }
+    } else if (targetMonthNum) {
+      // Logic cũ: tích lũy cộng dồn
+      const pnOvVal = uov[`pn_${month}`];
+      tich_luy = pnOvVal !== undefined ? pnOvVal : Math.min(phep_nam, targetMonthNum - 1);
+      da_nghi_before = (uov[''] !== undefined) ? uov[''] : (monthStart ? recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0) : calc_da_nghi);
+      nghi_thang = (uov[month] !== undefined) ? uov[month] : thang_recs.reduce((s, r) => s + r.so_ngay, 0);
+      con_lai = tich_luy - da_nghi_before - nghi_thang;
     } else {
-      // Không có tháng cụ thể: dùng logic cũ
+      // Không có tháng cụ thể
       tich_luy = phep_nam;
       da_nghi_before = (uov[''] !== undefined) ? uov[''] : calc_da_nghi;
       nghi_thang = 0;
