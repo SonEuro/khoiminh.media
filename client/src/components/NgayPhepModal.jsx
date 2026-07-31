@@ -340,7 +340,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                     <th style={{ ...thS, textAlign: 'left', width: '32px' }}>STT</th>
                     <th style={{ ...thS, textAlign: 'left' }}>Bộ Phận</th>
                     <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
-                    <th style={{ ...thS }} title="Phép tích lũy đến đầu tháng này">Tích Lũy T{monthNum}</th>
+                    <th style={{ ...thS }}>Phép Năm</th>
                     <th style={thS}>Đã Nghỉ</th>
                     <th style={thS}>T{monthNum}</th>
                     <th style={thS}>Còn Lại</th>
