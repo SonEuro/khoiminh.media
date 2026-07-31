@@ -346,11 +346,16 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
   const monthNum = parseInt(month.split('-')[1], 10);
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#13131f', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '12px', width: '100%', maxWidth: '980px', boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#13131f', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '16px 16px 0 0', width: '100%', maxWidth: '980px', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 40px rgba(0,0,0,0.6)' }}>
+
+        {/* Drag handle */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+          <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)' }} />
+        </div>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg,rgba(201,168,76,0.1) 0%,transparent 100%)', borderRadius: '12px 12px 0 0', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg,rgba(201,168,76,0.1) 0%,transparent 100%)', flexWrap: 'wrap', flexShrink: 0 }}>
           <span style={{ fontWeight: 800, color: GOLD, fontSize: '0.95rem', letterSpacing: '0.04em' }}>📅 NGÀY PHÉP</span>
 
           {/* Month nav */}
@@ -365,7 +370,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
           <button onClick={onClose} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', padding: '6px 14px', borderRadius: '7px', fontWeight: 700, lineHeight: 1 }}>✕ Đóng</button>
         </div>
 
-        <div style={{ padding: '16px 20px' }}>
+        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#7878a0' }}>Đang tải...</div>
           ) : (
