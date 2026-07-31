@@ -42,26 +42,54 @@ router.get('/', (req, res) => {
     byUser[r.user_id].push(r);
   }
 
-  // da_nghi tính đến cuối tháng đang xem (để "còn lại" chính xác theo tháng)
+  // Load overrides for this year
+  const overrideRows = db.prepare(`
+    SELECT user_id, month, value FROM ngay_phep_override WHERE year = ?
+  `).all(String(year));
+
+  const ovByUser = {};
+  for (const ov of overrideRows) {
+    if (!ovByUser[ov.user_id]) ovByUser[ov.user_id] = {};
+    ovByUser[ov.user_id][ov.month] = ov.value;
+  }
+
   const monthLastDay = month ? `${month}-31` : null;
 
   const result = users.map((u, idx) => {
     const recs    = byUser[u.id] || [];
-    const da_nghi_nam = recs.reduce((s, r) => s + r.so_ngay, 0);
-    const da_nghi_to_month = monthLastDay
+    const calc_da_nghi = recs.reduce((s, r) => s + r.so_ngay, 0);
+    const calc_da_nghi_to_month = monthLastDay
       ? recs.filter(r => r.ngay <= monthLastDay).reduce((s, r) => s + r.so_ngay, 0)
-      : da_nghi_nam;
+      : calc_da_nghi;
     const thang_recs = month ? recs.filter(r => r.ngay.startsWith(month)) : [];
-    const nghi_thang = thang_recs.reduce((s, r) => s + r.so_ngay, 0);
+    const calc_nghi_thang = thang_recs.reduce((s, r) => s + r.so_ngay, 0);
     const nghi_thang_dates = thang_recs
       .sort((a, b) => a.ngay.localeCompare(b.ngay))
       .map(r => ({ ngay: r.ngay, so_ngay: r.so_ngay, ghi_chu: r.ghi_chu }));
+
     const phep_nam = u.phep_nam ?? 12;
+
+    const uov = ovByUser[u.id] || {};
+    const yearOvVal  = uov[''];
+    const monthOvKey = month || '';
+    const monthOvVal = monthOvKey ? uov[monthOvKey] : undefined;
+
+    const da_nghi_to_month = yearOvVal  !== undefined ? yearOvVal  : calc_da_nghi_to_month;
+    const nghi_thang       = monthOvVal !== undefined ? monthOvVal : calc_nghi_thang;
+
     return {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
-      phep_nam, da_nghi: da_nghi_nam, da_nghi_to_month,
-      nghi_thang, nghi_thang_dates, con_lai: phep_nam - da_nghi_nam,
+      phep_nam,
+      da_nghi: calc_da_nghi,
+      da_nghi_to_month,
+      da_nghi_is_override: yearOvVal !== undefined,
+      da_nghi_override_val: yearOvVal ?? null,
+      nghi_thang,
+      nghi_thang_is_override: monthOvVal !== undefined,
+      nghi_thang_override_val: monthOvVal ?? null,
+      nghi_thang_dates,
+      con_lai: phep_nam - da_nghi_to_month,
     };
   });
 
@@ -98,6 +126,32 @@ router.post('/record', (req, res) => {
 // DELETE /api/ngay-phep/record/:id
 router.delete('/record/:id', (req, res) => {
   db.prepare('DELETE FROM ngay_phep WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// PUT /api/ngay-phep/override  — set/update a manual override
+// body: { user_id, year, month ('YYYY-MM' for month-level, '' for year-level), value }
+router.put('/override', (req, res) => {
+  const { user_id, year, month = '', value } = req.body;
+  if (!user_id || !year || value === undefined || value === null || value === '') {
+    return res.status(400).json({ error: 'Thiếu thông tin' });
+  }
+  const v = Number(value);
+  if (isNaN(v) || v < 0) return res.status(400).json({ error: 'Giá trị không hợp lệ' });
+  db.prepare(`
+    INSERT INTO ngay_phep_override (user_id, year, month, value)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(user_id, year, month) DO UPDATE SET value = excluded.value
+  `).run(user_id, String(year), String(month), v);
+  res.json({ ok: true });
+});
+
+// DELETE /api/ngay-phep/override  — clear a manual override
+// body: { user_id, year, month }
+router.delete('/override', (req, res) => {
+  const { user_id, year, month = '' } = req.body;
+  db.prepare('DELETE FROM ngay_phep_override WHERE user_id = ? AND year = ? AND month = ?')
+    .run(user_id, String(year), String(month));
   res.json({ ok: true });
 });
 

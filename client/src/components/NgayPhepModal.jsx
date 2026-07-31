@@ -32,13 +32,38 @@ function tichLuy(phep_nam, ym) {
   return Math.floor(phep_nam * (monthNum - 1) / 12);
 }
 
-function EditPanel({ user, onSaved, onClose }) {
+function OverrideField({ label, currentVal, isOverride, overrideVal, onSave, onClear, saving }) {
+  const [inputVal, setInputVal] = useState(overrideVal !== null && overrideVal !== undefined ? String(overrideVal) : '');
+
+  const inS = { padding: '4px 8px', borderRadius: '6px', border: `1px solid ${isOverride ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.12)'}`, background: 'rgba(255,255,255,0.05)', color: '#eeeef5', fontSize: '0.82rem', outline: 'none', width: '72px', textAlign: 'center' };
+  const btnS = (c) => ({ padding: '3px 9px', borderRadius: '5px', border: `1px solid ${c}44`, background: `${c}18`, color: c, fontWeight: 700, fontSize: '0.76rem', cursor: 'pointer' });
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span style={{ fontSize: '0.78rem', color: isOverride ? GOLD : '#7878a0', minWidth: '110px', fontWeight: isOverride ? 700 : 400 }}>
+        {label}{isOverride ? ' ✏️' : ''}
+      </span>
+      <span style={{ fontSize: '0.75rem', color: '#555570' }}>hiện: <b style={{ color: isOverride ? GOLD : '#eeeef5' }}>{fmtN(currentVal)}</b></span>
+      <input type="number" min="0" step="0.5" value={inputVal} onChange={e => setInputVal(e.target.value)}
+        placeholder="nhập..." style={inS} />
+      <button onClick={() => onSave(inputVal)} disabled={saving || inputVal === ''} style={btnS(GOLD)}>Lưu</button>
+      {isOverride && (
+        <button onClick={onClear} disabled={saving} style={btnS('#f87171')}>Xóa TT</button>
+      )}
+    </div>
+  );
+}
+
+function EditPanel({ user, year, month, onSaved, onClose }) {
   const [phepNam, setPhepNam] = useState(String(user.phep_nam));
   const [records, setRecords] = useState([]);
   const [addDate, setAddDate] = useState('');
   const [addSo, setAddSo]     = useState('1');
   const [addNote, setAddNote] = useState('');
   const [saving, setSaving]   = useState(false);
+
+  const [daOv, setDaOv]     = useState({ isOv: user.da_nghi_is_override, val: user.da_nghi_override_val });
+  const [thangOv, setThangOv] = useState({ isOv: user.nghi_thang_is_override, val: user.nghi_thang_override_val });
 
   const loadRecords = useCallback(() => {
     api.getNgayPhepRecords(user.id).then(setRecords).catch(() => {});
@@ -68,12 +93,38 @@ function EditPanel({ user, onSaved, onClose }) {
     loadRecords(); onSaved();
   }
 
+  async function saveOverride(scope, rawVal) {
+    const v = Number(rawVal);
+    if (isNaN(v) || v < 0) return;
+    setSaving(true);
+    try {
+      await api.setNgayPhepOverride({ user_id: user.id, year, month: scope === 'year' ? '' : month, value: v });
+      if (scope === 'year') setDaOv({ isOv: true, val: v });
+      else setThangOv({ isOv: true, val: v });
+      onSaved();
+    } finally { setSaving(false); }
+  }
+
+  async function clearOverride(scope) {
+    setSaving(true);
+    try {
+      await api.clearNgayPhepOverride({ user_id: user.id, year, month: scope === 'year' ? '' : month });
+      if (scope === 'year') setDaOv({ isOv: false, val: null });
+      else setThangOv({ isOv: false, val: null });
+      onSaved();
+    } finally { setSaving(false); }
+  }
+
   const inS = { padding: '5px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#eeeef5', fontSize: '0.82rem', outline: 'none' };
   const btnS = (c) => ({ padding: '4px 10px', borderRadius: '5px', border: `1px solid ${c}44`, background: `${c}18`, color: c, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' });
+  const divS = { fontSize: '0.72rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', marginTop: '14px' };
+
+  const monthNum = parseInt((month || '2026-01').split('-')[1], 10);
 
   return (
     <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '8px', padding: '14px 16px', marginTop: '4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+      {/* Quota */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
         <span style={{ fontSize: '0.78rem', color: '#a08040', fontWeight: 600 }}>Phép Năm (quota):</span>
         <input type="number" min="0" max="365" value={phepNam} onChange={e => setPhepNam(e.target.value)}
           style={{ ...inS, width: '64px', textAlign: 'center' }} />
@@ -81,7 +132,37 @@ function EditPanel({ user, onSaved, onClose }) {
         <button onClick={onClose} style={{ ...btnS('#7878a0'), marginLeft: 'auto' }}>✕ Đóng</button>
       </div>
 
-      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#7878a0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Thêm Ngày Nghỉ</div>
+      {/* Manual overrides */}
+      <div style={divS}>Điều Chỉnh Thủ Công</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '6px' }}>
+        <OverrideField
+          label="Đã Nghỉ Năm"
+          currentVal={user.da_nghi_to_month}
+          isOverride={daOv.isOv}
+          overrideVal={daOv.val}
+          onSave={v => saveOverride('year', v)}
+          onClear={() => clearOverride('year')}
+          saving={saving}
+        />
+        {month && (
+          <OverrideField
+            label={`Nghỉ T${monthNum}`}
+            currentVal={user.nghi_thang}
+            isOverride={thangOv.isOv}
+            overrideVal={thangOv.val}
+            onSave={v => saveOverride('month', v)}
+            onClear={() => clearOverride('month')}
+            saving={saving}
+          />
+        )}
+        <div style={{ fontSize: '0.76rem', color: '#555570' }}>
+          Còn Lại (tự động): <b style={{ color: '#4ade80' }}>{fmtN(tichLuy(user.phep_nam, month || `${year}-01`) - (daOv.isOv ? (daOv.val ?? user.da_nghi_to_month) : user.da_nghi_to_month))}</b>
+          <span style={{ marginLeft: '8px', color: '#3a3a5a' }}>(= tích lũy − đã nghỉ)</span>
+        </div>
+      </div>
+
+      {/* Add individual day records */}
+      <div style={divS}>Thêm Ngày Nghỉ</div>
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center' }}>
         <input type="date" value={addDate} onChange={e => setAddDate(e.target.value)} style={inS} />
         <select value={addSo} onChange={e => setAddSo(e.target.value)} style={{ ...inS, width: '88px' }}>
@@ -211,8 +292,12 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                           <td style={{ ...tdS, textAlign: 'left', fontSize: '0.77rem', color: '#8888b0' }}>{u.dept}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 600, color: '#eeeef5' }}>{u.full_name}</td>
                           <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
-                          <td style={{ ...tdS, color: u.da_nghi_to_month > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_to_month > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_to_month)}</td>
-                          <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>{fmtN(u.nghi_thang)}</td>
+                          <td style={{ ...tdS, color: u.da_nghi_to_month > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_to_month > 0 ? 700 : 400 }}>
+                            {fmtN(u.da_nghi_to_month)}{u.da_nghi_is_override ? <span style={{ fontSize: '0.65rem', marginLeft: '3px', opacity: 0.7 }}>✏️</span> : null}
+                          </td>
+                          <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>
+                            {fmtN(u.nghi_thang)}{u.nghi_thang_is_override ? <span style={{ fontSize: '0.65rem', marginLeft: '3px', opacity: 0.7 }}>✏️</span> : null}
+                          </td>
                           <td style={{ ...tdS, color: conLai < 0 ? '#f87171' : conLai <= 2 ? '#fb923c' : '#4ade80', fontWeight: 700 }}>{fmtN(conLai)}</td>
                           <td style={{ ...tdS, textAlign: 'left' }}>
                             {(u.nghi_thang_dates || []).length > 0 ? (
@@ -238,7 +323,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                         {editingId === u.id && (
                           <tr key={`edit-${u.id}`}>
                             <td colSpan={9} style={{ padding: '4px 10px 12px' }}>
-                              <EditPanel user={u} onSaved={load} onClose={() => setEditingId(null)} />
+                              <EditPanel user={u} year={year} month={month} onSaved={load} onClose={() => setEditingId(null)} />
                             </td>
                           </tr>
                         )}

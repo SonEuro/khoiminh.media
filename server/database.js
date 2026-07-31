@@ -119,6 +119,16 @@ try { db.prepare("ALTER TABLE work_schedules ADD COLUMN exempt_dates TEXT DEFAUL
 try { db.prepare("ALTER TABLE users ADD COLUMN phep_nam INTEGER DEFAULT 12").run(); } catch (_) {}
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS ngay_phep_override (
+    user_id INTEGER NOT NULL,
+    year    TEXT    NOT NULL,
+    month   TEXT    NOT NULL DEFAULT '',
+    value   REAL    NOT NULL,
+    PRIMARY KEY (user_id, year, month)
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS ngay_phep (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
