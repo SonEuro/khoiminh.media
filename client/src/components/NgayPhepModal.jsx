@@ -306,7 +306,6 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
   );
 }
 
-const DEPT_ORDER = ['ATAS-LED', 'Sân Khấu', 'Kỹ Thuật', 'Cơ Sở Vật Chất', 'Kế Toán', 'Kinh Doanh'];
 
 export default function NgayPhepModal({ onClose, month: initMonth }) {
   const todayYM = new Date().toISOString().slice(0, 7);
@@ -327,9 +326,8 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
   useEffect(() => { load(); }, [load]);
 
   const sorted = [...users].sort((a, b) => {
-    const ia = DEPT_ORDER.indexOf(a.dept), ib = DEPT_ORDER.indexOf(b.dept);
-    const da = ia < 0 ? 99 : ia, db2 = ib < 0 ? 99 : ib;
-    if (da !== db2) return da - db2;
+    const dc = a.dept.localeCompare(b.dept, 'vi');
+    if (dc !== 0) return dc;
     return a.full_name.localeCompare(b.full_name, 'vi');
   });
   sorted.forEach((u, i) => { u.stt = i + 1; });
