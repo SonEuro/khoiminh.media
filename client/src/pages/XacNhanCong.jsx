@@ -474,8 +474,8 @@ export default function XacNhanCong() {
           stt++;
           const row = ws.addRow([
             stt, g.dept, name, sal.bac || '',
-            leaveDeduct > 0 ? Math.round(adjLcb) : (sal.lcb || ''),  // E: LCB
-            leaveDeduct > 0 ? Math.round(adjPc) : (sal.pc || ''),    // F: Phụ Cấp
+            sal.lcb || '',  // E: LCB (gốc, không trừ phép — trừ phép ghi vào Ghi Chú)
+            sal.pc  || '',  // F: Phụ Cấp (gốc)
             sal.lnc || '', sal.lot || '',                              // G: LNC, H: LOT
             ld.tichLuy != null ? ld.tichLuy - (ld.daNghi ?? 0) : '', ld.nghiThang ?? '', ld.conLai ?? '',  // I-K: PN net, T.M, CL
             parseFloat(fmtNum(cong)), ot > 0 ? ot / 24 : '',          // L: Công, M: OT
