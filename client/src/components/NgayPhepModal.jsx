@@ -211,7 +211,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '6px' }}>
         <OverrideField
           label="Đã Nghỉ Năm"
-          currentVal={user.da_nghi_to_month}
+          currentVal={user.da_nghi_before}
           isOverride={daOv.isOv}
           overrideVal={daOv.val}
           onSave={v => saveOverride('year', v)}
@@ -230,8 +230,12 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
           />
         )}
         <div style={{ fontSize: '0.76rem', color: '#555570' }}>
-          Còn Lại (tự động): <b style={{ color: '#4ade80' }}>{fmtN(tichLuy(user.phep_nam, month || `${year}-01`) - (daOv.isOv ? (daOv.val ?? user.da_nghi_to_month) : user.da_nghi_to_month))}</b>
-          <span style={{ marginLeft: '8px', color: '#3a3a5a' }}>(= tích lũy − đã nghỉ)</span>
+          Còn Lại (tự động): <b style={{ color: '#4ade80' }}>{fmtN(
+            tichLuy(user.phep_nam, month || `${year}-01`)
+            - (daOv.isOv ? (daOv.val ?? user.da_nghi_before) : user.da_nghi_before)
+            - (thangOv.isOv ? (thangOv.val ?? user.nghi_thang) : user.nghi_thang)
+          )}</b>
+          <span style={{ marginLeft: '8px', color: '#3a3a5a' }}>(= phép năm − đã nghỉ − T{monthNum})</span>
         </div>
       </div>
 
@@ -354,7 +358,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                 <tbody>
                   {sorted.map(u => {
                     const tl = tichLuy(u.phep_nam, month);
-                    const conLai = tl - u.da_nghi_to_month;
+                    const conLai = tl - u.da_nghi_before - u.nghi_thang;
                     return (
                       <>
                         <tr key={u.id}
@@ -365,7 +369,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                           <td style={{ ...tdS, textAlign: 'left', fontSize: '0.77rem', color: '#8888b0' }}>{u.dept}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 600, color: '#eeeef5' }}>{u.full_name}</td>
                           <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
-                          <td style={{ ...tdS, color: u.da_nghi_to_month > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_to_month > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_to_month)}</td>
+                          <td style={{ ...tdS, color: u.da_nghi_before > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_before > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_before)}</td>
                           <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>{fmtN(u.nghi_thang)}</td>
                           <td style={{ ...tdS, color: conLai < 0 ? '#f87171' : conLai <= 2 ? '#fb923c' : '#4ade80', fontWeight: 700 }}>{fmtN(conLai)}</td>
                           <td style={{ ...tdS, textAlign: 'left' }}>

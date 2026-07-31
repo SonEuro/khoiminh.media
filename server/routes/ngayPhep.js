@@ -53,13 +53,15 @@ router.get('/', (req, res) => {
     ovByUser[ov.user_id][ov.month] = ov.value;
   }
 
-  const monthLastDay = month ? `${month}-31` : null;
+  // monthStart: ngày đầu tháng đang xem, dùng để lọc "đã nghỉ trước tháng"
+  const monthStart = month ? `${month}-01` : null;
 
   const result = users.map((u, idx) => {
-    const recs    = byUser[u.id] || [];
+    const recs = byUser[u.id] || [];
     const calc_da_nghi = recs.reduce((s, r) => s + r.so_ngay, 0);
-    const calc_da_nghi_to_month = monthLastDay
-      ? recs.filter(r => r.ngay <= monthLastDay).reduce((s, r) => s + r.so_ngay, 0)
+    // "Đã Nghỉ" = chỉ các tháng TRƯỚC tháng đang xem (không tính tháng hiện tại)
+    const calc_da_nghi_before = monthStart
+      ? recs.filter(r => r.ngay < monthStart).reduce((s, r) => s + r.so_ngay, 0)
       : calc_da_nghi;
     const thang_recs = month ? recs.filter(r => r.ngay.startsWith(month)) : [];
     const calc_nghi_thang = thang_recs.reduce((s, r) => s + r.so_ngay, 0);
@@ -74,22 +76,22 @@ router.get('/', (req, res) => {
     const monthOvKey = month || '';
     const monthOvVal = monthOvKey ? uov[monthOvKey] : undefined;
 
-    const da_nghi_to_month = yearOvVal  !== undefined ? yearOvVal  : calc_da_nghi_to_month;
-    const nghi_thang       = monthOvVal !== undefined ? monthOvVal : calc_nghi_thang;
+    const da_nghi_before = yearOvVal  !== undefined ? yearOvVal  : calc_da_nghi_before;
+    const nghi_thang     = monthOvVal !== undefined ? monthOvVal : calc_nghi_thang;
 
     return {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
       phep_nam,
       da_nghi: calc_da_nghi,
-      da_nghi_to_month,
+      da_nghi_before,
       da_nghi_is_override: yearOvVal !== undefined,
       da_nghi_override_val: yearOvVal ?? null,
       nghi_thang,
       nghi_thang_is_override: monthOvVal !== undefined,
       nghi_thang_override_val: monthOvVal ?? null,
       nghi_thang_dates,
-      con_lai: phep_nam - da_nghi_to_month,
+      con_lai: phep_nam - da_nghi_before - nghi_thang,
     };
   });
 
