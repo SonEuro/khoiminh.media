@@ -164,6 +164,7 @@ export default function XacNhanCong() {
   const { user } = useAuth();
   const { kmGroups } = useStaffGroups();
   const canViewAll  = ['DIRECTOR', 'SUPER_ADMIN'].includes(user?.role) || !!user?.is_phan_lich_all;
+  const canNgayPhep = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
   const canEdit     = canViewAll;
   const isTruongPhong = !!user?.is_truong_phong && !canViewAll;
 
@@ -781,10 +782,12 @@ ${rows.map(renderRow).join('\n')}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
           {canViewAll && (
             <>
-              <button onClick={() => setShowNgayPhep(true)}
-                style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', flexShrink: 0 }}>
-                📅 Ngày Phép
-              </button>
+              {canNgayPhep && (
+                <button onClick={() => setShowNgayPhep(true)}
+                  style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', flexShrink: 0 }}>
+                  📅 Ngày Phép
+                </button>
+              )}
               <button onClick={exportCongExcel} disabled={exporting || loading}
                 style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', flexShrink: 0 }}>
                 {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
