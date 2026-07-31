@@ -347,15 +347,12 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#13131f', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '16px 16px 0 0', width: '100%', maxWidth: '980px', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 40px rgba(0,0,0,0.6)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#13131f', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '16px 16px 0 0', width: '100%', maxWidth: '980px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 40px rgba(0,0,0,0.6)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
-        {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
-          <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)' }} />
-        </div>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg,rgba(201,168,76,0.1) 0%,transparent 100%)', flexWrap: 'wrap', flexShrink: 0 }}>
+        {/* Header sticky — luôn hiển thị */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg,rgba(201,168,76,0.12) 0%,#13131f 100%)', borderRadius: '16px 16px 0 0', flexShrink: 0 }}>
+          {/* Drag handle nhúng trong header */}
+          <div style={{ width: '32px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.2)', position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)' }} />
           <span style={{ fontWeight: 800, color: GOLD, fontSize: '0.95rem', letterSpacing: '0.04em' }}>📅 NGÀY PHÉP</span>
 
           {/* Month nav */}
@@ -367,7 +364,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
               style={{ background: 'transparent', border: 'none', color: month >= todayYM ? '#3a3a5a' : '#c8c8e0', cursor: month >= todayYM ? 'default' : 'pointer', fontSize: '1rem', fontWeight: 700, padding: '2px 8px', borderRadius: '5px' }}>›</button>
           </div>
 
-          <button onClick={onClose} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', padding: '6px 14px', borderRadius: '7px', fontWeight: 700, lineHeight: 1 }}>✕ Đóng</button>
+          <button onClick={onClose} style={{ marginLeft: 'auto', background: '#c9a84c', border: 'none', color: '#13131f', cursor: 'pointer', fontSize: '0.88rem', padding: '8px 16px', borderRadius: '8px', fontWeight: 800, lineHeight: 1 }}>✕ Đóng</button>
         </div>
 
         <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
