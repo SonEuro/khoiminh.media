@@ -390,9 +390,23 @@ export default function XacNhanCong() {
 
       const byTenExcel = n => (n || '').trim().split(/\s+/).pop() || n;
       const salRankExcel = n => (salaryByName[n]?.truong_phong || 0);
-      const allGroupsExcel = [...kmGroups]
-        .sort((a, b) => a.dept.localeCompare(b.dept, 'vi'))
-        .map(g => ({ ...g, members: [...g.members].sort((a, b) => { const d = salRankExcel(b) - salRankExcel(a); return d !== 0 ? d : byTenExcel(a).localeCompare(byTenExcel(b), 'vi'); }) }));
+      const _deptToIdxExcel = {};
+      const allGroupsExcel = kmGroups.map((g, i) => { _deptToIdxExcel[g.dept] = i; return { ...g, members: [...g.members] }; });
+      const _groupedExcel = new Set(allGroupsExcel.flatMap(g => g.members));
+      for (const [name, sal] of Object.entries(salaryByName)) {
+        if (_groupedExcel.has(name)) continue;
+        const dept = ROLE_TO_KM_DEPT[sal.role];
+        if (!dept) continue;
+        if (_deptToIdxExcel[dept] !== undefined) {
+          allGroupsExcel[_deptToIdxExcel[dept]].members.push(name);
+        } else {
+          _deptToIdxExcel[dept] = allGroupsExcel.length;
+          allGroupsExcel.push({ dept, members: [name] });
+        }
+        _groupedExcel.add(name);
+      }
+      allGroupsExcel.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
+      for (const g of allGroupsExcel) g.members.sort((a, b) => { const d = salRankExcel(b) - salRankExcel(a); return d !== 0 ? d : byTenExcel(a).localeCompare(byTenExcel(b), 'vi'); });
 
       for (const g of allGroupsExcel) {
         const deptMembers = g.members;
@@ -668,9 +682,23 @@ export default function XacNhanCong() {
 
     const byTenPdf = n => (n || '').trim().split(/\s+/).pop() || n;
     const salRankPdf = n => (salaryByName[n]?.truong_phong || 0);
-    const allGroupsPdf = [...kmGroups]
-      .sort((a, b) => a.dept.localeCompare(b.dept, 'vi'))
-      .map(g => ({ ...g, members: [...g.members].sort((a, b) => { const d = salRankPdf(b) - salRankPdf(a); return d !== 0 ? d : byTenPdf(a).localeCompare(byTenPdf(b), 'vi'); }) }));
+    const _deptToIdxPdf = {};
+    const allGroupsPdf = kmGroups.map((g, i) => { _deptToIdxPdf[g.dept] = i; return { ...g, members: [...g.members] }; });
+    const _groupedPdf = new Set(allGroupsPdf.flatMap(g => g.members));
+    for (const [name, sal] of Object.entries(salaryByName)) {
+      if (_groupedPdf.has(name)) continue;
+      const dept = ROLE_TO_KM_DEPT[sal.role];
+      if (!dept) continue;
+      if (_deptToIdxPdf[dept] !== undefined) {
+        allGroupsPdf[_deptToIdxPdf[dept]].members.push(name);
+      } else {
+        _deptToIdxPdf[dept] = allGroupsPdf.length;
+        allGroupsPdf.push({ dept, members: [name] });
+      }
+      _groupedPdf.add(name);
+    }
+    allGroupsPdf.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
+    for (const g of allGroupsPdf) g.members.sort((a, b) => { const d = salRankPdf(b) - salRankPdf(a); return d !== 0 ? d : byTenPdf(a).localeCompare(byTenPdf(b), 'vi'); });
 
     for (const g of allGroupsPdf) {
       const deptMembers = g.members;
