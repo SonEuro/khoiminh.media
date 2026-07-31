@@ -599,6 +599,7 @@ try { db.prepare("ALTER TABLE users ADD COLUMN luong_ot_h INTEGER DEFAULT 0").ru
 try { db.prepare("ALTER TABLE users ADD COLUMN bac_luong TEXT DEFAULT ''").run(); } catch (_) {}
 // luong_theo_thang: LCB + LNC × số ngày trong tháng (thay vì LNC × công thực tế)
 try { db.prepare("ALTER TABLE users ADD COLUMN luong_theo_thang INTEGER DEFAULT 0").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN phu_cap INTEGER DEFAULT 0").run(); } catch (_) {}
 try {
   const setThang = db.prepare("UPDATE users SET luong_theo_thang = 1 WHERE full_name = ? AND luong_theo_thang = 0");
   ['Huỳnh Sự', 'Vũ Đức Tài', 'Đỗ Quý Vượng'].forEach(n => setThang.run(n));

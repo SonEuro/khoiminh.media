@@ -7,7 +7,7 @@ router.use(requireAuth, requireRole('SUPER_ADMIN'));
 
 router.get('/', (req, res) => {
   const users = db.prepare(
-    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang, created_at FROM users'
+    'SELECT id, username, full_name, position, role, is_active, is_truong_phong, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang, phu_cap, created_at FROM users'
   ).all();
   const byTen = n => ((n || '').trim().split(/\s+/).pop() || n);
   users.sort((a, b) => byTen(a.full_name).localeCompare(byTen(b.full_name), 'vi'));
@@ -31,7 +31,7 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-  const { username, full_name, position, role, is_active, password, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang } = req.body;
+  const { username, full_name, position, role, is_active, password, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, zalo_uid, luong_co_ban, luong_ngay_cong, luong_ot_h, bac_luong, luong_theo_thang, phu_cap } = req.body;
   if (!username?.trim() || !full_name?.trim() || !role)
     return res.status(400).json({ error: 'Tên đăng nhập, họ tên và vai trò là bắt buộc' });
   const id  = req.params.id;
@@ -47,12 +47,13 @@ router.put('/:id', (req, res) => {
   const lot  = parseInt(luong_ot_h      || 0, 10) || 0;
   const bl   = bac_luong?.trim() || '';
   const ltt  = luong_theo_thang ? 1 : 0;
+  const pc   = parseInt(phu_cap         || 0, 10) || 0;
   if (password) {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, is_giam_doc=?, is_van_hanh_ke_toan=?, zalo_uid=?, luong_co_ban=?, luong_ngay_cong=?, luong_ot_h=?, bac_luong=?, luong_theo_thang=?, password_hash=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, gd, vhkt, zalo, lcb, lnc, lot, bl, ltt, bcrypt.hashSync(password, 10), id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, is_giam_doc=?, is_van_hanh_ke_toan=?, zalo_uid=?, luong_co_ban=?, luong_ngay_cong=?, luong_ot_h=?, bac_luong=?, luong_theo_thang=?, phu_cap=?, password_hash=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, gd, vhkt, zalo, lcb, lnc, lot, bl, ltt, pc, bcrypt.hashSync(password, 10), id);
   } else {
-    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, is_giam_doc=?, is_van_hanh_ke_toan=?, zalo_uid=?, luong_co_ban=?, luong_ngay_cong=?, luong_ot_h=?, bac_luong=?, luong_theo_thang=? WHERE id=?')
-      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, gd, vhkt, zalo, lcb, lnc, lot, bl, ltt, id);
+    db.prepare('UPDATE users SET username=?, full_name=?, position=?, role=?, is_active=?, is_phan_lich=?, is_phan_lich_all=?, is_tra_ncc=?, is_quan_ly_kho=?, is_giam_doc=?, is_van_hanh_ke_toan=?, zalo_uid=?, luong_co_ban=?, luong_ngay_cong=?, luong_ot_h=?, bac_luong=?, luong_theo_thang=?, phu_cap=? WHERE id=?')
+      .run(username, full_name, position || '', role, is_active ? 1 : 0, pl, pla, tncc, qlk, gd, vhkt, zalo, lcb, lnc, lot, bl, ltt, pc, id);
   }
   res.json({ ok: true });
 });
