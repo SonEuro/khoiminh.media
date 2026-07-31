@@ -406,7 +406,12 @@ export default function XacNhanCong() {
       }
       const byTenExcel = n => (n || '').trim().split(/\s+/).pop() || n;
       allGroupsExcel.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
-      for (const g of allGroupsExcel) g.members.sort((a, b) => byTenExcel(a).localeCompare(byTenExcel(b), 'vi'));
+      for (const g of allGroupsExcel) g.members.sort((a, b) => {
+        const am = salaryByName[a]?.luong_theo_thang ? 1 : 0;
+        const bm = salaryByName[b]?.luong_theo_thang ? 1 : 0;
+        if (bm !== am) return bm - am;
+        return byTenExcel(a).localeCompare(byTenExcel(b), 'vi');
+      });
 
       for (const g of allGroupsExcel) {
         const deptMembers = g.members;
@@ -692,7 +697,12 @@ export default function XacNhanCong() {
     }
     const byTenPdf = n => (n || '').trim().split(/\s+/).pop() || n;
     allGroupsPdf.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
-    for (const g of allGroupsPdf) g.members.sort((a, b) => byTenPdf(a).localeCompare(byTenPdf(b), 'vi'));
+    for (const g of allGroupsPdf) g.members.sort((a, b) => {
+      const am = salaryByName[a]?.luong_theo_thang ? 1 : 0;
+      const bm = salaryByName[b]?.luong_theo_thang ? 1 : 0;
+      if (bm !== am) return bm - am;
+      return byTenPdf(a).localeCompare(byTenPdf(b), 'vi');
+    });
 
     for (const g of allGroupsPdf) {
       const deptMembers = g.members;
