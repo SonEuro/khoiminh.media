@@ -42,17 +42,26 @@ router.get('/', (req, res) => {
     byUser[r.user_id].push(r);
   }
 
+  // da_nghi tính đến cuối tháng đang xem (để "còn lại" chính xác theo tháng)
+  const monthLastDay = month ? `${month}-31` : null;
+
   const result = users.map((u, idx) => {
     const recs    = byUser[u.id] || [];
-    const da_nghi  = recs.reduce((s, r) => s + r.so_ngay, 0);
-    const nghi_thang = month
-      ? recs.filter(r => r.ngay.startsWith(month)).reduce((s, r) => s + r.so_ngay, 0)
-      : 0;
+    const da_nghi_nam = recs.reduce((s, r) => s + r.so_ngay, 0);
+    const da_nghi_to_month = monthLastDay
+      ? recs.filter(r => r.ngay <= monthLastDay).reduce((s, r) => s + r.so_ngay, 0)
+      : da_nghi_nam;
+    const thang_recs = month ? recs.filter(r => r.ngay.startsWith(month)) : [];
+    const nghi_thang = thang_recs.reduce((s, r) => s + r.so_ngay, 0);
+    const nghi_thang_dates = thang_recs
+      .sort((a, b) => a.ngay.localeCompare(b.ngay))
+      .map(r => ({ ngay: r.ngay, so_ngay: r.so_ngay, ghi_chu: r.ghi_chu }));
     const phep_nam = u.phep_nam ?? 12;
     return {
       stt: idx + 1, id: u.id, full_name: u.full_name, role: u.role,
       dept: nameToDept[u.full_name] || ROLE_TO_DEPT[u.role] || u.role,
-      phep_nam, da_nghi, nghi_thang, con_lai: phep_nam - da_nghi,
+      phep_nam, da_nghi: da_nghi_nam, da_nghi_to_month,
+      nghi_thang, nghi_thang_dates, con_lai: phep_nam - da_nghi_nam,
     };
   });
 
