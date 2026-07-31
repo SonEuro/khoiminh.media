@@ -329,6 +329,8 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
   const sorted = [...users].sort((a, b) => {
     const dc = a.dept.localeCompare(b.dept, 'vi');
     if (dc !== 0) return dc;
+    const tp = (b.truong_phong || 0) - (a.truong_phong || 0);
+    if (tp !== 0) return tp;
     return byTen(a.full_name).localeCompare(byTen(b.full_name), 'vi');
   });
   sorted.forEach((u, i) => { u.stt = i + 1; });
