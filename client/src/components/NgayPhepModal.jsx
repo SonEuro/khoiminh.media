@@ -25,11 +25,9 @@ function monthLabel(ym) {
   return `Tháng ${parseInt(m, 10)}/${y}`;
 }
 
-// Tất cả nhân viên tích lũy cùng tốc độ: 1 ngày/tháng hoàn thành
-// phep_nam là cap tối đa. T7 → đã qua 6 tháng → min(phep_nam, 6)
-function tichLuy(phep_nam, ym) {
-  const monthNum = parseInt(ym.split('-')[1], 10);
-  return Math.min(phep_nam, monthNum - 1);
+// Phép Năm = phep_nam trực tiếp (admin tự cập nhật theo tháng)
+function tichLuy(phep_nam) {
+  return phep_nam;
 }
 
 const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -200,7 +198,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
   const monthNum = parseInt((month || '2026-01').split('-')[1], 10);
 
-  const tl = tichLuy(user.phep_nam, month || `${year}-01`);
+  const tl = tichLuy(user.phep_nam);
   const effDaNghi  = daOv.isOv   ? (daOv.val   ?? user.da_nghi_before) : user.da_nghi_before;
   const effThang   = thangOv.isOv ? (thangOv.val ?? user.nghi_thang)   : user.nghi_thang;
 
@@ -210,7 +208,7 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
         <span style={{ fontSize: '0.78rem', color: '#7878a0' }}>Phép Năm T{monthNum}:</span>
         <span style={{ color: GOLD, fontWeight: 800, fontSize: '1.05rem' }}>{tl}</span>
-        <span style={{ fontSize: '0.70rem', color: '#3a3a5a' }}>(tự động · quota gốc: {user.phep_nam})</span>
+        <span style={{ fontSize: '0.70rem', color: '#3a3a5a' }}>(= quota năm)</span>
         <button onClick={onClose} style={{ ...btnS('#7878a0'), marginLeft: 'auto' }}>✕ Đóng</button>
       </div>
 
@@ -365,7 +363,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                 </thead>
                 <tbody>
                   {sorted.map(u => {
-                    const tl = tichLuy(u.phep_nam, month);
+                    const tl = tichLuy(u.phep_nam);
                     const conLai = tl - u.da_nghi_before - u.nghi_thang;
                     return (
                       <>
