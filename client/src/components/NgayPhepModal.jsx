@@ -32,6 +32,64 @@ function tichLuy(phep_nam, ym) {
   return Math.floor(phep_nam * (monthNum - 1) / 12);
 }
 
+const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+function MultiDatePicker({ selected, onChange }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [viewYM, setViewYM] = useState(() => today.slice(0, 7));
+
+  const [y, m] = viewYM.split('-').map(Number);
+
+  function prevMonth() {
+    const d = new Date(y, m - 2, 1);
+    setViewYM(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  function nextMonth() {
+    const d = new Date(y, m, 1);
+    setViewYM(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  function toggleDate(ds) {
+    const next = new Set(selected);
+    if (next.has(ds)) next.delete(ds); else next.add(ds);
+    onChange(next);
+  }
+
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const startDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // Mon=0
+
+  const cells = Array(startDow).fill(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push(`${viewYM}-${String(d).padStart(2, '0')}`);
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const navBtnS = { background: 'transparent', border: 'none', color: '#c8c8e0', cursor: 'pointer', fontSize: '1rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' };
+
+  return (
+    <div style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 10px 8px', display: 'inline-block', verticalAlign: 'top' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', gap: '4px' }}>
+        <button onClick={prevMonth} style={navBtnS}>‹</button>
+        <span style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.82rem', minWidth: '70px', textAlign: 'center' }}>T{m}/{y}</span>
+        <button onClick={nextMonth} style={navBtnS}>›</button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 28px)', gap: '2px', marginBottom: '4px' }}>
+        {DAY_NAMES.map(d => (
+          <div key={d} style={{ textAlign: 'center', fontSize: '0.65rem', color: '#555570', fontWeight: 700, padding: '2px 0' }}>{d}</div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 28px)', gap: '2px' }}>
+        {cells.map((ds, i) => ds ? (
+          <button key={i} onClick={() => toggleDate(ds)}
+            style={{ width: '28px', height: '26px', borderRadius: '5px', border: selected.has(ds) ? `1px solid ${GOLD}` : '1px solid transparent', background: selected.has(ds) ? `${GOLD}30` : ds === today ? 'rgba(255,255,255,0.07)' : 'transparent', color: selected.has(ds) ? '#e8c97a' : ds === today ? '#eeeef5' : '#c0c0d8', fontSize: '0.76rem', cursor: 'pointer', fontWeight: selected.has(ds) ? 700 : 400, padding: 0 }}>
+            {parseInt(ds.slice(8), 10)}
+          </button>
+        ) : <div key={i} />)}
+      </div>
+    </div>
+  );
+}
+
 function OverrideField({ label, currentVal, isOverride, overrideVal, onSave, onClear, saving }) {
   const [inputVal, setInputVal] = useState(overrideVal !== null && overrideVal !== undefined ? String(overrideVal) : '');
 
@@ -57,10 +115,10 @@ function OverrideField({ label, currentVal, isOverride, overrideVal, onSave, onC
 function EditPanel({ user, year, month, onSaved, onClose }) {
   const [phepNam, setPhepNam] = useState(String(user.phep_nam));
   const [records, setRecords] = useState([]);
-  const [addDate, setAddDate] = useState('');
-  const [addSo, setAddSo]     = useState('1');
-  const [addNote, setAddNote] = useState('');
-  const [saving, setSaving]   = useState(false);
+  const [addDates, setAddDates] = useState(new Set());
+  const [addSo, setAddSo]       = useState('1');
+  const [addNote, setAddNote]   = useState('');
+  const [saving, setSaving]     = useState(false);
 
   const [daOv, setDaOv]     = useState({ isOv: user.da_nghi_is_override, val: user.da_nghi_override_val });
   const [thangOv, setThangOv] = useState({ isOv: user.nghi_thang_is_override, val: user.nghi_thang_override_val });
@@ -78,11 +136,13 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
   }
 
   async function addRecord() {
-    if (!addDate) return;
+    if (addDates.size === 0) return;
     setSaving(true);
     try {
-      await api.addNgayPhepRecord({ user_id: user.id, ngay: addDate, so_ngay: Number(addSo), ghi_chu: addNote });
-      setAddDate(''); setAddSo('1'); setAddNote('');
+      for (const ngay of [...addDates].sort()) {
+        await api.addNgayPhepRecord({ user_id: user.id, ngay, so_ngay: Number(addSo), ghi_chu: addNote });
+      }
+      setAddDates(new Set()); setAddNote('');
       loadRecords(); onSaved();
     } finally { setSaving(false); }
   }
@@ -163,15 +223,25 @@ function EditPanel({ user, year, month, onSaved, onClose }) {
 
       {/* Add individual day records */}
       <div style={divS}>Thêm Ngày Nghỉ</div>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center' }}>
-        <input type="date" value={addDate} onChange={e => setAddDate(e.target.value)} style={inS} />
-        <select value={addSo} onChange={e => setAddSo(e.target.value)} style={{ ...inS, width: '88px' }}>
-          <option value="0.5">0.5 ngày</option>
-          <option value="1">1 ngày</option>
-        </select>
-        <input type="text" placeholder="Ghi chú..." value={addNote} onChange={e => setAddNote(e.target.value)}
-          style={{ ...inS, flex: 1, minWidth: '120px' }} />
-        <button onClick={addRecord} disabled={saving || !addDate} style={btnS('#4ade80')}>+ Thêm</button>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'flex-start' }}>
+        <MultiDatePicker selected={addDates} onChange={setAddDates} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
+          <select value={addSo} onChange={e => setAddSo(e.target.value)} style={{ ...inS, width: '100px' }}>
+            <option value="0.5">0.5 ngày</option>
+            <option value="1">1 ngày</option>
+          </select>
+          <input type="text" placeholder="Ghi chú..." value={addNote} onChange={e => setAddNote(e.target.value)}
+            style={{ ...inS, width: '160px' }} />
+          {addDates.size > 0 && (
+            <div style={{ fontSize: '0.75rem', color: '#e8c97a' }}>
+              Đã chọn: <b>{addDates.size}</b> ngày
+            </div>
+          )}
+          <button onClick={addRecord} disabled={saving || addDates.size === 0}
+            style={{ ...btnS('#4ade80'), opacity: addDates.size === 0 ? 0.4 : 1 }}>
+            + Thêm{addDates.size > 1 ? ` ${addDates.size} ngày` : ''}
+          </button>
+        </div>
       </div>
 
       {records.length > 0 ? (
