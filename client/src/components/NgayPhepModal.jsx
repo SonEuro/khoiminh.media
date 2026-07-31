@@ -358,7 +358,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
           </div>
 
           <span style={{ fontSize: '0.75rem', color: '#555570', marginLeft: 'auto' }}>
-            Phép tích lũy = 1 ngày/tháng (tháng trước)
+            Phép Năm = tích lũy − đã nghỉ trước
           </span>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#7878a0', cursor: 'pointer', fontSize: '1.2rem', padding: '0 4px' }}>✕</button>
         </div>
@@ -374,9 +374,7 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                     <th style={{ ...thS, textAlign: 'left', width: '32px' }}>STT</th>
                     <th style={{ ...thS, textAlign: 'left' }}>Họ Tên</th>
                     <th style={{ ...thS }}>Phép Năm</th>
-                    <th style={thS}>Đã Nghỉ</th>
                     <th style={thS}>T{monthNum}</th>
-                    <th style={thS}>Tổng Ngày Phép</th>
                     <th style={thS}>Còn Lại</th>
                     <th style={{ ...thS, textAlign: 'left', minWidth: '140px' }}>Ngày Nghỉ T{monthNum}</th>
                     <th style={{ ...thS, width: '56px' }}></th>
@@ -386,11 +384,11 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                   {(() => {
                     let lastDept = null;
                     return sorted.map(u => {
-                    const tl = u.phep_nam_is_override ? u.phep_nam_override : tichLuy(u.phep_nam, month);
-                    const conLai = tl - u.da_nghi_before - u.nghi_thang;
+                    const phepNam = (u.tich_luy ?? 0) - (u.da_nghi_before ?? 0);
+                    const conLai = u.con_lai ?? (phepNam - u.nghi_thang);
                     const deptHeader = u.dept !== lastDept ? (lastDept = u.dept,
                       <tr key={`dept-${u.dept}`}>
-                        <td colSpan={9} style={{ padding: '8px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(201,168,76,0.07)', borderTop: '1px solid rgba(201,168,76,0.15)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+                        <td colSpan={7} style={{ padding: '8px 10px', fontSize: '0.72rem', fontWeight: 700, color: '#a08040', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(201,168,76,0.07)', borderTop: '1px solid rgba(201,168,76,0.15)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
                           {u.dept}
                         </td>
                       </tr>
@@ -404,10 +402,8 @@ export default function NgayPhepModal({ onClose, month: initMonth }) {
                           onMouseLeave={e => { if (editingId !== u.id) e.currentTarget.style.background = 'transparent'; }}>
                           <td style={{ ...tdS, color: '#555570', fontSize: '0.74rem' }}>{u.stt}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 600, color: '#eeeef5' }}>{u.full_name}</td>
-                          <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{tl}</td>
-                          <td style={{ ...tdS, color: u.da_nghi_before > 0 ? '#f87171' : '#555570', fontWeight: u.da_nghi_before > 0 ? 700 : 400 }}>{fmtN(u.da_nghi_before)}</td>
+                          <td style={{ ...tdS, color: GOLD, fontWeight: 700 }}>{fmtN(phepNam)}</td>
                           <td style={{ ...tdS, color: u.nghi_thang > 0 ? '#fb923c' : '#555570', fontWeight: u.nghi_thang > 0 ? 700 : 400 }}>{fmtN(u.nghi_thang)}</td>
-                          <td style={{ ...tdS, color: '#c8c8e0', fontWeight: 600 }}>{fmtN(u.da_nghi_before + u.nghi_thang)}</td>
                           <td style={{ ...tdS, color: conLai < 0 ? '#f87171' : conLai <= 2 ? '#fb923c' : '#4ade80', fontWeight: 700 }}>{fmtN(conLai)}</td>
                           <td style={{ ...tdS, textAlign: 'left' }}>
                             {(u.nghi_thang_dates || []).length > 0 ? (
