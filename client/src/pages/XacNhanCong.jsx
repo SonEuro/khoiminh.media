@@ -487,13 +487,8 @@ export default function XacNhanCong() {
           ]);
           const r = row.number;
           if (firstPersonRow === null) firstPersonRow = r;
-          // X=Tổng Lương: LCB+PC+LNC×Công+LOT×OT+Leader+bữa ăn+phụ cấp−Phạt
-          row.getCell(24).value = (sal.luong_theo_thang || leaveDeduct > 0)
-            ? totalTien
-            : {
-                formula: `=N(E${r})+N(F${r})+N(G${r})*N(L${r})+N(H${r})*N(M${r})*24+N(N${r})+N(O${r})*40000+N(P${r})*30000+N(Q${r})*30000+N(R${r})*40000+N(S${r})+N(T${r})+N(U${r})+N(V${r})-N(W${r})`,
-                result: totalTien,
-              };
+          // X=Tổng Lương: số cứng để có thể sửa thủ công trên Excel
+          row.getCell(24).value = totalTien;
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
           if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; row.getCell(8).numFmt = vndFmt; }
