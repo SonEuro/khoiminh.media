@@ -364,7 +364,7 @@ export default function XacNhanCong() {
       ws.getRow(1).height = 28;
 
       // Header row — 23 cột
-      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Lương Ngày Công', 'Lương OT/h', 'Phụ Cấp', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú']);
+      const hdrRow = ws.addRow(['STT', 'Bộ Phận', 'Họ Tên', 'Bậc', 'Lương Cơ Bản', 'Phụ Cấp', 'Lương Ngày Công', 'Lương OT/h', 'Số Ngày', 'Tổng Công', 'Tổng OT (giờ)', 'Leader', 'C.Sáng', 'C.Trưa', 'C.Tối', 'C.Khuya', 'Xăng Xe', 'Tiền Nước', 'Giữ Xe', 'Phụ Cấp Khác', 'Phạt BC', 'Tổng Số Tiền', 'Ghi Chú']);
       hdrRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
@@ -476,8 +476,8 @@ export default function XacNhanCong() {
           const row = ws.addRow([
             stt, g.dept, name, sal.bac || '',
             leaveDeduct > 0 ? Math.round(adjLcb) : (sal.lcb || ''),
+            leaveDeduct > 0 ? Math.round(adjPc) : (sal.pc || ''),   // F: Phụ Cấp
             sal.lnc || '', sal.lot || '',
-            leaveDeduct > 0 ? Math.round(adjPc) : (sal.pc || ''),   // H: Phụ Cấp
             days, parseFloat(fmtNum(cong)), parseFloat(fmtNum(ot)),
             leaderAmt || '', cs || '', ct || '', cc || '', ctoi || '',
             xangXe || '', tienNuoc || '', giuXe || '', phuCapKhac || '',
@@ -492,13 +492,13 @@ export default function XacNhanCong() {
           row.getCell(22).value = (sal.luong_theo_thang || leaveDeduct > 0)
             ? totalTien
             : {
-                formula: `=N(E${r})+N(H${r})+N(F${r})*N(J${r})+N(G${r})*N(K${r})+N(L${r})+N(M${r})*40000+N(N${r})*30000+N(O${r})*30000+N(P${r})*40000+N(Q${r})+N(R${r})+N(S${r})+N(T${r})-N(U${r})`,
+                formula: `=N(E${r})+N(F${r})+N(G${r})*N(J${r})+N(H${r})*N(K${r})+N(L${r})+N(M${r})*40000+N(N${r})*30000+N(O${r})*30000+N(P${r})*40000+N(Q${r})+N(R${r})+N(S${r})+N(T${r})-N(U${r})`,
                 result: totalTien,
               };
           row.eachCell(cell => { cell.fill = white; cell.border = border; cell.alignment = { horizontal: 'center' }; });
           row.getCell(3).alignment = { horizontal: 'left' };
-          if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(6).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; }
-          if (sal.pc > 0) row.getCell(8).numFmt = vndFmt;
+          if (sal.lcb) { row.getCell(5).numFmt = vndFmt; row.getCell(7).numFmt = vndFmt; row.getCell(8).numFmt = vndFmt; }
+          if (sal.pc > 0) row.getCell(6).numFmt = vndFmt;
           if (xangXe > 0)     row.getCell(17).numFmt = vndFmt;
           if (tienNuoc > 0)   row.getCell(18).numFmt = vndFmt;
           if (giuXe > 0)      row.getCell(19).numFmt = vndFmt;
@@ -522,11 +522,11 @@ export default function XacNhanCong() {
           const subRow = ws.addRow(['', `Tổng ${g.dept}`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
           const sr = subRow.number;
           deptSubtotalRows.push(sr);
-          // SUM formulas cho cột H(8) đến V(22)
-          const sCols = ['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'];
+          // SUM formulas: F=PhụCấp, I=Ngày, J-V (bỏ qua G=LNC, H=LOT là đơn giá)
+          const sCols = ['F','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'];
           const sVals = [deptPhuCap, deptDays, parseFloat(fmtNum(deptCong)), parseFloat(fmtNum(deptOT)), deptLeader, deptCS, deptCT, deptCC, deptCToi, deptXangXe, deptTienNuoc, deptGiuXe, deptPhuCapKhac, deptPhat, deptTotalTien];
           sCols.forEach((col, i) => {
-            subRow.getCell(8 + i).value = { formula: `=SUM(${col}${firstPersonRow}:${col}${deptEndRow})`, result: sVals[i] || 0 };
+            subRow.getCell(col.charCodeAt(0) - 64).value = { formula: `=SUM(${col}${firstPersonRow}:${col}${deptEndRow})`, result: sVals[i] || 0 };
           });
           subRow.eachCell(cell => {
             cell.font = { bold: true, color: { argb: 'FF000000' } };
@@ -535,7 +535,7 @@ export default function XacNhanCong() {
             cell.alignment = { horizontal: 'center' };
           });
           subRow.getCell(2).alignment = { horizontal: 'left' };
-          if (deptPhuCap > 0)     subRow.getCell(8).numFmt = vndFmt;
+          if (deptPhuCap > 0)     subRow.getCell(6).numFmt = vndFmt;
           if (deptLeader > 0)     subRow.getCell(12).numFmt = vndFmt;
           if (deptXangXe > 0)     subRow.getCell(17).numFmt = vndFmt;
           if (deptTienNuoc > 0)   subRow.getCell(18).numFmt = vndFmt;
@@ -550,11 +550,11 @@ export default function XacNhanCong() {
       ws.addRow([]);
       const totalRow = ws.addRow(['', 'TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
       if (deptSubtotalRows.length > 0) {
-        const tCols = ['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'];
+        const tCols = ['F','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'];
         const tVals = [grandPhuCap, grandDays, parseFloat(fmtNum(grandCongX)), parseFloat(fmtNum(grandOTX)), grandLeader, grandCS, grandCT, grandCC, grandCToi, grandXangXe, grandTienNuoc, grandGiuXe, grandPhuCapKhac, grandPhat, grandTotalTien];
         tCols.forEach((col, i) => {
           const formula = deptSubtotalRows.map(r => `${col}${r}`).join('+');
-          totalRow.getCell(8 + i).value = { formula: `=${formula}`, result: tVals[i] || 0 };
+          totalRow.getCell(col.charCodeAt(0) - 64).value = { formula: `=${formula}`, result: tVals[i] || 0 };
         });
       }
       totalRow.eachCell(cell => {
@@ -564,7 +564,7 @@ export default function XacNhanCong() {
         cell.border = borderMedium;
       });
       totalRow.getCell(2).alignment = { horizontal: 'left' };
-      if (grandPhuCap > 0)     totalRow.getCell(8).numFmt = vndFmt;
+      if (grandPhuCap > 0)     totalRow.getCell(6).numFmt = vndFmt;
       if (grandLeader > 0)     totalRow.getCell(12).numFmt = vndFmt;
       if (grandXangXe > 0)     totalRow.getCell(17).numFmt = vndFmt;
       if (grandTienNuoc > 0)   totalRow.getCell(18).numFmt = vndFmt;
