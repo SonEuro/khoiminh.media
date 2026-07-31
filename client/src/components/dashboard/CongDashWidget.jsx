@@ -120,7 +120,7 @@ export default function CongDashWidget({ user }) {
         </div>
         {isTruong && (
           <div style={{ fontSize: '0.74rem', color: '#7878a0', marginTop: '3px' }}>
-            {memberSet.size} người · {fmtNumD(totalCong)} công{totalOT > 0 ? ` · +${fmtNumD(totalOT)}h OT` : ''}
+            {memberSet.size} người · <span style={{ color: GOLD, fontWeight: 700 }}>{fmtNumD(totalCong)}</span> công{totalOT > 0 ? <> · <span style={{ color: '#60a5fa', fontWeight: 700 }}>+{fmtNumD(totalOT)}h</span> OT</> : ''}
           </div>
         )}
       </div>
