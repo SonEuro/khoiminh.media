@@ -388,7 +388,21 @@ export default function XacNhanCong() {
       let grandPhuCap = 0, grandPhat = 0, grandTotalTien = 0;
       const deptSubtotalRows = [];
 
-      for (const g of kmGroups) {
+      // Gộp kmGroups + nhân viên active chưa có trong nhóm nào
+      const groupedNamesExcel = new Set(kmGroups.flatMap(g => g.members));
+      const extraDeptMapExcel = {};
+      for (const [name, sal] of Object.entries(salaryByName)) {
+        if (groupedNamesExcel.has(name)) continue;
+        const dept = ROLE_TO_KM_DEPT[sal.role] || 'Khác';
+        if (!extraDeptMapExcel[dept]) extraDeptMapExcel[dept] = [];
+        extraDeptMapExcel[dept].push(name);
+      }
+      const allGroupsExcel = [
+        ...kmGroups,
+        ...Object.entries(extraDeptMapExcel).map(([dept, members]) => ({ dept, members })),
+      ];
+
+      for (const g of allGroupsExcel) {
         const deptMembers = g.members;
         if (!deptMembers.length) continue;
 
@@ -654,7 +668,21 @@ export default function XacNhanCong() {
     let stt = 0;
     const rows = [];
 
-    for (const g of kmGroups) {
+    // Gộp kmGroups + nhân viên active chưa có trong nhóm nào
+    const groupedNamesPdf = new Set(kmGroups.flatMap(g => g.members));
+    const extraDeptMapPdf = {};
+    for (const [name, sal] of Object.entries(salaryByName)) {
+      if (groupedNamesPdf.has(name)) continue;
+      const dept = ROLE_TO_KM_DEPT[sal.role] || 'Khác';
+      if (!extraDeptMapPdf[dept]) extraDeptMapPdf[dept] = [];
+      extraDeptMapPdf[dept].push(name);
+    }
+    const allGroupsPdf = [
+      ...kmGroups,
+      ...Object.entries(extraDeptMapPdf).map(([dept, members]) => ({ dept, members })),
+    ];
+
+    for (const g of allGroupsPdf) {
       const deptMembers = g.members;
       if (!deptMembers.length) continue;
       let deptCong = 0, deptOT = 0, deptDays = 0, deptLeader = 0;
