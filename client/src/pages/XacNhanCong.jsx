@@ -388,19 +388,22 @@ export default function XacNhanCong() {
       let grandPhuCap = 0, grandPhat = 0, grandTotalTien = 0;
       const deptSubtotalRows = [];
 
-      // Gộp kmGroups + nhân viên active chưa có trong nhóm nào
-      const groupedNamesExcel = new Set(kmGroups.flatMap(g => g.members));
-      const extraDeptMapExcel = {};
+      // Gộp kmGroups + nhân viên active chưa có trong nhóm nào (merge vào nhóm sẵn có nếu cùng dept)
+      const deptToIdxExcel = {};
+      const allGroupsExcel = kmGroups.map((g, i) => { deptToIdxExcel[g.dept] = i; return { ...g, members: [...g.members] }; });
+      const groupedNamesExcel = new Set(allGroupsExcel.flatMap(g => g.members));
       for (const [name, sal] of Object.entries(salaryByName)) {
         if (groupedNamesExcel.has(name)) continue;
-        const dept = ROLE_TO_KM_DEPT[sal.role] || 'Khác';
-        if (!extraDeptMapExcel[dept]) extraDeptMapExcel[dept] = [];
-        extraDeptMapExcel[dept].push(name);
+        const dept = ROLE_TO_KM_DEPT[sal.role];
+        if (!dept) continue; // bỏ qua role không thuộc bộ phận km (DIRECTOR, SUPER_ADMIN...)
+        if (deptToIdxExcel[dept] !== undefined) {
+          allGroupsExcel[deptToIdxExcel[dept]].members.push(name);
+        } else {
+          deptToIdxExcel[dept] = allGroupsExcel.length;
+          allGroupsExcel.push({ dept, members: [name] });
+        }
+        groupedNamesExcel.add(name);
       }
-      const allGroupsExcel = [
-        ...kmGroups,
-        ...Object.entries(extraDeptMapExcel).map(([dept, members]) => ({ dept, members })),
-      ];
 
       for (const g of allGroupsExcel) {
         const deptMembers = g.members;
@@ -668,19 +671,22 @@ export default function XacNhanCong() {
     let stt = 0;
     const rows = [];
 
-    // Gộp kmGroups + nhân viên active chưa có trong nhóm nào
-    const groupedNamesPdf = new Set(kmGroups.flatMap(g => g.members));
-    const extraDeptMapPdf = {};
+    // Gộp kmGroups + nhân viên active chưa có trong nhóm nào (merge vào nhóm sẵn có nếu cùng dept)
+    const deptToIdxPdf = {};
+    const allGroupsPdf = kmGroups.map((g, i) => { deptToIdxPdf[g.dept] = i; return { ...g, members: [...g.members] }; });
+    const groupedNamesPdf = new Set(allGroupsPdf.flatMap(g => g.members));
     for (const [name, sal] of Object.entries(salaryByName)) {
       if (groupedNamesPdf.has(name)) continue;
-      const dept = ROLE_TO_KM_DEPT[sal.role] || 'Khác';
-      if (!extraDeptMapPdf[dept]) extraDeptMapPdf[dept] = [];
-      extraDeptMapPdf[dept].push(name);
+      const dept = ROLE_TO_KM_DEPT[sal.role];
+      if (!dept) continue; // bỏ qua role không thuộc bộ phận km (DIRECTOR, SUPER_ADMIN...)
+      if (deptToIdxPdf[dept] !== undefined) {
+        allGroupsPdf[deptToIdxPdf[dept]].members.push(name);
+      } else {
+        deptToIdxPdf[dept] = allGroupsPdf.length;
+        allGroupsPdf.push({ dept, members: [name] });
+      }
+      groupedNamesPdf.add(name);
     }
-    const allGroupsPdf = [
-      ...kmGroups,
-      ...Object.entries(extraDeptMapPdf).map(([dept, members]) => ({ dept, members })),
-    ];
 
     for (const g of allGroupsPdf) {
       const deptMembers = g.members;
