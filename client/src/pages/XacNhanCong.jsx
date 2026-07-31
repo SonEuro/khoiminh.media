@@ -388,29 +388,11 @@ export default function XacNhanCong() {
       let grandPhuCap = 0, grandPhat = 0, grandTotalTien = 0;
       const deptSubtotalRows = [];
 
-      // Gộp kmGroups + nhân viên active chưa có trong nhóm nào (merge vào nhóm sẵn có nếu cùng dept)
-      const deptToIdxExcel = {};
-      const allGroupsExcel = kmGroups.map((g, i) => { deptToIdxExcel[g.dept] = i; return { ...g, members: [...g.members] }; });
-      const groupedNamesExcel = new Set(allGroupsExcel.flatMap(g => g.members));
-      for (const [name, sal] of Object.entries(salaryByName)) {
-        if (groupedNamesExcel.has(name)) continue;
-        const dept = ROLE_TO_KM_DEPT[sal.role];
-        if (!dept) continue; // bỏ qua role không thuộc bộ phận km (DIRECTOR, SUPER_ADMIN...)
-        if (deptToIdxExcel[dept] !== undefined) {
-          allGroupsExcel[deptToIdxExcel[dept]].members.push(name);
-        } else {
-          deptToIdxExcel[dept] = allGroupsExcel.length;
-          allGroupsExcel.push({ dept, members: [name] });
-        }
-        groupedNamesExcel.add(name);
-      }
       const byTenExcel = n => (n || '').trim().split(/\s+/).pop() || n;
       const salRankExcel = n => (salaryByName[n]?.truong_phong || 0);
-      allGroupsExcel.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
-      for (const g of allGroupsExcel) g.members.sort((a, b) => {
-        const diff = salRankExcel(b) - salRankExcel(a);
-        return diff !== 0 ? diff : byTenExcel(a).localeCompare(byTenExcel(b), 'vi');
-      });
+      const allGroupsExcel = [...kmGroups]
+        .sort((a, b) => a.dept.localeCompare(b.dept, 'vi'))
+        .map(g => ({ ...g, members: [...g.members].sort((a, b) => { const d = salRankExcel(b) - salRankExcel(a); return d !== 0 ? d : byTenExcel(a).localeCompare(byTenExcel(b), 'vi'); }) }));
 
       for (const g of allGroupsExcel) {
         const deptMembers = g.members;
@@ -684,29 +666,11 @@ export default function XacNhanCong() {
     let stt = 0;
     const rows = [];
 
-    // Gộp kmGroups + nhân viên active chưa có trong nhóm nào (merge vào nhóm sẵn có nếu cùng dept)
-    const deptToIdxPdf = {};
-    const allGroupsPdf = kmGroups.map((g, i) => { deptToIdxPdf[g.dept] = i; return { ...g, members: [...g.members] }; });
-    const groupedNamesPdf = new Set(allGroupsPdf.flatMap(g => g.members));
-    for (const [name, sal] of Object.entries(salaryByName)) {
-      if (groupedNamesPdf.has(name)) continue;
-      const dept = ROLE_TO_KM_DEPT[sal.role];
-      if (!dept) continue; // bỏ qua role không thuộc bộ phận km (DIRECTOR, SUPER_ADMIN...)
-      if (deptToIdxPdf[dept] !== undefined) {
-        allGroupsPdf[deptToIdxPdf[dept]].members.push(name);
-      } else {
-        deptToIdxPdf[dept] = allGroupsPdf.length;
-        allGroupsPdf.push({ dept, members: [name] });
-      }
-      groupedNamesPdf.add(name);
-    }
     const byTenPdf = n => (n || '').trim().split(/\s+/).pop() || n;
     const salRankPdf = n => (salaryByName[n]?.truong_phong || 0);
-    allGroupsPdf.sort((a, b) => a.dept.localeCompare(b.dept, 'vi'));
-    for (const g of allGroupsPdf) g.members.sort((a, b) => {
-      const diff = salRankPdf(b) - salRankPdf(a);
-      return diff !== 0 ? diff : byTenPdf(a).localeCompare(byTenPdf(b), 'vi');
-    });
+    const allGroupsPdf = [...kmGroups]
+      .sort((a, b) => a.dept.localeCompare(b.dept, 'vi'))
+      .map(g => ({ ...g, members: [...g.members].sort((a, b) => { const d = salRankPdf(b) - salRankPdf(a); return d !== 0 ? d : byTenPdf(a).localeCompare(byTenPdf(b), 'vi'); }) }));
 
     for (const g of allGroupsPdf) {
       const deptMembers = g.members;
