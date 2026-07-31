@@ -111,12 +111,18 @@ export default function CongDashWidget({ user }) {
 
   return (
     <div style={{ borderRadius: '10px', border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.04)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', background: 'linear-gradient(135deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.02) 100%)', borderLeft: '3px solid #c9a84c', borderBottom: '1px solid rgba(201,168,76,0.14)' }}>
-        <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>
-          {isTruong ? `CÔNG BỘ PHẬN — ${label}` : `CÔNG CỦA TÔI — ${label}`}
-        </span>
-        {isTruong && <span style={{ fontSize: '0.76rem', color: '#7878a0' }}>{memberSet.size} người · {fmtNumD(totalCong)} công{totalOT > 0 ? ` · +${fmtNumD(totalOT)}h OT` : ''}</span>}
-        <span onClick={() => navigate('/xac-nhan-cong')} style={{ fontSize: '0.82rem', color: '#7878a0', cursor: 'pointer', flexShrink: 0 }}>Xem chi tiết →</span>
+      <div style={{ padding: '9px 14px', background: 'linear-gradient(135deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.02) 100%)', borderLeft: '3px solid #c9a84c', borderBottom: '1px solid rgba(201,168,76,0.14)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, color: GOLD, fontSize: '0.84rem', flex: 1, letterSpacing: '0.04em' }}>
+            {isTruong ? `CÔNG BỘ PHẬN — ${label}` : `CÔNG CỦA TÔI — ${label}`}
+          </span>
+          <span onClick={() => navigate('/xac-nhan-cong')} style={{ fontSize: '0.82rem', color: '#7878a0', cursor: 'pointer', flexShrink: 0 }}>Xem chi tiết →</span>
+        </div>
+        {isTruong && (
+          <div style={{ fontSize: '0.74rem', color: '#7878a0', marginTop: '3px' }}>
+            {memberSet.size} người · {fmtNumD(totalCong)} công{totalOT > 0 ? ` · +${fmtNumD(totalOT)}h OT` : ''}
+          </div>
+        )}
       </div>
 
       {personRows.length === 0 ? (
