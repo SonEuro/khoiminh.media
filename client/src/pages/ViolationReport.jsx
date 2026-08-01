@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
@@ -566,8 +567,8 @@ function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
         </div>
       )}
 
-      {/* Lightbox */}
-      {lightboxIdx !== null && (
+      {/* Lightbox — portal để tránh overflow:hidden của card cha */}
+      {lightboxIdx !== null && createPortal(
         <div ref={lightboxRef}
           onClick={() => { if (!wasDraggingRef.current) setLightboxIdx(null); wasDraggingRef.current = false; }}
           style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -607,7 +608,7 @@ function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
             </div>
           </>)}
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

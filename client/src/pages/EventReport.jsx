@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
@@ -732,8 +733,8 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
         </div>
       )}
 
-      {/* Lightbox */}
-      {imgIdx !== null && (
+      {/* Lightbox — portal ra ngoài DOM để tránh overflow:hidden của card cha */}
+      {imgIdx !== null && createPortal(
         <div
           ref={lightboxRef}
           onClick={() => { if (!wasDraggingRef.current) setImgIdx(null); wasDraggingRef.current = false; }}
@@ -755,8 +756,12 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
               cursor: imgScale > 1 ? 'grab' : 'default',
               userSelect: 'none',
             }} />
-          <div style={{ position:'absolute', top:'max(env(safe-area-inset-top, 0px), 20px)', right:'max(env(safe-area-inset-right, 0px), 20px)', color:'white', fontSize:'1.5rem', cursor:'pointer', lineHeight:1, padding:'4px' }}
-            onClick={() => setImgIdx(null)}>✕</div>
+          <button onClick={() => setImgIdx(null)} style={{
+            position:'absolute', top:'max(env(safe-area-inset-top, 0px), 16px)', right:'max(env(safe-area-inset-right, 0px), 16px)',
+            background:'rgba(0,0,0,0.7)', border:'2px solid rgba(255,255,255,0.5)', borderRadius:'50%',
+            width:'48px', height:'48px', color:'white', fontSize:'1.4rem', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center',
+          }}>✕</button>
           {detail.images?.length > 1 && (
             <>
               <button type="button" onClick={e => { e.stopPropagation(); setImgIdx((imgIdx - 1 + detail.images.length) % detail.images.length); }}
@@ -769,7 +774,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
             </>
           )}
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
