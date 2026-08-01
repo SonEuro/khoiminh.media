@@ -180,6 +180,18 @@ router.get('/', requireAuth, (req, res) => {
   const violByName = {};
   for (const v of violRows) violByName[v.violator] = v.cnt;
 
+  // Phạt Nội Quy: SUM penalty_amount từ các vi phạm khác BC trong tháng
+  const phatNQRows = db.prepare(`
+    SELECT violator, COALESCE(SUM(penalty_amount), 0) AS total_phat
+    FROM violations
+    WHERE violation_type NOT IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
+      AND penalty_amount > 0
+      AND created_at LIKE ?
+    GROUP BY violator
+  `).all(`${month}%`);
+  const phatNQByName = {};
+  for (const v of phatNQRows) phatNQByName[v.violator] = v.total_phat;
+
   res.json({
     reports: rows.map(r => ({
       ...r,
@@ -189,6 +201,7 @@ router.get('/', requireAuth, (req, res) => {
     })),
     supportByDate,
     violByName,
+    phatNQByName,
     salaryByName,
     phaseDateMap,
     leaveConLaiByName: res.locals.leaveConLaiByName || {},

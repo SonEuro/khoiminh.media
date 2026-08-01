@@ -325,6 +325,19 @@ export default function ViolationReport() {
 function ViolationCard({ v, isSuperAdmin, onDelete }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const [penaltyInput, setPenaltyInput] = useState(v.penalty_amount > 0 ? String(v.penalty_amount) : '');
+  const [savingPenalty, setSavingPenalty] = useState(false);
+
+  async function savePenalty() {
+    setSavingPenalty(true);
+    try {
+      await api.updateViolationPenalty(v.id, parseInt(penaltyInput || '0', 10) || 0);
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    } finally {
+      setSavingPenalty(false);
+    }
+  }
   const hasDetail = v.description || v.images?.length > 0;
   const isReportViol = ['Không nộp báo cáo', 'Nộp báo cáo trễ'].includes(v.violation_type);
   const assignedDate = v.description?.match(/ngày (\d{4}-\d{2}-\d{2})/)?.[1];
@@ -397,6 +410,45 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
           )}
         </div>
       </div>
+
+      {/* Tiền phạt nội quy — chỉ super admin, không áp dụng cho vi phạm BC */}
+      {isSuperAdmin && !isReportViol && (
+        <div style={{
+          padding: '8px 16px',
+          borderTop: '1px solid rgba(255,255,255,0.04)',
+          display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Tiền phạt:</span>
+          <input
+            type="number"
+            value={penaltyInput}
+            onChange={e => setPenaltyInput(e.target.value)}
+            placeholder="0"
+            style={{
+              width: '120px', padding: '3px 7px',
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '5px', color: 'var(--text-main)', fontSize: '0.85rem',
+            }}
+          />
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>đ</span>
+          <button
+            onClick={savePenalty}
+            disabled={savingPenalty}
+            style={{
+              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
+              color: GOLD, borderRadius: '5px', padding: '3px 10px',
+              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+            }}
+          >
+            {savingPenalty ? '...' : 'Lưu'}
+          </button>
+          {(v.penalty_amount > 0) && (
+            <span style={{ fontSize: '0.80rem', color: '#68d391' }}>
+              Đã ghi: {v.penalty_amount.toLocaleString('vi-VN')}đ
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Chi tiết mở rộng */}
       {open && (

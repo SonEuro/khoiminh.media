@@ -191,6 +191,7 @@ export default function XacNhanCong() {
   const [reports, setReports]       = useState([]);
   const [supportByDate, setSupportByDate] = useState({});
   const [violByName, setViolByName]   = useState({});
+  const [phatNQByName, setPhatNQByName] = useState({});
   const [salaryByName, setSalaryByName] = useState({});
   const [phaseDateMap, setPhaseDateMap] = useState({});
   const [leaveConLaiByName, setLeaveConLaiByName] = useState({});
@@ -220,6 +221,7 @@ export default function XacNhanCong() {
       setReports(data.reports || []);
       setSupportByDate(data.supportByDate || {});
       setViolByName(data.violByName || {});
+      setPhatNQByName(data.phatNQByName || {});
       setSalaryByName(data.salaryByName || {});
       setPhaseDateMap(data.phaseDateMap || {});
       setLeaveConLaiByName(data.leaveConLaiByName || {});
@@ -277,7 +279,6 @@ export default function XacNhanCong() {
       giu_xe_note: getPANote(r, name, 'giu_xe_note'),
       phu_cap_khac: getPA(r, name, 'phu_cap_khac') || '',
       phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note'),
-      phat_noi_quy: getPA(r, name, 'phat_noi_quy') || '',
       leader_override: (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.leader_override; return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
       cong_override:   (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.cong_override;   return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
     });
@@ -308,7 +309,6 @@ export default function XacNhanCong() {
         giu_xe_note: editRowData.giu_xe_note || '',
         phu_cap_khac: parseInt(editRowData.phu_cap_khac || '0', 10) || 0,
         phu_cap_khac_note: editRowData.phu_cap_khac_note || '',
-        phat_noi_quy: parseInt(editRowData.phat_noi_quy || '0', 10) || 0,
         leader_override: editRowData.leader_override,
         cong_override:   editRowData.cong_override,
       });
@@ -453,7 +453,7 @@ export default function XacNhanCong() {
           const tienNuoc    = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
           const giuXe       = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
           const phuCapKhac  = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
-          const phatNQ      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phat_noi_quy'), 0);
+          const phatNQ      = phatNQByName[name] || 0;
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
@@ -745,7 +745,7 @@ export default function XacNhanCong() {
         const tienNuoc   = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
         const giuXe      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
         const phuCapKhac = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
-        const phatNQ     = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phat_noi_quy'), 0);
+        const phatNQ     = phatNQByName[name] || 0;
         const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
         const days     = sal.luong_theo_thang ? daysInMonthPdf : daysWorkedPdf;
@@ -1071,7 +1071,6 @@ ${rows.map(renderRow).join('\n')}
                                                 ['tien_nuoc', 'tien_nuoc_note', 'Tiền Nước'],
                                                 ['giu_xe', 'giu_xe_note', 'Giữ Xe'],
                                                 ['phu_cap_khac', 'phu_cap_khac_note', 'Phụ Cấp Khác'],
-                                                ['phat_noi_quy', null, 'Phạt Nội Quy'],
                                               ].map(([amtKey, noteKey, label]) => (
                                                 <div key={amtKey}>
                                                   <div style={{ fontSize: '0.63rem', color: '#9898b8', marginBottom: '3px' }}>{label}</div>
@@ -1275,7 +1274,6 @@ ${rows.map(renderRow).join('\n')}
                                                 ['tien_nuoc', 'tien_nuoc_note', 'Tiền Nước'],
                                                 ['giu_xe', 'giu_xe_note', 'Giữ Xe'],
                                                 ['phu_cap_khac', 'phu_cap_khac_note', 'Phụ Cấp Khác'],
-                                                ['phat_noi_quy', null, 'Phạt Nội Quy'],
                                               ].map(([amtKey, noteKey, label]) => (
                                                 <div key={amtKey}>
                                                   <div style={{ fontSize: '0.65rem', color: '#9898b8', marginBottom: '4px' }}>{label}</div>

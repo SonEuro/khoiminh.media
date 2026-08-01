@@ -91,6 +91,15 @@ router.post('/:id/forgive', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// PATCH /api/violations/:id/penalty — nhập số tiền phạt (SUPER_ADMIN, DIRECTOR)
+router.patch('/:id/penalty', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
+  const viol = db.prepare('SELECT id FROM violations WHERE id = ?').get(req.params.id);
+  if (!viol) return res.status(404).json({ error: 'Không tìm thấy vi phạm' });
+  const amt = parseInt(req.body.penalty_amount || 0, 10) || 0;
+  db.prepare('UPDATE violations SET penalty_amount = ? WHERE id = ?').run(amt, viol.id);
+  res.json({ ok: true, penalty_amount: amt });
+});
+
 // GET /api/violations/delete-log  (SUPER_ADMIN, DIRECTOR)
 router.get('/delete-log', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req, res) => {
   const rows = db.prepare(`

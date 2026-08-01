@@ -281,6 +281,15 @@ db.exec(`
   );
 `);
 
+// Migration: thêm penalty_amount vào violations
+{
+  const violCols = db.pragma('table_info(violations)').map(c => c.name);
+  if (!violCols.includes('penalty_amount')) {
+    db.exec("ALTER TABLE violations ADD COLUMN penalty_amount INTEGER DEFAULT 0");
+    console.log('[DB] Migration: thêm cột penalty_amount vào violations');
+  }
+}
+
 // Migration: soft delete columns cho event_reports
 {
   const cols = db.pragma('table_info(event_reports)').map(c => c.name);
