@@ -1023,6 +1023,9 @@ ${rows.map(renderRow).join('\n')}
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                                         <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#eeeef5', fontSize: '0.83rem', flexShrink: 0 }}>{fmtDate(r.report_date)}</span>
                                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', flexShrink: 0, background: isSun ? 'rgba(96,165,250,0.18)' : 'rgba(255,255,255,0.07)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
+                                        {getPA(r, name, 'phat_noi_quy') > 0 && (
+                                          <span title={`Phạt Nội Quy: ${getPA(r, name, 'phat_noi_quy').toLocaleString('vi-VN')}đ`} style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', flexShrink: 0, background: 'rgba(229,62,62,0.18)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.35)' }}>Phạt</span>
+                                        )}
                                         <span style={{ fontSize: '0.78rem', color: '#9898b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event_label || '—'}</span>
                                         {(() => {
                                           const mPhase = phaseDateMap[`${r.event_id}::${r.report_date}`] || detectPhase(r.event_label);
@@ -1200,6 +1203,9 @@ ${rows.map(renderRow).join('\n')}
                                           <td style={dtd}>
                                             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtDate(r.report_date)}</span>
                                             <span style={{ marginLeft: '4px', fontSize: '0.68rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px', background: isSun ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.05)', color: isSun ? '#60a5fa' : '#7878a0' }}>{dayTag}</span>
+                                            {getPA(r, name, 'phat_noi_quy') > 0 && (
+                                              <span title={`Phạt Nội Quy: ${getPA(r, name, 'phat_noi_quy').toLocaleString('vi-VN')}đ`} style={{ marginLeft: '4px', fontSize: '0.63rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(229,62,62,0.18)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.3)' }}>Phạt</span>
+                                            )}
                                           </td>
                                           <td style={{ ...dtd, maxWidth: '180px' }}>
                                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px', color: '#c8c8e0', fontSize: '0.78rem' }}>{r.event_label || '—'}</span>
