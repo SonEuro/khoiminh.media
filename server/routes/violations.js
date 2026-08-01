@@ -9,9 +9,20 @@ router.get('/', requireAuth, (req, res) => {
   try { checkAndCreateViolations(); } catch (e) { console.error('[obligations]', e.message); }
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
   const rows = db.prepare(`
-    SELECT v.*, e.name AS event_name
+    SELECT v.*, e.name AS event_name,
+      CASE
+        WHEN v.violation_type = 'Không nộp báo cáo'
+          AND v.supplementary_submitted = 0
+          AND er.id IS NOT NULL THEN 1
+        ELSE v.supplementary_submitted
+      END AS supplementary_submitted
     FROM violations v
     LEFT JOIN events e ON e.id = v.event_id
+    LEFT JOIN event_reports er
+      ON v.violation_type = 'Không nộp báo cáo'
+      AND er.event_id = v.event_id
+      AND er.reporter_name = v.violator
+      AND er.deleted_at IS NULL
     ORDER BY v.created_at DESC
   `).all();
 
