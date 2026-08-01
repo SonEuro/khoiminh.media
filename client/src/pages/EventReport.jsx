@@ -1571,6 +1571,34 @@ export default function EventReport() {
                 ))}
               </select>
             </div>
+            {/* Chọn cả bộ phận: hiện từng người trong dept */}
+            {staffDept && !staffName && (() => {
+              const deptMembers = kmGroups.find(g => g.dept === staffDept)?.members || [];
+              if (deptMembers.length === 0) return null;
+              const sorted = [...reports].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
+              return deptMembers.map(member => {
+                const memberReports = sorted.filter(r => r.reporter_name === member);
+                if (memberReports.length === 0) return null;
+                const order = [], map = {};
+                memberReports.forEach(r => {
+                  const key = r.event_id ? String(r.event_id) : `_${r.id}`;
+                  if (!map[key]) { map[key] = { event_label: r.event_label || 'Sự kiện không rõ', location: r.location, reports: [] }; order.push(key); }
+                  map[key].reports.push(r);
+                });
+                return (
+                  <div key={member} style={{ marginBottom: '16px' }}>
+                    <div style={{ padding: '6px 14px', marginBottom: '8px', borderLeft: `3px solid ${getDeptColor(staffDept)}`, background: 'rgba(255,255,255,0.03)', borderRadius: '0 8px 8px 0', fontSize: '0.84rem', fontWeight: 700, color: '#eeeef5', letterSpacing: '0.04em' }}>
+                      {member} <span style={{ color: '#7878a0', fontWeight: 400, fontSize: '0.78rem' }}>· {memberReports.length} báo cáo</span>
+                    </div>
+                    {order.map(k => (
+                      <EventZone key={k} group={map[k]} onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
+                    ))}
+                  </div>
+                );
+              });
+            })()}
+
+            {/* Chọn cả dept lẫn người: hiện báo cáo của 1 người */}
             {staffName && (() => {
               const staffReports = [...reports].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || '')).filter(r => r.reporter_name === staffName);
               if (staffReports.length === 0) return (
