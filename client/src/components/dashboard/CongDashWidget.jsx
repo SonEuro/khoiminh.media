@@ -35,6 +35,7 @@ export default function CongDashWidget({ user }) {
   const [data, setData] = useState(null);
   const [phaseDateMap, setPhaseDateMap] = useState({});
   const [leaveMap, setLeaveMap] = useState({});
+  const [phatNQByName, setPhatNQByName] = useState({});
   // 15 ngày đầu tháng mới vẫn hiện dữ liệu tháng trước
   const currentMonth = (() => {
     const vnStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -48,6 +49,7 @@ export default function CongDashWidget({ user }) {
       setData(res.reports || res);
       setPhaseDateMap(res.phaseDateMap || {});
       setLeaveMap(res.leaveConLaiByName || {});
+      setPhatNQByName(res.phatNQByName || {});
     }).catch(() => {});
   }, [currentMonth]);
 
@@ -95,11 +97,12 @@ export default function CongDashWidget({ user }) {
         ? (myDept && (kmStaffGroups?.find(g => g.dept === myDept)?.members || []).includes(name))
         : name === myName;
       if (!belongsToMe) continue;
-      if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0, leader: 0 };
+      if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0, leader: 0, phatNQManual: 0 };
       const paOv2 = r.per_person_allowances?.[name]?.cong_override;
       personSummary[name].cong += (paOv2 != null && paOv2 !== '') ? Number(paOv2) : res.congRate;
       personSummary[name].ot  += res.otHours;
       personSummary[name].buoi++;
+      personSummary[name].phatNQManual += parseInt(r.per_person_allowances?.[name]?.phat_noi_quy || 0, 10) || 0;
       const isLeader = (() => {
         if (!(r.leaders || []).includes(name)) return false;
         const phase = phaseDateMap[`${r.event_id}::${r.report_date}`];
@@ -150,16 +153,29 @@ export default function CongDashWidget({ user }) {
             </tr>
           </thead>
           <tbody>
-            {personRows.map(([name, { cong, ot, leader }]) => (
-              <tr key={name} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.04)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <td style={{ ...tdS, fontWeight: 600, color: '#eeeef5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</td>
-                <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNumD(cong)}</td>
-                <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
-                <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: leader > 0 ? GOLD : '#555570', fontVariantNumeric: 'tabular-nums' }}>{leader > 0 ? leader : '—'}</td>
-              </tr>
-            ))}
+            {personRows.map(([name, { cong, ot, leader, phatNQManual }]) => {
+              const phatNQ = (phatNQByName[name] || 0) + (phatNQManual || 0);
+              return [
+                <tr key={name} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <td style={{ ...tdS, fontWeight: 600, color: '#eeeef5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</td>
+                  <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{fmtNumD(cong)}</td>
+                  <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
+                  <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: leader > 0 ? GOLD : '#555570', fontVariantNumeric: 'tabular-nums' }}>{leader > 0 ? leader : '—'}</td>
+                </tr>,
+                phatNQ > 0 && (
+                  <tr key={`${name}-phat`} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer', background: 'rgba(229,62,62,0.06)' }}>
+                    <td colSpan={4} style={{ padding: '3px 8px 4px', borderBottom: '1px solid rgba(229,62,62,0.12)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
+                        <span style={{ fontSize: '0.73rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums' }}>{phatNQ.toLocaleString('vi-VN')}đ</span>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              ];
+            })}
           </tbody>
         </table>
       )}
