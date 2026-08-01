@@ -1002,7 +1002,8 @@ export default function EventReport() {
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [editingId, setEditingId] = useState(null); // id báo cáo đang edit
   const isRegularStaff = !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && !user?.is_phan_lich_all && !user?.is_truong_phong;
-  const [listMode, setListMode] = useState(isRegularStaff ? 'staff' : 'event'); // 'event' | 'date' | 'dept' | 'staff'
+  const isTruongPhong = !!user?.is_truong_phong;
+  const [listMode, setListMode] = useState(isRegularStaff ? 'staff' : isTruongPhong ? 'dept' : 'event'); // 'event' | 'date' | 'dept' | 'staff'
   const [staffDept, setStaffDept] = useState('');
   const [staffName, setStaffName] = useState('');
   const [reports, setReports] = useState([]);
@@ -1507,7 +1508,9 @@ export default function EventReport() {
         <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
           {(isRegularStaff
             ? [['staff', 'Nhân viên'], ['dept', 'Bộ phận']]
-            : [['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']]
+            : isTruongPhong
+              ? [['dept', 'Bộ phận'], ['event', 'Sự kiện']]
+              : [['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']]
           ).map(([mode, label]) => (
             <button key={mode} type="button" onClick={() => setListMode(mode)}
               style={{
@@ -1570,7 +1573,7 @@ export default function EventReport() {
 
         {/* Theo bộ phận */}
         {!loading && listMode === 'dept' && (() => {
-          const myDept = isRegularStaff ? getUserKmDept(user, kmGroups) : null;
+          const myDept = (isRegularStaff || isTruongPhong) ? getUserKmDept(user, kmGroups) : null;
           const visibleDeptOrder = myDept
             ? deptGroups.order.filter(d => d === myDept)
             : deptGroups.order;
@@ -1621,7 +1624,7 @@ export default function EventReport() {
 
         {/* Đã Xác Nhận – sự kiện đã qua 48h */}
         {!loading && listMode !== 'staff' && confirmedReports.length > 0 && (() => {
-          const myDeptForConfirmed = (isRegularStaff && listMode === 'dept') ? getUserKmDept(user, kmGroups) : null;
+          const myDeptForConfirmed = ((isRegularStaff || isTruongPhong) && listMode === 'dept') ? getUserKmDept(user, kmGroups) : null;
           const sorted = [...confirmedReports]
             .filter(r => !myDeptForConfirmed || kmGroups.find(g => g.members.includes(r.reporter_name))?.dept === myDeptForConfirmed)
             .sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
