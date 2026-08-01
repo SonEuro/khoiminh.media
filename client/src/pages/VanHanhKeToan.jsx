@@ -458,7 +458,7 @@ function SuKienThangTab({ month }) {
 
 // ── Main Component ────────────────────────────────────────
 export default function VanHanhKeToan() {
-  const [tab, setTab]     = useState('khoi-minh');
+  const [tab, setTab]     = useState('su-kien');
   const [month, setMonth] = useState(todayMonth);
 
   const isLocked = isMonthLocked(month);
@@ -487,9 +487,9 @@ export default function VanHanhKeToan() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid rgba(120,120,160,0.15)' }}>
         {[
+          { id: 'su-kien',    Icon: Search,   label: `Sự Kiện ${fmtMonth(month)}` },
           { id: 'khoi-minh',  Icon: Package,  label: 'Chi Phí Khôi Minh' },
           { id: 'ncc',        Icon: Truck,    label: 'Chi Phí NCC'        },
-          { id: 'su-kien',    Icon: Search,   label: `Sự Kiện ${fmtMonth(month)}` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             display: 'flex', alignItems: 'center', gap: '7px',
