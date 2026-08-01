@@ -1621,7 +1621,11 @@ export default function EventReport() {
 
         {/* Đã Xác Nhận – sự kiện đã qua 48h */}
         {!loading && listMode !== 'staff' && confirmedReports.length > 0 && (() => {
-          const sorted = [...confirmedReports].sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
+          const myDeptForConfirmed = (isRegularStaff && listMode === 'dept') ? getUserKmDept(user, kmGroups) : null;
+          const sorted = [...confirmedReports]
+            .filter(r => !myDeptForConfirmed || kmGroups.find(g => g.members.includes(r.reporter_name))?.dept === myDeptForConfirmed)
+            .sort((a, b) => (b.report_date || '').localeCompare(a.report_date || ''));
+          if (sorted.length === 0) return null;
           const order = [], map = {};
           sorted.forEach(r => {
             const key = r.event_id ? String(r.event_id) : `_${r.id}`;
