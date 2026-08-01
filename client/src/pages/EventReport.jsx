@@ -996,7 +996,8 @@ export default function EventReport() {
 
   const [view, setView] = useState('list'); // 'list' | 'form'
   const [editingId, setEditingId] = useState(null); // id báo cáo đang edit
-  const [listMode, setListMode] = useState('event'); // 'event' | 'date' | 'dept' | 'staff'
+  const isRegularStaff = !['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role) && !user?.is_phan_lich_all && !user?.is_truong_phong;
+  const [listMode, setListMode] = useState(isRegularStaff ? 'staff' : 'event'); // 'event' | 'date' | 'dept' | 'staff'
   const [staffDept, setStaffDept] = useState('');
   const [staffName, setStaffName] = useState('');
   const [reports, setReports] = useState([]);
@@ -1477,7 +1478,10 @@ export default function EventReport() {
 
         {/* Tab toggle */}
         <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
-          {[['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']].map(([mode, label]) => (
+          {(isRegularStaff
+            ? [['staff', 'Nhân viên'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['event', 'Sự kiện']]
+            : [['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']]
+          ).map(([mode, label]) => (
             <button key={mode} type="button" onClick={() => setListMode(mode)}
               style={{
                 padding:'6px 16px', borderRadius:'9999px', fontSize:'0.84rem', fontWeight:700, cursor:'pointer',
