@@ -1553,15 +1553,18 @@ export default function EventReport() {
           ));
         })()}
 
-        {/* Theo bộ phận – chỉ hiện khi canViewAllDepts */}
-        {!loading && listMode === 'dept' && (
-          deptGroups.order.length === 0
-            ? null
-            : deptGroups.order.map(dept => (
-                <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
-                  onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
-              ))
-        )}
+        {/* Theo bộ phận */}
+        {!loading && listMode === 'dept' && (() => {
+          const myDept = isRegularStaff ? getUserKmDept(user, kmGroups) : null;
+          const visibleDeptOrder = myDept
+            ? deptGroups.order.filter(d => d === myDept)
+            : deptGroups.order;
+          if (visibleDeptOrder.length === 0) return null;
+          return visibleDeptOrder.map(dept => (
+            <DeptSection key={dept} dept={dept} color={getDeptColor(dept)} reports={deptGroups.map[dept]}
+              onDelete={handleDelete} onEdit={handleEdit} onConfirm={handleConfirm} canDeleteReport={canDeleteReport} highlightId={highlightId} />
+          ));
+        })()}
 
         {/* Theo nhân viên */}
         {!loading && listMode === 'staff' && (
