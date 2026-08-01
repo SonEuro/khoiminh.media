@@ -11,7 +11,7 @@ router.get('/', requireAuth, (req, res) => {
   const rows = db.prepare(`
     SELECT v.*, e.name AS event_name,
       CASE
-        WHEN v.violation_type = 'Không nộp báo cáo'
+        WHEN v.violation_type IN ('Không nộp báo cáo', 'Nộp báo cáo trễ')
           AND v.supplementary_submitted = 0
           AND EXISTS (
             SELECT 1 FROM event_reports er
