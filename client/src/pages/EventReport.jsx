@@ -1461,8 +1461,23 @@ export default function EventReport() {
     const [ty, tm, td] = todayVN.split('-').map(Number);
     const threshDate = new Date(Date.UTC(ty, tm - 1, td - 2));
     const confirmedThresh = `${threshDate.getUTCFullYear()}-${String(threshDate.getUTCMonth()+1).padStart(2,'0')}-${String(threshDate.getUTCDate()).padStart(2,'0')}`;
-    const recentReports   = reports.filter(r => !r.report_date || r.report_date > confirmedThresh);
-    const confirmedReports = reports.filter(r => r.report_date && r.report_date <= confirmedThresh);
+
+    // Nhân viên thường: chỉ hiện tháng cũ + 15 ngày đầu tháng mới
+    // Ngày <= 15 → hiện từ đầu tháng trước; ngày > 15 → hiện từ đầu tháng hiện tại
+    const staffFilterFrom = isRegularStaff ? (() => {
+      const effM = td <= 15 ? (tm === 1 ? 12 : tm - 1) : tm;
+      const effY = td <= 15 && tm === 1 ? ty - 1 : ty;
+      return `${effY}-${String(effM).padStart(2, '0')}-01`;
+    })() : null;
+
+    const recentReports   = reports.filter(r =>
+      (!r.report_date || r.report_date > confirmedThresh) &&
+      (!staffFilterFrom || r.report_date >= staffFilterFrom)
+    );
+    const confirmedReports = reports.filter(r =>
+      (r.report_date && r.report_date <= confirmedThresh) &&
+      (!staffFilterFrom || r.report_date >= staffFilterFrom)
+    );
 
     // Dept-grouped view
     const deptGroups = (() => {
