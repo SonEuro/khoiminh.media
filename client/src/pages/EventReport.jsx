@@ -1097,10 +1097,13 @@ export default function EventReport() {
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [load]);
 
+  const prefillViolationIdRef = useRef(null);
+
   // Pre-fill form nếu được navigate từ trang Lịch Làm Việc (nghĩa vụ báo cáo)
   useEffect(() => {
     const prefill = location.state?.prefill;
     if (!prefill) return;
+    prefillViolationIdRef.current = prefill.violation_id || null;
     setView('form');
     setForm(f => ({
       ...f,
@@ -1419,6 +1422,10 @@ export default function EventReport() {
         await api.updateEventReport(editingId, form);
       } else {
         await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
+        if (prefillViolationIdRef.current) {
+          try { await api.forgiveViolation(prefillViolationIdRef.current); } catch (_) {}
+          prefillViolationIdRef.current = null;
+        }
       }
       const updated = await api.getEventReports();
       setReports(updated);
