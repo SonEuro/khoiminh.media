@@ -1491,7 +1491,7 @@ export default function EventReport() {
         {/* Tab toggle */}
         <div style={{ display:'flex', gap:'6px', marginBottom:'20px' }}>
           {(isRegularStaff
-            ? [['staff', 'Nhân viên'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['event', 'Sự kiện']]
+            ? [['staff', 'Nhân viên'], ['dept', 'Bộ phận']]
             : [['event', 'Sự kiện'], ['date', 'Ngày'], ['dept', 'Bộ phận'], ['staff', 'Nhân viên']]
           ).map(([mode, label]) => (
             <button key={mode} type="button" onClick={() => setListMode(mode)}
