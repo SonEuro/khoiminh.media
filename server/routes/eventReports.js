@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { pushByRoles } = require('../services/pushNotify');
+const { pushByUserIds } = require('../services/pushNotify');
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
 
 function canManage(req, res, next) {
@@ -53,8 +53,6 @@ router.get('/:id', (req, res) => {
   res.json({ ...r, km_staff: JSON.parse(r.km_staff || '[]'), images: JSON.parse(r.images || '[]'), timeline: JSON.parse(r.timeline || '[]'), edit_history: JSON.parse(r.edit_history || '[]') });
 });
 
-const { notifyNewEventReport } = require('../utils/sendPush');
-
 router.post('/', requireAuth, (req, res) => {
   const {
     event_id, event_label, location, report_date,
@@ -91,16 +89,30 @@ router.post('/', requireAuth, (req, res) => {
   );
   res.json({ id: result.lastInsertRowid });
 
-  // Gửi push notification theo bộ phận (fire-and-forget)
-  const rName = reporter_name || req.user?.full_name || '';
-  const kmGroups = db.prepare("SELECT dept, members FROM staff_groups WHERE type='km'").all();
-  const reporterDeptRow = kmGroups.find(g => JSON.parse(g.members || '[]').includes(rName));
-  notifyNewEventReport({
-    reporterName: rName,
-    eventLabel: event_label || '',
-    reportDate: report_date || '',
-    dept: reporterDeptRow?.dept || null,
-  }).catch(() => {});
+  // Push notification theo bộ phận (fire-and-forget)
+  (() => {
+    try {
+      const rName = reporter_name || req.user?.full_name || '';
+      const kmGroups = db.prepare("SELECT dept, members FROM staff_groups WHERE type='km'").all();
+      const deptRow = kmGroups.find(g => JSON.parse(g.members || '[]').includes(rName));
+      const deptMembers = deptRow ? JSON.parse(deptRow.members || '[]') : [];
+      const targetUsers = db.prepare(`
+        SELECT id FROM users WHERE is_active = 1 AND (
+          ${deptMembers.length ? `full_name IN (${deptMembers.map(() => '?').join(',')}) OR ` : ''}
+          role IN ('SUPER_ADMIN','DIRECTOR') OR is_phan_lich_all = 1
+        )
+      `).all(...deptMembers);
+      const userIds = targetUsers.map(u => u.id);
+      if (!userIds.length) return;
+      const dateLabel = report_date ? report_date.split('-').reverse().join('/') : '';
+      pushByUserIds(
+        `📋 Báo cáo mới${deptRow ? ` — ${deptRow.dept}` : ''}`,
+        `${rName} đã nộp báo cáo${event_label ? ` cho ${event_label}` : ''}${dateLabel ? ` ngày ${dateLabel}` : ''}`,
+        '/event-report',
+        userIds
+      ).catch(() => {});
+    } catch (_) {}
+  })();
 });
 
 // Cho phép chỉnh sửa đến report_date + 1 ngày 21:00 VN
