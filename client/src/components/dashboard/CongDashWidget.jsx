@@ -35,7 +35,13 @@ export default function CongDashWidget({ user }) {
   const [data, setData] = useState(null);
   const [phaseDateMap, setPhaseDateMap] = useState({});
   const [leaveMap, setLeaveMap] = useState({});
-  const currentMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+  // 15 ngày đầu tháng mới vẫn hiện dữ liệu tháng trước
+  const currentMonth = (() => {
+    const vnStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    let [y, m, d] = vnStr.split('-').map(Number);
+    if (d <= 15) { m -= 1; if (m === 0) { m = 12; y -= 1; } }
+    return `${y}-${String(m).padStart(2, '0')}`;
+  })();
 
   useEffect(() => {
     api.getXacNhanCong(currentMonth).then(res => {
