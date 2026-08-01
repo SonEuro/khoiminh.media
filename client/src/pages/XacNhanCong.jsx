@@ -1155,6 +1155,16 @@ ${rows.map(renderRow).join('\n')}
                                               </button>
                                             )}
                                           </div>
+                                          {/* Hàng phạt nội quy */}
+                                          {getPA(r, name, 'phat_noi_quy') > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', padding: '4px 8px', borderRadius: '5px', background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.2)' }}>
+                                              <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
+                                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{getPA(r, name, 'phat_noi_quy').toLocaleString('vi-VN')}đ</span>
+                                              {getPANote(r, name, 'phat_noi_quy_note') && (
+                                                <span style={{ fontSize: '0.73rem', color: '#c8a0a0' }}>· {getPANote(r, name, 'phat_noi_quy_note')}</span>
+                                              )}
+                                            </div>
+                                          )}
                                         </>
                                       )}
                                     </div>
@@ -1270,7 +1280,20 @@ ${rows.map(renderRow).join('\n')}
                                           )}
                                         </tr>
                                       );
-                                      if (!isEditing) return [mainRow];
+                                      const phatNQRow = getPA(r, name, 'phat_noi_quy') > 0 ? (
+                                        <tr key={`${r.id}-phatnq`} style={{ background: 'rgba(229,62,62,0.04)' }}>
+                                          <td colSpan={canSuaCong ? 13 : 12} style={{ padding: '3px 10px 4px', borderBottom: '1px solid rgba(229,62,62,0.1)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              <span style={{ fontSize: '0.63rem', fontWeight: 700, padding: '1px 6px', borderRadius: '3px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
+                                              <span style={{ fontSize: '0.73rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{getPA(r, name, 'phat_noi_quy').toLocaleString('vi-VN')}đ</span>
+                                              {getPANote(r, name, 'phat_noi_quy_note') && (
+                                                <span style={{ fontSize: '0.72rem', color: '#c8a0a0' }}>· {getPANote(r, name, 'phat_noi_quy_note')}</span>
+                                              )}
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ) : null;
+                                      if (!isEditing) return [mainRow, phatNQRow].filter(Boolean);
                                       const pcInpStyle = { width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '4px', color: '#eeeef5', padding: '3px 6px', fontSize: '0.73rem', outline: 'none', boxSizing: 'border-box' };
                                       const pcNoteStyle = { marginTop: '3px', width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', color: '#c8c8e0', padding: '3px 6px', fontSize: '0.70rem', outline: 'none', boxSizing: 'border-box' };
                                       return [
