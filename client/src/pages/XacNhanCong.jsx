@@ -281,6 +281,8 @@ export default function XacNhanCong() {
       phu_cap_khac_note: getPANote(r, name, 'phu_cap_khac_note'),
       leader_override: (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.leader_override; return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
       cong_override:   (() => { const pa = r.per_person_allowances; if (pa && name in pa) { const ov = pa[name]?.cong_override;   return ov !== null && ov !== undefined ? String(ov) : ''; } return ''; })(),
+      phat_noi_quy: getPA(r, name, 'phat_noi_quy') || '',
+      phat_noi_quy_note: getPANote(r, name, 'phat_noi_quy_note'),
     });
   }
 
@@ -311,6 +313,8 @@ export default function XacNhanCong() {
         phu_cap_khac_note: editRowData.phu_cap_khac_note || '',
         leader_override: editRowData.leader_override,
         cong_override:   editRowData.cong_override,
+        phat_noi_quy: parseInt(editRowData.phat_noi_quy || '0', 10) || 0,
+        phat_noi_quy_note: editRowData.phat_noi_quy_note || '',
       });
 
       setReports(prev => prev.map(rep => rep.id === r.id
@@ -453,7 +457,8 @@ export default function XacNhanCong() {
           const tienNuoc    = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
           const giuXe       = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
           const phuCapKhac  = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
-          const phatNQ      = phatNQByName[name] || 0;
+          const phatNQManual = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phat_noi_quy'), 0);
+          const phatNQ      = (phatNQByName[name] || 0) + phatNQManual;
           const violCount = violByName[name] || 0;
           const phatAmt = violCount * VIOL_PENALTY;
           const sal = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
@@ -474,10 +479,12 @@ export default function XacNhanCong() {
             const tnNote = getPANote(rep, name, 'tien_nuoc_note');
             const gxNote = getPANote(rep, name, 'giu_xe_note');
             const pcNote = getPANote(rep, name, 'phu_cap_khac_note');
+            const pnqNote = getPANote(rep, name, 'phat_noi_quy_note');
             if (xzNote?.trim())  ghiChuLines.push(`Xăng Xe: ${xzNote.trim()} (${dd})`);
             if (tnNote?.trim())  ghiChuLines.push(`T.Nước: ${tnNote.trim()} (${dd})`);
             if (gxNote?.trim())  ghiChuLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
             if (pcNote?.trim())  ghiChuLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
+            if (pnqNote?.trim()) ghiChuLines.push(`Phạt NQ: ${pnqNote.trim()} (${dd})`);
           }
           if (leaveDeduct > 0) ghiChuLines.unshift(`Trừ ${leaveDeduct} ngày phép: LCB ${fmtVND(sal.lcb)}→${fmtVND(Math.round(adjLcb))}, PC ${fmtVND(sal.pc)}→${fmtVND(Math.round(adjPc))}`);
           const ghiChu = ghiChuLines.join('\n');
@@ -745,7 +752,8 @@ export default function XacNhanCong() {
         const tienNuoc   = entries.reduce((s, { report: r }) => s + getPA(r, name, 'tien_nuoc'), 0);
         const giuXe      = entries.reduce((s, { report: r }) => s + getPA(r, name, 'giu_xe'), 0);
         const phuCapKhac = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phu_cap_khac'), 0);
-        const phatNQ     = phatNQByName[name] || 0;
+        const phatNQManualPdf = entries.reduce((s, { report: r }) => s + getPA(r, name, 'phat_noi_quy'), 0);
+        const phatNQ     = (phatNQByName[name] || 0) + phatNQManualPdf;
         const phatAmt  = (violByName[name] || 0) * VIOL_PENALTY;
         const sal      = salaryByName[name] || { lcb: 0, lnc: 0, lot: 0, bac: '', luong_theo_thang: 0, pc: 0 };
         const days     = sal.luong_theo_thang ? daysInMonthPdf : daysWorkedPdf;
@@ -763,10 +771,12 @@ export default function XacNhanCong() {
           const tnNote = getPANote(rep, name, 'tien_nuoc_note');
           const gxNote = getPANote(rep, name, 'giu_xe_note');
           const pcNote = getPANote(rep, name, 'phu_cap_khac_note');
-          if (xzNote?.trim())  ghiChuPdfLines.push(`Xăng Xe: ${xzNote.trim()} (${dd})`);
-          if (tnNote?.trim())  ghiChuPdfLines.push(`T.Nước: ${tnNote.trim()} (${dd})`);
-          if (gxNote?.trim())  ghiChuPdfLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
-          if (pcNote?.trim())  ghiChuPdfLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
+          const pnqNotePdf = getPANote(rep, name, 'phat_noi_quy_note');
+          if (xzNote?.trim())     ghiChuPdfLines.push(`Xăng Xe: ${xzNote.trim()} (${dd})`);
+          if (tnNote?.trim())     ghiChuPdfLines.push(`T.Nước: ${tnNote.trim()} (${dd})`);
+          if (gxNote?.trim())     ghiChuPdfLines.push(`Giữ Xe: ${gxNote.trim()} (${dd})`);
+          if (pcNote?.trim())     ghiChuPdfLines.push(`PC Khác: ${pcNote.trim()} (${dd})`);
+          if (pnqNotePdf?.trim()) ghiChuPdfLines.push(`Phạt NQ: ${pnqNotePdf.trim()} (${dd})`);
         }
         const ghiChu = ghiChuPdfLines.join('<br>');
         stt++; hasDept = true;
@@ -1079,6 +1089,11 @@ ${rows.map(renderRow).join('\n')}
                                                 </div>
                                               ))}
                                             </div>
+                                            <div style={{ marginTop: '10px' }}>
+                                              <div style={{ fontSize: '0.63rem', color: '#fc8181', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phạt Nội Quy</div>
+                                              <input type="number" placeholder="Số tiền phạt" value={ed.phat_noi_quy || ''} onChange={e => setEditRowData(d => ({ ...d, phat_noi_quy: e.target.value }))} style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(229,62,62,0.3)', borderRadius: '4px', color: '#eeeef5', padding: '3px 6px', fontSize: '0.76rem', outline: 'none', boxSizing: 'border-box' }} />
+                                              <input placeholder="Ghi chú lý do phạt..." value={ed.phat_noi_quy_note || ''} onChange={e => setEditRowData(d => ({ ...d, phat_noi_quy_note: e.target.value }))} style={{ marginTop: '3px', width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(229,62,62,0.15)', borderRadius: '4px', color: '#c8c8e0', padding: '3px 6px', fontSize: '0.70rem', outline: 'none', boxSizing: 'border-box' }} />
+                                            </div>
                                           </div>
                                           {preview && (
                                             <div style={{ fontSize: '0.76rem', color: '#a0a0c0', marginBottom: '8px' }}>
@@ -1281,6 +1296,19 @@ ${rows.map(renderRow).join('\n')}
                                                   {noteKey && <input placeholder="Ghi chú..." value={ed[noteKey] || ''} onChange={e => setEditRowData(d => ({ ...d, [noteKey]: e.target.value }))} style={pcNoteStyle} />}
                                                 </div>
                                               ))}
+                                            </div>
+                                            <div style={{ marginTop: '12px' }}>
+                                              <div style={{ fontSize: '0.65rem', color: '#fc8181', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phạt Nội Quy</div>
+                                              <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '12px', alignItems: 'start' }}>
+                                                <div>
+                                                  <div style={{ fontSize: '0.65rem', color: '#9898b8', marginBottom: '4px' }}>Số tiền phạt</div>
+                                                  <input type="number" placeholder="0" value={ed.phat_noi_quy || ''} onChange={e => setEditRowData(d => ({ ...d, phat_noi_quy: e.target.value }))} style={{ ...pcInpStyle, border: '1px solid rgba(229,62,62,0.35)' }} />
+                                                </div>
+                                                <div>
+                                                  <div style={{ fontSize: '0.65rem', color: '#9898b8', marginBottom: '4px' }}>Ghi chú lý do phạt</div>
+                                                  <input placeholder="Lý do phạt..." value={ed.phat_noi_quy_note || ''} onChange={e => setEditRowData(d => ({ ...d, phat_noi_quy_note: e.target.value }))} style={{ ...pcNoteStyle, border: '1px solid rgba(229,62,62,0.2)' }} />
+                                                </div>
+                                              </div>
                                             </div>
                                           </td>
                                         </tr>,
