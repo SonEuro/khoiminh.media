@@ -97,12 +97,20 @@ export default function CongDashWidget({ user }) {
         ? (myDept && (kmStaffGroups?.find(g => g.dept === myDept)?.members || []).includes(name))
         : name === myName;
       if (!belongsToMe) continue;
-      if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0, leader: 0, phatNQManual: 0 };
+      if (!personSummary[name]) personSummary[name] = { cong: 0, ot: 0, buoi: 0, leader: 0, phatNQManual: 0, phatDays: [] };
       const paOv2 = r.per_person_allowances?.[name]?.cong_override;
       personSummary[name].cong += (paOv2 != null && paOv2 !== '') ? Number(paOv2) : res.congRate;
       personSummary[name].ot  += res.otHours;
       personSummary[name].buoi++;
-      personSummary[name].phatNQManual += parseInt(r.per_person_allowances?.[name]?.phat_noi_quy || 0, 10) || 0;
+      const dayPhat = parseInt(r.per_person_allowances?.[name]?.phat_noi_quy || 0, 10) || 0;
+      if (dayPhat > 0) {
+        personSummary[name].phatNQManual += dayPhat;
+        personSummary[name].phatDays.push({
+          date: r.report_date,
+          amt: dayPhat,
+          note: r.per_person_allowances?.[name]?.phat_noi_quy_note || '',
+        });
+      }
       const isLeader = (() => {
         if (!(r.leaders || []).includes(name)) return false;
         const phase = phaseDateMap[`${r.event_id}::${r.report_date}`];
@@ -153,8 +161,10 @@ export default function CongDashWidget({ user }) {
             </tr>
           </thead>
           <tbody>
-            {personRows.map(([name, { cong, ot, leader, phatNQManual }]) => {
-              const phatNQ = (phatNQByName[name] || 0) + (phatNQManual || 0);
+            {personRows.map(([name, { cong, ot, leader, phatDays }]) => {
+              const violPhat = phatNQByName[name] || 0;
+              const hasPhat = phatDays.length > 0 || violPhat > 0;
+              const fmtD = (d) => { const [,m,dd] = (d||'').split('-'); return dd && m ? `${dd}/${m}` : d; };
               return [
                 <tr key={name} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.04)'}
@@ -164,13 +174,24 @@ export default function CongDashWidget({ user }) {
                   <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: ot > 0 ? '#60a5fa' : '#7878a0', fontVariantNumeric: 'tabular-nums' }}>{ot > 0 ? `${fmtNumD(ot)}h` : '—'}</td>
                   <td style={{ ...tdS, textAlign: 'center', fontWeight: 700, color: leader > 0 ? GOLD : '#555570', fontVariantNumeric: 'tabular-nums' }}>{leader > 0 ? leader : '—'}</td>
                 </tr>,
-                phatNQ > 0 && (
-                  <tr key={`${name}-phat`} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer', background: 'rgba(229,62,62,0.06)' }}>
-                    <td colSpan={4} style={{ padding: '3px 8px 4px', borderBottom: '1px solid rgba(229,62,62,0.12)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
-                        <span style={{ fontSize: '0.73rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums' }}>{phatNQ.toLocaleString('vi-VN')}đ</span>
-                      </div>
+                hasPhat && (
+                  <tr key={`${name}-phat`} onClick={() => navigate('/xac-nhan-cong')} style={{ cursor: 'pointer', background: 'rgba(229,62,62,0.05)' }}>
+                    <td colSpan={4} style={{ padding: '3px 8px 6px', borderBottom: '1px solid rgba(229,62,62,0.12)' }}>
+                      {phatDays.map((p, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: i === 0 ? 0 : '3px' }}>
+                          <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
+                          <span style={{ fontSize: '0.70rem', color: '#e08080', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{fmtD(p.date)}</span>
+                          <span style={{ fontSize: '0.73rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{p.amt.toLocaleString('vi-VN')}đ</span>
+                          {p.note && <span style={{ fontSize: '0.70rem', color: '#c8a0a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {p.note}</span>}
+                        </div>
+                      ))}
+                      {violPhat > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: phatDays.length > 0 ? '3px' : 0 }}>
+                          <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(229,62,62,0.2)', color: '#fc8181', border: '1px solid rgba(229,62,62,0.4)', flexShrink: 0 }}>Phạt</span>
+                          <span style={{ fontSize: '0.73rem', fontWeight: 700, color: '#fc8181', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{violPhat.toLocaleString('vi-VN')}đ</span>
+                          <span style={{ fontSize: '0.70rem', color: '#c8a0a0' }}>· Vi phạm nội quy</span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ),
