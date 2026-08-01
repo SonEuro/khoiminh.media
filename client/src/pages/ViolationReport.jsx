@@ -62,6 +62,7 @@ export default function ViolationReport() {
   const { user } = useAuth();
   const { kmGroups, freelancerGroups } = useStaffGroups();
   const isSuperAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
+  const canEditPenalty = user?.role === 'SUPER_ADMIN' || !!user?.is_phan_lich_all;
   const VIOLATOR_GROUPS = [...kmGroups, ...freelancerGroups];
 
   const [events,     setEvents]     = useState([]);
@@ -306,7 +307,7 @@ export default function ViolationReport() {
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:'6px', paddingLeft:'4px', borderLeft:'2px solid rgba(201,168,76,0.18)' }}>
                   {items.map(v => (
-                    <ViolationCard key={v.id} v={v} isSuperAdmin={isSuperAdmin}
+                    <ViolationCard key={v.id} v={v} isSuperAdmin={isSuperAdmin} canEditPenalty={canEditPenalty}
                       onDelete={() => {
                         if (!confirm('Xóa báo cáo này?')) return;
                         api.deleteViolation(v.id).then(load).catch(e => alert(e.message));
@@ -322,7 +323,7 @@ export default function ViolationReport() {
   );
 }
 
-function ViolationCard({ v, isSuperAdmin, onDelete }) {
+function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [penaltyInput, setPenaltyInput] = useState(v.penalty_amount > 0 ? String(v.penalty_amount) : '');
@@ -412,7 +413,7 @@ function ViolationCard({ v, isSuperAdmin, onDelete }) {
       </div>
 
       {/* Tiền phạt nội quy — chỉ super admin, không áp dụng cho vi phạm BC */}
-      {isSuperAdmin && !isReportViol && (
+      {canEditPenalty && !isReportViol && (
         <div style={{
           padding: '8px 16px',
           borderTop: '1px solid rgba(255,255,255,0.04)',
