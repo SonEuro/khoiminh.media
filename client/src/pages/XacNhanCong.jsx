@@ -230,6 +230,14 @@ export default function XacNhanCong() {
 
   useEffect(() => { load(month); }, [month, load]);
 
+  // Nhân viên thường: auto-expand tên mình khi data load xong
+  const isRegularStaff = !canViewAll && !isTruongPhong;
+  useEffect(() => {
+    if (!loading && isRegularStaff && user?.full_name) {
+      setExpanded(prev => { const s = new Set(prev); s.add(user.full_name); return s; });
+    }
+  }, [loading, isRegularStaff, user?.full_name]);
+
   function toggleExpand(name) {
     setExpanded(prev => {
       const s = new Set(prev);
@@ -836,8 +844,10 @@ ${rows.map(renderRow).join('\n')}
             <button onClick={() => setMonth(m => shiftMonth(m, 1))} disabled={month >= todayMonth()}
               style={{ padding: '6px 13px', border: 'none', background: 'transparent', color: month >= todayMonth() ? '#3a3a5a' : '#c8c8e0', cursor: month >= todayMonth() ? 'default' : 'pointer', fontSize: '1rem', fontWeight: 700, borderRadius: '6px' }}>›</button>
           </div>
-          <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
-            style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
+          {!isRegularStaff && (
+            <input type="text" placeholder="Tìm theo tên..." value={filterName} onChange={e => setFilter(e.target.value)}
+              style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#eeeef5', fontSize: '0.83rem', flex: 1, minWidth: '140px', outline: 'none' }} />
+          )}
           {loading && <span style={{ color: '#7878a0', fontSize: '0.82rem' }}>⏳</span>}
           {error   && <span style={{ color: '#f87171', fontSize: '0.82rem' }}>⚠ {error}</span>}
           {canViewAll && (
