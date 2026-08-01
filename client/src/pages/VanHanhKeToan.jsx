@@ -383,6 +383,79 @@ function NccTab({ month }) {
   );
 }
 
+// ── Tab Sự Kiện Tháng ─────────────────────────────────────
+const STATUS_LABEL = { active: 'Đang diễn ra', planned: 'Dự kiến', completed: 'Hoàn thành', cancelled: 'Huỷ' };
+const STATUS_COLOR = { active: '#4ade80', planned: '#60a5fa', completed: '#a3a3a3', cancelled: '#f87171' };
+
+function parseDates(multi, single) {
+  if (multi) { try { const v = JSON.parse(multi); if (Array.isArray(v)) return v.filter(Boolean); } catch {} }
+  return single ? [single] : [];
+}
+
+function SuKienThangTab({ month }) {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api.getEvents({ include_archived: 1 })
+      .then(data => setEvents(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = useMemo(() => {
+    return events.filter(ev => getEventMonth(ev) === month);
+  }, [events, month]);
+
+  const [mm, yy] = month.split('-').map(Number);
+  const label = `Tháng ${mm}/${yy}`;
+
+  if (loading) return <div style={{ color: '#7878a0', padding: '20px', textAlign: 'center' }}>⏳ Đang tải...</div>;
+  if (filtered.length === 0) return <div style={{ color: '#7878a0', padding: '20px', textAlign: 'center' }}>Không có sự kiện nào trong {label}</div>;
+
+  return (
+    <div>
+      <p style={{ color: '#7878a0', fontSize: '0.82rem', marginBottom: '12px' }}>{filtered.length} sự kiện trong {label}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {filtered.map(ev => {
+          const filmDates = parseDates(ev.filming_dates, ev.filming_date);
+          const showDates = parseDates(ev.show_dates, ev.show_date);
+          const startDates = parseDates(ev.start_dates, ev.start_date);
+          const allDates = [...new Set([...filmDates, ...showDates, ...startDates])].sort();
+          const color = STATUS_COLOR[ev.status] || '#7878a0';
+          return (
+            <div key={ev.id} style={{ background: '#13131d', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 800, color: GOLD, fontSize: '0.78rem', letterSpacing: '0.06em' }}>{ev.code}</span>
+                    <span style={{ fontWeight: 700, color: '#eeeef5', fontSize: '0.90rem' }}>{ev.name}</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: color, background: `${color}18`, border: `1px solid ${color}40`, borderRadius: '9999px', padding: '1px 8px' }}>
+                      {STATUS_LABEL[ev.status] || ev.status}
+                    </span>
+                  </div>
+                  {ev.client && <div style={{ fontSize: '0.80rem', color: '#a0a0b8', marginBottom: '2px' }}>👤 {ev.client}</div>}
+                  {ev.location && <div style={{ fontSize: '0.80rem', color: '#a0a0b8', marginBottom: '2px' }}>📍 {ev.location}</div>}
+                  {allDates.length > 0 && (
+                    <div style={{ fontSize: '0.78rem', color: '#7878a0', marginTop: '4px' }}>
+                      📅 {allDates.map(fmtDate).join(' · ')}
+                    </div>
+                  )}
+                  {ev.departments && (
+                    <div style={{ fontSize: '0.75rem', color: '#7878a0', marginTop: '3px' }}>
+                      🏢 {(() => { try { const d = JSON.parse(ev.departments); return Array.isArray(d) ? d.join(', ') : ev.departments; } catch { return ev.departments; } })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────
 export default function VanHanhKeToan() {
   const [tab, setTab]     = useState('khoi-minh');
@@ -414,8 +487,9 @@ export default function VanHanhKeToan() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid rgba(120,120,160,0.15)' }}>
         {[
-          { id: 'khoi-minh', Icon: Package, label: 'Chi Phí Khôi Minh' },
-          { id: 'ncc',       Icon: Truck,   label: 'Chi Phí NCC'        },
+          { id: 'khoi-minh',  Icon: Package,  label: 'Chi Phí Khôi Minh' },
+          { id: 'ncc',        Icon: Truck,    label: 'Chi Phí NCC'        },
+          { id: 'su-kien',    Icon: Search,   label: `Sự Kiện ${fmtMonth(month)}` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             display: 'flex', alignItems: 'center', gap: '7px',
@@ -434,6 +508,7 @@ export default function VanHanhKeToan() {
 
       {tab === 'khoi-minh' && <KhoiMinhTab month={month} />}
       {tab === 'ncc'       && <NccTab month={month} />}
+      {tab === 'su-kien'   && <SuKienThangTab month={month} />}
     </div>
   );
 }
