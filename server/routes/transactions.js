@@ -1,8 +1,24 @@
 const router = require('express').Router();
 const db = require('../database');
 const { requireRole } = require('../middleware/auth');
-const { pushAll } = require('../services/pushNotify');
+const { pushAll, pushByUserIds } = require('../services/pushNotify');
 const ALL_ROLES = ['DIRECTOR','SUPER_ADMIN','PRODUCTION','ACCOUNTING','TECHNICAL','ATAS','STAGE','CSVC'];
+
+// Trả về userIds cần nhận push: cùng dept với actor + SUPER_ADMIN + DIRECTOR + is_phan_lich_all
+function getPushTargetIds(actorUser) {
+  try {
+    const kmGroups = db.prepare("SELECT dept, members FROM staff_groups WHERE type='km'").all();
+    const deptRow = kmGroups.find(g => JSON.parse(g.members || '[]').includes(actorUser?.full_name || ''));
+    const deptMembers = deptRow ? JSON.parse(deptRow.members || '[]') : [];
+    const rows = db.prepare(`
+      SELECT id FROM users WHERE is_active = 1 AND (
+        ${deptMembers.length ? `full_name IN (${deptMembers.map(() => '?').join(',')}) OR ` : ''}
+        role IN ('SUPER_ADMIN','DIRECTOR') OR is_phan_lich_all = 1
+      )
+    `).all(...deptMembers);
+    return { userIds: rows.map(u => u.id), dept: deptRow?.dept || null };
+  } catch (_) { return { userIds: [], dept: null }; }
+}
 
 function canTransact(req, res, next) {
   const { role, is_truong_phong } = req.user || {};
@@ -321,7 +337,8 @@ router.post('/out', canTransact, (req, res) => {
     logEdit(result.id, req.user, result._pending ? 'Tạo phiếu xuất tạm' : 'Tạo phiếu xuất kho');
     const evName = db.prepare('SELECT name FROM events WHERE id = ?').get(event_id)?.name || '';
     const label = result._pending ? '📋 Phiếu xuất tạm' : '📤 Xuất kho';
-    pushAll(label, `${evName} · ${result.code}`, '/transactions').catch(() => {});
+    const { userIds: outIds, dept: outDept } = getPushTargetIds(req.user);
+    pushByUserIds(`${label}${outDept ? ` — ${outDept}` : ''}`, `${evName} · ${result.code}`, '/transactions', outIds).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -354,7 +371,8 @@ router.post('/confirm/:id', canTransact, (req, res) => {
     res.json(doConfirm());
     logEdit(tx.id, req.user, 'Xác nhận xuất kho');
     const evName2 = tx.event_id ? (db.prepare('SELECT name FROM events WHERE id = ?').get(tx.event_id)?.name || '') : '';
-    pushAll('✅ Xác nhận xuất kho', `${evName2} · ${tx.code}`, '/transactions').catch(() => {});
+    const { userIds: cfmIds, dept: cfmDept } = getPushTargetIds(req.user);
+    pushByUserIds(`✅ Xác nhận xuất kho${cfmDept ? ` — ${cfmDept}` : ''}`, `${evName2} · ${tx.code}`, '/transactions', cfmIds).catch(() => {});
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
