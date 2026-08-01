@@ -832,6 +832,7 @@ export default function Events() {
   const [scheduleFormInitial, setScheduleFormInitial] = useState(null);
   const [reportListEvent, setReportListEvent] = useState(null);
   const [pastSearch, setPastSearch] = useState('');
+  const [pastMonth, setPastMonth] = useState(null); // null = dùng tháng mới nhất
   const handledNavId = useRef(null);
   const [notifyEvId, setNotifyEvId]     = useState(null); // đang gửi
   const [notifiedEvId, setNotifiedEvId] = useState(null); // đã gửi (3s)
@@ -1140,14 +1141,32 @@ export default function Events() {
         const upcomingZone = sorted.filter(ev => { const n = nearestUpcomingEvent(ev); return n && n > tomorrowStr && ev.status !== 'cancelled' && !isEventOnDate(ev, tomorrowStr); });
         const pastZone     = sorted.filter(ev => nearestUpcomingEvent(ev) === null || ev.status === 'cancelled' || ev.status === 'completed');
 
-        const pastFiltered = pastSearch.trim()
+        const pastMonths = (() => {
+          const s = new Set();
+          for (const ev of pastZone) {
+            const d = ev.start_date || parseDatesField(ev, 'start_dates', 'start_date')[0] || getAllDates(ev).sort()[0] || '';
+            const k = d.slice(0, 7);
+            if (k && k.length === 7) s.add(k);
+          }
+          return [...s].sort((a, b) => b.localeCompare(a));
+        })();
+        const effectivePastMonth = pastMonth ?? (pastMonths[0] ?? null);
+        const pastMonthIdx = pastMonths.indexOf(effectivePastMonth);
+        const monthZone = effectivePastMonth
           ? pastZone.filter(ev => {
+              const d = ev.start_date || parseDatesField(ev, 'start_dates', 'start_date')[0] || getAllDates(ev).sort()[0] || '';
+              return d.slice(0, 7) === effectivePastMonth;
+            })
+          : pastZone;
+        const pastFiltered = pastSearch.trim()
+          ? monthZone.filter(ev => {
               const q = pastSearch.trim().toLowerCase();
               return (ev.name     || '').toLowerCase().includes(q)
                   || (ev.client   || '').toLowerCase().includes(q)
                   || (ev.location || '').toLowerCase().includes(q);
             })
-          : pastZone;
+          : monthZone;
+        const fmtPastMonth = k => { const [y, m] = (k || '').split('-'); return k ? `T.${parseInt(m)}/${y}` : ''; };
 
         return (
           <div className="grid gap-4">
@@ -1168,7 +1187,7 @@ export default function Events() {
               <div style={{ margin:'10px 0 6px', display:'flex', alignItems:'center', gap:'10px' }}>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(90deg,rgba(120,120,160,0.35),transparent)' }} />
                 <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'0.1em', color:'#7878a0', whiteSpace:'nowrap' }}>
-                  ĐÃ QUA / HỦY ({pastFiltered.length}{pastSearch.trim() ? `/${pastZone.length}` : ''})
+                  ĐÃ QUA / HỦY ({pastFiltered.length}{pastSearch.trim() ? `/${monthZone.length}` : ''})
                 </span>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
                 <button
@@ -1178,12 +1197,29 @@ export default function Events() {
                   🗂 Lưu Trữ →
                 </button>
               </div>
-              <div style={{ marginBottom:'8px' }}>
+              <div style={{ marginBottom:'8px', display:'flex', gap:'8px', alignItems:'center' }}>
+                <div style={{ display:'flex', alignItems:'center', flexShrink:0, background:'rgba(120,120,160,0.1)', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.22)', overflow:'hidden' }}>
+                  <button
+                    onClick={() => { const i = pastMonthIdx + 1; if (i < pastMonths.length) setPastMonth(pastMonths[i]); }}
+                    disabled={pastMonthIdx >= pastMonths.length - 1}
+                    style={{ padding:'6px 9px', background:'none', border:'none', color: pastMonthIdx >= pastMonths.length - 1 ? '#444460' : '#a0a0c0', cursor: pastMonthIdx >= pastMonths.length - 1 ? 'default' : 'pointer', fontSize:'1rem', lineHeight:1 }}>
+                    ‹
+                  </button>
+                  <span style={{ fontSize:'0.8rem', fontWeight:700, color:'#c0c0d4', minWidth:'82px', textAlign:'center', userSelect:'none', letterSpacing:'0.02em' }}>
+                    {fmtPastMonth(effectivePastMonth) || '—'}
+                  </span>
+                  <button
+                    onClick={() => { const i = pastMonthIdx - 1; if (i >= 0) setPastMonth(pastMonths[i]); }}
+                    disabled={pastMonthIdx <= 0}
+                    style={{ padding:'6px 9px', background:'none', border:'none', color: pastMonthIdx <= 0 ? '#444460' : '#a0a0c0', cursor: pastMonthIdx <= 0 ? 'default' : 'pointer', fontSize:'1rem', lineHeight:1 }}>
+                    ›
+                  </button>
+                </div>
                 <input
                   value={pastSearch}
                   onChange={e => setPastSearch(e.target.value)}
                   placeholder="Tìm theo tên, khách hàng, địa điểm…"
-                  style={{ width:'100%', boxSizing:'border-box', padding:'8px 12px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.25)', background:'rgba(120,120,160,0.08)', color:'#c0c0d4', fontSize:'0.83rem', outline:'none' }}
+                  style={{ flex:1, boxSizing:'border-box', padding:'8px 12px', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.25)', background:'rgba(120,120,160,0.08)', color:'#c0c0d4', fontSize:'0.83rem', outline:'none' }}
                 />
               </div>
               <div style={{ maxHeight:'585px', overflowY:'auto', borderRadius:'8px', border:'1px solid rgba(120,120,160,0.15)', background:'rgba(120,120,160,0.03)', padding:'6px 8px' }}>
