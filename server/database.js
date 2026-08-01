@@ -281,12 +281,16 @@ db.exec(`
   );
 `);
 
-// Migration: thêm penalty_amount vào violations
+// Migration: thêm penalty_amount và supplementary_submitted vào violations
 {
   const violCols = db.pragma('table_info(violations)').map(c => c.name);
   if (!violCols.includes('penalty_amount')) {
     db.exec("ALTER TABLE violations ADD COLUMN penalty_amount INTEGER DEFAULT 0");
     console.log('[DB] Migration: thêm cột penalty_amount vào violations');
+  }
+  if (!violCols.includes('supplementary_submitted')) {
+    db.exec("ALTER TABLE violations ADD COLUMN supplementary_submitted INTEGER DEFAULT 0");
+    console.log('[DB] Migration: thêm cột supplementary_submitted vào violations');
   }
 }
 

@@ -476,7 +476,7 @@ function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
 
         {/* Actions */}
         <div className="vc-actions">
-          {isReportViol && (
+          {isReportViol && !v.supplementary_submitted && (
             <button onClick={() => navigate('/event-report', { state: { prefill: { event_id: v.event_id, event_label: v.event_name || v.event_label, report_date: assignedDate, violation_id: v.id } } })}
               style={{ background:'rgba(251,146,60,0.12)', border:'1px solid rgba(251,146,60,0.3)', color:'#fb923c', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontSize:'0.80rem', fontWeight:700, whiteSpace:'nowrap' }}>
               Nộp BC bổ sung

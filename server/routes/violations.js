@@ -70,6 +70,14 @@ router.delete('/:id', requireAuth, requireRole('SUPER_ADMIN', 'DIRECTOR'), (req,
   res.json({ ok: true });
 });
 
+// PATCH /api/violations/:id/mark-supplemented — đánh dấu đã nộp BC bổ sung (giữ nguyên vi phạm)
+router.patch('/:id/mark-supplemented', requireAuth, (req, res) => {
+  const viol = db.prepare('SELECT id FROM violations WHERE id = ?').get(req.params.id);
+  if (!viol) return res.status(404).json({ error: 'Không tìm thấy vi phạm' });
+  db.prepare('UPDATE violations SET supplementary_submitted = 1 WHERE id = ?').run(viol.id);
+  res.json({ ok: true });
+});
+
 // POST /api/violations/:id/forgive — tha vi phạm sau khi nộp BC bổ sung (không log audit)
 router.post('/:id/forgive', requireAuth, (req, res) => {
   const viol = db.prepare('SELECT * FROM violations WHERE id = ?').get(req.params.id);

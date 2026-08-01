@@ -1423,7 +1423,7 @@ export default function EventReport() {
       } else {
         await api.createEventReport({ ...form, reporter_name: user?.full_name || '' });
         if (prefillViolationIdRef.current) {
-          try { await api.forgiveViolation(prefillViolationIdRef.current); } catch (_) {}
+          try { await api.markViolationSupplemented(prefillViolationIdRef.current); } catch (_) {}
           prefillViolationIdRef.current = null;
         }
       }
