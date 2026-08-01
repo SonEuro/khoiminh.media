@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
@@ -328,6 +328,94 @@ function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
   const navigate = useNavigate();
   const [penaltyInput, setPenaltyInput] = useState(v.penalty_amount > 0 ? String(v.penalty_amount) : '');
   const [savingPenalty, setSavingPenalty] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(null);
+  const [imgScale, setImgScale] = useState(1);
+  const [imgTranslate, setImgTranslate] = useState({ x: 0, y: 0 });
+  const lightboxRef    = useRef(null);
+  const lightboxImgRef = useRef(null);
+  const imgScaleRef    = useRef(1);
+  const imgTranslateRef = useRef({ x: 0, y: 0 });
+  const wasDraggingRef  = useRef(false);
+
+  useEffect(() => {
+    imgScaleRef.current = 1; imgTranslateRef.current = { x: 0, y: 0 };
+    setImgScale(1); setImgTranslate({ x: 0, y: 0 });
+  }, [lightboxIdx]);
+
+  useEffect(() => {
+    const el = lightboxImgRef.current, box = lightboxRef.current;
+    if (!el || !box || lightboxIdx === null) return;
+    let startDist = null, startScale = 1, panStart = null, panTx = 0, panTy = 0;
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        startDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        startScale = imgScaleRef.current; panStart = null;
+      } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
+        panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        panTx = imgTranslateRef.current.x; panTy = imgTranslateRef.current.y;
+      }
+    }
+    function onTouchMove(e) {
+      if (e.touches.length === 2 && startDist) {
+        e.preventDefault();
+        const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const s = Math.min(8, Math.max(1, startScale * (d / startDist)));
+        imgScaleRef.current = s; setImgScale(s);
+      } else if (e.touches.length === 1 && panStart) {
+        e.preventDefault();
+        const tx = panTx + e.touches[0].clientX - panStart.x;
+        const ty = panTy + e.touches[0].clientY - panStart.y;
+        imgTranslateRef.current = { x: tx, y: ty }; setImgTranslate({ x: tx, y: ty });
+      }
+    }
+    function onTouchEnd() { startDist = null; panStart = null; }
+    function onWheel(e) {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - (rect.left + rect.width / 2);
+      const cy = e.clientY - (rect.top  + rect.height / 2);
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      const newScale = Math.min(8, Math.max(1, imgScaleRef.current * factor));
+      const ratio = newScale / imgScaleRef.current;
+      const tx = imgTranslateRef.current.x + cx * (1 - ratio);
+      const ty = imgTranslateRef.current.y + cy * (1 - ratio);
+      imgScaleRef.current = newScale; imgTranslateRef.current = { x: tx, y: ty };
+      setImgScale(newScale); setImgTranslate({ x: tx, y: ty });
+      if (newScale === 1) { imgTranslateRef.current = { x: 0, y: 0 }; setImgTranslate({ x: 0, y: 0 }); }
+    }
+    let dragging = false, mStartX = 0, mStartY = 0, mTx = 0, mTy = 0;
+    function onMouseDown(e) {
+      if (e.button !== 0) return; e.preventDefault();
+      dragging = true; wasDraggingRef.current = false;
+      mStartX = e.clientX; mStartY = e.clientY;
+      mTx = imgTranslateRef.current.x; mTy = imgTranslateRef.current.y;
+      el.style.cursor = 'grabbing';
+    }
+    function onMouseMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - mStartX, dy = e.clientY - mStartY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) wasDraggingRef.current = true;
+      const tx = mTx + dx, ty = mTy + dy;
+      imgTranslateRef.current = { x: tx, y: ty }; setImgTranslate({ x: tx, y: ty });
+    }
+    function onMouseUp() { dragging = false; el.style.cursor = imgScaleRef.current > 1 ? 'grab' : 'default'; }
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true });
+    box.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup',   onMouseUp);
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+      box.removeEventListener('wheel', onWheel);
+      el.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup',   onMouseUp);
+    };
+  }, [lightboxIdx]);
 
   async function savePenalty() {
     setSavingPenalty(true);
@@ -467,16 +555,57 @@ function ViolationCard({ v, isSuperAdmin, canEditPenalty, onDelete }) {
           {v.images?.length > 0 && (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {v.images.map((src, i) => (
-                <a key={i} href={src} target="_blank" rel="noreferrer">
-                  <img src={src} alt="" style={{
-                    width: '80px', height: '80px', objectFit: 'cover',
-                    borderRadius: '6px', border: '1px solid rgba(201,168,76,0.2)',
-                    cursor: 'pointer',
-                  }} />
-                </a>
+                <img key={i} src={src} alt="" onClick={() => setLightboxIdx(i)} style={{
+                  width: '80px', height: '80px', objectFit: 'cover',
+                  borderRadius: '6px', border: '1px solid rgba(201,168,76,0.2)',
+                  cursor: 'pointer',
+                }} />
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <div ref={lightboxRef}
+          onClick={() => { if (!wasDraggingRef.current) setLightboxIdx(null); wasDraggingRef.current = false; }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <img ref={lightboxImgRef} src={v.images[lightboxIdx]} alt=""
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: '90vw', maxHeight: '90dvh', borderRadius: '8px',
+              boxShadow: '0 0 40px rgba(0,0,0,0.8)',
+              transform: `translate(${imgTranslate.x}px, ${imgTranslate.y}px) scale(${imgScale})`,
+              transformOrigin: 'center',
+              transition: imgScale === 1 && imgTranslate.x === 0 && imgTranslate.y === 0 ? 'transform 0.2s' : 'none',
+              touchAction: 'none', cursor: imgScale > 1 ? 'grab' : 'default', userSelect: 'none',
+            }} />
+          {/* Nút đóng */}
+          <button onClick={() => setLightboxIdx(null)} style={{
+            position: 'absolute', top: 'max(env(safe-area-inset-top, 0px), 16px)', right: 'max(env(safe-area-inset-right, 0px), 16px)',
+            background: 'rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%',
+            width: '44px', height: '44px', color: 'white', fontSize: '1.4rem', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+          }}>✕</button>
+          {/* Prev / Next */}
+          {v.images.length > 1 && (<>
+            <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + v.images.length) % v.images.length); }} style={{
+              position: 'absolute', left: 'max(env(safe-area-inset-left, 0px), 12px)',
+              background: 'rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.5)', borderRadius: '50%',
+              width: '52px', height: '52px', color: 'white', fontSize: '1.8rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>‹</button>
+            <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % v.images.length); }} style={{
+              position: 'absolute', right: 'max(env(safe-area-inset-right, 0px), 12px)',
+              background: 'rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.5)', borderRadius: '50%',
+              width: '52px', height: '52px', color: 'white', fontSize: '1.8rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>›</button>
+            <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '0.84rem', fontWeight: 600, background: 'rgba(0,0,0,0.5)', padding: '3px 10px', borderRadius: '999px' }}>
+              {lightboxIdx + 1} / {v.images.length}
+            </div>
+          </>)}
         </div>
       )}
     </div>
