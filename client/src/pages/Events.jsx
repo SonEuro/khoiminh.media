@@ -1159,7 +1159,7 @@ export default function Events() {
             })
           : pastZone;
         const pastFiltered = pastSearch.trim()
-          ? monthZone.filter(ev => {
+          ? pastZone.filter(ev => {
               const q = pastSearch.trim().toLowerCase();
               return (ev.name     || '').toLowerCase().includes(q)
                   || (ev.client   || '').toLowerCase().includes(q)
@@ -1187,7 +1187,7 @@ export default function Events() {
               <div style={{ margin:'10px 0 6px', display:'flex', alignItems:'center', gap:'10px' }}>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(90deg,rgba(120,120,160,0.35),transparent)' }} />
                 <span style={{ fontSize:'0.75rem', fontWeight:800, letterSpacing:'0.1em', color:'#7878a0', whiteSpace:'nowrap' }}>
-                  ĐÃ QUA / HỦY ({pastFiltered.length}{pastSearch.trim() ? `/${monthZone.length}` : ''})
+                  ĐÃ QUA / HỦY ({pastFiltered.length}{pastSearch.trim() ? `/${pastZone.length}` : ''})
                 </span>
                 <div style={{ height:'1px', flex:1, background:'linear-gradient(270deg,rgba(120,120,160,0.35),transparent)' }} />
                 <button
