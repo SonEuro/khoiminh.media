@@ -738,7 +738,7 @@ function ReportCard({ report, onDelete, onEdit, onConfirm, isSuperAdmin, hideEve
           ref={lightboxRef}
           onClick={() => { if (!wasDraggingRef.current) setImgIdx(null); wasDraggingRef.current = false; }}
           style={{
-            position:'fixed', inset:0, zIndex:999,
+            position:'fixed', inset:0, zIndex:3000,
             background:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center',
             overflow:'hidden',
           }}
