@@ -1251,6 +1251,8 @@ export default function WorkSchedule() {
   }, [events, schedules, schedulesLoaded, location.state?.openFormForEvent]);
 
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  // Giờ hiện tại theo giờ VN — báo cáo hôm nay chỉ hiện sau 17:00
+  const vnHour = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })).getHours();
   const tomorrowStr = (() => {
     const d = new Date(); d.setDate(d.getDate() + 1);
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d);
@@ -1321,7 +1323,9 @@ export default function WorkSchedule() {
         const myObs = user?.is_truong_phong
           ? obligations.filter(o => o.lead_name === user.full_name || o.user_id === user.id)
           : obligations;
-        const pastObs  = myObs.filter(o => o.assigned_date < todayStr);
+        const pastObs  = myObs.filter(o =>
+          o.assigned_date < todayStr || (o.assigned_date === todayStr && vnHour >= 17)
+        );
         const pending  = pastObs.filter(o => !o.submitted && !o.overdue && !o.ws_locked);
         const overdue  = pastObs.filter(o => o.overdue && !o.ws_locked);
         if (!pending.length && !overdue.length) return null;
@@ -1389,7 +1393,9 @@ export default function WorkSchedule() {
 
       {/* ── Tổng quan báo cáo — chỉ is_phan_lich_all (giám sát toàn bộ leads) */}
       {obligations.length > 0 && !!user?.is_phan_lich_all && (() => {
-        const pastObs = obligations.filter(o => o.assigned_date < todayStr);
+        const pastObs = obligations.filter(o =>
+          o.assigned_date < todayStr || (o.assigned_date === todayStr && vnHour >= 17)
+        );
         const overdue = pastObs.filter(o => o.overdue && !o.ws_locked);
         const pending = pastObs.filter(o => !o.submitted && !o.overdue && !o.ws_locked);
         if (!overdue.length && !pending.length) return null;
