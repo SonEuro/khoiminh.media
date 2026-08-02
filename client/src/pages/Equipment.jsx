@@ -520,7 +520,7 @@ export default function Equipment() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontWeight: 700, color: '#e0e0ee', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{eq.name}</p>
-                        <p style={{ fontSize: '0.82rem', color: '#7878a0', margin: '2px 0 0' }}>{eq.code}</p>
+                        <p style={{ fontSize: '0.6rem', color: '#7878a0', opacity: 0.5, margin: '2px 0 0' }}>{eq.code}</p>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <p style={{ fontSize: '0.84rem', fontWeight: 800, color: '#60a5fa', margin: 0 }}>{eq.qty_in_use} <span style={{ fontSize: '0.80rem', fontWeight: 400, color: '#7878a0' }}>đang dùng</span></p>
