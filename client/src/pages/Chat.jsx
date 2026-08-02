@@ -122,7 +122,7 @@ export default function Chat() {
   }, []);
 
   const isMe = (msg) => msg.user_id === user?.id;
-  const canDelete = (msg) => isMe(msg) || ['SUPER_ADMIN','DIRECTOR'].includes(user?.role);
+  const canDelete = (msg) => isMe(msg) || user?.role === 'SUPER_ADMIN';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-main)' }}>

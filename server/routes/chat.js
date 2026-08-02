@@ -6,7 +6,7 @@ const { pushByUserIds } = require('../services/pushNotify');
 function getChatUserIds(excludeId) {
   return db.prepare(`
     SELECT id FROM users WHERE is_active = 1 AND id != ?
-      AND (is_phan_lich_all = 1 OR role IN ('SUPER_ADMIN','DIRECTOR'))
+      AND (is_phan_lich_all = 1 OR role = 'SUPER_ADMIN')
   `).all(excludeId).map(u => u.id);
 }
 
@@ -56,7 +56,7 @@ router.patch('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   const msg = db.prepare('SELECT * FROM messages WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
   if (!msg) return res.status(404).json({ error: 'Không tìm thấy' });
-  const isAdmin = ['SUPER_ADMIN', 'DIRECTOR'].includes(req.user.role);
+  const isAdmin = req.user.role === 'SUPER_ADMIN';
   if (msg.user_id !== req.user.id && !isAdmin) return res.status(403).json({ error: 'Không có quyền' });
   db.prepare("UPDATE messages SET deleted_at = datetime('now','localtime') WHERE id = ?").run(msg.id);
   res.json({ ok: true });

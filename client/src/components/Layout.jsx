@@ -261,7 +261,7 @@ export default function Layout() {
     { to: '/xac-nhan-cong',   Icon: ClipboardCheck, label: 'Xác Nhận Ngày Công',           show: can('viewXacNhanCong') },
     { to: '/equipment',     Icon: Warehouse,       label: 'Tổng Kho Khôi Minh',      always: true },
     { to: '/van-hanh-ke-toan', Icon: Calculator,     label: 'Vận Hành Kế Toán',        show: can('viewKeToan') },
-    { to: '/chat',          Icon: MessageSquare,   label: 'Chat Nội Bộ',             show: !!user?.is_phan_lich_all || ['SUPER_ADMIN','DIRECTOR'].includes(user?.role) },
+    { to: '/chat',          Icon: MessageSquare,   label: 'Chat Nội Bộ',             show: !!user?.is_phan_lich_all || user?.role === 'SUPER_ADMIN' },
     { to: '/users',         Icon: Users,           label: 'Người Dùng',              show: can('manageUsers') },
   ].filter(item => item.always || item.show);
 
