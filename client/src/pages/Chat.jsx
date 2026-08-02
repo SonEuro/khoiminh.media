@@ -36,8 +36,8 @@ export default function Chat() {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText]   = useState('');
   const [hoverId, setHoverId]     = useState(null);
-  // Visual viewport height — updates when keyboard appears/disappears
-  const [vpH, setVpH] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+  // keyboardOffset = bàn phím chiếm bao nhiêu px từ dưới lên (0 khi không có bàn phím)
+  const [kbOffset, setKbOffset] = useState(0);
 
   const bottomRef = useRef(null);
   const sinceRef  = useRef(null);
@@ -49,14 +49,16 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
   }, []);
 
-  // Theo dõi chiều cao viewport để xử lý bàn phím iOS
+  // Theo dõi bàn phím iOS qua visualViewport
   useEffect(() => {
     if (!isMobile) return;
     const vv = window.visualViewport;
     if (!vv) return;
     const onResize = () => {
-      setVpH(vv.height);
-      setTimeout(() => scrollBottom(false), 80);
+      // window.innerHeight ổn định, vv.height co lại khi bàn phím hiện
+      setKbOffset(Math.max(0, window.innerHeight - vv.height));
+      scrollBottom(false);
+      setTimeout(() => scrollBottom(false), 150);
     };
     vv.addEventListener('resize', onResize);
     return () => vv.removeEventListener('resize', onResize);
@@ -153,7 +155,7 @@ export default function Chat() {
       ...(isMobile ? {
         position: 'fixed',
         top: 0, left: 0, right: 0,
-        height: vpH + 'px',
+        bottom: kbOffset + 'px',   // co lên khi bàn phím xuất hiện
         zIndex: 200,
       } : {
         height: '100%',
@@ -188,9 +190,10 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ minHeight: '100%', padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '2px' }}>
+      {/* Messages — spacer div đẩy messages xuống đáy (thay thế minHeight:100% không hoạt động trên Safari) */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }} />{/* spacer */}
+        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {grouped.length === 0 && (
             <div style={{ textAlign: 'center', color: '#555570', fontSize: '0.82rem', padding: '20px 0' }}>
               Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
@@ -296,8 +299,8 @@ export default function Chat() {
               </div>
             );
           })}
-          <div ref={bottomRef} />
         </div>
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
