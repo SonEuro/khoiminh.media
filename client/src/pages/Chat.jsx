@@ -1,41 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
-
-// iOS: khi bàn phím xuất hiện, ngăn main scroll + thu nhỏ chat theo visualViewport
-function useMobileViewport(containerRef) {
-  useEffect(() => {
-    if (window.innerWidth >= 1024) return;
-
-    // Ngăn main scroll (iOS sẽ scroll nó để show input, đẩy chat header ra ngoài)
-    const main = document.querySelector('main');
-    let prevOverflow = '';
-    if (main) { prevOverflow = main.style.overflowY; main.style.overflowY = 'hidden'; }
-
-    const vv = window.visualViewport;
-    if (!vv) return () => { if (main) main.style.overflowY = prevOverflow; };
-
-    function update() {
-      const el = containerRef.current;
-      if (!el) return;
-      // Chiều cao chat = visual viewport - mobile layout header
-      const layoutHeader = document.querySelector('header');
-      const headerH = layoutHeader ? layoutHeader.offsetHeight : 0;
-      el.style.height     = Math.max(100, vv.height - headerH) + 'px';
-      el.style.flexShrink = '0';
-    }
-
-    vv.addEventListener('resize', update);
-    update();
-    return () => {
-      vv.removeEventListener('resize', update);
-      if (main) main.style.overflowY = prevOverflow;
-      const el = containerRef.current;
-      if (el) { el.style.height = ''; el.style.flexShrink = ''; }
-    };
-  }, [containerRef]);
-}
 
 const GOLD    = '#c9a84c';
 const POLL_MS = 4000;
@@ -69,17 +36,33 @@ export default function Chat() {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText]   = useState('');
   const [hoverId, setHoverId]     = useState(null);
-  const bottomRef    = useRef(null);
-  const sinceRef     = useRef(null);
-  const inputRef     = useRef(null);
-  const editRef      = useRef(null);
-  const containerRef = useRef(null);
-  useMobileViewport(containerRef);
+  // Visual viewport height — updates when keyboard appears/disappears
+  const [vpH, setVpH] = useState(() => window.visualViewport?.height ?? window.innerHeight);
+
+  const bottomRef = useRef(null);
+  const sinceRef  = useRef(null);
+  const inputRef  = useRef(null);
+  const editRef   = useRef(null);
+  const isMobile  = window.innerWidth < 1024;
 
   const scrollBottom = useCallback((smooth = false) => {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
   }, []);
 
+  // Theo dõi chiều cao viewport để xử lý bàn phím iOS
+  useEffect(() => {
+    if (!isMobile) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      setVpH(vv.height);
+      setTimeout(() => scrollBottom(false), 80);
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, [isMobile, scrollBottom]);
+
+  // Load tin nhắn ban đầu
   useEffect(() => {
     api.getChatMessages().then(msgs => {
       setMessages(msgs);
@@ -88,6 +71,7 @@ export default function Chat() {
     }).catch(() => {});
   }, []);
 
+  // Polling tin nhắn mới
   useEffect(() => {
     const t = setInterval(() => {
       api.getChatMessages(sinceRef.current).then(msgs => {
@@ -162,24 +146,41 @@ export default function Chat() {
   const isMe = (msg) => msg.user_id === user?.id;
   const canDelete = (msg) => isMe(msg) || user?.role === 'SUPER_ADMIN';
 
-  return (
-    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--bg-main)' }}>
+  const content = (
+    <div style={{
+      // Mobile: portal đến document.body → position fixed che toàn màn hình
+      // Desktop: render bình thường trong Layout
+      ...(isMobile ? {
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        height: vpH + 'px',
+        zIndex: 200,
+      } : {
+        height: '100%',
+      }),
+      display: 'flex', flexDirection: 'column',
+      overflow: 'hidden', background: 'var(--bg-main)',
+    }}>
+
       {/* Header */}
       <div style={{
-        padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: 'rgba(255,255,255,0.02)', flexShrink: 0,
+        padding: '14px 18px',
+        paddingTop: isMobile ? 'max(env(safe-area-inset-top, 0px), 14px)' : '14px',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(30,30,50,0.98)', flexShrink: 0,
         display: 'flex', alignItems: 'center', gap: '10px',
       }}>
-        {/* Nút back — chỉ hiện trên mobile khi fixed */}
-        <button
-          onClick={() => navigate(-1)}
-          className="lg:hidden"
-          style={{
-            background: 'transparent', border: 'none', cursor: 'pointer',
-            color: GOLD, fontSize: '1.3rem', lineHeight: 1, padding: '2px 6px 2px 0',
-            display: 'flex', alignItems: 'center', flexShrink: 0,
-          }}
-        >‹</button>
+        {/* Nút back — mobile only */}
+        {isMobile && (
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: GOLD, fontSize: '1.5rem', lineHeight: 1, padding: '2px 8px 2px 0',
+              display: 'flex', alignItems: 'center', flexShrink: 0,
+            }}
+          >‹</button>
+        )}
         <span style={{ fontSize: '1.1rem' }}>💬</span>
         <div>
           <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.95rem', letterSpacing: '0.04em' }}>CHAT NỘI BỘ</div>
@@ -188,120 +189,123 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {grouped.length === 0 && (
-          <div style={{ margin: 'auto', textAlign: 'center', color: '#555570', fontSize: '0.82rem' }}>
-            Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
-          </div>
-        )}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ minHeight: '100%', padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '2px' }}>
+          {grouped.length === 0 && (
+            <div style={{ textAlign: 'center', color: '#555570', fontSize: '0.82rem', padding: '20px 0' }}>
+              Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
+            </div>
+          )}
 
-        {grouped.map((msg) => {
-          const me = isMe(msg);
-          const color = avatarColor(msg.user_name);
-          const isHovered = hoverId === msg.id;
-          const isEditing = editingId === msg.id;
+          {grouped.map((msg) => {
+            const me = isMe(msg);
+            const color = avatarColor(msg.user_name);
+            const isHovered = hoverId === msg.id;
+            const isEditing = editingId === msg.id;
 
-          return (
-            <div
-              key={msg.id}
-              style={{ display: 'flex', flexDirection: me ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '8px', marginTop: msg.showName ? '10px' : '1px' }}
-              onMouseEnter={() => setHoverId(msg.id)}
-              onMouseLeave={() => setHoverId(null)}
-            >
-              {/* Avatar */}
-              {!me && (
-                <div style={{
-                  width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
-                  background: msg.last ? color : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.62rem', fontWeight: 700, color: '#fff',
-                  visibility: msg.last ? 'visible' : 'hidden',
-                }}>
-                  {initials(msg.user_name)}
-                </div>
-              )}
-
-              <div style={{ maxWidth: '68%', display: 'flex', flexDirection: 'column', alignItems: me ? 'flex-end' : 'flex-start' }}>
-                {msg.showName && (
-                  <div style={{ fontSize: '0.68rem', color: '#7878a0', marginBottom: '3px', display: 'flex', gap: '6px', alignItems: 'baseline' }}>
-                    {!me && <span style={{ fontWeight: 600, color }}>{msg.user_name}</span>}
-                    <span>{formatTime(msg.created_at)}</span>
+            return (
+              <div
+                key={msg.id}
+                style={{ display: 'flex', flexDirection: me ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '8px', marginTop: msg.showName ? '10px' : '1px' }}
+                onMouseEnter={() => setHoverId(msg.id)}
+                onMouseLeave={() => setHoverId(null)}
+              >
+                {/* Avatar */}
+                {!me && (
+                  <div style={{
+                    width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
+                    background: msg.last ? color : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.62rem', fontWeight: 700, color: '#fff',
+                    visibility: msg.last ? 'visible' : 'hidden',
+                  }}>
+                    {initials(msg.user_name)}
                   </div>
                 )}
 
-                {isEditing ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-                    <textarea
-                      ref={editRef}
-                      value={editText}
-                      onChange={e => setEditText(e.target.value)}
-                      onKeyDown={e => onEditKey(e, msg.id)}
-                      rows={2}
-                      style={{
-                        padding: '8px 12px', borderRadius: '10px', resize: 'none',
-                        background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.4)',
-                        color: '#e0e0ee', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none',
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                      <button onClick={() => setEditingId(null)} style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: '#7878a0', cursor: 'pointer', fontSize: '0.75rem' }}>Hủy</button>
-                      <button onClick={() => saveEdit(msg.id)} style={{ padding: '3px 10px', borderRadius: '6px', border: 'none', background: GOLD, color: '#1a1a2e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>Lưu</button>
+                <div style={{ maxWidth: '68%', display: 'flex', flexDirection: 'column', alignItems: me ? 'flex-end' : 'flex-start' }}>
+                  {msg.showName && (
+                    <div style={{ fontSize: '0.68rem', color: '#7878a0', marginBottom: '3px', display: 'flex', gap: '6px', alignItems: 'baseline' }}>
+                      {!me && <span style={{ fontWeight: 600, color }}>{msg.user_name}</span>}
+                      <span>{formatTime(msg.created_at)}</span>
                     </div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '5px', flexDirection: me ? 'row-reverse' : 'row' }}>
-                    <div style={{
-                      padding: '8px 12px',
-                      borderRadius: me ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                      background: me ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)',
-                      border: me ? '1px solid rgba(201,168,76,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                      color: '#e0e0ee', fontSize: '0.85rem', lineHeight: 1.45,
-                      whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                    }}>
-                      {msg.content}
-                      {msg.edited_at && (
-                        <span style={{ fontSize: '0.62rem', color: '#555570', marginLeft: '6px' }}>(đã sửa)</span>
-                      )}
-                    </div>
+                  )}
 
-                    {/* Action buttons on hover */}
-                    {isHovered && (
-                      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
-                        {isMe(msg) && (
-                          <button
-                            onClick={() => startEdit(msg)}
-                            title="Chỉnh sửa"
-                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#7878a0', cursor: 'pointer', fontSize: '0.7rem' }}
-                          >✏️</button>
-                        )}
-                        {canDelete(msg) && (
-                          <button
-                            onClick={() => deleteMsg(msg.id)}
-                            title="Xóa"
-                            style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '0.7rem' }}
-                          >🗑</button>
+                  {isEditing ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+                      <textarea
+                        ref={editRef}
+                        value={editText}
+                        onChange={e => setEditText(e.target.value)}
+                        onKeyDown={e => onEditKey(e, msg.id)}
+                        rows={2}
+                        style={{
+                          padding: '8px 12px', borderRadius: '10px', resize: 'none',
+                          background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.4)',
+                          color: '#e0e0ee', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none',
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setEditingId(null)} style={{ padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: '#7878a0', cursor: 'pointer', fontSize: '0.75rem' }}>Hủy</button>
+                        <button onClick={() => saveEdit(msg.id)} style={{ padding: '3px 10px', borderRadius: '6px', border: 'none', background: GOLD, color: '#1a1a2e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>Lưu</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '5px', flexDirection: me ? 'row-reverse' : 'row' }}>
+                      <div style={{
+                        padding: '8px 12px',
+                        borderRadius: me ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                        background: me ? 'rgba(201,168,76,0.18)' : 'rgba(255,255,255,0.06)',
+                        border: me ? '1px solid rgba(201,168,76,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                        color: '#e0e0ee', fontSize: '0.85rem', lineHeight: 1.45,
+                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                      }}>
+                        {msg.content}
+                        {msg.edited_at && (
+                          <span style={{ fontSize: '0.62rem', color: '#555570', marginLeft: '6px' }}>(đã sửa)</span>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
 
-                {!msg.showName && msg.last && !isEditing && (
-                  <div style={{ fontSize: '0.62rem', color: '#555570', marginTop: '2px' }}>
-                    {formatTime(msg.created_at)}
-                  </div>
-                )}
+                      {isHovered && (
+                        <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                          {isMe(msg) && (
+                            <button
+                              onClick={() => startEdit(msg)}
+                              title="Chỉnh sửa"
+                              style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#7878a0', cursor: 'pointer', fontSize: '0.7rem' }}
+                            >✏️</button>
+                          )}
+                          {canDelete(msg) && (
+                            <button
+                              onClick={() => deleteMsg(msg.id)}
+                              title="Xóa"
+                              style={{ padding: '3px 6px', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '0.7rem' }}
+                            >🗑</button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!msg.showName && msg.last && !isEditing && (
+                    <div style={{ fontSize: '0.62rem', color: '#555570', marginTop: '2px' }}>
+                      {formatTime(msg.created_at)}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={bottomRef} />
+            );
+          })}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       {/* Input */}
       <div style={{
-        padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.07)',
-        background: 'rgba(255,255,255,0.02)', flexShrink: 0,
+        padding: '10px 14px',
+        paddingBottom: isMobile ? 'max(env(safe-area-inset-bottom, 0px), 10px)' : '10px',
+        borderTop: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(30,30,50,0.98)', flexShrink: 0,
         display: 'flex', gap: '10px', alignItems: 'flex-end',
       }}>
         <textarea
@@ -338,4 +342,8 @@ export default function Chat() {
       </div>
     </div>
   );
+
+  // Mobile: render ngoài Layout (portal) để tránh overflow:hidden clip
+  // Desktop: render bình thường trong Layout
+  return isMobile ? createPortal(content, document.body) : content;
 }
