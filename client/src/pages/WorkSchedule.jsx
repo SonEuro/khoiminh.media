@@ -377,7 +377,7 @@ function AddKMStaffRow({ availableDepts, excluded = [], onAdd, onCancel }) {
 }
 
 // ── 1 khối ngày (setup/teardown/rehearsal/filming) ─────────────────────────────
-function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false, exemptDates = [], onToggleExempt }) {
+function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = false, exemptDates = [], onToggleExempt, onSaveDay, saving }) {
   const { user } = useAuth();
   const { kmGroups, freelancerGroups } = useStaffGroups();
   const isSADir  = ['SUPER_ADMIN', 'DIRECTOR'].includes(user?.role);
@@ -715,6 +715,14 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                 <div style={isPastLocked ? { pointerEvents: 'none', opacity: 0.45, userSelect: 'none' } : {}}>
                   {renderDateSection(d)}
                 </div>
+                {onSaveDay && !isPastLocked && (
+                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="button" onClick={onSaveDay} disabled={saving}
+                      style={{ padding: '6px 16px', borderRadius: '7px', background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.4)', color: '#c9a84c', fontWeight: 700, fontSize: '0.82rem', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+                      {saving ? '⏳ Đang lưu...' : `💾 Lưu ${fmtD(d)}`}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -971,7 +979,7 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
             const cur = form.exempt_dates || [];
             setForm(f => ({ ...f, exempt_dates: cur.includes(d) ? cur.filter(x => x !== d) : [...cur, d] }));
           }
-          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} exemptDates={canToggleExempt ? exemptDates : []} onToggleExempt={canToggleExempt ? toggleExemptDate : null} />;
+          const renderPhase = p => <PhaseBlock key={p.key} phase={p} form={form} setForm={setForm} userDept={userDept} isPhanLichAll={isPhanLichAllFlag} exemptDates={canToggleExempt ? exemptDates : []} onToggleExempt={canToggleExempt ? toggleExemptDate : null} onSaveDay={initial?.id ? submit : null} saving={saving} />;
           return (
             <>
               {zones.today.length > 0 && <>
