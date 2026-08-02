@@ -2,6 +2,37 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
+// iOS: khi bàn phím xuất hiện, dùng visualViewport để chat chiếm đúng vùng nhìn thấy
+function useMobileViewport(containerRef) {
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function update() {
+      const el = containerRef.current;
+      if (!el) return;
+      if (window.innerWidth >= 1024) { // desktop: không cần
+        el.style.position = '';
+        el.style.top = '';
+        el.style.height = '';
+        return;
+      }
+      el.style.position = 'fixed';
+      el.style.top      = vv.offsetTop + 'px';
+      el.style.left     = '0';
+      el.style.right    = '0';
+      el.style.height   = vv.height + 'px';
+      el.style.zIndex   = '20';
+    }
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, [containerRef]);
+}
+
 const GOLD    = '#c9a84c';
 const POLL_MS = 4000;
 
@@ -33,10 +64,12 @@ export default function Chat() {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText]   = useState('');
   const [hoverId, setHoverId]     = useState(null);
-  const bottomRef = useRef(null);
-  const sinceRef  = useRef(null);
-  const inputRef  = useRef(null);
-  const editRef   = useRef(null);
+  const bottomRef    = useRef(null);
+  const sinceRef     = useRef(null);
+  const inputRef     = useRef(null);
+  const editRef      = useRef(null);
+  const containerRef = useRef(null);
+  useMobileViewport(containerRef);
 
   const scrollBottom = useCallback((smooth = false) => {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
@@ -125,7 +158,7 @@ export default function Chat() {
   const canDelete = (msg) => isMe(msg) || user?.role === 'SUPER_ADMIN';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-main)' }}>
+    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'var(--bg-main)' }}>
       {/* Header */}
       <div style={{
         padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.07)',
