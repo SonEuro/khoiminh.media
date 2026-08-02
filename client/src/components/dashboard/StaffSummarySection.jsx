@@ -42,7 +42,7 @@ export default function StaffSummarySection() {
               Object.values(fMap[targetDate]).forEach(v =>
                 (v || '').split(',').forEach(x => { if (x.trim()) freeTotal++; })
               );
-            } else if (fFlat) {
+            } else if (!fMap && fFlat) {
               fFlat.split(',').forEach(x => { if (x.trim()) freeTotal++; });
             }
           }
