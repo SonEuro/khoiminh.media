@@ -3,33 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
-// iOS: khi bàn phím xuất hiện, dùng visualViewport để chat chiếm đúng vùng nhìn thấy
+// iOS: khi bàn phím xuất hiện, ngăn main scroll + thu nhỏ chat theo visualViewport
 function useMobileViewport(containerRef) {
   useEffect(() => {
+    if (window.innerWidth >= 1024) return;
+
+    // Ngăn main scroll (iOS sẽ scroll nó để show input, đẩy chat header ra ngoài)
+    const main = document.querySelector('main');
+    let prevOverflow = '';
+    if (main) { prevOverflow = main.style.overflowY; main.style.overflowY = 'hidden'; }
+
     const vv = window.visualViewport;
-    if (!vv) return;
+    if (!vv) return () => { if (main) main.style.overflowY = prevOverflow; };
+
     function update() {
       const el = containerRef.current;
       if (!el) return;
-      if (window.innerWidth >= 1024) { // desktop: không cần
-        el.style.position = '';
-        el.style.top = '';
-        el.style.height = '';
-        return;
-      }
-      el.style.position = 'fixed';
-      el.style.top      = vv.offsetTop + 'px';
-      el.style.left     = '0';
-      el.style.right    = '0';
-      el.style.height   = vv.height + 'px';
-      el.style.zIndex   = '20';
+      // Chiều cao chat = visual viewport - mobile layout header
+      const layoutHeader = document.querySelector('header');
+      const headerH = layoutHeader ? layoutHeader.offsetHeight : 0;
+      el.style.height     = Math.max(100, vv.height - headerH) + 'px';
+      el.style.flexShrink = '0';
     }
+
     vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
     update();
     return () => {
       vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
+      if (main) main.style.overflowY = prevOverflow;
+      const el = containerRef.current;
+      if (el) { el.style.height = ''; el.style.flexShrink = ''; }
     };
   }, [containerRef]);
 }
