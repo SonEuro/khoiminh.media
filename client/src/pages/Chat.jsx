@@ -261,7 +261,7 @@ export default function Chat() {
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={onKey}
-          placeholder="Nhập tin nhắn... (Enter gửi, Shift+Enter xuống dòng)"
+          placeholder="Nhập tin nhắn..."
           rows={1}
           style={{
             flex: 1, resize: 'none', padding: '9px 13px',
