@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -58,6 +59,7 @@ function avatarColor(name = '') {
 
 export default function Chat() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages]   = useState([]);
   const [text, setText]           = useState('');
   const [sending, setSending]     = useState(false);
@@ -165,6 +167,16 @@ export default function Chat() {
         background: 'rgba(255,255,255,0.02)', flexShrink: 0,
         display: 'flex', alignItems: 'center', gap: '10px',
       }}>
+        {/* Nút back — chỉ hiện trên mobile khi fixed */}
+        <button
+          onClick={() => navigate(-1)}
+          className="lg:hidden"
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            color: GOLD, fontSize: '1.3rem', lineHeight: 1, padding: '2px 6px 2px 0',
+            display: 'flex', alignItems: 'center', flexShrink: 0,
+          }}
+        >‹</button>
         <span style={{ fontSize: '1.1rem' }}>💬</span>
         <div>
           <div style={{ fontWeight: 700, color: GOLD, fontSize: '0.95rem', letterSpacing: '0.04em' }}>CHAT NỘI BỘ</div>
