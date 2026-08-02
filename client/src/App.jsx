@@ -67,7 +67,7 @@ function AppRoutes() {
           <Route path="work-schedule" element={can('viewWorkSchedule') ? <WorkSchedule /> : <Navigate to="/" replace />} />
           <Route path="van-hanh-ke-toan" element={can('viewKeToan') ? <VanHanhKeToan /> : <Navigate to="/" replace />} />
           <Route path="xac-nhan-cong" element={can('viewXacNhanCong') ? <XacNhanCong /> : <Navigate to="/" replace />} />
-          <Route path="chat"       element={<Chat />} />
+          <Route path="chat"       element={user?.is_phan_lich_all || ['SUPER_ADMIN','DIRECTOR'].includes(user?.role) ? <Chat /> : <Navigate to="/" replace />} />
           <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
