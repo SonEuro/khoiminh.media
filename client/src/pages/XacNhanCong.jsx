@@ -876,14 +876,18 @@ ${rows.map(renderRow).join('\n')}
                   📅 Ngày Phép
                 </button>
               )}
-              <button onClick={exportCongExcel} disabled={exporting || loading}
-                style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-                {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
-              </button>
-              <button onClick={exportCongPDF} disabled={loading}
-                style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(251,146,60,0.4)', background: 'rgba(251,146,60,0.1)', color: '#fb923c', fontWeight: 700, fontSize: '0.83rem', cursor: loading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-                🖨️ PDF
-              </button>
+              {(user?.is_boss || user?.role === 'SUPER_ADMIN') && (
+                <button onClick={exportCongExcel} disabled={exporting || loading}
+                  style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.4)', background: exporting ? 'rgba(74,222,128,0.05)' : 'rgba(74,222,128,0.1)', color: '#4ade80', fontWeight: 700, fontSize: '0.83rem', cursor: exporting ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                  {exporting ? '⏳ Đang xuất...' : '📥 Excel'}
+                </button>
+              )}
+              {(user?.is_boss || user?.role === 'SUPER_ADMIN') && (
+                <button onClick={exportCongPDF} disabled={loading}
+                  style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid rgba(251,146,60,0.4)', background: 'rgba(251,146,60,0.1)', color: '#fb923c', fontWeight: 700, fontSize: '0.83rem', cursor: loading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                  🖨️ PDF
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -13,15 +13,15 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Sai tên đăng nhập hoặc mật khẩu' });
   }
 
-  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: user.position === 'Trưởng phòng', is_phan_lich: !!user.is_phan_lich, is_phan_lich_all: !!user.is_phan_lich_all, is_tra_ncc: !!user.is_tra_ncc, is_quan_ly_kho: !!user.is_quan_ly_kho, is_giam_doc: !!user.is_giam_doc, is_van_hanh_ke_toan: !!user.is_van_hanh_ke_toan };
+  const payload = { id: user.id, username: user.username, role: user.role, full_name: user.full_name, position: user.position || '', is_truong_phong: user.position === 'Trưởng phòng', is_phan_lich: !!user.is_phan_lich, is_phan_lich_all: !!user.is_phan_lich_all, is_tra_ncc: !!user.is_tra_ncc, is_quan_ly_kho: !!user.is_quan_ly_kho, is_giam_doc: !!user.is_giam_doc, is_van_hanh_ke_toan: !!user.is_van_hanh_ke_toan, is_boss: !!user.is_boss };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
   res.json({ token, user: payload });
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, full_name, role, position, is_active, is_phan_lich, is_phan_lich_all, is_tra_ncc, is_quan_ly_kho, is_giam_doc, is_van_hanh_ke_toan, is_boss FROM users WHERE id = ?').get(req.user.id);
   if (!user || !user.is_active) return res.status(401).json({ error: 'Tài khoản không hợp lệ' });
-  res.json({ ...user, is_truong_phong: user.position === 'Trưởng phòng' });
+  res.json({ ...user, is_truong_phong: user.position === 'Trưởng phòng', is_boss: !!user.is_boss });
 });
 
 router.post('/change-password', requireAuth, (req, res) => {

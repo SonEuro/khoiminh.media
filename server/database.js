@@ -698,5 +698,6 @@ if (!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='mes
 }
 try { db.prepare("ALTER TABLE messages ADD COLUMN edited_at TEXT DEFAULT NULL").run(); } catch (_) {}
 try { db.prepare("ALTER TABLE messages ADD COLUMN deleted_at TEXT DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE users ADD COLUMN is_boss INTEGER DEFAULT 0").run(); } catch (_) {}
 
 module.exports = db;
