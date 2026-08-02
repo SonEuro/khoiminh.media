@@ -36,6 +36,7 @@ const ViolationReport = lazy(() => import('./pages/ViolationReport'));
 const EventReport    = lazy(() => import('./pages/EventReport'));
 const WorkSchedule   = lazy(() => import('./pages/WorkSchedule'));
 const VanHanhKeToan  = lazy(() => import('./pages/VanHanhKeToan'));
+const Chat           = lazy(() => import('./pages/Chat'));
 const XacNhanCong    = lazy(() => import('./pages/XacNhanCong'));
 
 function ProtectedRoute({ children }) {
@@ -66,6 +67,7 @@ function AppRoutes() {
           <Route path="work-schedule" element={can('viewWorkSchedule') ? <WorkSchedule /> : <Navigate to="/" replace />} />
           <Route path="van-hanh-ke-toan" element={can('viewKeToan') ? <VanHanhKeToan /> : <Navigate to="/" replace />} />
           <Route path="xac-nhan-cong" element={can('viewXacNhanCong') ? <XacNhanCong /> : <Navigate to="/" replace />} />
+          <Route path="chat"       element={<Chat />} />
           <Route path="users"      element={can('manageUsers') ? <Users /> : <Navigate to="/" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

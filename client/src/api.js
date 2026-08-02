@@ -192,6 +192,10 @@ export const api = {
   getKeToanNcc: () => request('/van-hanh-ke-toan/ncc'),
 
   // NCC catalog
+  // Chat
+  getChatMessages: (since) => request(`/chat${since ? `?since=${encodeURIComponent(since)}` : ''}`),
+  sendChatMessage: (content) => request('/chat', { method: 'POST', body: { content } }),
+
   getNccCatalog: () => request('/ncc/catalog'),
   getNccSuppliers: () => request('/ncc'),
   getNccSupplier: (id) => request(`/ncc/${id}`),
