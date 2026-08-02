@@ -262,9 +262,16 @@ function TimeInput({ value, onChange, hasError }) {
     } else if (e.key === 'Backspace') {
       e.preventDefault();
       apply(raw.slice(0, -1));
-    } else if (!['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+    } else if (e.key !== 'Unidentified' && !['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
       e.preventDefault();
     }
+    // 'Unidentified' = bàn phím Android → để onChange xử lý
+  }
+
+  function handleChange(e) {
+    // Chỉ chạy trên Android (khi keyDown không preventDefault)
+    const digits = e.target.value.replace(/\D/g, '');
+    apply(digits);
   }
 
   return (
@@ -272,7 +279,7 @@ function TimeInput({ value, onChange, hasError }) {
       type="text" inputMode="numeric" className="input"
       value={display} placeholder="hh:mm"
       onKeyDown={onKeyDown}
-      onChange={() => {}}
+      onChange={handleChange}
       onFocus={e => setTimeout(() => e.target.select(), 0)}
       style={hasError ? { border:'1px solid #f87171' } : {}}
     />
