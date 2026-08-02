@@ -330,17 +330,18 @@ router.get('/', (req, res) => {
     if (!raw) return [];
     try {
       const v = JSON.parse(raw);
-      if (Array.isArray(v)) return v.map(l => l?.name).filter(Boolean);
+      const toObj = l => l?.name ? { name: l.name, dept: l.department || '' } : null;
+      if (Array.isArray(v)) return v.map(toObj).filter(Boolean);
       if (v && typeof v === 'object') {
         const firstKey = Object.keys(v)[0] || '';
         const arr = /^\d{4}-\d{2}-\d{2}$/.test(firstKey) ? (v[date] || []) : Object.values(v).flat();
-        return (Array.isArray(arr) ? arr : []).map(l => l?.name).filter(Boolean);
+        return (Array.isArray(arr) ? arr : []).map(toObj).filter(Boolean);
       }
     } catch {}
     return [];
   }
 
-  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, leads: new Set() }; }
+  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, leadsMap: {} }; }
   function mergeByDept(byDept, incoming) {
     for (const [dept, names] of Object.entries(incoming)) {
       if (!byDept[dept]) byDept[dept] = new Set();
@@ -360,7 +361,7 @@ router.get('/', (req, res) => {
       km_support: st?.support || {},
       freelancers: [...(st?.free || [])],
       start_time: st?.startTime || null,
-      leaders: [...(st?.leads || [])],
+      leaders: Object.entries(st?.leadsMap || {}).map(([name, dept]) => ({ name, dept })),
     };
   }
 
@@ -415,7 +416,7 @@ router.get('/', (req, res) => {
             }
           }
         }
-        extractLeadsForDate(ws[`${p}_leads`], date).forEach(n => entry.leads.add(n));
+        extractLeadsForDate(ws[`${p}_leads`], date).forEach(l => { entry.leadsMap[l.name] = l.dept; });
       }
     }
   }

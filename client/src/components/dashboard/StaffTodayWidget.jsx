@@ -88,7 +88,7 @@ function EventStaffCard({ ev, color, date }) {
   const kmByDept    = ev.km_staff_by_dept || {};
   const support     = ev.km_support       || {};
   const freelancers = ev.freelancers      || [];
-  const leaders     = (ev.leaders        || []).filter(n => typeof n === 'string' && n);
+  const leaders     = (ev.leaders        || []).filter(l => l?.name);
   const depts       = Object.keys(kmByDept);
   const supportCount = Object.keys(support).length;
   const totalKm     = (ev.km_staff?.length || 0) + supportCount;
@@ -125,10 +125,15 @@ function EventStaffCard({ ev, color, date }) {
                 <span style={{ width: 2, height: 12, borderRadius: 1, background: '#f59e0b', flexShrink: 0 }} />
                 <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Leader</span>
               </div>
-              {leaders.map((n, i) => (
-                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < leaders.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+              {leaders.map((l, i) => (
+                <div key={l.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < leaders.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, opacity: 0.8 }} />
-                  <span style={{ fontSize: '0.83rem', color: '#fef3c7', fontWeight: 600 }}>{n}</span>
+                  <span style={{ fontSize: '0.83rem', color: '#fef3c7', fontWeight: 600, flex: 1 }}>{l.name}</span>
+                  {l.dept && (
+                    <span style={{ fontSize: '0.64rem', fontWeight: 700, color: '#fbbf24', background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                      {l.dept}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
