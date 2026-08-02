@@ -321,11 +321,26 @@ router.get('/', (req, res) => {
       setup_km_staff, teardown_km_staff, rehearsal_km_staff, filming_km_staff,
       setup_freelancers, teardown_freelancers, rehearsal_freelancers, filming_freelancers,
       setup_start_times, teardown_start_times, rehearsal_start_times, filming_start_times,
-      setup_km_support, teardown_km_support, rehearsal_km_support, filming_km_support
+      setup_km_support, teardown_km_support, rehearsal_km_support, filming_km_support,
+      setup_leads, teardown_leads, rehearsal_leads, filming_leads
     FROM work_schedules WHERE deleted_at IS NULL AND event_id IS NOT NULL
   `).all();
 
-  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null }; }
+  function extractLeadsForDate(raw, date) {
+    if (!raw) return [];
+    try {
+      const v = JSON.parse(raw);
+      if (Array.isArray(v)) return v.map(l => l?.name).filter(Boolean);
+      if (v && typeof v === 'object') {
+        const firstKey = Object.keys(v)[0] || '';
+        const arr = /^\d{4}-\d{2}-\d{2}$/.test(firstKey) ? (v[date] || []) : Object.values(v).flat();
+        return (Array.isArray(arr) ? arr : []).map(l => l?.name).filter(Boolean);
+      }
+    } catch {}
+    return [];
+  }
+
+  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, leads: new Set() }; }
   function mergeByDept(byDept, incoming) {
     for (const [dept, names] of Object.entries(incoming)) {
       if (!byDept[dept]) byDept[dept] = new Set();
@@ -345,6 +360,7 @@ router.get('/', (req, res) => {
       km_support: st?.support || {},
       freelancers: [...(st?.free || [])],
       start_time: st?.startTime || null,
+      leaders: [...(st?.leads || [])],
     };
   }
 
@@ -399,6 +415,7 @@ router.get('/', (req, res) => {
             }
           }
         }
+        extractLeadsForDate(ws[`${p}_leads`], date).forEach(n => entry.leads.add(n));
       }
     }
   }

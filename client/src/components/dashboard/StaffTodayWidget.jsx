@@ -88,6 +88,7 @@ function EventStaffCard({ ev, color, date }) {
   const kmByDept    = ev.km_staff_by_dept || {};
   const support     = ev.km_support       || {};
   const freelancers = ev.freelancers      || [];
+  const leaders     = (ev.leaders        || []).filter(n => typeof n === 'string' && n);
   const depts       = Object.keys(kmByDept);
   const supportCount = Object.keys(support).length;
   const totalKm     = (ev.km_staff?.length || 0) + supportCount;
@@ -114,10 +115,24 @@ function EventStaffCard({ ev, color, date }) {
         )}
       </div>
 
-      {total === 0 ? (
+      {total === 0 && leaders.length === 0 ? (
         <div style={{ padding: '10px 14px', fontSize: '0.80rem', color: '#555570' }}>Chưa có nhân sự được phân lịch</div>
       ) : (
         <div style={{ padding: '10px 14px' }}>
+          {leaders.length > 0 && (
+            <div style={{ marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <span style={{ width: 2, height: 12, borderRadius: 1, background: '#f59e0b', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Leader</span>
+              </div>
+              {leaders.map((n, i) => (
+                <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: i < leaders.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, opacity: 0.8 }} />
+                  <span style={{ fontSize: '0.83rem', color: '#fef3c7', fontWeight: 600 }}>{n}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {(depts.length > 0 || supportCount > 0) && (
             <div style={{ marginBottom: freelancers.length > 0 ? '12px' : 0 }}>
               {groupByDept ? (
