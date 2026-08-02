@@ -997,7 +997,7 @@ export function ScheduleForm({ initial, events, schedules = [], onSaved, onClose
                 <ZoneHdr color="#7878a0" bg="rgba(120,120,160,0.08)" border="rgba(120,120,160,0.2)" label="NGÀY ĐÃ QUA" />
                 <div style={{ opacity: 0.75 }}>{zones.past.map(renderPhase)}</div>
               </>}
-              {zones.none.length > 0 && zones.none.map(renderPhase)}
+              {/* zones.none = phase không có ngày → không hiện */}
             </>
           );
         })()}
