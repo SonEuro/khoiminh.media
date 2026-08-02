@@ -22,13 +22,14 @@ function NameList({ names, color }) {
   );
 }
 
-function DeptSection({ dept, names }) {
+function DeptSection({ dept, names, time }) {
   return (
     <div style={{ marginBottom: '8px' }}>
       {dept && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
           <span style={{ width: 2, height: 12, borderRadius: 1, background: '#4b7fa8', flexShrink: 0 }} />
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4b9fd5', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{dept}</span>
+          {time && <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#f97316' }}>· 🕐 {time}</span>}
         </div>
       )}
       <NameList names={names} color="#93c5fd" />
@@ -89,6 +90,7 @@ function EventStaffCard({ ev, color, date }) {
   const support     = ev.km_support       || {};
   const freelancers = ev.freelancers      || [];
   const leaders     = (ev.leaders        || []).filter(l => l?.name);
+  const deptTimes   = ev.dept_times       || {};
   const depts       = Object.keys(kmByDept);
   const supportCount = Object.keys(support).length;
   const totalKm     = (ev.km_staff?.length || 0) + supportCount;
@@ -143,7 +145,7 @@ function EventStaffCard({ ev, color, date }) {
               {groupByDept ? (
                 <>
                   {depts.map(dept => (
-                    <DeptSection key={dept} dept={dept || null} names={kmByDept[dept]} />
+                    <DeptSection key={dept} dept={dept || null} names={kmByDept[dept]} time={deptTimes[dept] || null} />
                   ))}
                   <SupportSection support={support} />
                 </>

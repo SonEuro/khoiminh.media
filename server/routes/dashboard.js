@@ -341,7 +341,7 @@ router.get('/', (req, res) => {
     return [];
   }
 
-  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, leadsMap: {} }; }
+  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, deptTimes: {}, leadsMap: {} }; }
   function mergeByDept(byDept, incoming) {
     for (const [dept, names] of Object.entries(incoming)) {
       if (!byDept[dept]) byDept[dept] = new Set();
@@ -361,6 +361,7 @@ router.get('/', (req, res) => {
       km_support: st?.support || {},
       freelancers: [...(st?.free || [])],
       start_time: st?.startTime || null,
+      dept_times: st?.deptTimes || {},
       leaders: Object.entries(st?.leadsMap || {}).map(([name, dept]) => ({ name, dept })),
     };
   }
@@ -405,7 +406,16 @@ router.get('/', (req, res) => {
         extractFreelancerNames(ws[`${p}_freelancers`], new Set([date])).forEach(n => entry.free.add(n));
         let stMap = {};
         try { stMap = JSON.parse(ws[`${p}_start_times`] || '{}'); } catch {}
-        if (!entry.startTime && typeof stMap[date] === 'string') entry.startTime = stMap[date];
+        const dayTimes = stMap[date];
+        if (dayTimes) {
+          if (typeof dayTimes === 'string') {
+            if (!entry.startTime) entry.startTime = dayTimes;
+          } else if (typeof dayTimes === 'object' && !Array.isArray(dayTimes)) {
+            for (const [dept, t] of Object.entries(dayTimes)) {
+              if (typeof t === 'string' && t && !entry.deptTimes[dept]) entry.deptTimes[dept] = t;
+            }
+          }
+        }
         let supMap = {};
         try { supMap = JSON.parse(ws[`${p}_km_support`] || '{}'); } catch {}
         const sup = supMap[date];
