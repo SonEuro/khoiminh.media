@@ -46,7 +46,8 @@ export default function Dashboard() {
     api.getLeadObligations().then(obs => {
       setLockedObs(obs.filter(o => o.locked && !o.submitted));
       const todayVN = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
-      setMyObs(obs.filter(o => !o.submitted && o.assigned_date <= todayVN));
+      const vnHour = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' })).getHours();
+      setMyObs(obs.filter(o => !o.submitted && (o.assigned_date < todayVN || (o.assigned_date === todayVN && vnHour >= 17))));
     }).catch(() => {});
   }, []);
 
