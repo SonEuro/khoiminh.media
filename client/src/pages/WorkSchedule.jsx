@@ -716,10 +716,9 @@ function PhaseBlock({ phase, form, setForm, userDept = null, isPhanLichAll = fal
                   {renderDateSection(d)}
                 </div>
                 {onSaveDay && !isPastLocked && (
-                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button type="button" onClick={onSaveDay} disabled={saving}
-                      style={{ padding: '6px 16px', borderRadius: '7px', background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.4)', color: '#c9a84c', fontWeight: 700, fontSize: '0.82rem', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-                      {saving ? '⏳ Đang lưu...' : `💾 Lưu ${fmtD(d)}`}
+                  <div style={{ marginTop: '10px' }}>
+                    <button type="button" onClick={onSaveDay} disabled={saving} className="btn-primary" style={{ width: '100%' }}>
+                      {saving ? 'Đang lưu...' : `💾 Lưu ${fmtD(d)}`}
                     </button>
                   </div>
                 )}
