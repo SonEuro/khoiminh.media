@@ -804,7 +804,7 @@ export default function ExportForm() {
                       {eq && !isOpen && (
                         <div style={{ marginTop:'5px' }}>
                           <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                            <span style={{ fontSize:'0.82rem', color:'var(--text-muted)', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</span>
+                            <span style={{ fontSize:'0.6rem', color:'var(--text-muted)', opacity:0.5, fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{eq.code}</span>
                             <span style={{ fontSize:'0.84rem', fontWeight:700, color: free <= 0 ? '#f87171' : '#4ade80', marginLeft:'auto' }}>{free} {eq.unit} khả dụng</span>
                           </div>
                           {pendingWarnings.length > 0 && (

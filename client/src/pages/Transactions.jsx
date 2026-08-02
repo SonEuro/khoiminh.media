@@ -371,7 +371,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                         <div style={{ minWidth:0, flex:1 }}>
                           <div>
                             <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{eq.name}</span>
-                            <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{eq.code}</span>
+                            <span style={{ color:'#7878a0', fontSize:'0.6rem', opacity:0.5, marginLeft:'8px' }}>{eq.code}</span>
                           </div>
                           {eq.category_name && (
                             <div style={{ fontSize:'0.82rem', color:'#a0a0c0', marginTop:'1px' }}>
@@ -412,7 +412,7 @@ function EditPendingModal({ txId, onClose, onSaved }) {
                   <div>
                     <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
                     <p style={{ fontSize:'0.82rem', margin:'2px 0 0', color: over ? '#f87171' : '#7878a0' }}>
-                      {it.eq_code}{eq ? ` · còn ${free} ${it.unit}` : ''}
+                      <span style={{ fontSize:'0.6rem', opacity:0.5 }}>{it.eq_code}</span>{eq ? ` · còn ${free} ${it.unit}` : ''}
                       {over && <span style={{ marginLeft:'5px' }}>⚠ vượt tồn kho</span>}
                     </p>
                   </div>
@@ -762,7 +762,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                                   onMouseLeave={ev => { ev.currentTarget.style.background='transparent'; }}>
                                   <div style={{ minWidth:0, flex:1 }}>
                                     <span style={{ color:GOLD, fontWeight:700, fontSize:'0.83rem' }}>{e.name}</span>
-                                    <span style={{ color:'#7878a0', fontSize:'0.78rem', marginLeft:'8px' }}>{e.code}</span>
+                                    <span style={{ color:'#7878a0', fontSize:'0.6rem', opacity:0.5, marginLeft:'8px' }}>{e.code}</span>
                                   </div>
                                   <span style={{ fontSize:'0.82rem', whiteSpace:'nowrap', marginLeft:'8px', color: e.qty_available > 0 ? '#4ade80' : '#f87171' }}>
                                     {e.qty_available} {e.unit}
@@ -775,7 +775,7 @@ function EditCompletedModal({ txId, onClose, onSaved }) {
                       ) : (
                         <>
                           <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.eq_name}</p>
-                          <p style={{ fontSize:'0.78rem', margin:'2px 0 0', color:'#7878a0' }}>{it.eq_code}{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
+                          <p style={{ fontSize:'0.78rem', margin:'2px 0 0', color:'#7878a0' }}><span style={{ fontSize:'0.6rem', opacity:0.5 }}>{it.eq_code}</span>{eq ? ` · tồn ${eq.qty_available} ${it.unit}` : ''}</p>
                         </>
                       )}
                     </div>

@@ -473,7 +473,7 @@ export default function EventReturn() {
                   <tr key={r.equipment_id}>
                     <td style={{ padding:'10px 14px', maxWidth:0, overflow:'hidden' }}>
                       <div style={{ fontWeight:600, color:'#c9a84c', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={r.eq_name}>{r.eq_name}</div>
-                      <div style={{ fontSize:'0.80rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_code} · {r.category_code}</div>
+                      <div style={{ fontSize:'0.80rem', color:'#7878a0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}><span style={{ fontSize:'0.6rem', opacity:0.5 }}>{r.eq_code}</span> · {r.category_code}</div>
                       {r.out_slip_codes && (
                         <div style={{ fontSize:'0.75rem', color:'#555570', marginTop:'2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                           Phiếu: {r.out_slip_codes}
@@ -604,7 +604,7 @@ export default function EventReturn() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontWeight:700, color:'#c9a84c', margin:0, fontSize:'0.92rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.eq_name}</p>
                       <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'3px', flexWrap:'wrap' }}>
-                        <span style={{ fontSize:'0.82rem', color:'#555570', fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{r.eq_code}</span>
+                        <span style={{ fontSize:'0.6rem', color:'#555570', opacity:0.5, fontFamily:"'ui-monospace', 'SFMono-Regular', Menlo, Consolas, monospace" }}>{r.eq_code}</span>
                         <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>
                         <span style={{ fontSize:'0.82rem', color:'#555570' }}>{r.category_code}</span>
                         <span style={{ fontSize:'0.80rem', color:'#44445a' }}>·</span>
