@@ -194,12 +194,19 @@ const UPCOMING_COLORS = ['#60a5fa', '#a78bfa', '#34d399', '#f97316', '#e879f9'];
 export default function StaffTodayWidget({ dash }) {
   const today    = dash?.today    || '';
   const tomorrow = dash?.tomorrow || '';
-  const days = dash?.schedule_days || [];
+  const rawDays = dash?.schedule_days || [];
+
+  const hasStaff = ev =>
+    (ev.km_staff?.length || 0) + Object.keys(ev.km_support || {}).length + (ev.freelancers?.length || 0) > 0;
+
+  const days = rawDays
+    .map(d => ({ ...d, events: d.events.filter(hasStaff) }))
+    .filter(d => d.events.length > 0);
 
   if (days.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '48px', color: '#7878a0', fontSize: '0.88rem' }}>
-        Không có sự kiện nào trong 7 ngày tới
+        Không có sự kiện nào có nhân sự trong 7 ngày tới
       </div>
     );
   }
