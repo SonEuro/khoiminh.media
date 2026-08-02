@@ -118,7 +118,7 @@ function TxDetailModal({ txId, onClose, canEdit, onEdit, canEditCompleted, onEdi
                 }}>
                   <div>
                     <p style={{ fontWeight:700, color:GOLD, margin:0, fontSize:'0.84rem' }}>{it.eq_name}</p>
-                    <p style={{ fontSize:'0.82rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}{it.category ? ` · ${it.category}` : ''}</p>
+                    <p style={{ fontSize:'0.82rem', color:'#7878a0', margin:'2px 0 0' }}>{it.eq_code}</p>
                   </div>
                   <span style={{ fontSize:'0.78rem', fontWeight:700, color: condColor[it.condition] || '#7878a0', whiteSpace:'nowrap' }}>
                     {condLabel[it.condition] || it.condition}
