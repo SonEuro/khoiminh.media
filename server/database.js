@@ -688,11 +688,15 @@ if (!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='mes
       user_id    INTEGER NOT NULL,
       user_name  TEXT    NOT NULL,
       content    TEXT    NOT NULL,
+      edited_at  TEXT    DEFAULT NULL,
+      deleted_at TEXT    DEFAULT NULL,
       created_at TEXT    DEFAULT (datetime('now','localtime'))
     );
     CREATE INDEX idx_messages_created_at ON messages(created_at);
   `);
   console.log('[DB] Created: messages');
 }
+try { db.prepare("ALTER TABLE messages ADD COLUMN edited_at TEXT DEFAULT NULL").run(); } catch (_) {}
+try { db.prepare("ALTER TABLE messages ADD COLUMN deleted_at TEXT DEFAULT NULL").run(); } catch (_) {}
 
 module.exports = db;

@@ -195,6 +195,8 @@ export const api = {
   // Chat
   getChatMessages: (since) => request(`/chat${since ? `?since=${encodeURIComponent(since)}` : ''}`),
   sendChatMessage: (content) => request('/chat', { method: 'POST', body: { content } }),
+  editChatMessage: (id, content) => request(`/chat/${id}`, { method: 'PATCH', body: { content } }),
+  deleteChatMessage: (id) => request(`/chat/${id}`, { method: 'DELETE' }),
 
   getNccCatalog: () => request('/ncc/catalog'),
   getNccSuppliers: () => request('/ncc'),
