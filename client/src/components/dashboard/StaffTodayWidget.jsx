@@ -106,6 +106,9 @@ function EventStaffCard({ ev, color, date }) {
             <div style={{ fontWeight: 700, color: '#e8c97a', fontSize: '0.90rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
             <div style={{ fontSize: '0.70rem', color: '#7878a0', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '0 6px' }}>
               {date && <span style={{ color: '#f97316', fontWeight: 700 }}>{fmtD(date)}</span>}
+              {(ev.phases || []).map(p => (
+                <span key={p} style={{ color: '#a78bfa', fontWeight: 700, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: '3px', padding: '0 4px', fontSize: '0.65rem', letterSpacing: '0.03em' }}>{p}</span>
+              ))}
               {typeof ev.start_time === 'string' && ev.start_time && <span style={{ color: '#f97316', fontWeight: 700 }}>🕐 {ev.start_time}</span>}
               {typeof ev.location   === 'string' && ev.location   && <span>📍 {ev.location}</span>}
               {typeof ev.client     === 'string' && ev.client     && <span>👤 {ev.client}</span>}

@@ -341,7 +341,8 @@ router.get('/', (req, res) => {
     return [];
   }
 
-  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, deptTimes: {}, leadsMap: {} }; }
+  const PHASE_LABELS = { filming: 'Ghi Hình', setup: 'Setup', rehearsal: 'Rehearsal', teardown: 'Tháo Dỡ' };
+  function initEntry() { return { km: new Set(), free: new Set(), kmByDept: {}, support: {}, startTime: null, deptTimes: {}, leadsMap: {}, phases: new Set() }; }
   function mergeByDept(byDept, incoming) {
     for (const [dept, names] of Object.entries(incoming)) {
       if (!byDept[dept]) byDept[dept] = new Set();
@@ -363,6 +364,7 @@ router.get('/', (req, res) => {
       start_time: st?.startTime || null,
       dept_times: st?.deptTimes || {},
       leaders: Object.entries(st?.leadsMap || {}).map(([name, dept]) => ({ name, dept })),
+      phases: [...(st?.phases || [])].map(p => PHASE_LABELS[p] || p),
     };
   }
 
@@ -400,6 +402,7 @@ router.get('/', (req, res) => {
         const key = `${date}::${eid}`;
         if (!staffByDateEvent[key]) staffByDateEvent[key] = initEntry();
         const entry = staffByDateEvent[key];
+        entry.phases.add(p);
         const byDept = enrichByDept(extractKmByDeptForDate(ws[`${p}_km_staff`], date));
         Object.values(byDept).flat().forEach(n => entry.km.add(n));
         mergeByDept(entry.kmByDept, byDept);
